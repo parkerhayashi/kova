@@ -15,6 +15,8 @@ export const OURA_SCOPES = [
   "personal",
   "session",
   "spo2",
+  "heart_health", // VO2 max, cardiovascular age
+  "stress", // daily stress + resilience
 ] as const;
 
 /** Build the consent URL to start the OAuth flow. */
