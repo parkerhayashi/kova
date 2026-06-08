@@ -3,6 +3,53 @@
  * These are the row shapes the frontend reads from the database.
  */
 
+/** Oura intraday sample series (heart rate, HRV during sleep, etc.). */
+export interface OuraSample {
+  interval: number; // seconds between items
+  timestamp: string; // ISO start time
+  items: (number | null)[];
+}
+
+/** daily_sleep contributors — each in range [1, 100]. */
+export interface SleepContributors {
+  deep_sleep: number | null;
+  efficiency: number | null;
+  latency: number | null;
+  rem_sleep: number | null;
+  restfulness: number | null;
+  timing: number | null;
+  total_sleep: number | null;
+}
+
+/** daily_readiness contributors — each in range [1, 100]. */
+export interface ReadinessContributors {
+  activity_balance: number | null;
+  body_temperature: number | null;
+  hrv_balance: number | null;
+  previous_day_activity: number | null;
+  previous_night: number | null;
+  recovery_index: number | null;
+  resting_heart_rate: number | null;
+  sleep_balance: number | null;
+}
+
+/** daily_activity contributors — each in range [1, 100]. */
+export interface ActivityContributors {
+  meet_daily_targets: number | null;
+  move_every_hour: number | null;
+  recovery_time: number | null;
+  stay_active: number | null;
+  training_frequency: number | null;
+  training_volume: number | null;
+}
+
+/** daily_resilience contributors — each in range [0, 100]. */
+export interface ResilienceContributors {
+  sleep_recovery: number | null;
+  daytime_recovery: number | null;
+  stress: number | null;
+}
+
 export interface Sleep {
   id: string;
   date: string;
@@ -16,6 +63,20 @@ export interface Sleep {
   latency: number | null;
   restfulness: number | null;
   sleep_debt_seconds: number | null;
+  average_heart_rate: number | null;
+  average_breath: number | null;
+  lowest_heart_rate: number | null;
+  restless_periods: number | null;
+  time_in_bed: number | null;
+  bedtime_start: string | null;
+  bedtime_end: string | null;
+  sleep_phase_5min: string | null;
+  movement_30sec: string | null;
+  contributors: SleepContributors | null;
+  optimal_bedtime_start: number | null; // offset seconds from midnight
+  optimal_bedtime_end: number | null;
+  bedtime_recommendation: string | null;
+  bedtime_status: string | null;
   created_at: string;
 }
 
@@ -29,6 +90,9 @@ export interface Readiness {
   resting_heart_rate: number | null;
   cardiovascular_age: number | null;
   resilience_score: number | null;
+  temperature_trend_deviation: number | null;
+  contributors: ReadinessContributors | null;
+  resilience_contributors: ResilienceContributors | null;
   created_at: string;
 }
 
@@ -42,7 +106,126 @@ export interface Activity {
   stress_score: number | null;
   spo2_avg: number | null;
   vo2_max: number | null;
+  equivalent_walking_distance: number | null;
+  high_activity_time: number | null;
+  medium_activity_time: number | null;
+  low_activity_time: number | null;
+  sedentary_time: number | null;
+  resting_time: number | null;
+  non_wear_time: number | null;
+  high_activity_met_minutes: number | null;
+  medium_activity_met_minutes: number | null;
+  low_activity_met_minutes: number | null;
+  sedentary_met_minutes: number | null;
+  average_met_minutes: number | null;
+  target_calories: number | null;
+  target_meters: number | null;
+  meters_to_target: number | null;
+  inactivity_alerts: number | null;
+  class_5min: string | null;
+  breathing_disturbance_index: number | null;
+  recovery_high: number | null;
+  stress_summary: string | null;
+  contributors: ActivityContributors | null;
   created_at: string;
+}
+
+export interface SleepPeriod {
+  id: string;
+  oura_id: string;
+  date: string | null;
+  type: string | null;
+  bedtime_start: string | null;
+  bedtime_end: string | null;
+  total_sleep_duration: number | null;
+  rem_sleep_duration: number | null;
+  deep_sleep_duration: number | null;
+  light_sleep_duration: number | null;
+  awake_time: number | null;
+  time_in_bed: number | null;
+  efficiency: number | null;
+  latency: number | null;
+  average_heart_rate: number | null;
+  lowest_heart_rate: number | null;
+  average_hrv: number | null;
+  average_breath: number | null;
+  restless_periods: number | null;
+  sleep_phase_5min: string | null;
+  movement_30sec: string | null;
+  heart_rate: OuraSample | null;
+  hrv: OuraSample | null;
+  created_at: string;
+}
+
+export interface HeartRateSample {
+  t: string; // ISO timestamp
+  bpm: number;
+  source: string;
+}
+
+export interface HeartRateDaily {
+  id: string;
+  date: string;
+  samples: HeartRateSample[] | null;
+  created_at: string;
+}
+
+export interface OuraWorkout {
+  id: string;
+  oura_id: string;
+  day: string | null;
+  activity: string | null;
+  calories: number | null;
+  distance: number | null;
+  intensity: string | null;
+  label: string | null;
+  source: string | null;
+  start_datetime: string | null;
+  end_datetime: string | null;
+  created_at: string;
+}
+
+export interface OuraSession {
+  id: string;
+  oura_id: string;
+  day: string | null;
+  type: string | null;
+  start_datetime: string | null;
+  end_datetime: string | null;
+  mood: string | null;
+  heart_rate: OuraSample | null;
+  heart_rate_variability: OuraSample | null;
+  motion_count: OuraSample | null;
+  created_at: string;
+}
+
+export interface OuraTag {
+  id: string;
+  oura_id: string;
+  start_day: string | null;
+  end_day: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  tag_type_code: string | null;
+  custom_name: string | null;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface OuraProfile {
+  id: string;
+  age: number | null;
+  height: number | null; // meters
+  weight: number | null; // kilograms
+  biological_sex: string | null;
+  email: string | null;
+  ring_color: string | null;
+  ring_design: string | null;
+  ring_firmware_version: string | null;
+  ring_hardware_type: string | null;
+  ring_size: number | null;
+  ring_set_up_at: string | null;
+  updated_at: string;
 }
 
 export interface WorkoutExercise {

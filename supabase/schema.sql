@@ -23,6 +23,23 @@ create table if not exists sleep (
   created_at            timestamptz default now()
 );
 
+-- Full Oura coverage: main-night detail, daily_sleep contributors, hypnogram,
+-- and sleep_time bedtime guidance (all additive; safe to re-run).
+alter table sleep add column if not exists average_heart_rate      float;
+alter table sleep add column if not exists average_breath          float;   -- breaths/min
+alter table sleep add column if not exists lowest_heart_rate       int;
+alter table sleep add column if not exists restless_periods        int;
+alter table sleep add column if not exists time_in_bed             int;     -- seconds
+alter table sleep add column if not exists bedtime_start           timestamptz;
+alter table sleep add column if not exists bedtime_end             timestamptz;
+alter table sleep add column if not exists sleep_phase_5min        text;    -- hypnogram (1 deep,2 light,3 rem,4 awake)
+alter table sleep add column if not exists movement_30sec          text;
+alter table sleep add column if not exists contributors            jsonb;   -- SleepContributors (7)
+alter table sleep add column if not exists optimal_bedtime_start   int;     -- offset seconds from midnight
+alter table sleep add column if not exists optimal_bedtime_end     int;
+alter table sleep add column if not exists bedtime_recommendation  text;
+alter table sleep add column if not exists bedtime_status          text;
+
 -- ---------------------------------------------------------------------------
 -- Oura: readiness
 -- ---------------------------------------------------------------------------
@@ -39,6 +56,10 @@ create table if not exists readiness (
   created_at            timestamptz default now()
 );
 
+alter table readiness add column if not exists temperature_trend_deviation float;
+alter table readiness add column if not exists contributors                jsonb; -- ReadinessContributors (8)
+alter table readiness add column if not exists resilience_contributors     jsonb; -- ResilienceContributors (3)
+
 -- ---------------------------------------------------------------------------
 -- Oura: activity (steps, calories, stress, spo2, vo2 max)
 -- ---------------------------------------------------------------------------
@@ -54,6 +75,28 @@ create table if not exists activity (
   vo2_max               float,
   created_at            timestamptz default now()
 );
+
+alter table activity add column if not exists equivalent_walking_distance float;  -- meters
+alter table activity add column if not exists high_activity_time          int;    -- seconds
+alter table activity add column if not exists medium_activity_time        int;
+alter table activity add column if not exists low_activity_time           int;
+alter table activity add column if not exists sedentary_time              int;
+alter table activity add column if not exists resting_time                int;
+alter table activity add column if not exists non_wear_time               int;
+alter table activity add column if not exists high_activity_met_minutes   float;
+alter table activity add column if not exists medium_activity_met_minutes float;
+alter table activity add column if not exists low_activity_met_minutes    float;
+alter table activity add column if not exists sedentary_met_minutes       float;
+alter table activity add column if not exists average_met_minutes         float;
+alter table activity add column if not exists target_calories             int;
+alter table activity add column if not exists target_meters               int;
+alter table activity add column if not exists meters_to_target            int;
+alter table activity add column if not exists inactivity_alerts           int;
+alter table activity add column if not exists class_5min                  text;
+alter table activity add column if not exists breathing_disturbance_index float;
+alter table activity add column if not exists recovery_high               int;    -- seconds in high-recovery zone
+alter table activity add column if not exists stress_summary              text;   -- restored | normal | stressful
+alter table activity add column if not exists contributors                jsonb;  -- ActivityContributors (6)
 
 -- ---------------------------------------------------------------------------
 -- Hevy: strength workouts
@@ -234,6 +277,124 @@ create table if not exists user_settings (
 insert into user_settings (id)
 select gen_random_uuid()
 where not exists (select 1 from user_settings);
+
+-- ---------------------------------------------------------------------------
+-- Oura: detailed sleep periods (every period incl. naps; intraday samples)
+-- ---------------------------------------------------------------------------
+create table if not exists sleep_periods (
+  id                    uuid primary key default gen_random_uuid(),
+  oura_id               text unique not null,
+  date                  date,         -- the `day` the period contributes to
+  type                  text,         -- long_sleep | sleep | late_nap | rest | deleted
+  bedtime_start         timestamptz,
+  bedtime_end           timestamptz,
+  total_sleep_duration  int,
+  rem_sleep_duration    int,
+  deep_sleep_duration   int,
+  light_sleep_duration  int,
+  awake_time            int,
+  time_in_bed           int,
+  efficiency            float,
+  latency               int,
+  average_heart_rate    float,
+  lowest_heart_rate     int,
+  average_hrv           float,
+  average_breath        float,
+  restless_periods      int,
+  sleep_phase_5min      text,         -- hypnogram string
+  movement_30sec        text,
+  heart_rate            jsonb,        -- SampleModel { interval, timestamp, items[] }
+  hrv                   jsonb,        -- SampleModel
+  created_at            timestamptz default now()
+);
+
+create index if not exists sleep_periods_date_idx on sleep_periods (date);
+
+-- ---------------------------------------------------------------------------
+-- Oura: all-day heart rate (one row per day; samples stored as JSON)
+-- ---------------------------------------------------------------------------
+create table if not exists heart_rate_daily (
+  id          uuid primary key default gen_random_uuid(),
+  date        date unique not null,
+  samples     jsonb,        -- [{ t: ISO timestamp, bpm: int, source: text }]
+  created_at  timestamptz default now()
+);
+
+-- ---------------------------------------------------------------------------
+-- Oura: auto-detected / confirmed workouts (distinct from Hevy `workouts`)
+-- ---------------------------------------------------------------------------
+create table if not exists oura_workouts (
+  id              uuid primary key default gen_random_uuid(),
+  oura_id         text unique not null,
+  day             date,
+  activity        text,
+  calories        float,
+  distance        float,        -- meters
+  intensity       text,         -- easy | moderate | hard
+  label           text,
+  source          text,         -- manual | autodetected | confirmed | workout_heart_rate
+  start_datetime  timestamptz,
+  end_datetime    timestamptz,
+  created_at      timestamptz default now()
+);
+
+create index if not exists oura_workouts_day_idx on oura_workouts (day);
+
+-- ---------------------------------------------------------------------------
+-- Oura: guided sessions (meditation, breathing, naps) with intraday samples
+-- ---------------------------------------------------------------------------
+create table if not exists oura_sessions (
+  id                      uuid primary key default gen_random_uuid(),
+  oura_id                 text unique not null,
+  day                     date,
+  type                    text,
+  start_datetime          timestamptz,
+  end_datetime            timestamptz,
+  mood                    text,
+  heart_rate              jsonb,
+  heart_rate_variability  jsonb,
+  motion_count            jsonb,
+  created_at              timestamptz default now()
+);
+
+create index if not exists oura_sessions_day_idx on oura_sessions (day);
+
+-- ---------------------------------------------------------------------------
+-- Oura: tags / enhanced tags (annotations)
+-- ---------------------------------------------------------------------------
+create table if not exists oura_tags (
+  id              uuid primary key default gen_random_uuid(),
+  oura_id         text unique not null,
+  start_day       date,
+  end_day         date,
+  start_time      timestamptz,
+  end_time        timestamptz,
+  tag_type_code   text,
+  custom_name     text,
+  comment         text,
+  created_at      timestamptz default now()
+);
+
+create index if not exists oura_tags_start_day_idx on oura_tags (start_day);
+
+-- ---------------------------------------------------------------------------
+-- Oura: profile + ring configuration (single row, like user_settings)
+-- ---------------------------------------------------------------------------
+create table if not exists oura_profile (
+  id                      uuid primary key default gen_random_uuid(),
+  age                     int,
+  height                  float,    -- meters
+  weight                  float,    -- kilograms
+  biological_sex          text,
+  email                   text,
+  ring_color              text,
+  ring_design             text,
+  ring_firmware_version   text,
+  ring_hardware_type      text,
+  ring_size               int,
+  ring_set_up_at          timestamptz,
+  updated_at              timestamptz default now()
+);
 
 -- ---------------------------------------------------------------------------
 -- Role grants

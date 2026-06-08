@@ -73,6 +73,73 @@ export function latestRowWith<T, K extends keyof T>(
   return null;
 }
 
+/**
+ * Expand an Oura intraday sample (interval + start timestamp + items) into
+ * chart points labelled by clock time. Optionally thins to roughly `maxPoints`
+ * so dense all-day series stay light to render.
+ */
+export function expandSample(
+  sample: { interval: number; timestamp: string; items: (number | null)[] } | null,
+  maxPoints = 240,
+): { label: string; value: number | null }[] {
+  if (!sample || !sample.items?.length) return [];
+  const start = new Date(sample.timestamp).getTime();
+  const step = Math.max(1, Math.ceil(sample.items.length / maxPoints));
+  const points: { label: string; value: number | null }[] = [];
+  for (let i = 0; i < sample.items.length; i += step) {
+    const t = new Date(start + i * sample.interval * 1000);
+    points.push({
+      label: t.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      value: sample.items[i],
+    });
+  }
+  return points;
+}
+
+/** Build chart points from stored all-day heart-rate samples. */
+export function heartRateSeries(
+  samples: { t: string; bpm: number }[] | null,
+  maxPoints = 240,
+): { label: string; value: number | null }[] {
+  if (!samples?.length) return [];
+  const step = Math.max(1, Math.ceil(samples.length / maxPoints));
+  const points: { label: string; value: number | null }[] = [];
+  for (let i = 0; i < samples.length; i += step) {
+    const s = samples[i];
+    points.push({
+      label: new Date(s.t).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      value: s.bpm,
+    });
+  }
+  return points;
+}
+
+/** Format an ISO datetime as a local clock time, e.g. "11:42 PM". */
+export function clockTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/** Format an offset-from-midnight (seconds) as a clock time, e.g. "10:30 PM". */
+export function offsetToClock(offsetSeconds: number | null | undefined): string {
+  if (offsetSeconds === null || offsetSeconds === undefined) return "—";
+  const mins = Math.round((offsetSeconds % 86400) / 60);
+  const h = Math.floor(((mins / 60) % 24 + 24) % 24);
+  const m = ((mins % 60) + 60) % 60;
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 /** Trailing simple moving average over a numeric series (nulls skipped). */
 export function rollingAverage(
   values: (number | null)[],

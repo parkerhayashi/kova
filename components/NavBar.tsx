@@ -7,6 +7,7 @@ import {
   Apple,
   CalendarCheck,
   Dumbbell,
+  Flame,
   HeartPulse,
   LayoutDashboard,
   Moon,
@@ -19,7 +20,8 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/", label: "Today", icon: LayoutDashboard },
   { href: "/sleep", label: "Sleep", icon: Moon },
-  { href: "/recovery", label: "Recovery", icon: HeartPulse },
+  { href: "/recovery", label: "Readiness", icon: HeartPulse },
+  { href: "/activity", label: "Activity", icon: Flame },
   { href: "/workouts", label: "Workouts", icon: Dumbbell },
   { href: "/nutrition", label: "Nutrition", icon: Apple },
   { href: "/supplements", label: "Supplements", icon: Pill },

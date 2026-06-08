@@ -3,6 +3,14 @@
  * OAuth 2.0 — Personal Access Tokens were deprecated December 2025.
  * All credentials live in server-side env vars; never expose to the browser.
  */
+import type {
+  ActivityContributors,
+  HeartRateSample,
+  OuraSample,
+  ReadinessContributors,
+  ResilienceContributors,
+  SleepContributors,
+} from "@/types";
 
 const OURA_BASE = "https://api.ouraring.com/v2/usercollection";
 const OURA_AUTH = "https://cloud.ouraring.com/oauth/authorize";
@@ -12,6 +20,7 @@ export const OURA_SCOPES = [
   "daily",
   "heartrate",
   "workout",
+  "tag", // tags / enhanced tags
   "personal",
   "session",
   "spo2",
@@ -73,35 +82,89 @@ export async function ouraFetch<T = unknown>(
   return res.json();
 }
 
+/**
+ * Fetch the all-day heartrate time-series. Unlike the date-range collections,
+ * this endpoint takes `start_datetime`/`end_datetime` and paginates via
+ * `next_token`. Returns the flat sample list across all pages.
+ */
+export async function ouraFetchHeartRate(
+  accessToken: string,
+  range: { start_datetime: string; end_datetime: string },
+): Promise<RawHeartRate[]> {
+  const all: RawHeartRate[] = [];
+  let nextToken: string | null = null;
+  do {
+    const url = new URL(`${OURA_BASE}/heartrate`);
+    url.searchParams.set("start_datetime", range.start_datetime);
+    url.searchParams.set("end_datetime", range.end_datetime);
+    if (nextToken) url.searchParams.set("next_token", nextToken);
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) throw new Error(`Oura heartrate failed: ${res.status}`);
+    const json = (await res.json()) as {
+      data: RawHeartRate[];
+      next_token: string | null;
+    };
+    all.push(...(json.data ?? []));
+    nextToken = json.next_token ?? null;
+  } while (nextToken);
+  return all;
+}
+
+/** Fetch a single-object endpoint (personal_info). */
+async function ouraFetchObject<T>(
+  endpoint: string,
+  accessToken: string,
+): Promise<T> {
+  const res = await fetch(`${OURA_BASE}/${endpoint}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) throw new Error(`Oura ${endpoint} failed: ${res.status}`);
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
-// Raw Oura V2 response shapes (only the fields Kova consumes; see blueprint
-// Table 2). Field names verified against the Oura V2 API.
+// Raw Oura V2 response shapes. Field names verified against the Oura V2
+// OpenAPI spec.
 // ---------------------------------------------------------------------------
 interface RawDailySleep {
   day: string;
   score: number | null;
-  contributors: { restfulness: number | null } | null;
+  contributors: SleepContributors | null;
 }
 
 interface RawSleepPeriod {
+  id: string;
   day: string;
   type: string; // "long_sleep" is the main nightly session
+  bedtime_start: string | null;
+  bedtime_end: string | null;
   total_sleep_duration: number | null;
   rem_sleep_duration: number | null;
   deep_sleep_duration: number | null;
   light_sleep_duration: number | null;
   awake_time: number | null;
+  time_in_bed: number | null;
   efficiency: number | null;
   latency: number | null;
-  average_hrv: number | null; // ms
+  average_heart_rate: number | null;
   lowest_heart_rate: number | null; // bpm
+  average_hrv: number | null; // ms
+  average_breath: number | null;
+  restless_periods: number | null;
+  sleep_phase_5min: string | null;
+  movement_30sec: string | null;
+  heart_rate: OuraSample | null;
+  hrv: OuraSample | null;
 }
 
 interface RawDailyReadiness {
   day: string;
   score: number | null;
   temperature_deviation: number | null; // °C
-  contributors: { recovery_index: number | null } | null;
+  temperature_trend_deviation: number | null;
+  contributors: ReadinessContributors | null;
 }
 
 interface RawDailyActivity {
@@ -110,16 +173,37 @@ interface RawDailyActivity {
   steps: number | null;
   active_calories: number | null;
   total_calories: number | null;
+  equivalent_walking_distance: number | null;
+  high_activity_time: number | null;
+  medium_activity_time: number | null;
+  low_activity_time: number | null;
+  sedentary_time: number | null;
+  resting_time: number | null;
+  non_wear_time: number | null;
+  high_activity_met_minutes: number | null;
+  medium_activity_met_minutes: number | null;
+  low_activity_met_minutes: number | null;
+  sedentary_met_minutes: number | null;
+  average_met_minutes: number | null;
+  target_calories: number | null;
+  target_meters: number | null;
+  meters_to_target: number | null;
+  inactivity_alerts: number | null;
+  class_5_min: string | null;
+  contributors: ActivityContributors | null;
 }
 
 interface RawDailyStress {
   day: string;
   stress_high: number | null; // seconds
+  recovery_high: number | null; // seconds
+  day_summary: string | null; // restored | normal | stressful
 }
 
 interface RawDailySpo2 {
   day: string;
   spo2_percentage: { average: number | null } | null;
+  breathing_disturbance_index: number | null;
 }
 
 interface RawVo2Max {
@@ -132,6 +216,74 @@ interface RawCardiovascularAge {
   vascular_age: number | null;
 }
 
+interface RawSleepTime {
+  day: string;
+  optimal_bedtime: { start_offset: number; end_offset: number } | null;
+  recommendation: string | null;
+  status: string | null;
+}
+
+interface RawWorkout {
+  id: string;
+  day: string;
+  activity: string;
+  calories: number | null;
+  distance: number | null;
+  intensity: string | null;
+  label: string | null;
+  source: string | null;
+  start_datetime: string;
+  end_datetime: string;
+}
+
+interface RawSession {
+  id: string;
+  day: string;
+  type: string | null;
+  start_datetime: string;
+  end_datetime: string;
+  mood: string | null;
+  heart_rate: OuraSample | null;
+  heart_rate_variability: OuraSample | null;
+  motion_count: OuraSample | null;
+}
+
+interface RawEnhancedTag {
+  id: string;
+  tag_type_code: string | null;
+  start_time: string;
+  end_time: string | null;
+  start_day: string;
+  end_day: string | null;
+  comment: string | null;
+  custom_name: string | null;
+}
+
+interface RawRingConfig {
+  id: string;
+  color: string | null;
+  design: string | null;
+  firmware_version: string | null;
+  hardware_type: string | null;
+  set_up_at: string | null;
+  size: number | null;
+}
+
+interface RawPersonalInfo {
+  id: string;
+  age: number | null;
+  weight: number | null;
+  height: number | null;
+  biological_sex: string | null;
+  email: string | null;
+}
+
+interface RawHeartRate {
+  bpm: number;
+  source: string;
+  timestamp: string;
+}
+
 type ResilienceLevel =
   | "limited"
   | "adequate"
@@ -142,6 +294,7 @@ type ResilienceLevel =
 interface RawDailyResilience {
   day: string;
   level: ResilienceLevel | null;
+  contributors: ResilienceContributors | null;
 }
 
 const RESILIENCE_LEVELS: ResilienceLevel[] = [
@@ -182,6 +335,20 @@ export interface OuraSleepRow {
   efficiency: number | null;
   latency: number | null;
   restfulness: number | null;
+  average_heart_rate: number | null;
+  average_breath: number | null;
+  lowest_heart_rate: number | null;
+  restless_periods: number | null;
+  time_in_bed: number | null;
+  bedtime_start: string | null;
+  bedtime_end: string | null;
+  sleep_phase_5min: string | null;
+  movement_30sec: string | null;
+  contributors: SleepContributors | null;
+  optimal_bedtime_start: number | null;
+  optimal_bedtime_end: number | null;
+  bedtime_recommendation: string | null;
+  bedtime_status: string | null;
 }
 
 export interface OuraReadinessRow {
@@ -193,6 +360,9 @@ export interface OuraReadinessRow {
   resting_heart_rate: number | null; // bpm
   cardiovascular_age: number | null;
   resilience_score: number | null; // 1–5 ordinal
+  temperature_trend_deviation: number | null;
+  contributors: ReadinessContributors | null;
+  resilience_contributors: ResilienceContributors | null;
 }
 
 export interface OuraActivityRow {
@@ -204,12 +374,118 @@ export interface OuraActivityRow {
   stress_score: number | null; // high-stress minutes
   spo2_avg: number | null;
   vo2_max: number | null;
+  equivalent_walking_distance: number | null;
+  high_activity_time: number | null;
+  medium_activity_time: number | null;
+  low_activity_time: number | null;
+  sedentary_time: number | null;
+  resting_time: number | null;
+  non_wear_time: number | null;
+  high_activity_met_minutes: number | null;
+  medium_activity_met_minutes: number | null;
+  low_activity_met_minutes: number | null;
+  sedentary_met_minutes: number | null;
+  average_met_minutes: number | null;
+  target_calories: number | null;
+  target_meters: number | null;
+  meters_to_target: number | null;
+  inactivity_alerts: number | null;
+  class_5min: string | null;
+  breathing_disturbance_index: number | null;
+  recovery_high: number | null;
+  stress_summary: string | null;
+  contributors: ActivityContributors | null;
+}
+
+export interface OuraSleepPeriodRow {
+  oura_id: string;
+  date: string | null;
+  type: string | null;
+  bedtime_start: string | null;
+  bedtime_end: string | null;
+  total_sleep_duration: number | null;
+  rem_sleep_duration: number | null;
+  deep_sleep_duration: number | null;
+  light_sleep_duration: number | null;
+  awake_time: number | null;
+  time_in_bed: number | null;
+  efficiency: number | null;
+  latency: number | null;
+  average_heart_rate: number | null;
+  lowest_heart_rate: number | null;
+  average_hrv: number | null;
+  average_breath: number | null;
+  restless_periods: number | null;
+  sleep_phase_5min: string | null;
+  movement_30sec: string | null;
+  heart_rate: OuraSample | null;
+  hrv: OuraSample | null;
+}
+
+export interface OuraWorkoutRow {
+  oura_id: string;
+  day: string | null;
+  activity: string | null;
+  calories: number | null;
+  distance: number | null;
+  intensity: string | null;
+  label: string | null;
+  source: string | null;
+  start_datetime: string | null;
+  end_datetime: string | null;
+}
+
+export interface OuraSessionRow {
+  oura_id: string;
+  day: string | null;
+  type: string | null;
+  start_datetime: string | null;
+  end_datetime: string | null;
+  mood: string | null;
+  heart_rate: OuraSample | null;
+  heart_rate_variability: OuraSample | null;
+  motion_count: OuraSample | null;
+}
+
+export interface OuraTagRow {
+  oura_id: string;
+  start_day: string | null;
+  end_day: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  tag_type_code: string | null;
+  custom_name: string | null;
+  comment: string | null;
+}
+
+export interface OuraProfileRow {
+  age: number | null;
+  height: number | null;
+  weight: number | null;
+  biological_sex: string | null;
+  email: string | null;
+  ring_color: string | null;
+  ring_design: string | null;
+  ring_firmware_version: string | null;
+  ring_hardware_type: string | null;
+  ring_size: number | null;
+  ring_set_up_at: string | null;
+}
+
+export interface HeartRateDailyRow {
+  date: string;
+  samples: HeartRateSample[];
 }
 
 export interface NormalizedOura {
   sleep: OuraSleepRow[];
   readiness: OuraReadinessRow[];
   activity: OuraActivityRow[];
+  sleepPeriods: OuraSleepPeriodRow[];
+  workouts: OuraWorkoutRow[];
+  sessions: OuraSessionRow[];
+  tags: OuraTagRow[];
+  profile: OuraProfileRow | null;
 }
 
 /** Pick the main (long_sleep) period per day, falling back to the longest. */
@@ -234,19 +510,35 @@ function indexByDay<T extends { day: string }>(rows: T[]): Map<string, T> {
 }
 
 /**
- * Fetch every Oura endpoint Kova uses for a date range and normalize the
- * responses into per-day rows for the sleep / readiness / activity tables.
- * Endpoints are fetched in parallel; an individual failure rejects the batch.
+ * Group all-day heart-rate samples into one bucket per local day. Stored as a
+ * single JSON row per day to keep table size bounded.
+ */
+export function groupHeartRateByDay(samples: RawHeartRate[]): HeartRateDailyRow[] {
+  const byDay = new Map<string, HeartRateSample[]>();
+  for (const s of samples) {
+    if (s.bpm == null || !s.timestamp) continue;
+    const day = s.timestamp.slice(0, 10);
+    const bucket = byDay.get(day) ?? [];
+    bucket.push({ t: s.timestamp, bpm: s.bpm, source: s.source });
+    if (bucket.length === 1) byDay.set(day, bucket);
+  }
+  return [...byDay.entries()].map(([date, samplesForDay]) => ({
+    date,
+    samples: samplesForDay,
+  }));
+}
+
+/**
+ * Fetch every date-ranged Oura collection plus the profile/ring config, and
+ * normalize into rows for each table. Each endpoint is fetched independently:
+ * a single source failing (e.g. a 404 for a metric the ring doesn't produce)
+ * leaves its fields null rather than sinking the whole sync. A total failure
+ * (e.g. a bad token) still throws so the caller can surface it.
  */
 export async function fetchOuraData(
   accessToken: string,
   range: { start_date: string; end_date: string },
 ): Promise<NormalizedOura> {
-  // Fetch each endpoint independently: newer endpoints (vo2_max,
-  // daily_cardiovascular_age, daily_resilience) return 404 for accounts/rings
-  // without that estimate, and one missing source shouldn't sink the whole
-  // sync. Their fields just come back null. A total failure (e.g. a bad token)
-  // still throws so the caller can surface it.
   const failures: string[] = [];
   let succeeded = 0;
   const safeGet = async <T>(endpoint: string): Promise<{ data: T[] }> => {
@@ -257,6 +549,16 @@ export async function fetchOuraData(
     } catch (err) {
       failures.push(`${endpoint}: ${(err as Error).message}`);
       return { data: [] };
+    }
+  };
+  const safeObject = async <T>(endpoint: string): Promise<T | null> => {
+    try {
+      const res = await ouraFetchObject<T>(endpoint, accessToken);
+      succeeded++;
+      return res;
+    } catch (err) {
+      failures.push(`${endpoint}: ${(err as Error).message}`);
+      return null;
     }
   };
 
@@ -270,6 +572,12 @@ export async function fetchOuraData(
     vo2,
     cardio,
     resilience,
+    sleepTime,
+    workouts,
+    sessions,
+    tags,
+    ringConfig,
+    personalInfo,
   ] = await Promise.all([
     safeGet<RawDailySleep>("daily_sleep"),
     safeGet<RawSleepPeriod>("sleep"),
@@ -280,6 +588,12 @@ export async function fetchOuraData(
     safeGet<RawVo2Max>("vO2_max"),
     safeGet<RawCardiovascularAge>("daily_cardiovascular_age"),
     safeGet<RawDailyResilience>("daily_resilience"),
+    safeGet<RawSleepTime>("sleep_time"),
+    safeGet<RawWorkout>("workout"),
+    safeGet<RawSession>("session"),
+    safeGet<RawEnhancedTag>("enhanced_tag"),
+    safeGet<RawRingConfig>("ring_configuration"),
+    safeObject<RawPersonalInfo>("personal_info"),
   ]);
 
   if (succeeded === 0) {
@@ -296,6 +610,7 @@ export async function fetchOuraData(
   const vo2ByDay = indexByDay(vo2.data);
   const cardioByDay = indexByDay(cardio.data);
   const resilienceByDay = indexByDay(resilience.data);
+  const sleepTimeByDay = indexByDay(sleepTime.data);
 
   // Sleep rows are keyed off whichever days have a sleep session or a score.
   const sleepDays = new Set<string>([
@@ -305,6 +620,7 @@ export async function fetchOuraData(
   const sleep: OuraSleepRow[] = [...sleepDays].map((day) => {
     const period = mainSleep.get(day);
     const ds = dailySleepByDay.get(day);
+    const st = sleepTimeByDay.get(day);
     return {
       date: day,
       score: ds?.score ?? null,
@@ -316,6 +632,20 @@ export async function fetchOuraData(
       efficiency: period?.efficiency ?? null,
       latency: period?.latency ?? null,
       restfulness: ds?.contributors?.restfulness ?? null,
+      average_heart_rate: period?.average_heart_rate ?? null,
+      average_breath: period?.average_breath ?? null,
+      lowest_heart_rate: period?.lowest_heart_rate ?? null,
+      restless_periods: period?.restless_periods ?? null,
+      time_in_bed: period?.time_in_bed ?? null,
+      bedtime_start: period?.bedtime_start ?? null,
+      bedtime_end: period?.bedtime_end ?? null,
+      sleep_phase_5min: period?.sleep_phase_5min ?? null,
+      movement_30sec: period?.movement_30sec ?? null,
+      contributors: ds?.contributors ?? null,
+      optimal_bedtime_start: st?.optimal_bedtime?.start_offset ?? null,
+      optimal_bedtime_end: st?.optimal_bedtime?.end_offset ?? null,
+      bedtime_recommendation: st?.recommendation ?? null,
+      bedtime_status: st?.status ?? null,
     };
   });
 
@@ -332,11 +662,16 @@ export async function fetchOuraData(
       resilience_score: resilienceToOrdinal(
         resilienceByDay.get(r.day)?.level ?? null,
       ),
+      temperature_trend_deviation: r.temperature_trend_deviation ?? null,
+      contributors: r.contributors ?? null,
+      resilience_contributors: resilienceByDay.get(r.day)?.contributors ?? null,
     };
   });
 
   const activityRows: OuraActivityRow[] = activity.data.map((a) => {
-    const stressHigh = stressByDay.get(a.day)?.stress_high ?? null;
+    const stressRow = stressByDay.get(a.day);
+    const stressHigh = stressRow?.stress_high ?? null;
+    const spo2Row = spo2ByDay.get(a.day);
     return {
       date: a.day,
       steps: a.steps ?? null,
@@ -344,12 +679,121 @@ export async function fetchOuraData(
       total_calories: a.total_calories ?? null,
       activity_score: a.score ?? null,
       stress_score: stressHigh === null ? null : Math.round(stressHigh / 60),
-      spo2_avg: spo2ByDay.get(a.day)?.spo2_percentage?.average ?? null,
+      spo2_avg: spo2Row?.spo2_percentage?.average ?? null,
       vo2_max: vo2ByDay.get(a.day)?.vo2_max ?? null,
+      equivalent_walking_distance: a.equivalent_walking_distance ?? null,
+      high_activity_time: a.high_activity_time ?? null,
+      medium_activity_time: a.medium_activity_time ?? null,
+      low_activity_time: a.low_activity_time ?? null,
+      sedentary_time: a.sedentary_time ?? null,
+      resting_time: a.resting_time ?? null,
+      non_wear_time: a.non_wear_time ?? null,
+      high_activity_met_minutes: a.high_activity_met_minutes ?? null,
+      medium_activity_met_minutes: a.medium_activity_met_minutes ?? null,
+      low_activity_met_minutes: a.low_activity_met_minutes ?? null,
+      sedentary_met_minutes: a.sedentary_met_minutes ?? null,
+      average_met_minutes: a.average_met_minutes ?? null,
+      target_calories: a.target_calories ?? null,
+      target_meters: a.target_meters ?? null,
+      meters_to_target: a.meters_to_target ?? null,
+      inactivity_alerts: a.inactivity_alerts ?? null,
+      class_5min: a.class_5_min ?? null,
+      breathing_disturbance_index: spo2Row?.breathing_disturbance_index ?? null,
+      recovery_high: stressRow?.recovery_high ?? null,
+      stress_summary: stressRow?.day_summary ?? null,
+      contributors: a.contributors ?? null,
     };
   });
 
-  return { sleep, readiness: readinessRows, activity: activityRows };
+  const sleepPeriodRows: OuraSleepPeriodRow[] = sleepPeriods.data.map((p) => ({
+    oura_id: p.id,
+    date: p.day ?? null,
+    type: p.type ?? null,
+    bedtime_start: p.bedtime_start ?? null,
+    bedtime_end: p.bedtime_end ?? null,
+    total_sleep_duration: p.total_sleep_duration ?? null,
+    rem_sleep_duration: p.rem_sleep_duration ?? null,
+    deep_sleep_duration: p.deep_sleep_duration ?? null,
+    light_sleep_duration: p.light_sleep_duration ?? null,
+    awake_time: p.awake_time ?? null,
+    time_in_bed: p.time_in_bed ?? null,
+    efficiency: p.efficiency ?? null,
+    latency: p.latency ?? null,
+    average_heart_rate: p.average_heart_rate ?? null,
+    lowest_heart_rate: p.lowest_heart_rate ?? null,
+    average_hrv: p.average_hrv ?? null,
+    average_breath: p.average_breath ?? null,
+    restless_periods: p.restless_periods ?? null,
+    sleep_phase_5min: p.sleep_phase_5min ?? null,
+    movement_30sec: p.movement_30sec ?? null,
+    heart_rate: p.heart_rate ?? null,
+    hrv: p.hrv ?? null,
+  }));
+
+  const workoutRows: OuraWorkoutRow[] = workouts.data.map((w) => ({
+    oura_id: w.id,
+    day: w.day ?? null,
+    activity: w.activity ?? null,
+    calories: w.calories ?? null,
+    distance: w.distance ?? null,
+    intensity: w.intensity ?? null,
+    label: w.label ?? null,
+    source: w.source ?? null,
+    start_datetime: w.start_datetime ?? null,
+    end_datetime: w.end_datetime ?? null,
+  }));
+
+  const sessionRows: OuraSessionRow[] = sessions.data.map((s) => ({
+    oura_id: s.id,
+    day: s.day ?? null,
+    type: s.type ?? null,
+    start_datetime: s.start_datetime ?? null,
+    end_datetime: s.end_datetime ?? null,
+    mood: s.mood ?? null,
+    heart_rate: s.heart_rate ?? null,
+    heart_rate_variability: s.heart_rate_variability ?? null,
+    motion_count: s.motion_count ?? null,
+  }));
+
+  const tagRows: OuraTagRow[] = tags.data.map((t) => ({
+    oura_id: t.id,
+    start_day: t.start_day ?? null,
+    end_day: t.end_day ?? null,
+    start_time: t.start_time ?? null,
+    end_time: t.end_time ?? null,
+    tag_type_code: t.tag_type_code ?? null,
+    custom_name: t.custom_name ?? null,
+    comment: t.comment ?? null,
+  }));
+
+  const ring = ringConfig.data.at(-1) ?? null; // most recent configuration
+  const profile: OuraProfileRow | null =
+    personalInfo || ring
+      ? {
+          age: personalInfo?.age ?? null,
+          height: personalInfo?.height ?? null,
+          weight: personalInfo?.weight ?? null,
+          biological_sex: personalInfo?.biological_sex ?? null,
+          email: personalInfo?.email ?? null,
+          ring_color: ring?.color ?? null,
+          ring_design: ring?.design ?? null,
+          ring_firmware_version: ring?.firmware_version ?? null,
+          ring_hardware_type: ring?.hardware_type ?? null,
+          ring_size: ring?.size ?? null,
+          ring_set_up_at: ring?.set_up_at ?? null,
+        }
+      : null;
+
+  return {
+    sleep,
+    readiness: readinessRows,
+    activity: activityRows,
+    sleepPeriods: sleepPeriodRows,
+    workouts: workoutRows,
+    sessions: sessionRows,
+    tags: tagRows,
+    profile,
+  };
 }
 
 /**

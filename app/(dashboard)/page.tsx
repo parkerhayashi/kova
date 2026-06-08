@@ -47,14 +47,17 @@ export default async function TodayPage() {
 
   const readinessScore = latestNonNull(readinessRows, "score");
   const hrv = latestNonNull(readinessRows, "hrv_balance");
+  const restingHr = latestNonNull(readinessRows, "resting_heart_rate");
   const cardioAge = latestNonNull(readinessRows, "cardiovascular_age");
   const resilience = latestNonNull(readinessRows, "resilience_score");
   const bodyTemp = latestNonNull(readinessRows, "body_temperature");
 
+  const activityScore = latestNonNull(activityRows, "activity_score");
   const stress = latestNonNull(activityRows, "stress_score");
   const vo2Max = latestNonNull(activityRows, "vo2_max");
   const steps = latestNonNull(activityRows, "steps");
   const activeCalories = latestNonNull(activityRows, "active_calories");
+  const totalCalories = latestNonNull(activityRows, "total_calories");
   const spo2 = latestNonNull(activityRows, "spo2_avg");
 
   const lastSync =
@@ -105,23 +108,41 @@ export default async function TodayPage() {
         </Card>
       )}
 
-      {/* Primary recovery readouts */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {/* The three Oura scores */}
+      <section className="grid grid-cols-3 gap-3">
         <MetricCard label="Readiness" value={readinessScore} accent="recovery" />
-        <MetricCard label="Sleep Score" value={sleepScore} accent="sleep" />
-        <MetricCard label="HRV" value={hrv} unit="ms" accent="recovery" />
+        <MetricCard label="Sleep" value={sleepScore} accent="sleep" />
+        <MetricCard label="Activity" value={activityScore} accent="activity" />
       </section>
 
-      {/* Secondary recovery metrics */}
+      {/* Recovery vitals */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <MetricCard label="HRV" value={hrv} unit="ms" accent="recovery" />
+        <MetricCard label="Resting HR" value={restingHr} unit="bpm" accent="recovery" />
         <MetricCard label="Stress" value={stress} unit="min" accent="stress" />
-        <MetricCard label="Cardio Age" value={cardioAge} unit="yr" accent="recovery" />
         <MetricCard
           label="Resilience"
           value={ordinalToResilience(resilience)}
           accent="recovery"
         />
-        <MetricCard label="VO₂ Max" value={vo2Max} accent="activity" />
+      </section>
+
+      {/* Long-horizon cardiovascular metrics */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <MetricCard label="Cardio Age" value={cardioAge} unit="yr" accent="recovery" />
+        <MetricCard
+          label="VO₂ Max"
+          value={vo2Max != null ? Math.round(vo2Max * 10) / 10 : null}
+          accent="activity"
+        />
+        <MetricCard
+          label="Body Temp"
+          value={signed(bodyTemp)}
+          unit="°C"
+          accent="recovery"
+          caption="Deviation"
+        />
+        <MetricCard label="SpO₂" value={spo2} unit="%" accent="sleep" />
       </section>
 
       {/* Nutrition + hydration (Phase 6) */}
@@ -163,14 +184,8 @@ export default async function TodayPage() {
           </span>
         </Card>
         <section className="grid grid-cols-2 gap-3">
-          <MetricCard
-            label="Body Temp"
-            value={signed(bodyTemp)}
-            unit="°C"
-            accent="recovery"
-            caption="Deviation"
-          />
-          <MetricCard label="SpO₂" value={spo2} unit="%" accent="sleep" />
+          <MetricCard label="Active kcal" value={activeCalories} accent="activity" />
+          <MetricCard label="Total kcal" value={totalCalories} accent="activity" />
         </section>
       </section>
 

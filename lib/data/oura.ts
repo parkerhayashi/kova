@@ -11,9 +11,20 @@ import {
   computeSleepDebt,
   exchangeToken,
   fetchOuraData,
+  groupHeartRateByDay,
+  ouraFetchHeartRate,
   type OuraSleepRow,
 } from "@/lib/oura";
-import type { Activity, Readiness, Sleep, UserSettings } from "@/types";
+import type {
+  Activity,
+  HeartRateDaily,
+  OuraProfile,
+  OuraWorkout,
+  Readiness,
+  Sleep,
+  SleepPeriod,
+  UserSettings,
+} from "@/types";
 
 function isoDaysAgo(days: number): string {
   const d = new Date();
@@ -67,9 +78,81 @@ export const getReadinessHistory = (days: number) =>
 export const getActivityHistory = (days: number) =>
   history<Activity>("activity", days);
 
+/** Detailed sleep periods (incl. hypnogram + intraday HR/HRV samples). */
+export async function getSleepPeriodHistory(days: number): Promise<SleepPeriod[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("sleep_periods")
+    .select("*")
+    .gte("date", isoDaysAgo(days))
+    .order("bedtime_start", { ascending: true });
+  return (data as SleepPeriod[]) ?? [];
+}
+
+/** Most recent sleep period that is an actual session (has a duration). */
+export async function getLatestSleepPeriod(): Promise<SleepPeriod | null> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("sleep_periods")
+    .select("*")
+    .not("total_sleep_duration", "is", null)
+    .order("bedtime_start", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as SleepPeriod) ?? null;
+}
+
+/** All-day heart-rate samples for a given date (one JSON row). */
+export async function getHeartRateDay(date: string): Promise<HeartRateDaily | null> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("heart_rate_daily")
+    .select("*")
+    .eq("date", date)
+    .maybeSingle();
+  return (data as HeartRateDaily) ?? null;
+}
+
+/** Most recent day that has all-day heart-rate samples. */
+export async function getLatestHeartRateDay(): Promise<HeartRateDaily | null> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("heart_rate_daily")
+    .select("*")
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as HeartRateDaily) ?? null;
+}
+
+export async function getOuraProfile(): Promise<OuraProfile | null> {
+  const db = createServiceClient();
+  const { data } = await db.from("oura_profile").select("*").limit(1).maybeSingle();
+  return (data as OuraProfile) ?? null;
+}
+
+export async function getOuraWorkouts(days: number): Promise<OuraWorkout[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("oura_workouts")
+    .select("*")
+    .gte("day", isoDaysAgo(days))
+    .order("start_datetime", { ascending: false });
+  return (data as OuraWorkout[]) ?? [];
+}
+
 export interface SyncResult {
   range: { start_date: string; end_date: string };
-  synced: { sleep: number; readiness: number; activity: number };
+  synced: {
+    sleep: number;
+    readiness: number;
+    activity: number;
+    sleep_periods: number;
+    workouts: number;
+    sessions: number;
+    tags: number;
+    heart_rate_days: number;
+  };
 }
 
 // Sync-on-open: pull a fresh window when the app is opened, but no more than
@@ -129,7 +212,10 @@ export async function maybeSyncOuraOnOpen(): Promise<void> {
  * Uses refresh-first token handling (no expiry column, short-lived access
  * tokens) and computes sleep debt natively before upserting.
  */
-export async function syncOura(days: number): Promise<SyncResult> {
+export async function syncOura(
+  days: number,
+  intradayDays = 2,
+): Promise<SyncResult> {
   const end = new Date();
   const start = new Date();
   start.setDate(start.getDate() - days);
@@ -167,6 +253,22 @@ export async function syncOura(days: number): Promise<SyncResult> {
 
   const data = await fetchOuraData(accessToken, range);
 
+  // All-day heart rate is the only high-volume source, so it uses its own
+  // (shorter) window and is non-fatal — a failure leaves prior days intact.
+  let heartRateDays: { date: string; samples: unknown[] }[] = [];
+  try {
+    const intradayStart = new Date(
+      Date.now() - intradayDays * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    const samples = await ouraFetchHeartRate(accessToken, {
+      start_datetime: intradayStart,
+      end_datetime: new Date().toISOString(),
+    });
+    heartRateDays = groupHeartRateByDay(samples);
+  } catch (err) {
+    console.warn("[oura] heartrate fetch failed:", (err as Error).message);
+  }
+
   const sleepNeed = settings.sleep_need_hours ?? 8;
   const debt = computeSleepDebt(data.sleep, sleepNeed);
   const sleepRows: (OuraSleepRow & { sleep_debt_seconds: number | null })[] =
@@ -176,9 +278,13 @@ export async function syncOura(days: number): Promise<SyncResult> {
     }));
 
   const errors: string[] = [];
-  const upsert = async (table: string, rows: unknown[]) => {
+  const upsert = async (
+    table: string,
+    rows: unknown[],
+    onConflict = "date",
+  ) => {
     if (rows.length === 0) return;
-    const { error } = await db.from(table).upsert(rows, { onConflict: "date" });
+    const { error } = await db.from(table).upsert(rows, { onConflict });
     if (error) errors.push(`${table}: ${error.message}`);
   };
 
@@ -186,7 +292,26 @@ export async function syncOura(days: number): Promise<SyncResult> {
     upsert("sleep", sleepRows),
     upsert("readiness", data.readiness),
     upsert("activity", data.activity),
+    upsert("sleep_periods", data.sleepPeriods, "oura_id"),
+    upsert("heart_rate_daily", heartRateDays),
+    upsert("oura_workouts", data.workouts, "oura_id"),
+    upsert("oura_sessions", data.sessions, "oura_id"),
+    upsert("oura_tags", data.tags, "oura_id"),
   ]);
+
+  // Profile/ring config is a single row with no natural conflict key.
+  if (data.profile) {
+    const { data: existing } = await db
+      .from("oura_profile")
+      .select("id")
+      .limit(1)
+      .maybeSingle();
+    const payload = { ...data.profile, updated_at: new Date().toISOString() };
+    const { error } = existing?.id
+      ? await db.from("oura_profile").update(payload).eq("id", existing.id)
+      : await db.from("oura_profile").insert(payload);
+    if (error) errors.push(`oura_profile: ${error.message}`);
+  }
 
   if (errors.length > 0) throw new Error(errors.join("; "));
 
@@ -196,6 +321,11 @@ export async function syncOura(days: number): Promise<SyncResult> {
       sleep: sleepRows.length,
       readiness: data.readiness.length,
       activity: data.activity.length,
+      sleep_periods: data.sleepPeriods.length,
+      workouts: data.workouts.length,
+      sessions: data.sessions.length,
+      tags: data.tags.length,
+      heart_rate_days: heartRateDays.length,
     },
   };
 }
