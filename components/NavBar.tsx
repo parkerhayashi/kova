@@ -13,12 +13,14 @@ import {
   Moon,
   Pill,
   Scale,
+  Sun,
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Today", icon: LayoutDashboard },
+  { href: "/", label: "Home", icon: LayoutDashboard },
+  { href: "/today", label: "Today", icon: Sun },
   { href: "/sleep", label: "Sleep", icon: Moon },
   { href: "/recovery", label: "Readiness", icon: HeartPulse },
   { href: "/activity", label: "Activity", icon: Flame },
