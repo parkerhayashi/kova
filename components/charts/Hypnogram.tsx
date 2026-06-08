@@ -28,7 +28,10 @@ export function Hypnogram({ phases }: HypnogramProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex h-16 w-full items-stretch gap-px overflow-hidden rounded-md">
+      <div
+        className="flex h-16 w-full items-stretch gap-px overflow-hidden rounded-md"
+        style={{ boxShadow: "0 0 24px rgba(91,233,255,0.07), inset 0 0 0 1px rgba(125,165,205,0.10)" }}
+      >
         {slots.map((code, i) => (
           <span
             key={i}
@@ -42,7 +45,7 @@ export function Hypnogram({ phases }: HypnogramProps) {
           <li key={code} className="flex items-center gap-2">
             <span
               className="inline-block size-2 rounded-full"
-              style={{ background: PHASE_COLOR[code] }}
+              style={{ background: PHASE_COLOR[code], boxShadow: `0 0 6px ${PHASE_COLOR[code]}` }}
             />
             <span className="metric-label">{label}</span>
           </li>

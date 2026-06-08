@@ -37,10 +37,15 @@ export function Heatmap({
     if (date > today) return { background: "transparent" };
     const r = ratios[date];
     if (r === undefined || r === 0)
-      return { background: "rgba(255,255,255,0.05)" };
-    // Map ratio onto 0.25–1 opacity so any completion is visible.
+      return { background: "rgba(125,165,205,0.06)" };
+    // Map ratio onto 0.25–1 opacity so any completion is visible, with a glow
+    // that intensifies with completion.
     const opacity = 0.25 + r * 0.75;
-    return { background: accent, opacity };
+    return {
+      background: accent,
+      opacity,
+      boxShadow: `0 0 ${4 + r * 6}px ${accent}`,
+    };
   }
 
   return (

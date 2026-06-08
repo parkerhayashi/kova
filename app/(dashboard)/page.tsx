@@ -231,15 +231,16 @@ export default async function TodayPage() {
 
       {/* Checklists + weight + sleep debt */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Link href="/habits">
+        <Link href="/habits" className="cursor-pointer">
           <MetricCard
             label="Habits"
             value={habits.length ? `${habitsDone}/${habits.length}` : null}
             accent="recovery"
             caption={habits.length ? "done today" : "add habits"}
+            className="card-interactive h-full"
           />
         </Link>
-        <Link href="/supplements">
+        <Link href="/supplements" className="cursor-pointer">
           <MetricCard
             label="Supplements"
             value={
@@ -249,15 +250,17 @@ export default async function TodayPage() {
             }
             accent="nutrition"
             caption={supplements.length ? "taken today" : "add supplements"}
+            className="card-interactive h-full"
           />
         </Link>
-        <Link href="/weight">
+        <Link href="/weight" className="cursor-pointer">
           <MetricCard
             label="Weight"
             value={latestWeight?.weight_lbs ?? null}
             unit="lbs"
             accent="nutrition"
             caption={latestWeight ? shortDate(latestWeight.date) : "log weight"}
+            className="card-interactive h-full"
           />
         </Link>
         <MetricCard

@@ -1,41 +1,47 @@
 @import "tailwindcss";
 
 /*
- * Kova design system — dark monochrome base with semantic data accents.
- * Chrome (nav, buttons, inputs, borders) stays strictly white/gray/black.
- * Accent colors appear ONLY on data: metric values, chart lines, indicator dots.
- * See blueprint §4.
+ * Kova design system — "JARVIS" HUD on deep OLED black.
+ * Chrome stays monochrome (cool near-black + white/gray). The five semantic
+ * accents live ONLY on data — metric values, chart lines, bars, dots — now
+ * carrying a restrained glow. A single ambient interface cyan (--color-hud) is
+ * used sparingly for focus, hover edges, and the backdrop grid: it reads as
+ * ambient light, never as colored chrome. See blueprint §4.
  */
 
 @theme {
-  /* Surfaces */
-  --color-background: #0e0e0e; /* page base — off-black with a hint of gray */
-  --color-surface: #161616; /* cards and panels */
-  --color-surface-raised: #1e1e1e; /* hover states, nested cards */
+  /* Surfaces — cool near-black, OLED-friendly */
+  --color-background: #06080b; /* page base */
+  --color-surface: #0d1014; /* cards and panels */
+  --color-surface-raised: #141923; /* hover states, nested cards */
 
   /* Text */
-  --color-text-primary: #ffffff;
-  --color-text-secondary: rgba(255, 255, 255, 0.55);
-  --color-text-muted: rgba(255, 255, 255, 0.3);
-  --color-text-mono: rgba(255, 255, 255, 0.25);
+  --color-text-primary: #f4f7fb;
+  --color-text-secondary: rgba(231, 240, 250, 0.58);
+  --color-text-muted: rgba(231, 240, 250, 0.34);
+  --color-text-mono: rgba(231, 240, 250, 0.26);
 
-  /* Borders */
-  --color-border: rgba(255, 255, 255, 0.07);
-  --color-border-strong: rgba(255, 255, 255, 0.12);
+  /* Borders — faint cool tint */
+  --color-border: rgba(125, 165, 205, 0.1);
+  --color-border-strong: rgba(125, 165, 205, 0.2);
 
   /* Semantic data accents — data only, never chrome */
-  --color-recovery: #34d399; /* readiness, HRV, sleep data */
-  --color-sleep: #60a5fa; /* sleep stages, SpO2 */
-  --color-activity: #fbbf24; /* steps, calories burned, runs */
-  --color-stress: #f87171; /* stress score, warnings */
-  --color-nutrition: #a78bfa; /* macros, meal data, supplements */
+  --color-recovery: #2ee6a6; /* readiness, HRV, recovery data */
+  --color-sleep: #5aa2ff; /* sleep stages, SpO2 */
+  --color-activity: #ffc233; /* steps, calories, activity */
+  --color-stress: #ff6b6b; /* stress, warnings */
+  --color-nutrition: #b18cff; /* macros, supplements, weight */
+
+  /* Ambient interface light (JARVIS cyan) — chrome glints only */
+  --color-hud: #5be9ff;
 
   /* Fonts */
-  --font-sans: var(--font-inter), var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
   /* Radii */
-  --radius-card: 12px;
+  --radius-card: 14px;
 }
 
 html {
@@ -48,25 +54,77 @@ body {
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  position: relative;
 }
 
-/* Typographic primitives from blueprint §4 */
+/*
+ * Ambient HUD backdrop — a faint cool grid plus a soft glow bloom from the top.
+ * Fixed and non-interactive so it sits behind all content.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(125, 165, 205, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 165, 205, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 90% 70% at 50% 0%,
+    #000 0%,
+    transparent 75%
+  );
+  mask-image: radial-gradient(
+    ellipse 90% 70% at 50% 0%,
+    #000 0%,
+    transparent 75%
+  );
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 50% at 50% -10%,
+    rgba(91, 233, 255, 0.07),
+    transparent 60%
+  );
+}
+
+/* Keep app content above the backdrop layers */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Typographic primitives from blueprint §4, tuned for the HUD look */
 @layer components {
   .metric-value {
-    @apply text-text-primary font-medium tracking-tight;
-    font-size: clamp(30px, 6vw, 48px);
+    @apply text-text-primary font-medium tracking-tight tabular-nums;
+    font-family: var(--font-mono);
+    font-size: clamp(30px, 6vw, 46px);
     line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 18px rgba(91, 233, 255, 0.12);
   }
 
   .metric-label {
     @apply text-text-muted font-medium uppercase;
-    font-size: 11px;
-    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
   }
 
   .section-heading {
-    @apply text-text-primary font-medium;
-    font-size: 22px;
+    @apply text-text-primary font-medium tracking-tight;
+    font-family: var(--font-display);
+    font-size: 23px;
+    letter-spacing: -0.01em;
   }
 
   .body-copy {
@@ -76,15 +134,37 @@ body {
   }
 
   .timestamp {
-    @apply text-text-mono font-mono;
-    font-size: 11px;
+    @apply text-text-mono;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
   }
 
-  /* Card: 0.5px border, 12px radius, surface bg (blueprint §4 design rules) */
+  /*
+   * Card: cool surface, hairline border with a faint top highlight, soft
+   * elevation. Hover lifts the border toward the interface cyan.
+   */
   .card {
-    background: var(--color-surface);
-    border: 0.5px solid var(--color-border);
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(125, 165, 205, 0.035), transparent 22%),
+      var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-card);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.03) inset,
+      0 8px 30px rgba(0, 0, 0, 0.35);
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .card-interactive:hover {
+    border-color: rgba(91, 233, 255, 0.28);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 8px 36px rgba(0, 0, 0, 0.4),
+      0 0 24px rgba(91, 233, 255, 0.06);
   }
 }
 
@@ -93,4 +173,52 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* Focus: ambient cyan ring (keyboard accessibility) */
+:focus-visible {
+  outline: 1px solid rgba(91, 233, 255, 0.55);
+  outline-offset: 2px;
+}
+
+/* Thin cool scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125, 165, 205, 0.25) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(125, 165, 205, 0.22);
+  border-radius: 99px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(125, 165, 205, 0.38);
+}
+
+/* Slow ambient pulse for live/status glints */
+@keyframes hud-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(91, 233, 255, 0.55);
+  }
+  50% {
+    opacity: 0.45;
+    box-shadow: 0 0 3px rgba(91, 233, 255, 0.25);
+  }
+}
+.hud-pulse {
+  animation: hud-pulse 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-pulse {
+    animation: none;
+  }
+  .card {
+    transition: none;
+  }
 }

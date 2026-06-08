@@ -32,7 +32,11 @@ export function StageBars({ rem, deep, light, awake }: StageBarsProps) {
           return (
             <div
               key={key}
-              style={{ width: `${pct}%`, background: color }}
+              style={{
+                width: `${pct}%`,
+                background: color,
+                boxShadow: pct > 0 ? `0 0 10px ${color}` : undefined,
+              }}
               className="h-full"
             />
           );
@@ -43,7 +47,7 @@ export function StageBars({ rem, deep, light, awake }: StageBarsProps) {
           <li key={key} className="flex items-center gap-2">
             <span
               className="inline-block size-2 rounded-full"
-              style={{ background: color }}
+              style={{ background: color, boxShadow: `0 0 6px ${color}` }}
             />
             <span className="metric-label">{label}</span>
             <span className="text-text-secondary ml-auto text-sm tabular-nums">

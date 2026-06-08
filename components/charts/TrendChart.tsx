@@ -65,22 +65,31 @@ export function TrendChart({
         <Tooltip
           cursor={{ stroke: "rgba(255,255,255,0.12)" }}
           contentStyle={{
-            background: "#1e1e1e",
-            border: "0.5px solid rgba(255,255,255,0.12)",
+            background: "#141923",
+            border: "1px solid rgba(125,165,205,0.2)",
             borderRadius: 8,
             fontSize: 12,
+            boxShadow: "0 0 20px rgba(0,0,0,0.5)",
           }}
-          labelStyle={{ color: "rgba(255,255,255,0.55)" }}
+          labelStyle={{ color: "rgba(231,240,250,0.55)" }}
           itemStyle={{ color }}
         />
         <Area
           type="monotone"
           dataKey="value"
-          stroke={color}
-          strokeWidth={2}
+          stroke="none"
           fill={`url(#${gradientId})`}
           dot={false}
           connectNulls
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke={color}
+          strokeWidth={2}
+          dot={false}
+          connectNulls
+          style={{ filter: `drop-shadow(0 0 5px ${color})` }}
         />
         {showAvg && (
           <Line

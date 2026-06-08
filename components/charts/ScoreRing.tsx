@@ -38,7 +38,7 @@ export function ScoreRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          stroke="rgba(125,165,205,0.10)"
           strokeWidth={stroke}
         />
         {value !== null && (
@@ -52,13 +52,18 @@ export function ScoreRing({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={circumference * (1 - pct)}
+            style={{ filter: `drop-shadow(0 0 6px ${color})` }}
           />
         )}
       </svg>
       <div className="absolute flex flex-col items-center">
         <span
-          className="font-medium tracking-tight tabular-nums"
-          style={{ fontSize: size * 0.3, color: value !== null ? color : undefined }}
+          className="font-mono font-medium tracking-tight tabular-nums"
+          style={{
+            fontSize: size * 0.3,
+            color: value !== null ? color : undefined,
+            textShadow: value !== null ? `0 0 18px ${color}55` : undefined,
+          }}
         >
           {value ?? "—"}
         </span>
