@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/sync/oura", "schedule": "0 6 * * *" },
+    { "path": "/api/sync/hevy", "schedule": "30 6 * * *" },
+    { "path": "/api/sync/strava", "schedule": "0 7 * * *" }
+  ]
+}

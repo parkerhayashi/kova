@@ -1,0 +1,76 @@
+"use client";
+
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { accentColor, type Accent } from "@/lib/utils";
+
+interface TrendChartProps {
+  data: { label: string; value: number | null }[];
+  accent?: Accent;
+  height?: number;
+  /** Show the x-axis labels (dates). Off by default for compact sparklines. */
+  showAxis?: boolean;
+}
+
+/**
+ * TrendChart — Recharts area/line wrapper following blueprint §4 chart rules:
+ * no gridlines, colored line + soft fill on dark surface, muted axis text.
+ */
+export function TrendChart({
+  data,
+  accent = "recovery",
+  height = 180,
+  showAxis = true,
+}: TrendChartProps) {
+  const color = accentColor[accent];
+  const gradientId = `grad-${accent}`;
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        {showAxis && (
+          <XAxis
+            dataKey="label"
+            tick={{ fill: "rgba(255,255,255,0.30)", fontSize: 11 }}
+            axisLine={false}
+            tickLine={false}
+            minTickGap={24}
+          />
+        )}
+        <YAxis hide domain={["dataMin", "dataMax"]} />
+        <Tooltip
+          cursor={{ stroke: "rgba(255,255,255,0.12)" }}
+          contentStyle={{
+            background: "#1e1e1e",
+            border: "0.5px solid rgba(255,255,255,0.12)",
+            borderRadius: 8,
+            fontSize: 12,
+          }}
+          labelStyle={{ color: "rgba(255,255,255,0.55)" }}
+          itemStyle={{ color }}
+        />
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke={color}
+          strokeWidth={2}
+          fill={`url(#${gradientId})`}
+          dot={false}
+          connectNulls
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}

@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/*
+ * Kova design system — dark monochrome base with semantic data accents.
+ * Chrome (nav, buttons, inputs, borders) stays strictly white/gray/black.
+ * Accent colors appear ONLY on data: metric values, chart lines, indicator dots.
+ * See blueprint §4.
+ */
+
+@theme {
+  /* Surfaces */
+  --color-background: #0e0e0e; /* page base — off-black with a hint of gray */
+  --color-surface: #161616; /* cards and panels */
+  --color-surface-raised: #1e1e1e; /* hover states, nested cards */
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.55);
+  --color-text-muted: rgba(255, 255, 255, 0.3);
+  --color-text-mono: rgba(255, 255, 255, 0.25);
+
+  /* Borders */
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Semantic data accents — data only, never chrome */
+  --color-recovery: #34d399; /* readiness, HRV, sleep data */
+  --color-sleep: #60a5fa; /* sleep stages, SpO2 */
+  --color-activity: #fbbf24; /* steps, calories burned, runs */
+  --color-stress: #f87171; /* stress score, warnings */
+  --color-nutrition: #a78bfa; /* macros, meal data, supplements */
+
+  /* Fonts */
+  --font-sans: var(--font-inter), var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Radii */
+  --radius-card: 12px;
+}
+
+html {
+  background: var(--color-background);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typographic primitives from blueprint §4 */
+@layer components {
+  .metric-value {
+    @apply text-text-primary font-medium tracking-tight;
+    font-size: clamp(30px, 6vw, 48px);
+    line-height: 1.05;
+  }
+
+  .metric-label {
+    @apply text-text-muted font-medium uppercase;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .section-heading {
+    @apply text-text-primary font-medium;
+    font-size: 22px;
+  }
+
+  .body-copy {
+    @apply text-text-secondary;
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  .timestamp {
+    @apply text-text-mono font-mono;
+    font-size: 11px;
+  }
+
+  /* Card: 0.5px border, 12px radius, surface bg (blueprint §4 design rules) */
+  .card {
+    background: var(--color-surface);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-card);
+  }
+}
+
+/* Hide number input spinners for clean data entry */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
