@@ -240,8 +240,23 @@ export async function fetchOuraData(
   accessToken: string,
   range: { start_date: string; end_date: string },
 ): Promise<NormalizedOura> {
-  const get = <T>(endpoint: string) =>
-    ouraFetch<T>(endpoint, accessToken, range);
+  // Fetch each endpoint independently: newer endpoints (vo2_max,
+  // daily_cardiovascular_age, daily_resilience) return 404 for accounts/rings
+  // without that estimate, and one missing source shouldn't sink the whole
+  // sync. Their fields just come back null. A total failure (e.g. a bad token)
+  // still throws so the caller can surface it.
+  const failures: string[] = [];
+  let succeeded = 0;
+  const safeGet = async <T>(endpoint: string): Promise<{ data: T[] }> => {
+    try {
+      const res = await ouraFetch<T>(endpoint, accessToken, range);
+      succeeded++;
+      return res;
+    } catch (err) {
+      failures.push(`${endpoint}: ${(err as Error).message}`);
+      return { data: [] };
+    }
+  };
 
   const [
     dailySleep,
@@ -254,16 +269,23 @@ export async function fetchOuraData(
     cardio,
     resilience,
   ] = await Promise.all([
-    get<RawDailySleep>("daily_sleep"),
-    get<RawSleepPeriod>("sleep"),
-    get<RawDailyReadiness>("daily_readiness"),
-    get<RawDailyActivity>("daily_activity"),
-    get<RawDailyStress>("daily_stress"),
-    get<RawDailySpo2>("daily_spo2"),
-    get<RawVo2Max>("vo2_max"),
-    get<RawCardiovascularAge>("daily_cardiovascular_age"),
-    get<RawDailyResilience>("daily_resilience"),
+    safeGet<RawDailySleep>("daily_sleep"),
+    safeGet<RawSleepPeriod>("sleep"),
+    safeGet<RawDailyReadiness>("daily_readiness"),
+    safeGet<RawDailyActivity>("daily_activity"),
+    safeGet<RawDailyStress>("daily_stress"),
+    safeGet<RawDailySpo2>("daily_spo2"),
+    safeGet<RawVo2Max>("vo2_max"),
+    safeGet<RawCardiovascularAge>("daily_cardiovascular_age"),
+    safeGet<RawDailyResilience>("daily_resilience"),
   ]);
+
+  if (succeeded === 0) {
+    throw new Error(`All Oura endpoints failed — ${failures.join("; ")}`);
+  }
+  if (failures.length > 0) {
+    console.warn(`Oura sync skipped unavailable endpoints — ${failures.join("; ")}`);
+  }
 
   const mainSleep = mainSleepByDay(sleepPeriods.data);
   const dailySleepByDay = indexByDay(dailySleep.data);
