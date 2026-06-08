@@ -9,7 +9,7 @@ import {
   isOuraConnected,
 } from "@/lib/data/oura";
 import { ordinalToResilience } from "@/lib/oura";
-import { rollingAverage, shortDate } from "@/lib/utils";
+import { latestNonNull, rollingAverage, shortDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,15 @@ export default async function RecoveryPage() {
     );
   }
 
-  const latest = readiness[readiness.length - 1];
+  // Current-day readiness lands before HRV / resting HR / body temp are
+  // finalized, so each headline uses the most recent populated value.
+  const readinessScore = latestNonNull(readiness, "score");
+  const hrv = latestNonNull(readiness, "hrv_balance");
+  const restingHr = latestNonNull(readiness, "resting_heart_rate");
+  const resilience = latestNonNull(readiness, "resilience_score");
+  const bodyTemp = latestNonNull(readiness, "body_temperature");
+  const cardioAge = latestNonNull(readiness, "cardiovascular_age");
+  const vo2Max = latestNonNull(activity, "vo2_max");
   const labels = readiness.map((r) => shortDate(r.date));
 
   const hrvValues = readiness.map((r) => r.hrv_balance);
@@ -69,17 +77,17 @@ export default async function RecoveryPage() {
       />
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <MetricCard label="Readiness" value={latest.score} accent="recovery" />
-        <MetricCard label="HRV" value={latest.hrv_balance} unit="ms" accent="recovery" />
+        <MetricCard label="Readiness" value={readinessScore} accent="recovery" />
+        <MetricCard label="HRV" value={hrv} unit="ms" accent="recovery" />
         <MetricCard
           label="Resting HR"
-          value={latest.resting_heart_rate}
+          value={restingHr}
           unit="bpm"
           accent="recovery"
         />
         <MetricCard
           label="Resilience"
-          value={ordinalToResilience(latest.resilience_score)}
+          value={ordinalToResilience(resilience)}
           accent="recovery"
         />
       </section>
@@ -88,7 +96,7 @@ export default async function RecoveryPage() {
         title="Readiness · 30 Days"
         data={series((r) => r.score)}
         accent="recovery"
-        current={latest.score != null ? String(latest.score) : null}
+        current={readinessScore != null ? String(readinessScore) : null}
       />
 
       <ChartCard
@@ -96,7 +104,7 @@ export default async function RecoveryPage() {
         data={hrvTrend}
         accent="recovery"
         showAvg
-        current={latest.hrv_balance != null ? `${latest.hrv_balance} ms` : null}
+        current={hrv != null ? `${hrv} ms` : null}
         caption="Solid: nightly · dashed: 7-day average"
       />
 
@@ -104,11 +112,7 @@ export default async function RecoveryPage() {
         title="Resting Heart Rate"
         data={series((r) => r.resting_heart_rate)}
         accent="recovery"
-        current={
-          latest.resting_heart_rate != null
-            ? `${latest.resting_heart_rate} bpm`
-            : null
-        }
+        current={restingHr != null ? `${restingHr} bpm` : null}
       />
 
       <ChartCard
@@ -116,9 +120,7 @@ export default async function RecoveryPage() {
         data={series((r) => r.body_temperature)}
         accent="stress"
         current={
-          latest.body_temperature != null
-            ? `${latest.body_temperature > 0 ? "+" : ""}${latest.body_temperature} °C`
-            : null
+          bodyTemp != null ? `${bodyTemp > 0 ? "+" : ""}${bodyTemp} °C` : null
         }
         caption="Deviation from baseline"
       />
@@ -128,17 +130,13 @@ export default async function RecoveryPage() {
           title="Cardiovascular Age"
           data={series((r) => r.cardiovascular_age)}
           accent="recovery"
-          current={
-            latest.cardiovascular_age != null
-              ? `${latest.cardiovascular_age} yr`
-              : null
-          }
+          current={cardioAge != null ? `${cardioAge} yr` : null}
         />
         <ChartCard
           title="Resilience"
           data={series((r) => r.resilience_score)}
           accent="recovery"
-          current={ordinalToResilience(latest.resilience_score)}
+          current={ordinalToResilience(resilience)}
           caption="1 Limited → 5 Exceptional"
         />
       </section>
@@ -147,10 +145,7 @@ export default async function RecoveryPage() {
         title="VO₂ Max"
         data={vo2Trend}
         accent="activity"
-        current={
-          [...activity].reverse().find((a) => a.vo2_max != null)?.vo2_max?.toString() ??
-          null
-        }
+        current={vo2Max != null ? String(vo2Max) : null}
       />
     </div>
   );

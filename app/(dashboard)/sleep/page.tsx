@@ -9,7 +9,13 @@ import {
   getSleepHistory,
   isOuraConnected,
 } from "@/lib/data/oura";
-import { formatDuration, secondsToHours, shortDate } from "@/lib/utils";
+import {
+  formatDuration,
+  latestNonNull,
+  latestRowWith,
+  secondsToHours,
+  shortDate,
+} from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +48,11 @@ export default async function SleepPage() {
     );
   }
 
-  const latest = sleep[sleep.length - 1];
+  // The current-day row is often just a sleep score until Oura finalizes the
+  // session, so headline stats come from the most recent complete night.
+  const lastNight = latestRowWith(sleep, "total_sleep_duration") ?? sleep[sleep.length - 1];
+  const latestHrv = latestNonNull(readiness, "hrv_balance");
+  const latestDebt = latestNonNull(sleep, "sleep_debt_seconds");
   const scored = sleep.filter((s) => s.score !== null);
   const best = scored.reduce<typeof scored[number] | null>(
     (b, s) => (b === null || (s.score ?? 0) > (b.score ?? 0) ? s : b),
@@ -74,33 +84,33 @@ export default async function SleepPage() {
       />
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <MetricCard label="Sleep Score" value={latest.score} accent="sleep" />
+        <MetricCard label="Sleep Score" value={lastNight.score} accent="sleep" />
         <MetricCard
           label="Efficiency"
-          value={latest.efficiency}
+          value={lastNight.efficiency}
           unit="%"
           accent="sleep"
         />
         <MetricCard
           label="Latency"
-          value={formatDuration(latest.latency)}
+          value={formatDuration(lastNight.latency)}
           accent="sleep"
         />
-        <MetricCard label="Restfulness" value={latest.restfulness} accent="sleep" />
+        <MetricCard label="Restfulness" value={lastNight.restfulness} accent="sleep" />
       </section>
 
       <Card className="space-y-4">
         <div className="flex items-baseline justify-between">
           <span className="metric-label">Last Night · Stages</span>
           <span className="text-text-primary text-lg font-medium tracking-tight">
-            {formatDuration(latest.total_sleep_duration)}
+            {formatDuration(lastNight.total_sleep_duration)}
           </span>
         </div>
         <StageBars
-          rem={latest.rem_sleep_duration}
-          deep={latest.deep_sleep_duration}
-          light={latest.light_sleep_duration}
-          awake={latest.awake_duration}
+          rem={lastNight.rem_sleep_duration}
+          deep={lastNight.deep_sleep_duration}
+          light={lastNight.light_sleep_duration}
+          awake={lastNight.awake_duration}
         />
       </Card>
 
@@ -108,18 +118,14 @@ export default async function SleepPage() {
         title="Sleep Score · 7 Days"
         data={scoreTrend}
         accent="sleep"
-        current={latest.score != null ? String(latest.score) : null}
+        current={lastNight.score != null ? String(lastNight.score) : null}
       />
 
       <ChartCard
         title="HRV During Sleep"
         data={hrvTrend}
         accent="recovery"
-        current={
-          readiness.at(-1)?.hrv_balance != null
-            ? `${readiness.at(-1)!.hrv_balance} ms`
-            : null
-        }
+        current={latestHrv != null ? `${latestHrv} ms` : null}
         caption="Nightly average HRV (ms)"
       />
 
@@ -128,8 +134,8 @@ export default async function SleepPage() {
         data={debtTrend}
         accent="stress"
         current={
-          secondsToHours(latest.sleep_debt_seconds) != null
-            ? `${secondsToHours(latest.sleep_debt_seconds)} hrs`
+          secondsToHours(latestDebt) != null
+            ? `${secondsToHours(latestDebt)} hrs`
             : null
         }
         caption="Running deficit vs. sleep need"

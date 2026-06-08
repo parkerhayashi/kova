@@ -45,6 +45,34 @@ export function shortDate(iso: string): string {
   });
 }
 
+/**
+ * Most recent non-null value for a key, scanning a date-ascending list from the
+ * newest end. Lets the dashboard show the latest *available* reading rather
+ * than a half-processed current-day stub.
+ */
+export function latestNonNull<T, K extends keyof T>(
+  rows: T[],
+  key: K,
+): T[K] | null {
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const v = rows[i][key];
+    if (v !== null && v !== undefined) return v;
+  }
+  return null;
+}
+
+/** Most recent row whose `key` is populated (date-ascending list). */
+export function latestRowWith<T, K extends keyof T>(
+  rows: T[],
+  key: K,
+): T | null {
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const v = rows[i][key];
+    if (v !== null && v !== undefined) return rows[i];
+  }
+  return null;
+}
+
 /** Trailing simple moving average over a numeric series (nulls skipped). */
 export function rollingAverage(
   values: (number | null)[],

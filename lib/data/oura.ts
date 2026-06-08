@@ -4,6 +4,7 @@
  * functions must only be imported from Server Components / route handlers —
  * never a client component (they touch SUPABASE_SERVICE_ROLE_KEY).
  */
+import { after } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { decryptToken, encryptToken } from "@/lib/crypto";
 import {
@@ -69,6 +70,56 @@ export const getActivityHistory = (days: number) =>
 export interface SyncResult {
   range: { start_date: string; end_date: string };
   synced: { sleep: number; readiness: number; activity: number };
+}
+
+// Sync-on-open: pull a fresh window when the app is opened, but no more than
+// once per throttle window. 30 days keeps the 14-day sleep-debt rolling sum
+// accurate and costs the same number of Oura requests as a short window.
+const SYNC_ON_OPEN_THROTTLE_MS = 15 * 60 * 1000;
+const SYNC_ON_OPEN_DAYS = 30;
+
+/**
+ * Opportunistic Oura sync triggered when the dashboard is opened. The network
+ * work is deferred with `after()` so it never blocks the page render, and a
+ * conditional update on `updated_at` atomically claims the sync slot — so rapid
+ * re-opens (and concurrent requests) collapse to one sync per throttle window.
+ *
+ * Server Components only (touches the service client). Safe to call on every
+ * render; it self-throttles.
+ */
+export async function maybeSyncOuraOnOpen(): Promise<void> {
+  const db = createServiceClient();
+  const { data: settings } = await db
+    .from("user_settings")
+    .select("id, oura_access_token, oura_refresh_token")
+    .limit(1)
+    .maybeSingle();
+
+  if (!settings) return;
+  if (!settings.oura_access_token && !settings.oura_refresh_token) return;
+
+  const thresholdIso = new Date(
+    Date.now() - SYNC_ON_OPEN_THROTTLE_MS,
+  ).toISOString();
+
+  // Claim the slot atomically: only a row whose timestamp predates the throttle
+  // window is updated, so a concurrent open gets zero rows back and bails.
+  const { data: claimed } = await db
+    .from("user_settings")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", settings.id)
+    .lt("updated_at", thresholdIso)
+    .select("id");
+
+  if (!claimed || claimed.length === 0) return;
+
+  after(async () => {
+    try {
+      await syncOura(SYNC_ON_OPEN_DAYS);
+    } catch (err) {
+      console.warn("[oura] sync-on-open failed:", (err as Error).message);
+    }
+  });
 }
 
 /**

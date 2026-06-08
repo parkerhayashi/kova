@@ -1,10 +1,17 @@
 import { NavBar } from "@/components/NavBar";
+import { maybeSyncOuraOnOpen } from "@/lib/data/oura";
 
-export default function DashboardLayout({
+export const dynamic = "force-dynamic";
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Refresh Oura data when the app is opened (self-throttled, runs after the
+  // response so it never delays the render).
+  await maybeSyncOuraOnOpen();
+
   return (
     <div className="min-h-full">
       <NavBar />

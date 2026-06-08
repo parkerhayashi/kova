@@ -2,13 +2,13 @@ import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
 import { Card } from "@/components/ui/Card";
 import {
-  getLatestActivity,
-  getLatestReadiness,
-  getLatestSleep,
+  getActivityHistory,
+  getReadinessHistory,
+  getSleepHistory,
   isOuraConnected,
 } from "@/lib/data/oura";
 import { ordinalToResilience } from "@/lib/oura";
-import { secondsToHours, shortDate } from "@/lib/utils";
+import { latestNonNull, secondsToHours, shortDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -29,15 +29,43 @@ function signed(value: number | null): string | null {
  * land in later phases.
  */
 export default async function TodayPage() {
-  const [sleep, readiness, activity, connected] = await Promise.all([
-    getLatestSleep(),
-    getLatestReadiness(),
-    getLatestActivity(),
+  // Oura finalizes a day's detailed records hours after the score lands, so the
+  // current-day row is often a partial stub. Read each headline from the most
+  // recent populated reading (mirrors how Oura's own app surfaces metrics).
+  const [sleepRows, readinessRows, activityRows, connected] = await Promise.all([
+    getSleepHistory(400),
+    getReadinessHistory(400),
+    getActivityHistory(400),
     isOuraConnected(),
   ]);
 
-  const hasOuraData = Boolean(sleep || readiness || activity);
-  const lastSync = readiness?.date ?? sleep?.date ?? activity?.date ?? null;
+  const hasOuraData =
+    sleepRows.length > 0 || readinessRows.length > 0 || activityRows.length > 0;
+
+  const sleepScore = latestNonNull(sleepRows, "score");
+  const sleepDebt = latestNonNull(sleepRows, "sleep_debt_seconds");
+
+  const readinessScore = latestNonNull(readinessRows, "score");
+  const hrv = latestNonNull(readinessRows, "hrv_balance");
+  const cardioAge = latestNonNull(readinessRows, "cardiovascular_age");
+  const resilience = latestNonNull(readinessRows, "resilience_score");
+  const bodyTemp = latestNonNull(readinessRows, "body_temperature");
+
+  const stress = latestNonNull(activityRows, "stress_score");
+  const vo2Max = latestNonNull(activityRows, "vo2_max");
+  const steps = latestNonNull(activityRows, "steps");
+  const activeCalories = latestNonNull(activityRows, "active_calories");
+  const spo2 = latestNonNull(activityRows, "spo2_avg");
+
+  const lastSync =
+    [
+      readinessRows.at(-1)?.date,
+      sleepRows.at(-1)?.date,
+      activityRows.at(-1)?.date,
+    ]
+      .filter((d): d is string => Boolean(d))
+      .sort()
+      .at(-1) ?? null;
 
   return (
     <div className="space-y-8">
@@ -79,36 +107,21 @@ export default async function TodayPage() {
 
       {/* Primary recovery readouts */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <MetricCard label="Readiness" value={readiness?.score ?? null} accent="recovery" />
-        <MetricCard label="Sleep Score" value={sleep?.score ?? null} accent="sleep" />
-        <MetricCard
-          label="HRV"
-          value={readiness?.hrv_balance ?? null}
-          unit="ms"
-          accent="recovery"
-        />
+        <MetricCard label="Readiness" value={readinessScore} accent="recovery" />
+        <MetricCard label="Sleep Score" value={sleepScore} accent="sleep" />
+        <MetricCard label="HRV" value={hrv} unit="ms" accent="recovery" />
       </section>
 
       {/* Secondary recovery metrics */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <MetricCard
-          label="Stress"
-          value={activity?.stress_score ?? null}
-          unit="min"
-          accent="stress"
-        />
-        <MetricCard
-          label="Cardio Age"
-          value={readiness?.cardiovascular_age ?? null}
-          unit="yr"
-          accent="recovery"
-        />
+        <MetricCard label="Stress" value={stress} unit="min" accent="stress" />
+        <MetricCard label="Cardio Age" value={cardioAge} unit="yr" accent="recovery" />
         <MetricCard
           label="Resilience"
-          value={ordinalToResilience(readiness?.resilience_score ?? null)}
+          value={ordinalToResilience(resilience)}
           accent="recovery"
         />
-        <MetricCard label="VO₂ Max" value={activity?.vo2_max ?? null} accent="activity" />
+        <MetricCard label="VO₂ Max" value={vo2Max} accent="activity" />
       </section>
 
       {/* Nutrition + hydration (Phase 6) */}
@@ -141,23 +154,23 @@ export default async function TodayPage() {
         <Card className="flex flex-col gap-2">
           <span className="metric-label">Steps</span>
           <span className="metric-value" style={{ color: "var(--color-activity)" }}>
-            {activity?.steps?.toLocaleString() ?? "—"}
+            {steps?.toLocaleString() ?? "—"}
           </span>
           <span className="timestamp">
-            {activity?.active_calories != null
-              ? `${activity.active_calories} active kcal`
+            {activeCalories != null
+              ? `${activeCalories} active kcal`
               : "Workout view in Phase 4"}
           </span>
         </Card>
         <section className="grid grid-cols-2 gap-3">
           <MetricCard
             label="Body Temp"
-            value={signed(readiness?.body_temperature ?? null)}
+            value={signed(bodyTemp)}
             unit="°C"
             accent="recovery"
             caption="Deviation"
           />
-          <MetricCard label="SpO₂" value={activity?.spo2_avg ?? null} unit="%" accent="sleep" />
+          <MetricCard label="SpO₂" value={spo2} unit="%" accent="sleep" />
         </section>
       </section>
 
@@ -180,7 +193,7 @@ export default async function TodayPage() {
         />
         <MetricCard
           label="Sleep Debt"
-          value={secondsToHours(sleep?.sleep_debt_seconds ?? null)}
+          value={secondsToHours(sleepDebt)}
           unit="hrs"
           accent="stress"
           caption="14-day running total"
