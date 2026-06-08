@@ -244,6 +244,46 @@ export interface Workout {
   created_at: string;
 }
 
+// Native strength tracker (Phase 4). Weights in lbs.
+export interface Exercise {
+  id: string;
+  name: string;
+  category: string | null;
+  equipment: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface WorkoutSession {
+  id: string;
+  date: string;
+  title: string | null;
+  notes: string | null;
+  duration: number | null; // seconds
+  created_at: string;
+}
+
+export interface WorkoutSet {
+  id: string;
+  session_id: string;
+  exercise_id: string;
+  position: number;
+  set_index: number;
+  weight_lbs: number | null;
+  reps: number | null;
+  rpe: number | null;
+  is_warmup: boolean;
+  completed: boolean;
+  created_at: string;
+}
+
+/** A session's sets grouped by exercise, in logging order. */
+export interface SessionExerciseGroup {
+  exercise: Exercise;
+  position: number;
+  sets: WorkoutSet[];
+}
+
 export interface Run {
   id: string;
   strava_id: number;

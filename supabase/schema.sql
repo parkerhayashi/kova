@@ -99,7 +99,7 @@ alter table activity add column if not exists stress_summary              text; 
 alter table activity add column if not exists contributors                jsonb;  -- ActivityContributors (6)
 
 -- ---------------------------------------------------------------------------
--- Hevy: strength workouts
+-- Hevy: strength workouts (kept for a possible future Hevy import)
 -- ---------------------------------------------------------------------------
 create table if not exists workouts (
   id                    uuid primary key default gen_random_uuid(),
@@ -111,6 +111,68 @@ create table if not exists workouts (
   exercises             jsonb,
   created_at            timestamptz default now()
 );
+
+-- ---------------------------------------------------------------------------
+-- Native strength tracker (Phase 4 — self-logged in Kova). Weights in lbs.
+-- ---------------------------------------------------------------------------
+create table if not exists exercises (
+  id          uuid primary key default gen_random_uuid(),
+  name        text unique not null,
+  category    text,        -- chest | back | legs | shoulders | arms | core | cardio | other
+  equipment   text,        -- barbell | dumbbell | machine | cable | bodyweight | other
+  is_active   boolean default true,
+  created_at  timestamptz default now()
+);
+
+create table if not exists workout_sessions (
+  id          uuid primary key default gen_random_uuid(),
+  date        date not null,
+  title       text,
+  notes       text,
+  duration    int,         -- seconds (optional)
+  created_at  timestamptz default now()
+);
+
+create table if not exists workout_sets (
+  id          uuid primary key default gen_random_uuid(),
+  session_id  uuid not null references workout_sessions (id) on delete cascade,
+  exercise_id uuid not null references exercises (id),
+  position    int default 0,   -- exercise order within the session
+  set_index   int default 0,   -- set order within the exercise
+  weight_lbs  float,
+  reps        int,
+  rpe         float,
+  is_warmup   boolean default false,
+  completed   boolean default true,
+  created_at  timestamptz default now()
+);
+
+create index if not exists workout_sets_session_idx on workout_sets (session_id);
+create index if not exists workout_sets_exercise_idx on workout_sets (exercise_id);
+
+-- Seed a starter exercise library (no-op if a name already exists).
+insert into exercises (name, category, equipment) values
+  ('Barbell Back Squat', 'legs', 'barbell'),
+  ('Barbell Bench Press', 'chest', 'barbell'),
+  ('Deadlift', 'back', 'barbell'),
+  ('Overhead Press', 'shoulders', 'barbell'),
+  ('Barbell Row', 'back', 'barbell'),
+  ('Pull-Up', 'back', 'bodyweight'),
+  ('Lat Pulldown', 'back', 'cable'),
+  ('Incline Dumbbell Press', 'chest', 'dumbbell'),
+  ('Dumbbell Shoulder Press', 'shoulders', 'dumbbell'),
+  ('Romanian Deadlift', 'legs', 'barbell'),
+  ('Leg Press', 'legs', 'machine'),
+  ('Leg Curl', 'legs', 'machine'),
+  ('Leg Extension', 'legs', 'machine'),
+  ('Bicep Curl', 'arms', 'dumbbell'),
+  ('Tricep Pushdown', 'arms', 'cable'),
+  ('Lateral Raise', 'shoulders', 'dumbbell'),
+  ('Cable Fly', 'chest', 'cable'),
+  ('Hip Thrust', 'legs', 'barbell'),
+  ('Plank', 'core', 'bodyweight'),
+  ('Hanging Leg Raise', 'core', 'bodyweight')
+on conflict (name) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- Strava: runs / cardio

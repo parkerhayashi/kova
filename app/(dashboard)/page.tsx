@@ -15,8 +15,10 @@ import {
   getSupplementLogs,
   getSupplements,
 } from "@/lib/data/tracking";
+import { getSessionSummaries } from "@/lib/data/workouts";
 import { ordinalToResilience } from "@/lib/oura";
 import {
+  addDays,
   latestNonNull,
   secondsToHours,
   shortDate,
@@ -50,6 +52,7 @@ export default async function TodayPage() {
     supplements,
     supplementLogs,
     latestWeight,
+    workoutSummaries,
   ] = await Promise.all([
     getSleepHistory(400),
     getReadinessHistory(400),
@@ -61,9 +64,14 @@ export default async function TodayPage() {
     getSupplements(true),
     getSupplementLogs(1),
     getLatestWeight(),
+    getSessionSummaries(30),
   ]);
 
   const todayIso = todayInTimezone(timezone);
+  const weekAgoIso = addDays(todayIso, -6);
+  const lastWorkout = workoutSummaries[0] ?? null;
+  const weekWorkouts = workoutSummaries.filter((s) => s.session.date >= weekAgoIso);
+  const weekVolume = weekWorkouts.reduce((n, s) => n + s.volume, 0);
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -218,15 +226,41 @@ export default async function TodayPage() {
             {steps?.toLocaleString() ?? "—"}
           </span>
           <span className="timestamp">
-            {activeCalories != null
-              ? `${activeCalories} active kcal`
-              : "Workout view in Phase 4"}
+            {activeCalories != null ? `${activeCalories} active kcal` : "from Oura"}
           </span>
         </Card>
         <section className="grid grid-cols-2 gap-3">
           <MetricCard label="Active kcal" value={activeCalories} accent="activity" />
           <MetricCard label="Total kcal" value={totalCalories} accent="activity" />
         </section>
+      </section>
+
+      {/* Training (Phase 4) */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Link href="/workouts" className="cursor-pointer">
+          <MetricCard
+            label="Last Workout"
+            value={lastWorkout ? lastWorkout.volume.toLocaleString() : null}
+            unit="lbs"
+            accent="activity"
+            caption={
+              lastWorkout
+                ? `${lastWorkout.session.title || "Workout"} · ${shortDate(lastWorkout.session.date)}`
+                : "log a workout"
+            }
+            className="card-interactive h-full"
+          />
+        </Link>
+        <Link href="/workouts" className="cursor-pointer">
+          <MetricCard
+            label="Volume / 7d"
+            value={weekVolume ? weekVolume.toLocaleString() : null}
+            unit="lbs"
+            accent="activity"
+            caption={`${weekWorkouts.length} ${weekWorkouts.length === 1 ? "session" : "sessions"}`}
+            className="card-interactive h-full"
+          />
+        </Link>
       </section>
 
       {/* Checklists + weight + sleep debt */}
