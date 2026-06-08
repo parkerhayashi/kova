@@ -153,8 +153,8 @@ interface RawSleepPeriod {
   average_hrv: number | null; // ms
   average_breath: number | null;
   restless_periods: number | null;
-  sleep_phase_5min: string | null;
-  movement_30sec: string | null;
+  sleep_phase_5_min: string | null;
+  movement_30_sec: string | null;
   heart_rate: OuraSample | null;
   hrv: OuraSample | null;
 }
@@ -639,8 +639,8 @@ export async function fetchOuraData(
       time_in_bed: period?.time_in_bed ?? null,
       bedtime_start: period?.bedtime_start ?? null,
       bedtime_end: period?.bedtime_end ?? null,
-      sleep_phase_5min: period?.sleep_phase_5min ?? null,
-      movement_30sec: period?.movement_30sec ?? null,
+      sleep_phase_5min: period?.sleep_phase_5_min ?? null,
+      movement_30sec: period?.movement_30_sec ?? null,
       contributors: ds?.contributors ?? null,
       optimal_bedtime_start: st?.optimal_bedtime?.start_offset ?? null,
       optimal_bedtime_end: st?.optimal_bedtime?.end_offset ?? null,
@@ -724,8 +724,8 @@ export async function fetchOuraData(
     average_hrv: p.average_hrv ?? null,
     average_breath: p.average_breath ?? null,
     restless_periods: p.restless_periods ?? null,
-    sleep_phase_5min: p.sleep_phase_5min ?? null,
-    movement_30sec: p.movement_30sec ?? null,
+    sleep_phase_5min: p.sleep_phase_5_min ?? null,
+    movement_30sec: p.movement_30_sec ?? null,
     heart_rate: p.heart_rate ?? null,
     hrv: p.hrv ?? null,
   }));
