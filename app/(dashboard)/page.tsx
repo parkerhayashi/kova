@@ -8,8 +8,20 @@ import {
   getTimezone,
   isOuraConnected,
 } from "@/lib/data/oura";
+import {
+  getHabitLogs,
+  getHabits,
+  getLatestWeight,
+  getSupplementLogs,
+  getSupplements,
+} from "@/lib/data/tracking";
 import { ordinalToResilience } from "@/lib/oura";
-import { latestNonNull, secondsToHours, shortDate } from "@/lib/utils";
+import {
+  latestNonNull,
+  secondsToHours,
+  shortDate,
+  todayInTimezone,
+} from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -27,21 +39,44 @@ export default async function TodayPage() {
   // Oura finalizes a day's detailed records hours after the score lands, so the
   // current-day row is often a partial stub. Read each headline from the most
   // recent populated reading (mirrors how Oura's own app surfaces metrics).
-  const [sleepRows, readinessRows, activityRows, connected, timezone] =
-    await Promise.all([
-      getSleepHistory(400),
-      getReadinessHistory(400),
-      getActivityHistory(400),
-      isOuraConnected(),
-      getTimezone(),
-    ]);
+  const [
+    sleepRows,
+    readinessRows,
+    activityRows,
+    connected,
+    timezone,
+    habits,
+    habitLogs,
+    supplements,
+    supplementLogs,
+    latestWeight,
+  ] = await Promise.all([
+    getSleepHistory(400),
+    getReadinessHistory(400),
+    getActivityHistory(400),
+    isOuraConnected(),
+    getTimezone(),
+    getHabits(true),
+    getHabitLogs(1),
+    getSupplements(true),
+    getSupplementLogs(1),
+    getLatestWeight(),
+  ]);
 
+  const todayIso = todayInTimezone(timezone);
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     timeZone: timezone,
   });
+
+  const habitsDone = habitLogs.filter(
+    (l) => l.date === todayIso && l.completed,
+  ).length;
+  const supplementsTaken = supplementLogs.filter(
+    (l) => l.date === todayIso && l.taken,
+  ).length;
 
   const hasOuraData =
     sleepRows.length > 0 || readinessRows.length > 0 || activityRows.length > 0;
@@ -195,22 +230,36 @@ export default async function TodayPage() {
       </section>
 
       {/* Checklists + weight + sleep debt */}
-      <section className="grid gap-3 md:grid-cols-2">
-        <Card className="flex flex-col gap-2">
-          <span className="metric-label">Habits</span>
-          <span className="body-copy">Habit tracking lands in Phase 3</span>
-        </Card>
-        <Card className="flex flex-col gap-2">
-          <span className="metric-label">Supplements</span>
-          <span className="body-copy">Supplement tracking lands in Phase 3</span>
-        </Card>
-        <MetricCard
-          label="Weight"
-          value={null}
-          unit="lbs"
-          accent="nutrition"
-          caption="Phase 3"
-        />
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Link href="/habits">
+          <MetricCard
+            label="Habits"
+            value={habits.length ? `${habitsDone}/${habits.length}` : null}
+            accent="recovery"
+            caption={habits.length ? "done today" : "add habits"}
+          />
+        </Link>
+        <Link href="/supplements">
+          <MetricCard
+            label="Supplements"
+            value={
+              supplements.length
+                ? `${supplementsTaken}/${supplements.length}`
+                : null
+            }
+            accent="nutrition"
+            caption={supplements.length ? "taken today" : "add supplements"}
+          />
+        </Link>
+        <Link href="/weight">
+          <MetricCard
+            label="Weight"
+            value={latestWeight?.weight_lbs ?? null}
+            unit="lbs"
+            accent="nutrition"
+            caption={latestWeight ? shortDate(latestWeight.date) : "log weight"}
+          />
+        </Link>
         <MetricCard
           label="Sleep Debt"
           value={secondsToHours(sleepDebt)}

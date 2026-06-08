@@ -40,6 +40,43 @@ export function secondsToHours(seconds: number | null | undefined): number | nul
   return Math.round((seconds / 3600) * 10) / 10;
 }
 
+/** Today's calendar date (YYYY-MM-DD) in the given zone — for daily logging. */
+export function todayInTimezone(timeZone: string = DEFAULT_TIMEZONE): string {
+  // en-CA renders as YYYY-MM-DD, so the parts are already in ISO order.
+  return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date());
+}
+
+/** ISO date (YYYY-MM-DD) `n` days before `iso` (n may be negative). */
+export function addDays(iso: string, n: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + n);
+  return date.toISOString().slice(0, 10);
+}
+
+/** Whole days between two ISO dates (a − b), ignoring time of day. */
+export function daysBetween(a: string, b: string): number {
+  const [ay, am, ad] = a.split("-").map(Number);
+  const [by, bm, bd] = b.split("-").map(Number);
+  const ms = Date.UTC(ay, am - 1, ad) - Date.UTC(by, bm - 1, bd);
+  return Math.round(ms / 86_400_000);
+}
+
+/**
+ * Current daily streak ending at `today`. Counts consecutive days present in
+ * `done`, starting from today (or yesterday if today isn't logged yet, so an
+ * unchecked current day doesn't prematurely break the streak).
+ */
+export function currentStreak(done: Set<string>, today: string): number {
+  let cursor = done.has(today) ? today : addDays(today, -1);
+  let streak = 0;
+  while (done.has(cursor)) {
+    streak++;
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
 /** Short chart-axis label "Jun 8" from an ISO date string. */
 export function shortDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
