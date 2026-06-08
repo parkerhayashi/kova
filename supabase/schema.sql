@@ -234,3 +234,24 @@ create table if not exists user_settings (
 insert into user_settings (id)
 select gen_random_uuid()
 where not exists (select 1 from user_settings);
+
+-- ---------------------------------------------------------------------------
+-- Role grants
+-- Supabase doesn't auto-grant on user-created tables in every project setup.
+-- service_role is what the server-side sync routes use; authenticated is the
+-- signed-in user (single-user app). All statements are idempotent.
+-- ---------------------------------------------------------------------------
+grant usage on schema public to anon, authenticated, service_role;
+
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+
+alter default privileges in schema public
+  grant all on tables to service_role;
+alter default privileges in schema public
+  grant all on sequences to service_role;
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to authenticated;
