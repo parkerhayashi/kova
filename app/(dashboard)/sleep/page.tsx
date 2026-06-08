@@ -68,12 +68,17 @@ export default async function SleepPage() {
     );
   }
 
-  const lastNight =
-    latestRowWith(sleep, "total_sleep_duration") ?? sleep[sleep.length - 1];
+  // The headline reflects the most recently scored night (today, if Oura has
+  // scored it). Stage/duration detail can lag the score by a few hours, so the
+  // detailed sections fall back to the latest night that actually has it.
+  const latest = latestRowWith(sleep, "score") ?? sleep[sleep.length - 1];
+  const detail = latestRowWith(sleep, "total_sleep_duration") ?? latest;
+  const detailStale = detail.date !== latest.date;
+  const bedtimeRow = latestRowWith(sleep, "optimal_bedtime_start");
   const latestHrv = latestNonNull(readiness, "hrv_balance");
   const latestDebt = latestNonNull(sleep, "sleep_debt_seconds");
 
-  const contributors = lastNight.contributors;
+  const contributors = latest.contributors;
   const contributorItems = SLEEP_CONTRIBUTORS.map(({ key, label }) => ({
     label,
     value: contributors?.[key] ?? null,
@@ -114,44 +119,56 @@ export default async function SleepPage() {
 
       {/* Score + contributors (Oura's sleep screen) */}
       <Card className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
-        <ScoreRing value={lastNight.score} label="Sleep Score" accent="sleep" />
+        <ScoreRing
+          value={latest.score}
+          label="Sleep Score"
+          accent="sleep"
+          caption={shortDate(latest.date)}
+        />
         <div className="w-full flex-1">
           <ContributorList items={contributorItems} accent="sleep" />
         </div>
       </Card>
 
+      {detailStale ? (
+        <p className="timestamp">
+          Stage detail below is from {shortDate(detail.date)} — Oura hasn&apos;t
+          finished processing {shortDate(latest.date)} yet.
+        </p>
+      ) : null}
+
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricCard
           label="Time Asleep"
-          value={formatDuration(lastNight.total_sleep_duration)}
+          value={formatDuration(detail.total_sleep_duration)}
           accent="sleep"
         />
         <MetricCard
           label="Efficiency"
-          value={lastNight.efficiency}
+          value={detail.efficiency}
           unit="%"
           accent="sleep"
         />
         <MetricCard
           label="Latency"
-          value={formatDuration(lastNight.latency)}
+          value={formatDuration(detail.latency)}
           accent="sleep"
         />
-        <MetricCard label="Restfulness" value={lastNight.restfulness} accent="sleep" />
+        <MetricCard label="Restfulness" value={detail.restfulness} accent="sleep" />
       </section>
 
       <Card className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <span className="metric-label">Last Night · Stages</span>
+          <span className="metric-label">Stages · {shortDate(detail.date)}</span>
           <span className="text-text-primary text-lg font-medium tracking-tight">
-            {formatDuration(lastNight.total_sleep_duration)}
+            {formatDuration(detail.total_sleep_duration)}
           </span>
         </div>
         <StageBars
-          rem={lastNight.rem_sleep_duration}
-          deep={lastNight.deep_sleep_duration}
-          light={lastNight.light_sleep_duration}
-          awake={lastNight.awake_duration}
+          rem={detail.rem_sleep_duration}
+          deep={detail.deep_sleep_duration}
+          light={detail.light_sleep_duration}
+          awake={detail.awake_duration}
         />
       </Card>
 
@@ -160,10 +177,10 @@ export default async function SleepPage() {
         <div className="flex items-baseline justify-between">
           <span className="metric-label">Hypnogram</span>
           <span className="timestamp">
-            {clockTime(lastNight.bedtime_start)} – {clockTime(lastNight.bedtime_end)}
+            {clockTime(detail.bedtime_start)} – {clockTime(detail.bedtime_end)}
           </span>
         </div>
-        <Hypnogram phases={period?.sleep_phase_5min ?? lastNight.sleep_phase_5min} />
+        <Hypnogram phases={period?.sleep_phase_5min ?? detail.sleep_phase_5min} />
       </Card>
 
       {/* Intraday heart rate + HRV during sleep */}
@@ -172,7 +189,7 @@ export default async function SleepPage() {
           <div className="flex items-baseline justify-between">
             <span className="metric-label">Heart Rate · Last Night</span>
             <span className="text-text-primary text-lg font-medium tracking-tight">
-              {lastNight.lowest_heart_rate ?? "—"}{" "}
+              {detail.lowest_heart_rate ?? "—"}{" "}
               <span className="text-text-muted text-sm">low bpm</span>
             </span>
           </div>
@@ -196,29 +213,29 @@ export default async function SleepPage() {
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricCard
           label="Avg HR"
-          value={lastNight.average_heart_rate != null
-            ? Math.round(lastNight.average_heart_rate)
+          value={detail.average_heart_rate != null
+            ? Math.round(detail.average_heart_rate)
             : null}
           unit="bpm"
           accent="recovery"
         />
         <MetricCard
           label="Lowest HR"
-          value={lastNight.lowest_heart_rate}
+          value={detail.lowest_heart_rate}
           unit="bpm"
           accent="recovery"
         />
         <MetricCard
           label="Avg Breath"
-          value={lastNight.average_breath != null
-            ? Math.round(lastNight.average_breath * 10) / 10
+          value={detail.average_breath != null
+            ? Math.round(detail.average_breath * 10) / 10
             : null}
           unit="/min"
           accent="sleep"
         />
         <MetricCard
           label="Time in Bed"
-          value={formatDuration(lastNight.time_in_bed)}
+          value={formatDuration(detail.time_in_bed)}
           accent="sleep"
         />
       </section>
@@ -226,18 +243,19 @@ export default async function SleepPage() {
       <section className="grid gap-3 sm:grid-cols-3">
         <MetricCard
           label="Restless Periods"
-          value={lastNight.restless_periods}
+          value={detail.restless_periods}
           accent="stress"
         />
         <Card className="flex flex-col gap-2">
           <span className="metric-label">Optimal Bedtime</span>
           <span className="text-text-primary text-lg font-medium tracking-tight">
-            {offsetToClock(lastNight.optimal_bedtime_start)} –{" "}
-            {offsetToClock(lastNight.optimal_bedtime_end)}
+            {offsetToClock(bedtimeRow?.optimal_bedtime_start)} –{" "}
+            {offsetToClock(bedtimeRow?.optimal_bedtime_end)}
           </span>
-          {lastNight.bedtime_recommendation ? (
+          {bedtimeRow?.bedtime_recommendation ? (
             <span className="timestamp">
-              {lastNight.bedtime_recommendation.replace(/_/g, " ")}
+              {bedtimeRow.bedtime_recommendation.replace(/_/g, " ")} ·{" "}
+              {shortDate(bedtimeRow.date)}
             </span>
           ) : null}
         </Card>
@@ -255,7 +273,7 @@ export default async function SleepPage() {
         title="Sleep Score · 14 Days"
         data={scoreTrend}
         accent="sleep"
-        current={lastNight.score != null ? String(lastNight.score) : null}
+        current={latest.score != null ? String(latest.score) : null}
       />
       <ChartCard
         title="HRV During Sleep"

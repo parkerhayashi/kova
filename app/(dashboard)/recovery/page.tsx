@@ -130,6 +130,7 @@ export default async function RecoveryPage() {
           label="VO₂ Max"
           value={vo2Max != null ? Math.round(vo2Max * 10) / 10 : null}
           accent="activity"
+          caption={vo2Max == null ? "Take the VO₂ Max test in Oura" : undefined}
         />
       </section>
 
