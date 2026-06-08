@@ -7,6 +7,7 @@
 import { after } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { decryptToken, encryptToken } from "@/lib/crypto";
+import { DEFAULT_TIMEZONE } from "@/lib/utils";
 import {
   computeSleepDebt,
   exchangeToken,
@@ -40,6 +41,46 @@ export async function getUserSettings(): Promise<UserSettings | null> {
   const db = createServiceClient();
   const { data } = await db.from("user_settings").select("*").limit(1).maybeSingle();
   return (data as UserSettings) ?? null;
+}
+
+/**
+ * The display timezone for clock times, auto-detected from the browser and
+ * stored in user_settings. Falls back to Eastern before detection lands (or if
+ * the column hasn't been migrated yet).
+ */
+export async function getTimezone(): Promise<string> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("user_settings")
+    .select("timezone")
+    .limit(1)
+    .maybeSingle();
+  return (data as { timezone?: string | null } | null)?.timezone ?? DEFAULT_TIMEZONE;
+}
+
+/**
+ * Persist the auto-detected display timezone. No-ops when it already matches so
+ * the common case (browser tz unchanged) writes nothing. Returns the stored
+ * value, or null if the column hasn't been migrated yet.
+ */
+export async function setTimezone(timezone: string): Promise<string | null> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("user_settings")
+    .select("id, timezone")
+    .limit(1)
+    .maybeSingle();
+  if (!row) return null;
+
+  const current = (row as { timezone?: string | null }).timezone;
+  if (current === timezone) return timezone;
+
+  const { error } = await db
+    .from("user_settings")
+    .update({ timezone })
+    .eq("id", (row as { id: string }).id);
+  if (error) return null;
+  return timezone;
 }
 
 export async function isOuraConnected(): Promise<boolean> {

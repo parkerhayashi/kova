@@ -3,6 +3,12 @@ export function cn(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
+/**
+ * Fallback display timezone. The user's real zone is auto-detected from the
+ * browser and stored in user_settings; this is only used before that lands.
+ */
+export const DEFAULT_TIMEZONE = "America/New_York";
+
 /** Map a Kova semantic accent name to its CSS color token. */
 export type Accent =
   | "recovery"
@@ -80,6 +86,7 @@ export function latestRowWith<T, K extends keyof T>(
  */
 export function expandSample(
   sample: { interval: number; timestamp: string; items: (number | null)[] } | null,
+  timeZone: string = DEFAULT_TIMEZONE,
   maxPoints = 240,
 ): { label: string; value: number | null }[] {
   if (!sample || !sample.items?.length) return [];
@@ -92,6 +99,7 @@ export function expandSample(
       label: t.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
+        timeZone,
       }),
       value: sample.items[i],
     });
@@ -102,6 +110,7 @@ export function expandSample(
 /** Build chart points from stored all-day heart-rate samples. */
 export function heartRateSeries(
   samples: { t: string; bpm: number }[] | null,
+  timeZone: string = DEFAULT_TIMEZONE,
   maxPoints = 240,
 ): { label: string; value: number | null }[] {
   if (!samples?.length) return [];
@@ -113,6 +122,7 @@ export function heartRateSeries(
       label: new Date(s.t).toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
+        timeZone,
       }),
       value: s.bpm,
     });
@@ -120,12 +130,16 @@ export function heartRateSeries(
   return points;
 }
 
-/** Format an ISO datetime as a local clock time, e.g. "11:42 PM". */
-export function clockTime(iso: string | null | undefined): string {
+/** Format an ISO datetime as a clock time in the given zone, e.g. "11:42 PM". */
+export function clockTime(
+  iso: string | null | undefined,
+  timeZone: string = DEFAULT_TIMEZONE,
+): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone,
   });
 }
 

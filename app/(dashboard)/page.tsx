@@ -5,18 +5,13 @@ import {
   getActivityHistory,
   getReadinessHistory,
   getSleepHistory,
+  getTimezone,
   isOuraConnected,
 } from "@/lib/data/oura";
 import { ordinalToResilience } from "@/lib/oura";
 import { latestNonNull, secondsToHours, shortDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-const today = new Date().toLocaleDateString("en-US", {
-  weekday: "long",
-  month: "long",
-  day: "numeric",
-});
 
 function signed(value: number | null): string | null {
   if (value === null) return null;
@@ -32,12 +27,21 @@ export default async function TodayPage() {
   // Oura finalizes a day's detailed records hours after the score lands, so the
   // current-day row is often a partial stub. Read each headline from the most
   // recent populated reading (mirrors how Oura's own app surfaces metrics).
-  const [sleepRows, readinessRows, activityRows, connected] = await Promise.all([
-    getSleepHistory(400),
-    getReadinessHistory(400),
-    getActivityHistory(400),
-    isOuraConnected(),
-  ]);
+  const [sleepRows, readinessRows, activityRows, connected, timezone] =
+    await Promise.all([
+      getSleepHistory(400),
+      getReadinessHistory(400),
+      getActivityHistory(400),
+      isOuraConnected(),
+      getTimezone(),
+    ]);
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: timezone,
+  });
 
   const hasOuraData =
     sleepRows.length > 0 || readinessRows.length > 0 || activityRows.length > 0;

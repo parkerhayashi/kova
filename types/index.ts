@@ -372,6 +372,7 @@ export interface UserSettings {
   fat_goal_g: number | null;
   water_goal_ml: number | null;
   step_goal: number | null;
+  timezone: string | null;
   oura_access_token: string | null;
   oura_refresh_token: string | null;
   strava_access_token: string | null;

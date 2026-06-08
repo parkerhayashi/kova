@@ -12,6 +12,7 @@ import {
   getLatestSleepPeriod,
   getReadinessHistory,
   getSleepHistory,
+  getTimezone,
   isOuraConnected,
 } from "@/lib/data/oura";
 import {
@@ -39,11 +40,12 @@ const SLEEP_CONTRIBUTORS: { key: keyof SleepContributors; label: string }[] = [
 ];
 
 export default async function SleepPage() {
-  const [sleep, readiness, period, connected] = await Promise.all([
+  const [sleep, readiness, period, connected, timezone] = await Promise.all([
     getSleepHistory(30),
     getReadinessHistory(14),
     getLatestSleepPeriod(),
     isOuraConnected(),
+    getTimezone(),
   ]);
 
   if (sleep.length === 0) {
@@ -84,8 +86,8 @@ export default async function SleepPage() {
     value: contributors?.[key] ?? null,
   }));
 
-  const hrSeries = expandSample(period?.heart_rate ?? null);
-  const hrvSeries = expandSample(period?.hrv ?? null);
+  const hrSeries = expandSample(period?.heart_rate ?? null, timezone);
+  const hrvSeries = expandSample(period?.hrv ?? null, timezone);
 
   const scored = sleep.filter((s) => s.score !== null);
   const best = scored.reduce<(typeof scored)[number] | null>(
@@ -177,7 +179,8 @@ export default async function SleepPage() {
         <div className="flex items-baseline justify-between">
           <span className="metric-label">Hypnogram</span>
           <span className="timestamp">
-            {clockTime(detail.bedtime_start)} – {clockTime(detail.bedtime_end)}
+            {clockTime(detail.bedtime_start, timezone)} –{" "}
+            {clockTime(detail.bedtime_end, timezone)}
           </span>
         </div>
         <Hypnogram phases={period?.sleep_phase_5min ?? detail.sleep_phase_5min} />

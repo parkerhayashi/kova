@@ -9,6 +9,7 @@ import { IntradayChart } from "@/components/charts/IntradayChart";
 import {
   getActivityHistory,
   getLatestHeartRateDay,
+  getTimezone,
   isOuraConnected,
 } from "@/lib/data/oura";
 import {
@@ -41,10 +42,11 @@ const INTENSITY = [
 ] as const;
 
 export default async function ActivityPage() {
-  const [activity, hrDay, connected] = await Promise.all([
+  const [activity, hrDay, connected, timezone] = await Promise.all([
     getActivityHistory(30),
     getLatestHeartRateDay(),
     isOuraConnected(),
+    getTimezone(),
   ]);
 
   if (activity.length === 0) {
@@ -84,7 +86,7 @@ export default async function ActivityPage() {
   const intensityTotal =
     INTENSITY.reduce((sum, { key }) => sum + (today[key] ?? 0), 0) || 1;
 
-  const hrSeries = heartRateSeries(hrDay?.samples ?? null);
+  const hrSeries = heartRateSeries(hrDay?.samples ?? null, timezone);
 
   const targetCalories = today.target_calories;
   const movePct =

@@ -265,6 +265,7 @@ create table if not exists user_settings (
   fat_goal_g              int,
   water_goal_ml           int default 3000,
   step_goal               int default 10000,
+  timezone                text default 'America/New_York', -- IANA tz; auto-detected from the browser
   oura_access_token       text,   -- encrypted
   oura_refresh_token      text,   -- encrypted
   strava_access_token     text,   -- encrypted
@@ -272,6 +273,10 @@ create table if not exists user_settings (
   hevy_api_key            text,   -- encrypted
   updated_at              timestamptz default now()
 );
+
+-- Additive: timezone for existing installs.
+alter table user_settings
+  add column if not exists timezone text default 'America/New_York';
 
 -- Single-user app: seed one settings row.
 insert into user_settings (id)
