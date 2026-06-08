@@ -275,7 +275,7 @@ export async function fetchOuraData(
     safeGet<RawDailyActivity>("daily_activity"),
     safeGet<RawDailyStress>("daily_stress"),
     safeGet<RawDailySpo2>("daily_spo2"),
-    safeGet<RawVo2Max>("vo2_max"),
+    safeGet<RawVo2Max>("vO2_max"),
     safeGet<RawCardiovascularAge>("daily_cardiovascular_age"),
     safeGet<RawDailyResilience>("daily_resilience"),
   ]);
