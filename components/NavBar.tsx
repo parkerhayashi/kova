@@ -11,6 +11,7 @@ import {
   Flame,
   HeartPulse,
   LayoutDashboard,
+  LogOut,
   Moon,
   Pill,
   Sun,
@@ -88,6 +89,15 @@ export function NavBar() {
             );
           })}
         </nav>
+        <form action="/api/logout" method="post" className="mt-auto pt-4">
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary"
+          >
+            <LogOut className="size-[18px]" strokeWidth={1.5} />
+            Lock
+          </button>
+        </form>
       </aside>
 
       {/* Mobile bottom tab bar */}

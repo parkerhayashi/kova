@@ -483,3 +483,34 @@ alter default privileges in schema public
   grant all on sequences to service_role;
 alter default privileges in schema public
   grant select, insert, update, delete on tables to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Row Level Security
+-- The app reads/writes EXCLUSIVELY through createServiceClient() (the
+-- service_role key, which bypasses RLS). Enabling RLS with no policies denies
+-- the public anon and authenticated keys all row access — so even if the anon
+-- key leaks, the data stays locked. Defense-in-depth behind the app password
+-- gate (proxy.ts). Re-runnable: enabling RLS twice is a no-op.
+-- ---------------------------------------------------------------------------
+alter table sleep             enable row level security;
+alter table readiness         enable row level security;
+alter table activity          enable row level security;
+alter table workouts          enable row level security;
+alter table exercises         enable row level security;
+alter table workout_sessions  enable row level security;
+alter table workout_sets      enable row level security;
+alter table runs              enable row level security;
+alter table meals             enable row level security;
+alter table water_logs        enable row level security;
+alter table weight_log        enable row level security;
+alter table habits            enable row level security;
+alter table habit_logs        enable row level security;
+alter table supplements       enable row level security;
+alter table supplement_logs   enable row level security;
+alter table user_settings     enable row level security;
+alter table sleep_periods     enable row level security;
+alter table heart_rate_daily  enable row level security;
+alter table oura_workouts     enable row level security;
+alter table oura_sessions     enable row level security;
+alter table oura_tags         enable row level security;
+alter table oura_profile      enable row level security;
