@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isMfaEnabled } from "@/lib/data/auth";
 
 export const metadata: Metadata = {
   title: "Kova — Unlock",
@@ -13,6 +14,8 @@ export default async function LoginPage({
   const next = typeof sp.next === "string" ? sp.next : "/";
   const wrongPassword = sp.error === "1";
   const rateLimited = sp.error === "2";
+  const wrongTotp = sp.error === "3";
+  const mfaRequired = await isMfaEnabled();
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-6">
@@ -36,16 +39,39 @@ export default async function LoginPage({
             <input
               type="password"
               name="password"
-              autoFocus
+              autoFocus={!mfaRequired}
               required
               autoComplete="current-password"
               className="h-11 rounded-lg border border-border bg-surface-raised px-3 text-text-primary outline-none transition-colors focus:border-border-strong"
             />
           </label>
 
+          {mfaRequired ? (
+            <label className="flex flex-col gap-2">
+              <span className="metric-label">Authenticator code</span>
+              <input
+                type="text"
+                name="totp"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={6}
+                required
+                autoFocus
+                className="h-11 rounded-lg border border-border bg-surface-raised px-3 font-mono text-text-primary outline-none transition-colors focus:border-border-strong"
+              />
+            </label>
+          ) : null}
+
           {wrongPassword ? (
             <p className="text-sm text-[var(--color-stress)]">
               Incorrect password. Try again.
+            </p>
+          ) : null}
+
+          {wrongTotp ? (
+            <p className="text-sm text-[var(--color-stress)]">
+              Invalid authenticator code. Try again.
             </p>
           ) : null}
 

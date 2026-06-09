@@ -1,15 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  AUTH_COOKIE,
-  MAX_AGE_SECONDS,
-  createSessionToken,
-  verifyPassword,
-} from "@/lib/auth";
+import { applySessionCookie, verifyPassword } from "@/lib/auth";
+import { getTotpSecret, isMfaEnabled } from "@/lib/data/auth";
 import {
   clearLoginAttempts,
   isLoginRateLimited,
   recordFailedLogin,
 } from "@/lib/rate-limit";
+import { verifyTotpCode } from "@/lib/totp";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +40,7 @@ export async function POST(request: NextRequest) {
   const form = await request.formData();
   const next = safeNext(form.get("next"));
   const password = form.get("password");
+  const totp = form.get("totp");
 
   if (!verifyPassword(typeof password === "string" ? password : "")) {
     recordFailedLogin(ip);
@@ -52,15 +50,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(url, { status: 303 });
   }
 
+  if (await isMfaEnabled()) {
+    const secret = await getTotpSecret();
+    if (
+      !secret ||
+      !verifyTotpCode(secret, typeof totp === "string" ? totp : "")
+    ) {
+      recordFailedLogin(ip);
+      const url = new URL("/login", request.url);
+      url.searchParams.set("error", "3");
+      if (next !== "/") url.searchParams.set("next", next);
+      return NextResponse.redirect(url, { status: 303 });
+    }
+  }
+
   clearLoginAttempts(ip);
 
   const res = NextResponse.redirect(new URL(next, request.url), { status: 303 });
-  res.cookies.set(AUTH_COOKIE, createSessionToken(), {
-    httpOnly: true,
-    secure: request.nextUrl.protocol === "https:",
-    sameSite: "lax",
-    path: "/",
-    maxAge: MAX_AGE_SECONDS,
-  });
+  applySessionCookie(res, request);
   return res;
 }

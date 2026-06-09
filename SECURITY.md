@@ -19,7 +19,8 @@ Kova aggregates personal health and lifestyle data (Oura Ring, habits, weight, w
 ## Access control
 
 - **Application gate:** The entire app is protected by a password (`KOVA_PASSWORD`). A successful login sets an HttpOnly, `SameSite=Lax` session cookie signed with HMAC-SHA256 (`AUTH_SECRET`). Without a valid session, pages redirect to `/login` and API routes return `401`.
-- **Login rate limiting:** Failed password attempts are capped at 10 per IP per 15-minute window (`lib/rate-limit.ts`). Excess attempts receive a `Retry-After` response and a lockout message on the login page.
+- **Two-factor authentication (TOTP):** Optional MFA via authenticator apps (1Password, Google Authenticator, etc.). When enabled at `/settings/security`, login requires password plus a 6-digit TOTP code. The seed is encrypted at rest in `user_settings.totp_secret`.
+- **Login rate limiting:** Failed password or TOTP attempts are capped at 10 per IP per 15-minute window (`lib/rate-limit.ts`).
 - **Least privilege:** Integration secrets (Oura, Hevy, Strava, Plaid, Supabase service role, cron secret, encryption key) exist only in server-side environment variables. They are never exposed to client components or `NEXT_PUBLIC_*` variables.
 - **Database:** All tables have Row Level Security enabled with no permissive policies, so the public anon key cannot read or write rows. The application uses the Supabase service role exclusively in server-side code.
 - **Cron routes:** `/api/sync/*` endpoints authenticate with a `Bearer` token (`CRON_SECRET`), not the session cookie.
@@ -34,8 +35,8 @@ Kova aggregates personal health and lifestyle data (Oura Ring, habits, weight, w
 
 ## Authentication limitations
 
-- End-user access is **password-only** (no MFA/TOTP/WebAuthn yet). This is acceptable for a single-operator personal app but is a known gap if the deployment URL becomes widely known.
 - Sessions are stateless signed tokens (30-day expiry). Logging out clears the cookie; revoking a stolen session requires rotating `AUTH_SECRET` or `KOVA_PASSWORD`.
+- MFA can be disabled from `/settings/security` with password + current TOTP code. Store backup codes or manual TOTP key safely before enabling.
 
 ## Infrastructure accounts
 
@@ -69,5 +70,4 @@ For a solo personal app, incident response is: rotate affected secrets immediate
 
 ## Known gaps (planned improvements)
 
-- End-user MFA (TOTP or passkey)
 - Explicit consent copy before third-party connect flows

@@ -14,6 +14,7 @@ import {
   LogOut,
   Moon,
   Pill,
+  Shield,
   Sun,
   TrendingUp,
   Wallet,
@@ -91,15 +92,29 @@ export function NavBar() {
             );
           })}
         </nav>
-        <form action="/api/logout" method="post" className="mt-auto pt-4">
-          <button
-            type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary"
+        <div className="mt-auto flex flex-col gap-1 pt-4">
+          <Link
+            href="/settings/security"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              pathname.startsWith("/settings")
+                ? "bg-[rgba(255,255,255,0.07)] text-text-primary"
+                : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary",
+            )}
           >
-            <LogOut className="size-[18px]" strokeWidth={1.5} />
-            Lock
-          </button>
-        </form>
+            <Shield className="size-[18px]" strokeWidth={1.5} />
+            Security
+          </Link>
+          <form action="/api/logout" method="post">
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary"
+            >
+              <LogOut className="size-[18px]" strokeWidth={1.5} />
+              Lock
+            </button>
+          </form>
+        </div>
       </aside>
 
       {/* Mobile bottom tab bar */}

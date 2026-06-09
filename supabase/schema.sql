@@ -333,12 +333,16 @@ create table if not exists user_settings (
   strava_access_token     text,   -- encrypted
   strava_refresh_token    text,   -- encrypted
   hevy_api_key            text,   -- encrypted
+  totp_secret             text,   -- encrypted; TOTP MFA seed (null = disabled)
   updated_at              timestamptz default now()
 );
 
 -- Additive: timezone for existing installs.
 alter table user_settings
   add column if not exists timezone text default 'America/New_York';
+
+alter table user_settings
+  add column if not exists totp_secret text;
 
 -- Single-user app: seed one settings row.
 insert into user_settings (id)

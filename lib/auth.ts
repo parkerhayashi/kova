@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { cookies } from "next/headers";
+import type { NextRequest, NextResponse } from "next/server";
 
 /**
  * Single-user password gate. Kova is a personal dashboard, so rather than a
@@ -12,6 +14,12 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const AUTH_COOKIE = "kova_session";
 export const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
+
+/** True when the current request carries a valid session cookie. */
+export async function hasValidSession(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return verifySessionToken(cookieStore.get(AUTH_COOKIE)?.value);
+}
 
 /** Auth is enforced only once a password is configured. */
 export function isAuthEnabled(): boolean {
@@ -62,4 +70,40 @@ export function verifyPassword(input: string | undefined | null): boolean {
   if (!expected) return false;
   if (typeof input !== "string" || input.length === 0) return false;
   return timingSafeEqualStr(input, expected);
+}
+
+/** True when the response should set the Secure cookie flag (Vercel/proxies). */
+export function isSecureRequest(request: NextRequest): boolean {
+  if (request.nextUrl.protocol === "https:") return true;
+  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (proto === "https") return true;
+  return process.env.NODE_ENV === "production";
+}
+
+/** Attach a fresh 30-day session cookie (password-only or MFA login). */
+export function applySessionCookie(
+  response: NextResponse,
+  request: NextRequest,
+): void {
+  response.cookies.set(AUTH_COOKIE, createSessionToken(), {
+    httpOnly: true,
+    secure: isSecureRequest(request),
+    sameSite: "lax",
+    path: "/",
+    maxAge: MAX_AGE_SECONDS,
+  });
+}
+
+/** Clear the session cookie on logout. */
+export function clearSessionCookie(
+  response: NextResponse,
+  request: NextRequest,
+): void {
+  response.cookies.set(AUTH_COOKIE, "", {
+    httpOnly: true,
+    secure: isSecureRequest(request),
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
 }
