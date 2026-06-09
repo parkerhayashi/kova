@@ -11,12 +11,22 @@ import {
   isOuraConnected,
 } from "@/lib/data/oura";
 import {
+  getDailyTotals,
+  getNutritionGoals,
+} from "@/lib/data/nutrition";
+import { getWaterState } from "@/lib/data/water";
+import {
   getHabitLogs,
   getHabits,
   getSupplementLogs,
   getSupplements,
 } from "@/lib/data/tracking";
 import { ordinalToResilience } from "@/lib/oura";
+import {
+  computeTargetMl,
+  normalizeWater,
+  unitVolMl,
+} from "@/lib/water";
 import {
   latestNonNull,
   secondsToHours,
@@ -63,6 +73,15 @@ export default async function TodayPage() {
   ]);
 
   const todayIso = todayInTimezone(timezone);
+  const [mealTotals, nutritionGoals, waterState] = await Promise.all([
+    getDailyTotals(todayIso),
+    getNutritionGoals(),
+    getWaterState(),
+  ]);
+  const water = normalizeWater(waterState);
+  const waterUnits = water.logs[todayIso] ?? 0;
+  const waterMl = Math.round(waterUnits * unitVolMl(water));
+  const waterGoalMl = Math.round(computeTargetMl(water).total);
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -177,29 +196,54 @@ export default async function TodayPage() {
         <MetricCard label="SpO₂" value={spo2} unit="%" accent="sleep" />
       </section>
 
-      {/* Nutrition + hydration (Phase 6) */}
+      {/* Nutrition + hydration */}
       <section className="grid gap-3 md:grid-cols-2">
-        <Card className="flex flex-col gap-3">
-          <span className="metric-label">Calories</span>
-          <div className="flex items-baseline gap-2">
-            <span className="metric-value" style={{ color: "var(--color-nutrition)" }}>
-              —
+        <Link href="/nutrition" className="block">
+          <Card className="card-interactive flex flex-col gap-3">
+            <span className="metric-label">Calories</span>
+            <div className="flex items-baseline gap-2">
+              <span className="metric-value" style={{ color: "var(--color-nutrition)" }}>
+                {mealTotals.calories != null
+                  ? Math.round(mealTotals.calories)
+                  : "—"}
+              </span>
+              <span className="text-text-muted text-sm">
+                in / {activeCalories ?? "—"} out
+              </span>
+            </div>
+            <div className="text-text-muted flex gap-4 text-xs">
+              <span>
+                Protein{" "}
+                {mealTotals.protein_g != null
+                  ? `${Math.round(mealTotals.protein_g)}g`
+                  : "—"}
+              </span>
+              <span>
+                Carbs{" "}
+                {mealTotals.carbs_g != null
+                  ? `${Math.round(mealTotals.carbs_g)}g`
+                  : "—"}
+              </span>
+              <span>
+                Fat{" "}
+                {mealTotals.fat_g != null ? `${Math.round(mealTotals.fat_g)}g` : "—"}
+              </span>
+            </div>
+            <span className="timestamp">
+              Goal {nutritionGoals.calories} kcal · tap to log meals
             </span>
-            <span className="text-text-muted text-sm">in / out</span>
-          </div>
-          <div className="text-text-muted flex gap-4 text-xs">
-            <span>Protein —</span>
-            <span>Carbs —</span>
-            <span>Fat —</span>
-          </div>
-        </Card>
-        <MetricCard
-          label="Water"
-          value={null}
-          unit="ml"
-          accent="sleep"
-          caption="Goal 3000 ml"
-        />
+          </Card>
+        </Link>
+        <Link href="/water" className="block">
+          <MetricCard
+            label="Water"
+            value={waterMl > 0 ? waterMl : null}
+            unit={`/ ${waterGoalMl} ml`}
+            accent="sleep"
+            caption={waterMl > 0 ? "logged today" : "tap to log"}
+            className="card-interactive h-full"
+          />
+        </Link>
       </section>
 
       {/* Activity today */}
