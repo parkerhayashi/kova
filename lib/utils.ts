@@ -77,6 +77,33 @@ export function currentStreak(done: Set<string>, today: string): number {
   return streak;
 }
 
+/** Format a past timestamp for sync status (e.g. "2:34 PM · 45 min ago"). */
+export function formatSyncStatus(
+  iso: string | null,
+  timeZone: string = DEFAULT_TIMEZONE,
+): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const clock = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone,
+  });
+
+  const diffSec = Math.round((date.getTime() - Date.now()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  const abs = Math.abs(diffSec);
+  let relative: string;
+  if (abs < 60) relative = rtf.format(diffSec, "second");
+  else if (abs < 3600) relative = rtf.format(Math.round(diffSec / 60), "minute");
+  else if (abs < 86_400) relative = rtf.format(Math.round(diffSec / 3600), "hour");
+  else relative = rtf.format(Math.round(diffSec / 86_400), "day");
+
+  return `${clock} · ${relative}`;
+}
+
 /** Short chart-axis label "Jun 8" from an ISO date string. */
 export function shortDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
+import { OuraRefreshControl } from "@/components/oura/OuraRefreshControl";
 import { Card } from "@/components/ui/Card";
 import {
   getActivityHistory,
+  getOuraLastSyncedAt,
   getReadinessHistory,
   getSleepHistory,
   getTimezone,
@@ -18,7 +20,6 @@ import { ordinalToResilience } from "@/lib/oura";
 import {
   latestNonNull,
   secondsToHours,
-  shortDate,
   todayInTimezone,
 } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ export default async function TodayPage() {
     activityRows,
     connected,
     timezone,
+    ouraLastSyncedAt,
     habits,
     habitLogs,
     supplements,
@@ -53,6 +55,7 @@ export default async function TodayPage() {
     getActivityHistory(400),
     isOuraConnected(),
     getTimezone(),
+    getOuraLastSyncedAt(),
     getHabits(true),
     getHabitLogs(1),
     getSupplements(true),
@@ -95,16 +98,6 @@ export default async function TodayPage() {
   const totalCalories = latestNonNull(activityRows, "total_calories");
   const spo2 = latestNonNull(activityRows, "spo2_avg");
 
-  const lastSync =
-    [
-      readinessRows.at(-1)?.date,
-      sleepRows.at(-1)?.date,
-      activityRows.at(-1)?.date,
-    ]
-      .filter((d): d is string => Boolean(d))
-      .sort()
-      .at(-1) ?? null;
-
   return (
     <div className="space-y-8">
       <header className="mb-2 flex items-end justify-between gap-4">
@@ -112,8 +105,11 @@ export default async function TodayPage() {
           <p className="metric-label">Today</p>
           <h1 className="section-heading mt-1">{today}</h1>
         </div>
-        {lastSync ? (
-          <span className="timestamp">Oura synced {shortDate(lastSync)}</span>
+        {connected ? (
+          <OuraRefreshControl
+            lastSyncedAt={ouraLastSyncedAt}
+            timeZone={timezone}
+          />
         ) : null}
       </header>
 

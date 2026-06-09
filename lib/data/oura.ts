@@ -199,43 +199,47 @@ export interface SyncResult {
 // Sync-on-open: pull a fresh window when the app is opened, but no more than
 // once per throttle window. 30 days keeps the 14-day sleep-debt rolling sum
 // accurate and costs the same number of Oura requests as a short window.
-const SYNC_ON_OPEN_THROTTLE_MS = 15 * 60 * 1000;
+const SYNC_ON_OPEN_THROTTLE_MS = 5 * 60 * 1000;
 const SYNC_ON_OPEN_DAYS = 30;
+
+export async function getOuraLastSyncedAt(): Promise<string | null> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("user_settings")
+    .select("oura_last_synced_at")
+    .limit(1)
+    .maybeSingle();
+  return (data as { oura_last_synced_at?: string | null } | null)
+    ?.oura_last_synced_at ?? null;
+}
+
+async function markOuraSynced(settingsId: string): Promise<void> {
+  const db = createServiceClient();
+  await db
+    .from("user_settings")
+    .update({ oura_last_synced_at: new Date().toISOString() })
+    .eq("id", settingsId);
+}
 
 /**
  * Opportunistic Oura sync triggered when the dashboard is opened. The network
- * work is deferred with `after()` so it never blocks the page render, and a
- * conditional update on `updated_at` atomically claims the sync slot — so rapid
- * re-opens (and concurrent requests) collapse to one sync per throttle window.
- *
- * Server Components only (touches the service client). Safe to call on every
- * render; it self-throttles.
+ * work is deferred with `after()` so it never blocks the page render. Uses
+ * `oura_last_synced_at` for throttling so other settings writes don't block sync.
  */
 export async function maybeSyncOuraOnOpen(): Promise<void> {
   const db = createServiceClient();
   const { data: settings } = await db
     .from("user_settings")
-    .select("id, oura_access_token, oura_refresh_token")
+    .select("id, oura_access_token, oura_refresh_token, oura_last_synced_at")
     .limit(1)
     .maybeSingle();
 
   if (!settings) return;
   if (!settings.oura_access_token && !settings.oura_refresh_token) return;
 
-  const thresholdIso = new Date(
-    Date.now() - SYNC_ON_OPEN_THROTTLE_MS,
-  ).toISOString();
-
-  // Claim the slot atomically: only a row whose timestamp predates the throttle
-  // window is updated, so a concurrent open gets zero rows back and bails.
-  const { data: claimed } = await db
-    .from("user_settings")
-    .update({ updated_at: new Date().toISOString() })
-    .eq("id", settings.id)
-    .lt("updated_at", thresholdIso)
-    .select("id");
-
-  if (!claimed || claimed.length === 0) return;
+  const thresholdMs = Date.now() - SYNC_ON_OPEN_THROTTLE_MS;
+  const lastSynced = settings.oura_last_synced_at;
+  if (lastSynced && new Date(lastSynced).getTime() > thresholdMs) return;
 
   after(async () => {
     try {
@@ -355,6 +359,8 @@ export async function syncOura(
   }
 
   if (errors.length > 0) throw new Error(errors.join("; "));
+
+  await markOuraSynced(settings.id);
 
   return {
     range,

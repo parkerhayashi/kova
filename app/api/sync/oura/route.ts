@@ -19,7 +19,7 @@ function isAuthorized(request: NextRequest): boolean {
 
 /**
  * Sync Oura data into Supabase (blueprint Phase 2). Guarded by CRON_SECRET,
- * runs daily at 6am via vercel.json, and accepts ?days=N for a manual backfill.
+ * runs every 6 hours via vercel.json, and accepts ?days=N for a manual backfill.
  */
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
