@@ -16,6 +16,7 @@ import {
   Pill,
   Sun,
   TrendingUp,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ const NAV = [
   { href: "/water", label: "Water", icon: Droplet },
   { href: "/supplements", label: "Supplements", icon: Pill },
   { href: "/habits", label: "Habits", icon: CalendarCheck },
+  { href: "/finances", label: "Finances", icon: Wallet },
   { href: "/trends", label: "Trends", icon: TrendingUp },
 ] as const;
 
