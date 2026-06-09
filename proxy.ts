@@ -8,7 +8,7 @@ import { AUTH_COOKIE, isAuthEnabled, verifySessionToken } from "@/lib/auth";
  * cookie — otherwise pages redirect to /login and API calls get a 401.
  */
 
-const PUBLIC_PATHS = ["/login", "/api/login", "/api/logout"];
+const PUBLIC_PATHS = ["/login", "/privacy", "/api/login", "/api/logout"];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some(

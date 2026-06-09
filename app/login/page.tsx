@@ -11,7 +11,8 @@ export default async function LoginPage({
 }) {
   const sp = await searchParams;
   const next = typeof sp.next === "string" ? sp.next : "/";
-  const error = sp.error === "1";
+  const wrongPassword = sp.error === "1";
+  const rateLimited = sp.error === "2";
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-6">
@@ -42,9 +43,15 @@ export default async function LoginPage({
             />
           </label>
 
-          {error ? (
+          {wrongPassword ? (
             <p className="text-sm text-[var(--color-stress)]">
               Incorrect password. Try again.
+            </p>
+          ) : null}
+
+          {rateLimited ? (
+            <p className="text-sm text-[var(--color-stress)]">
+              Too many attempts. Wait 15 minutes and try again.
             </p>
           ) : null}
 

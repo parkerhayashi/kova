@@ -5,6 +5,11 @@ import {
   createSessionToken,
   verifyPassword,
 } from "@/lib/auth";
+import {
+  clearLoginAttempts,
+  isLoginRateLimited,
+  recordFailedLogin,
+} from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -15,17 +20,39 @@ function safeNext(next: FormDataEntryValue | null): string {
   return next;
 }
 
+function clientIp(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  return request.headers.get("x-real-ip") ?? "unknown";
+}
+
 export async function POST(request: NextRequest) {
+  const ip = clientIp(request);
+  const { limited, retryAfterSec } = isLoginRateLimited(ip);
+  if (limited) {
+    const url = new URL("/login", request.url);
+    url.searchParams.set("error", "2");
+    const res = NextResponse.redirect(url, { status: 303 });
+    res.headers.set("Retry-After", String(retryAfterSec));
+    return res;
+  }
+
   const form = await request.formData();
   const next = safeNext(form.get("next"));
   const password = form.get("password");
 
   if (!verifyPassword(typeof password === "string" ? password : "")) {
+    recordFailedLogin(ip);
     const url = new URL("/login", request.url);
     url.searchParams.set("error", "1");
     if (next !== "/") url.searchParams.set("next", next);
     return NextResponse.redirect(url, { status: 303 });
   }
+
+  clearLoginAttempts(ip);
 
   const res = NextResponse.redirect(new URL(next, request.url), { status: 303 });
   res.cookies.set(AUTH_COOKIE, createSessionToken(), {

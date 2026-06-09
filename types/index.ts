@@ -421,6 +421,52 @@ export interface UserSettings {
   updated_at: string;
 }
 
+export interface PlaidItem {
+  id: string;
+  item_id: string;
+  access_token: string;
+  institution_id: string | null;
+  institution_name: string | null;
+  sync_cursor: string | null;
+  last_synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FinancialAccount {
+  id: string;
+  plaid_item_id: string;
+  plaid_account_id: string;
+  name: string;
+  official_name: string | null;
+  type: string | null;
+  subtype: string | null;
+  mask: string | null;
+  current_balance: number | null;
+  available_balance: number | null;
+  iso_currency_code: string | null;
+  updated_at: string;
+}
+
+export interface FinancialTransaction {
+  id: string;
+  plaid_transaction_id: string;
+  plaid_account_id: string;
+  amount: number;
+  iso_currency_code: string | null;
+  date: string;
+  authorized_date: string | null;
+  name: string | null;
+  merchant_name: string | null;
+  pending: boolean;
+  payment_channel: string | null;
+  category_primary: string | null;
+  category_detailed: string | null;
+  personal_finance_category: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Normalized full nutrient profile returned by the food-data layer
  * (USDA FoodData Central / Open Food Facts) before it is mapped onto a Meal.

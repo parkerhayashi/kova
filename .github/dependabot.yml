@@ -1,0 +1,17 @@
+# Automated dependency update PRs (security + version bumps).
+# https://docs.github.com/en/code-security/dependabot
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch

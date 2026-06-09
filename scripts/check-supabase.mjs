@@ -34,6 +34,9 @@ const TABLES = [
   "supplements",
   "supplement_logs",
   "user_settings",
+  "plaid_items",
+  "financial_accounts",
+  "financial_transactions",
 ];
 
 const supabase = createClient(url, serviceKey, {

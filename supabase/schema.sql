@@ -464,6 +464,64 @@ create table if not exists oura_profile (
 );
 
 -- ---------------------------------------------------------------------------
+-- Plaid — linked bank / credit accounts and transactions (US via Plaid Link)
+-- Access tokens are encrypted at rest; sync uses /transactions/sync cursors.
+-- ---------------------------------------------------------------------------
+create table if not exists plaid_items (
+  id                uuid primary key default gen_random_uuid(),
+  item_id           text unique not null,
+  access_token      text not null,          -- encrypted (lib/crypto)
+  institution_id    text,
+  institution_name  text,
+  sync_cursor       text,                   -- Plaid /transactions/sync cursor
+  last_synced_at    timestamptz,
+  created_at        timestamptz default now(),
+  updated_at        timestamptz default now()
+);
+
+create table if not exists financial_accounts (
+  id                uuid primary key default gen_random_uuid(),
+  plaid_item_id     uuid not null references plaid_items(id) on delete cascade,
+  plaid_account_id  text unique not null,
+  name              text not null,
+  official_name     text,
+  type              text,                     -- depository | credit | loan | ...
+  subtype           text,                     -- checking | credit card | ...
+  mask              text,
+  current_balance   numeric,
+  available_balance numeric,
+  iso_currency_code text default 'USD',
+  updated_at        timestamptz default now()
+);
+
+create index if not exists financial_accounts_item_idx
+  on financial_accounts(plaid_item_id);
+
+create table if not exists financial_transactions (
+  id                      uuid primary key default gen_random_uuid(),
+  plaid_transaction_id    text unique not null,
+  plaid_account_id        text not null,
+  amount                  numeric not null, -- Plaid: + = outflow, − = inflow
+  iso_currency_code       text default 'USD',
+  date                    date not null,
+  authorized_date         date,
+  name                    text,
+  merchant_name           text,
+  pending                 boolean default false,
+  payment_channel         text,
+  category_primary        text,
+  category_detailed       text,
+  personal_finance_category jsonb,
+  created_at              timestamptz default now(),
+  updated_at              timestamptz default now()
+);
+
+create index if not exists financial_transactions_date_idx
+  on financial_transactions(date desc);
+create index if not exists financial_transactions_account_idx
+  on financial_transactions(plaid_account_id);
+
+-- ---------------------------------------------------------------------------
 -- Role grants
 -- Supabase doesn't auto-grant on user-created tables in every project setup.
 -- service_role is what the server-side sync routes use; authenticated is the
@@ -514,3 +572,6 @@ alter table oura_workouts     enable row level security;
 alter table oura_sessions     enable row level security;
 alter table oura_tags         enable row level security;
 alter table oura_profile      enable row level security;
+alter table plaid_items       enable row level security;
+alter table financial_accounts enable row level security;
+alter table financial_transactions enable row level security;
