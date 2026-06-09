@@ -150,6 +150,60 @@ create table if not exists workout_sets (
 create index if not exists workout_sets_session_idx on workout_sets (session_id);
 create index if not exists workout_sets_exercise_idx on workout_sets (exercise_id);
 
+-- Saved routines (Hevy-style workout plans)
+create table if not exists workout_routines (
+  id          uuid primary key default gen_random_uuid(),
+  name        text unique not null,
+  sort_order  int default 0,
+  created_at  timestamptz default now()
+);
+
+create table if not exists workout_routine_exercises (
+  id            uuid primary key default gen_random_uuid(),
+  routine_id    uuid not null references workout_routines (id) on delete cascade,
+  exercise_id   uuid not null references exercises (id),
+  position      int not null default 0,
+  target_sets   int not null default 2,
+  rep_min       int,
+  rep_max       int,
+  rest_seconds  int default 180,
+  notes         text
+);
+
+create index if not exists workout_routine_exercises_routine_idx
+  on workout_routine_exercises (routine_id);
+
+-- Exercises planned for an in-progress or completed session (supports reorder/replace)
+create table if not exists workout_session_exercises (
+  id            uuid primary key default gen_random_uuid(),
+  session_id    uuid not null references workout_sessions (id) on delete cascade,
+  exercise_id   uuid not null references exercises (id),
+  position      int not null default 0,
+  target_sets   int not null default 2,
+  rep_min       int,
+  rep_max       int,
+  rest_seconds  int default 180,
+  notes         text
+);
+
+create index if not exists workout_session_exercises_session_idx
+  on workout_session_exercises (session_id);
+
+alter table workout_sessions
+  add column if not exists routine_id uuid references workout_routines (id);
+
+alter table workout_sessions
+  add column if not exists status text default 'completed';
+
+alter table workout_sessions
+  add column if not exists started_at timestamptz;
+
+alter table workout_sessions
+  add column if not exists completed_at timestamptz;
+
+alter table exercises
+  add column if not exists exercisedb_id text;
+
 -- Seed a starter exercise library (no-op if a name already exists).
 insert into exercises (name, category, equipment) values
   ('Barbell Back Squat', 'legs', 'barbell'),
@@ -173,6 +227,59 @@ insert into exercises (name, category, equipment) values
   ('Plank', 'core', 'bodyweight'),
   ('Hanging Leg Raise', 'core', 'bodyweight')
 on conflict (name) do nothing;
+
+-- Parker's Hevy routines (Push / Pull / Legs) — idempotent by routine name.
+insert into exercises (name, category, equipment) values
+  ('Incline Bench Press (Dumbbell)', 'chest', 'dumbbell'),
+  ('Single Arm Lateral Raise (Cable)', 'shoulders', 'cable'),
+  ('Triceps Pushdown', 'arms', 'cable'),
+  ('Seated Chest Flys (Cable)', 'chest', 'cable'),
+  ('Triceps Dip (Assisted)', 'arms', 'bodyweight'),
+  ('Lat Pulldown (Cable)', 'back', 'cable'),
+  ('Rear Delt Reverse Fly (Machine)', 'shoulders', 'machine'),
+  ('Preacher Curl (Machine)', 'arms', 'machine'),
+  ('Seated Cable Row - V Grip (Cable)', 'back', 'cable'),
+  ('Single Arm Curl (Cable)', 'arms', 'cable'),
+  ('Lying Leg Curl (Machine)', 'legs', 'machine'),
+  ('Leg Press (Machine)', 'legs', 'machine'),
+  ('Decline Crunch (Weighted)', 'core', 'bodyweight'),
+  ('Glute Ham Raise', 'legs', 'bodyweight'),
+  ('Leg Extension (Machine)', 'legs', 'machine'),
+  ('Seated Calf Raise', 'legs', 'machine')
+on conflict (name) do nothing;
+
+insert into workout_routines (name, sort_order) values
+  ('Push', 1),
+  ('Pull', 2),
+  ('Legs', 3)
+on conflict (name) do nothing;
+
+insert into workout_routine_exercises (routine_id, exercise_id, position, target_sets, rep_min, rep_max, rest_seconds, notes)
+select r.id, e.id, v.position, v.target_sets, v.rep_min, v.rep_max, 180, v.notes
+from (values
+  ('Push', 'Incline Bench Press (Dumbbell)', 0, 2, 5, 5, null::text),
+  ('Push', 'Single Arm Lateral Raise (Cable)', 1, 2, 5, 5, null),
+  ('Push', 'Triceps Pushdown', 2, 2, 5, 5, null),
+  ('Push', 'Seated Chest Flys (Cable)', 3, 2, 5, 5, null),
+  ('Push', 'Triceps Dip (Assisted)', 4, 2, 5, 5, null),
+  ('Pull', 'Lat Pulldown (Cable)', 0, 2, 5, 8, null),
+  ('Pull', 'Rear Delt Reverse Fly (Machine)', 1, 2, 6, 8, null),
+  ('Pull', 'Preacher Curl (Machine)', 2, 2, 4, 8, null),
+  ('Pull', 'Seated Cable Row - V Grip (Cable)', 3, 2, 5, 7, null),
+  ('Pull', 'Single Arm Curl (Cable)', 4, 2, 6, 6, null),
+  ('Legs', 'Lying Leg Curl (Machine)', 0, 2, 6, 7, null),
+  ('Legs', 'Leg Press (Machine)', 1, 2, 6, 6, null),
+  ('Legs', 'Decline Crunch (Weighted)', 2, 2, 20, 20, '25 lb'),
+  ('Legs', 'Glute Ham Raise', 3, 2, 6, 6, '25 lb'),
+  ('Legs', 'Leg Extension (Machine)', 4, 2, 20, 20, null),
+  ('Legs', 'Seated Calf Raise', 5, 2, 6, 7, null)
+) as v(routine_name, exercise_name, position, target_sets, rep_min, rep_max, notes)
+join workout_routines r on r.name = v.routine_name
+join exercises e on e.name = v.exercise_name
+where not exists (
+  select 1 from workout_routine_exercises wre
+  where wre.routine_id = r.id and wre.position = v.position
+);
 
 -- ---------------------------------------------------------------------------
 -- Strava: runs / cardio
@@ -589,6 +696,9 @@ alter table workouts          enable row level security;
 alter table exercises         enable row level security;
 alter table workout_sessions  enable row level security;
 alter table workout_sets      enable row level security;
+alter table workout_routines  enable row level security;
+alter table workout_routine_exercises enable row level security;
+alter table workout_session_exercises enable row level security;
 alter table runs              enable row level security;
 alter table meals             enable row level security;
 alter table water_logs        enable row level security;

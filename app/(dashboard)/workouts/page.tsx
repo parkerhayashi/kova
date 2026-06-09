@@ -1,5 +1,5 @@
-import { Coach } from "@/components/coach/Coach";
+import { WorkoutApp } from "@/components/workouts/WorkoutApp";
 
 export default function WorkoutsPage() {
-  return <Coach />;
+  return <WorkoutApp />;
 }

@@ -250,8 +250,70 @@ export interface Exercise {
   name: string;
   category: string | null;
   equipment: string | null;
+  exercisedb_id: string | null;
   is_active: boolean;
   created_at: string;
+}
+
+export type WorkoutSessionStatus = "in_progress" | "completed";
+
+export interface WorkoutRoutine {
+  id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface WorkoutRoutineExercise {
+  id: string;
+  routine_id: string;
+  exercise_id: string;
+  position: number;
+  target_sets: number;
+  rep_min: number | null;
+  rep_max: number | null;
+  rest_seconds: number;
+  notes: string | null;
+}
+
+export interface WorkoutSessionExercise {
+  id: string;
+  session_id: string;
+  exercise_id: string;
+  position: number;
+  target_sets: number;
+  rep_min: number | null;
+  rep_max: number | null;
+  rest_seconds: number;
+  notes: string | null;
+}
+
+export interface RoutineExerciseView {
+  id: string;
+  position: number;
+  target_sets: number;
+  rep_min: number | null;
+  rep_max: number | null;
+  rest_seconds: number;
+  notes: string | null;
+  exercise: Exercise;
+}
+
+export interface RoutineDetail extends WorkoutRoutine {
+  exercises: RoutineExerciseView[];
+  total_sets: number;
+  estimated_minutes: number;
+}
+
+export interface SessionExerciseView extends RoutineExerciseView {
+  session_exercise_id: string;
+  sets: WorkoutSet[];
+}
+
+export interface ActiveWorkoutView {
+  session: WorkoutSession;
+  exercises: SessionExerciseView[];
+  total_volume_lbs: number;
 }
 
 export interface WorkoutSession {
@@ -259,7 +321,11 @@ export interface WorkoutSession {
   date: string;
   title: string | null;
   notes: string | null;
-  duration: number | null; // seconds
+  duration: number | null;
+  routine_id: string | null;
+  status: WorkoutSessionStatus;
+  started_at: string | null;
+  completed_at: string | null;
   created_at: string;
 }
 
