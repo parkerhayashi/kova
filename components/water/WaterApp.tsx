@@ -58,6 +58,13 @@ export function WaterApp() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!showSettings) return;
+    void refreshWaterFromServer().then((s) => {
+      if (s) setState(s);
+    });
+  }, [showSettings]);
+
   function commit(next: WaterState) {
     setState(next);
     commitWaterState(next);

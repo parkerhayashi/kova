@@ -1,33 +1,10 @@
-import { profileSexToWater } from "@/lib/profile";
+import { applyProfileToWater } from "@/lib/profile";
 import {
   loadWater,
   normalizeWater,
   saveWater,
   type WaterState,
 } from "@/lib/water";
-
-async function fetchProfileForWater(): Promise<Partial<WaterState> | null> {
-  try {
-    const res = await fetch("/api/profile", { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    const p = json?.profile;
-    if (!p) return null;
-
-    const weightKg =
-      p.weight_lbs != null ? p.weight_lbs / 2.204_622_621_8 : undefined;
-
-    return {
-      profile: {
-        age: p.age ?? undefined,
-        sex: p.biological_sex != null ? profileSexToWater(p.biological_sex) : undefined,
-        weightKg: weightKg != null ? Math.round(weightKg * 10) / 10 : undefined,
-      } as WaterState["profile"],
-    };
-  } catch {
-    return null;
-  }
-}
 
 /** Pull water state from Supabase (session required). */
 export async function fetchWaterState(): Promise<WaterState | null> {
@@ -39,6 +16,21 @@ export async function fetchWaterState(): Promise<WaterState | null> {
     return normalizeWater(json.state);
   } catch {
     return null;
+  }
+}
+
+/** Pull canonical profile and merge into water state (client-side fallback). */
+async function fetchProfileMergedState(
+  state: WaterState,
+): Promise<WaterState> {
+  try {
+    const res = await fetch("/api/profile", { cache: "no-store" });
+    if (!res.ok) return state;
+    const json = await res.json();
+    if (!json?.profile) return state;
+    return applyProfileToWater(state, json.profile);
+  } catch {
+    return state;
   }
 }
 
@@ -61,18 +53,14 @@ export async function pushWaterState(state: WaterState): Promise<void> {
  */
 export async function hydrateWaterState(): Promise<WaterState> {
   const local = loadWater();
-  const [remote, profileOverlay] = await Promise.all([
-    fetchWaterState(),
-    fetchProfileForWater(),
-  ]);
+  const remote = await fetchWaterState();
 
   if (remote) {
-    const merged = normalizeWater({ ...remote, ...(profileOverlay ?? {}) });
-    saveWater(merged);
-    return merged;
+    saveWater(remote);
+    return remote;
   }
 
-  const localMerged = normalizeWater({ ...local, ...(profileOverlay ?? {}) });
+  const localMerged = await fetchProfileMergedState(local);
 
   if (Object.keys(local.logs).length > 0) {
     await pushWaterState(localMerged);
@@ -90,12 +78,8 @@ export function commitWaterState(state: WaterState): void {
 
 /** Re-fetch from server (e.g. when another device may have updated). */
 export async function refreshWaterFromServer(): Promise<WaterState | null> {
-  const [remote, profileOverlay] = await Promise.all([
-    fetchWaterState(),
-    fetchProfileForWater(),
-  ]);
+  const remote = await fetchWaterState();
   if (!remote) return null;
-  const merged = normalizeWater({ ...remote, ...(profileOverlay ?? {}) });
-  saveWater(merged);
-  return merged;
+  saveWater(remote);
+  return remote;
 }

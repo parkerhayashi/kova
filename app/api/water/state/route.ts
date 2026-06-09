@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getWaterState, saveWaterState } from "@/lib/data/water";
 import { normalizeWater, type WaterState } from "@/lib/water";
 
@@ -17,5 +18,9 @@ export async function PUT(request: NextRequest) {
 
   const state = normalizeWater(body as Partial<WaterState>);
   await saveWaterState(state);
+  revalidatePath("/settings/profile");
+  revalidatePath("/water");
+  revalidatePath("/today");
+  revalidatePath("/nutrition");
   return NextResponse.json({ ok: true });
 }

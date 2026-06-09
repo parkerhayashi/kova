@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
@@ -118,9 +119,21 @@ export function WaterSettings({
 
   return (
     <Card className="space-y-6">
-      {/* Profile */}
+      {/* Profile — synced with Settings → Profile and Coach weight log */}
       <div>
-        <h4 className={sectionTitle}>Profile</h4>
+        <div className="mb-2 flex items-baseline justify-between gap-2">
+          <h4 className={sectionTitle.replace("mb-2 ", "")}>Profile</h4>
+          <Link
+            href="/settings/profile"
+            className="text-text-muted hover:text-text-secondary text-[11px]"
+          >
+            Open profile →
+          </Link>
+        </div>
+        <p className="text-text-muted mb-3 text-[11px] leading-relaxed">
+          Age, sex, and weight sync with your Kova profile. Weight also logs to
+          Coach when you change it here.
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Weight">
             <Input

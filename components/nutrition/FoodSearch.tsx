@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Search } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { logMeal } from "@/app/(dashboard)/nutrition/actions";
+import { FoodDetailPanel } from "@/components/nutrition/FoodDetailPanel";
 import type { NutrientProfile } from "@/types";
 
 interface SearchHit {
@@ -11,69 +11,6 @@ interface SearchHit {
   name: string;
   brand: string | null;
   dataType: string | null;
-}
-
-function ServingsPrompt({
-  profile,
-  date,
-  onDone,
-  onCancel,
-}: {
-  profile: NutrientProfile;
-  date: string;
-  onDone: () => void;
-  onCancel: () => void;
-}) {
-  const [servings, setServings] = useState(1);
-  const [pending, startTransition] = useTransition();
-
-  function submit() {
-    startTransition(async () => {
-      await logMeal(profile, date, servings);
-      onDone();
-    });
-  }
-
-  return (
-    <div className="border-border space-y-3 border-t pt-3">
-      <p className="text-text-primary text-sm font-medium">{profile.name}</p>
-      <p className="text-text-muted text-xs">
-        Per serving · {profile.serving_size_g}g ·{" "}
-        {profile.nutrients.calories != null
-          ? `${Math.round(profile.nutrients.calories)} kcal`
-          : "— kcal"}
-      </p>
-      <div className="flex items-center gap-3">
-        <label className="metric-label" htmlFor="servings">
-          Servings
-        </label>
-        <input
-          id="servings"
-          type="number"
-          min={0.25}
-          step={0.25}
-          value={servings}
-          onChange={(e) => setServings(Number(e.target.value) || 1)}
-          className="border-border-strong bg-surface w-20 rounded-lg border px-2 py-1.5 text-sm"
-        />
-        <button
-          type="button"
-          onClick={submit}
-          disabled={pending}
-          className="border-border-strong hover:bg-surface-raised ml-auto rounded-lg border px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
-        >
-          {pending ? "Logging…" : "Log food"}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-text-muted text-sm hover:text-text-secondary"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
 }
 
 export function FoodSearch({ date }: { date: string }) {
@@ -119,8 +56,6 @@ export function FoodSearch({ date }: { date: string }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Lookup failed");
       setProfile(data.profile);
-      setQuery("");
-      setHits([]);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -129,55 +64,71 @@ export function FoodSearch({ date }: { date: string }) {
   }
 
   return (
-    <Card className="space-y-3">
-      <span className="metric-label">Add food · USDA search</span>
-      <div className="relative">
-        <Search className="text-text-muted pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search foods…"
-          className="border-border-strong bg-surface w-full rounded-lg border py-2 pl-9 pr-3 text-sm"
-        />
-        {loading ? (
-          <Loader2 className="text-text-muted absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin" />
+    <div className="space-y-3">
+      <Card className="space-y-3">
+        <span className="metric-label">Add food · USDA search</span>
+        <div className="relative">
+          <Search className="text-text-muted pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search foods…"
+            className="border-border-strong bg-surface w-full rounded-lg border py-2 pl-9 pr-3 text-sm"
+          />
+          {loading ? (
+            <Loader2 className="text-text-muted absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin" />
+          ) : null}
+        </div>
+
+        {error ? <p className="text-xs text-[var(--color-stress)]">{error}</p> : null}
+
+        {hits.length > 0 ? (
+          <ul className="border-border max-h-48 divide-y overflow-y-auto rounded-lg border">
+            {hits.map((hit) => (
+              <li key={hit.fdcId}>
+                <button
+                  type="button"
+                  onClick={() => pickFood(hit.fdcId)}
+                  className={`hover:bg-surface-raised w-full px-3 py-2.5 text-left text-sm transition-colors ${
+                    profile?.food_id === String(hit.fdcId)
+                      ? "bg-[rgba(255,255,255,0.06)]"
+                      : ""
+                  }`}
+                >
+                  <span className="text-text-primary">{hit.name}</span>
+                  {hit.dataType ? (
+                    <span className="text-text-muted ml-2 text-xs">{hit.dataType}</span>
+                  ) : null}
+                  {hit.brand ? (
+                    <span className="text-text-muted ml-2 text-xs">{hit.brand}</span>
+                  ) : null}
+                </button>
+              </li>
+            ))}
+          </ul>
         ) : null}
-      </div>
 
-      {error ? <p className="text-xs text-[var(--color-stress)]">{error}</p> : null}
-
-      {hits.length > 0 ? (
-        <ul className="border-border max-h-48 divide-y overflow-y-auto rounded-lg border">
-          {hits.map((hit) => (
-            <li key={hit.fdcId}>
-              <button
-                type="button"
-                onClick={() => pickFood(hit.fdcId)}
-                className="hover:bg-surface-raised w-full px-3 py-2.5 text-left text-sm transition-colors"
-              >
-                <span className="text-text-primary">{hit.name}</span>
-                {hit.dataType ? (
-                  <span className="text-text-muted ml-2 text-xs">{hit.dataType}</span>
-                ) : null}
-                {hit.brand ? (
-                  <span className="text-text-muted ml-2 text-xs">{hit.brand}</span>
-                ) : null}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+        {profile && !loading ? (
+          <p className="text-text-muted text-xs">
+            Review nutrition below, set servings, then log.
+          </p>
+        ) : null}
+      </Card>
 
       {profile ? (
-        <ServingsPrompt
+        <FoodDetailPanel
           profile={profile}
           date={date}
-          onDone={() => setProfile(null)}
+          onDone={() => {
+            setProfile(null);
+            setQuery("");
+            setHits([]);
+          }}
           onCancel={() => setProfile(null)}
         />
       ) : null}
-    </Card>
+    </div>
   );
 }
 
@@ -260,55 +211,57 @@ export function BarcodeEntry({ date }: { date: string }) {
   useEffect(() => () => stopScan(), []);
 
   return (
-    <Card className="space-y-3">
-      <span className="metric-label">Barcode · Open Food Facts</span>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          inputMode="numeric"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Enter barcode"
-          className="border-border-strong bg-surface min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm"
-        />
-        <button
-          type="button"
-          onClick={() => code.trim() && lookup(code.trim())}
-          disabled={loading || !code.trim()}
-          className="border-border-strong hover:bg-surface-raised shrink-0 rounded-lg border px-3 py-2 text-sm transition-colors disabled:opacity-50"
-        >
-          Look up
-        </button>
-        <button
-          type="button"
-          onClick={scanning ? stopScan : startScan}
-          aria-label={scanning ? "Stop scan" : "Scan barcode"}
-          className="border-border-strong hover:bg-surface-raised inline-flex size-10 shrink-0 items-center justify-center rounded-lg border transition-colors"
-        >
-          <Camera className={`size-4 ${scanning ? "text-[var(--color-recovery)]" : ""}`} />
-        </button>
-      </div>
+    <div className="space-y-3">
+      <Card className="space-y-3">
+        <span className="metric-label">Barcode · Open Food Facts</span>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Enter barcode"
+            className="border-border-strong bg-surface min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => code.trim() && lookup(code.trim())}
+            disabled={loading || !code.trim()}
+            className="border-border-strong hover:bg-surface-raised shrink-0 rounded-lg border px-3 py-2 text-sm transition-colors disabled:opacity-50"
+          >
+            Look up
+          </button>
+          <button
+            type="button"
+            onClick={scanning ? stopScan : startScan}
+            aria-label={scanning ? "Stop scan" : "Scan barcode"}
+            className="border-border-strong hover:bg-surface-raised inline-flex size-10 shrink-0 items-center justify-center rounded-lg border transition-colors"
+          >
+            <Camera className={`size-4 ${scanning ? "text-[var(--color-recovery)]" : ""}`} />
+          </button>
+        </div>
 
-      {scanning ? (
-        <video
-          ref={videoRef}
-          className="border-border aspect-video w-full rounded-lg border object-cover"
-          muted
-          playsInline
-        />
-      ) : null}
+        {scanning ? (
+          <video
+            ref={videoRef}
+            className="border-border aspect-video w-full rounded-lg border object-cover"
+            muted
+            playsInline
+          />
+        ) : null}
 
-      {error ? <p className="text-xs text-[var(--color-stress)]">{error}</p> : null}
+        {error ? <p className="text-xs text-[var(--color-stress)]">{error}</p> : null}
+      </Card>
 
       {profile ? (
-        <ServingsPrompt
+        <FoodDetailPanel
           profile={profile}
           date={date}
           onDone={() => setProfile(null)}
           onCancel={() => setProfile(null)}
         />
       ) : null}
-    </Card>
+    </div>
   );
 }
 
