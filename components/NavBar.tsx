@@ -17,6 +17,7 @@ import {
   Shield,
   Sun,
   TrendingUp,
+  User,
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -94,10 +95,22 @@ export function NavBar() {
         </nav>
         <div className="mt-auto flex flex-col gap-1 pt-4">
           <Link
+            href="/settings/profile"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              pathname.startsWith("/settings/profile")
+                ? "bg-[rgba(255,255,255,0.07)] text-text-primary"
+                : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary",
+            )}
+          >
+            <User className="size-[18px]" strokeWidth={1.5} />
+            Profile
+          </Link>
+          <Link
             href="/settings/security"
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-              pathname.startsWith("/settings")
+              pathname.startsWith("/settings/security")
                 ? "bg-[rgba(255,255,255,0.07)] text-text-primary"
                 : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary",
             )}
