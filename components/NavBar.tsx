@@ -6,13 +6,13 @@ import {
   Activity,
   Apple,
   CalendarCheck,
+  Droplet,
   Dumbbell,
   Flame,
   HeartPulse,
   LayoutDashboard,
   Moon,
   Pill,
-  Scale,
   Sun,
   TrendingUp,
 } from "lucide-react";
@@ -26,9 +26,9 @@ const NAV = [
   { href: "/activity", label: "Activity", icon: Flame },
   { href: "/workouts", label: "Workouts", icon: Dumbbell },
   { href: "/nutrition", label: "Nutrition", icon: Apple },
+  { href: "/water", label: "Water", icon: Droplet },
   { href: "/supplements", label: "Supplements", icon: Pill },
   { href: "/habits", label: "Habits", icon: CalendarCheck },
-  { href: "/weight", label: "Weight", icon: Scale },
   { href: "/trends", label: "Trends", icon: TrendingUp },
 ] as const;
 
