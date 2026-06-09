@@ -420,7 +420,15 @@ export interface UserSettings {
   hevy_api_key: string | null;
   totp_secret: string | null;
   water_state: Record<string, unknown> | null;
+  client_sync: ClientSyncPayload | null;
   updated_at: string;
+}
+
+/** Cross-device localStorage snapshots stored in user_settings.client_sync. */
+export interface ClientSyncPayload {
+  goals?: Record<string, unknown>;
+  coach?: Record<string, unknown>;
+  finances?: Record<string, unknown>;
 }
 
 export interface PlaidItem {

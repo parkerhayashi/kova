@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { NavBar } from "@/components/NavBar";
+import { SyncBootstrap } from "@/components/SyncBootstrap";
 import { TimezoneSync } from "@/components/TimezoneSync";
 import { TopBar } from "@/components/TopBar";
 import { getTimezone, maybeSyncOuraOnOpen } from "@/lib/data/oura";
@@ -47,6 +48,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-full">
       <TimezoneSync current={timezone} />
+      <SyncBootstrap />
       <NavBar />
       {/* Side rail offset on desktop; bottom-nav clearance on mobile. */}
       <div className="md:pl-60">

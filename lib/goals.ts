@@ -1,7 +1,6 @@
 /**
- * Client-side goal store for the home dashboard. Everything lives in
- * localStorage (single-user, no backend). Key shape: `goals:YYYY-MM-DD` → Goal[].
- * Streak state lives under `goal_streak_v1`.
+ * Client-side goal store for the home dashboard. Keys: `goals:YYYY-MM-DD` → Goal[].
+ * Streak state lives under `goal_streak_v1`. Synced to Supabase via lib/client-sync.ts.
  *
  * The "day" boundary is 6 AM, not midnight: anything logged before 6 AM still
  * belongs to the previous calendar day's list.
@@ -41,14 +40,23 @@ export function storeGet<T>(key: string): T | null {
 export function storeSet(key: string, value: unknown): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(key, JSON.stringify(value));
-  if (key.startsWith(GOALS_PREFIX)) {
+  if (key.startsWith(GOALS_PREFIX) || key === STREAK_KEY) {
     window.dispatchEvent(new CustomEvent(GOALS_CHANGED_EVENT));
+    import("@/lib/client-sync").then(({ scheduleClientSyncPush }) => {
+      scheduleClientSyncPush("goals");
+    });
   }
 }
 
 export function storeDelete(key: string): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(key);
+  if (key.startsWith(GOALS_PREFIX)) {
+    window.dispatchEvent(new CustomEvent(GOALS_CHANGED_EVENT));
+    import("@/lib/client-sync").then(({ scheduleClientSyncPush }) => {
+      scheduleClientSyncPush("goals");
+    });
+  }
 }
 
 export function storeListKeys(prefix: string): string[] {

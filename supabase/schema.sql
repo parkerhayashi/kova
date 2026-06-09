@@ -335,6 +335,7 @@ create table if not exists user_settings (
   hevy_api_key            text,   -- encrypted
   totp_secret             text,   -- encrypted; TOTP MFA seed (null = disabled)
   water_state             jsonb,  -- synced water tracker state (lib/water.ts shape)
+  client_sync             jsonb,  -- goals, coach, finances localStorage snapshots
   updated_at              timestamptz default now()
 );
 
@@ -347,6 +348,9 @@ alter table user_settings
 
 alter table user_settings
   add column if not exists water_state jsonb;
+
+alter table user_settings
+  add column if not exists client_sync jsonb;
 
 -- Single-user app: seed one settings row.
 insert into user_settings (id)

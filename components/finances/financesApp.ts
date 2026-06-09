@@ -4,10 +4,11 @@
  * Finances — faithful port of the standalone single-file app. Kept as imperative
  * DOM logic (rather than rewritten into React) so the net-worth chart, donut,
  * activity log, subscriptions/orders/wishlist, and auto-deduct math behave exactly
- * as designed. All state lives in localStorage (nw:*, subs, wishlist,
- * incoming_orders, …), matching Kova's other client-only features (water, goals,
- * coach). The standalone back button was dropped (Kova's nav handles navigation).
+ * as designed. State lives in localStorage and syncs via lib/client-sync.ts.
+ * The standalone back button was dropped (Kova's nav handles navigation).
  */
+
+import { scheduleClientSyncPush } from "@/lib/client-sync";
 
 export const FINANCES_HTML = `
 <div class="shell">
@@ -313,7 +314,10 @@ export function mountFinances() {
     catch (e) { return null; }
   }
   function storeSet(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      scheduleClientSyncPush("finances");
+    } catch (e) {}
   }
 
   const ORD_FROM_META = {

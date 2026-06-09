@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./finances.css";
 import { FINANCES_HTML, mountFinances } from "./financesApp";
+import {
+  CLIENT_SYNC_CHANGED_EVENT,
+  hydrateClientSync,
+} from "@/lib/client-sync";
 
 /**
  * Finances. Like the Coach feature, this is imperative DOM logic ported from a
@@ -12,17 +16,36 @@ import { FINANCES_HTML, mountFinances } from "./financesApp";
  */
 export function Finances() {
   const ref = useRef<HTMLDivElement>(null);
+  const [syncGen, setSyncGen] = useState(0);
+
+  useEffect(() => {
+    const onSync = (e: Event) => {
+      const ns = (e as CustomEvent<{ namespace?: string }>).detail?.namespace;
+      if (ns === "finances") setSyncGen((g) => g + 1);
+    };
+    window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
+    return () => window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
+  }, []);
 
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    root.innerHTML = FINANCES_HTML;
-    const cleanup = mountFinances();
+
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+
+    void hydrateClientSync(["finances"]).then(() => {
+      if (cancelled || !ref.current) return;
+      ref.current.innerHTML = FINANCES_HTML;
+      cleanup = mountFinances();
+    });
+
     return () => {
+      cancelled = true;
       cleanup?.();
-      root.innerHTML = "";
+      if (ref.current) ref.current.innerHTML = "";
     };
-  }, []);
+  }, [syncGen]);
 
   return <div className="fin-app" ref={ref} />;
 }

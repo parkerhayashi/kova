@@ -4,10 +4,11 @@
  * Progressive Overload Coach — faithful port of the standalone single-file app.
  * Kept as imperative DOM logic (rather than rewritten into React) so the camera,
  * photo compare, composition math, and rotation editor behave exactly as designed.
- * All state lives in localStorage (po_coach_*), matching Kova's other client-only
- * features (water, goals). The original Supabase cloud-sync block was removed —
- * Kova has no app_state table and this feature is single-device by design.
+ * All state lives in localStorage (po_coach_*) with Supabase sync (lib/client-sync.ts).
+ * Weight entries also sync via /api/weight/*.
  */
+
+import { scheduleClientSyncPush } from "@/lib/client-sync";
 
 export const COACH_CONFIG = {
   appTitle: "Workouts",
@@ -486,6 +487,7 @@ export function mountCoach(): () => void {
   function saveState() {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(state));
+      scheduleClientSyncPush("coach");
     } catch (e) {}
   }
   let state = loadState();
@@ -880,6 +882,7 @@ export function mountCoach(): () => void {
   function saveDoneDays(d) {
     try {
       localStorage.setItem(WORKOUT_DONE_KEY, JSON.stringify(d));
+      scheduleClientSyncPush("coach");
     } catch (e) {}
   }
   let doneDays = loadDoneDays();
@@ -1832,6 +1835,7 @@ export function mountCoach(): () => void {
   function photosSave() {
     try {
       localStorage.setItem(PHOTO_KEY, JSON.stringify(photos));
+      scheduleClientSyncPush("coach");
       return true;
     } catch (e) {
       return false;

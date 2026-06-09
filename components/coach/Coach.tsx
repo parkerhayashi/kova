@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./coach.css";
 import { COACH_HTML, mountCoach } from "./coachApp";
+import {
+  CLIENT_SYNC_CHANGED_EVENT,
+  hydrateClientSync,
+} from "@/lib/client-sync";
 
 /**
  * Progressive Overload Coach. The feature is imperative DOM logic (ported from a
@@ -12,17 +16,36 @@ import { COACH_HTML, mountCoach } from "./coachApp";
  */
 export function Coach() {
   const ref = useRef<HTMLDivElement>(null);
+  const [syncGen, setSyncGen] = useState(0);
+
+  useEffect(() => {
+    const onSync = (e: Event) => {
+      const ns = (e as CustomEvent<{ namespace?: string }>).detail?.namespace;
+      if (ns === "coach") setSyncGen((g) => g + 1);
+    };
+    window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
+    return () => window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
+  }, []);
 
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    root.innerHTML = COACH_HTML;
-    const cleanup = mountCoach();
+
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+
+    void hydrateClientSync(["coach"]).then(() => {
+      if (cancelled || !ref.current) return;
+      ref.current.innerHTML = COACH_HTML;
+      cleanup = mountCoach();
+    });
+
     return () => {
+      cancelled = true;
       cleanup?.();
-      root.innerHTML = "";
+      if (ref.current) ref.current.innerHTML = "";
     };
-  }, []);
+  }, [syncGen]);
 
   return <div className="po-app" ref={ref} />;
 }
