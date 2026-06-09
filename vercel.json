@@ -1,6 +1,6 @@
 {
   "crons": [
-    { "path": "/api/sync/oura", "schedule": "0 */6 * * *" },
+    { "path": "/api/sync/oura", "schedule": "0 14 * * *" },
     { "path": "/api/sync/hevy", "schedule": "30 14 * * *" },
     { "path": "/api/sync/strava", "schedule": "0 15 * * *" },
     { "path": "/api/sync/plaid", "schedule": "30 15 * * *" }
