@@ -15,7 +15,12 @@ export default async function LoginPage({
   const wrongPassword = sp.error === "1";
   const rateLimited = sp.error === "2";
   const wrongTotp = sp.error === "3";
-  const mfaRequired = await isMfaEnabled();
+  let mfaRequired = false;
+  try {
+    mfaRequired = await isMfaEnabled();
+  } catch {
+    mfaRequired = false;
+  }
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-6">

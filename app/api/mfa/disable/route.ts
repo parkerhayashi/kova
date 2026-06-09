@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { hasValidSession, verifyPassword } from "@/lib/auth";
+import { verifyPassword } from "@/lib/auth";
+import { hasValidSession } from "@/lib/auth-server";
 import { clearTotpSecret, getTotpSecret } from "@/lib/data/auth";
 import { verifyTotpCode } from "@/lib/totp";
 

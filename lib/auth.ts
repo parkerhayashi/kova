@@ -1,5 +1,4 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -14,12 +13,6 @@ import type { NextRequest, NextResponse } from "next/server";
 
 export const AUTH_COOKIE = "kova_session";
 export const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
-
-/** True when the current request carries a valid session cookie. */
-export async function hasValidSession(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return verifySessionToken(cookieStore.get(AUTH_COOKIE)?.value);
-}
 
 /** Auth is enforced only once a password is configured. */
 export function isAuthEnabled(): boolean {

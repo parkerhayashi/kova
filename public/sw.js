@@ -1,7 +1,7 @@
 // Kova service worker — minimal offline shell (blueprint §1, PWA).
 // App-shell + static assets are cached; data always comes from Supabase over
 // the network so the dashboard never shows stale synced metrics.
-const CACHE = "kova-v1";
+const CACHE = "kova-v2";
 const APP_SHELL = ["/", "/manifest.json", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -28,6 +28,12 @@ self.addEventListener("fetch", (event) => {
   // Never cache API/auth/sync calls — always hit the network.
   if (url.pathname.startsWith("/api/")) return;
 
+  // Next.js hashed bundles change every deploy — never serve stale JS/CSS.
+  if (url.pathname.startsWith("/_next/")) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   // Navigations: network-first, fall back to cached shell when offline.
   if (request.mode === "navigate") {
     event.respondWith(
@@ -36,7 +42,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets: cache-first.
+  // Other static assets: cache-first.
   event.respondWith(
     caches.match(request).then(
       (cached) =>

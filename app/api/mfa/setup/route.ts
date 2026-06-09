@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
-import { hasValidSession } from "@/lib/auth";
+import { hasValidSession } from "@/lib/auth-server";
 import { generateTotpSecret, getTotpUri } from "@/lib/totp";
 
 export const dynamic = "force-dynamic";
