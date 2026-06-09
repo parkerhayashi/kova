@@ -80,7 +80,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
           <span className="metric-label">Body profile</span>
           <p className="body-copy mt-1 text-sm">
             Used for calorie targets, water needs, BMR, and protein goals across
-            Kova. Weight comes from your weight log in Coach.
+            Kova. Weight comes from your daily log under Workouts → Body weight.
           </p>
         </div>
 
@@ -137,12 +137,12 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
               : ""}
           </p>
           <p className="text-text-muted mt-1 text-xs">
-            {sourceNote(profile.sources.weight_lbs) ?? "Log weight in Workouts → Coach"}
+            {sourceNote(profile.sources.weight_lbs) ?? "Log weight under Workouts → Body weight"}
             {profile.sources.weight_lbs !== "weight_log" ? (
               <>
                 {" · "}
-                <Link href="/workouts" className="hover:text-text-secondary underline-offset-2 hover:underline">
-                  Open Coach
+                <Link href="/workouts/body" className="hover:text-text-secondary underline-offset-2 hover:underline">
+                  Log weight
                 </Link>
               </>
             ) : null}

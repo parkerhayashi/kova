@@ -1872,4 +1872,26 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
+
+  /*
+   * Body-only mode — weight, photos, split settings. Hides the legacy
+   * per-exercise set logger; live workouts are the sole lift-logging path.
+   */
+  &.po-app--body-only {
+    & .card,
+    & #poTw,
+    & #poTwPastToggle,
+    & #poTwPastBody {
+      display: none !important;
+    }
+
+    & #appTitle {
+      font-size: 0;
+    }
+
+    & #appTitle::after {
+      content: "Body & split";
+      font-size: 22px;
+    }
+  }
 }

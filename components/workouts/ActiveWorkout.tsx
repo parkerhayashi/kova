@@ -9,6 +9,7 @@ import { CoachPrescriptionBadge } from "@/components/workouts/CoachPrescriptionB
 import { SetLogger } from "@/components/workouts/SetLogger";
 import { WorkoutTimer } from "@/components/workouts/WorkoutTimer";
 import {
+  formatCoachTarget,
   getPrescriptionForTrainExercise,
   syncSessionToCoach,
 } from "@/lib/coach-bridge";
@@ -53,7 +54,7 @@ export function ActiveWorkout({
   }
 
   async function finishWorkout() {
-    if (!confirm("Finish this workout? Top sets sync to Coach.")) return;
+    if (!confirm("Finish workout? Your top sets update Coach targets for next time.")) return;
     setBusy(true);
     try {
       const res = await fetch("/api/workouts/sessions", {
@@ -173,6 +174,11 @@ export function ActiveWorkout({
                       </span>
                     ) : null}
                   </p>
+                  {coachRx && !open ? (
+                    <p className="mt-1 text-xs text-[color:var(--color-recovery)]">
+                      Coach · {coachRx.tag}: {formatCoachTarget(coachRx)}
+                    </p>
+                  ) : null}
                 </div>
                 <span className="text-text-muted">{open ? "−" : "+"}</span>
               </button>

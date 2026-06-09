@@ -211,6 +211,11 @@ export function readTodaySplit(): ReturnType<typeof getTodaySplit> | null {
   return getTodaySplit(state);
 }
 
+export function formatCoachTarget(rx: CoachPrescription): string {
+  if (rx.bw) return `${rx.reps} reps`;
+  return `${rx.weight} lb × ${rx.reps}`;
+}
+
 export function routineNameMatchesSplit(
   routineName: string,
   splitName: string,

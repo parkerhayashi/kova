@@ -1,7 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Coach } from "@/components/coach/Coach";
 import { ActiveWorkout } from "@/components/workouts/ActiveWorkout";
 import { CoachDayBanner } from "@/components/workouts/CoachDayBanner";
 import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
@@ -9,6 +9,7 @@ import { LiftingStats } from "@/components/workouts/LiftingStats";
 import { RoutineList } from "@/components/workouts/RoutineList";
 import { SessionDetailPanel } from "@/components/workouts/SessionDetailPanel";
 import { PageHeader } from "@/components/PageHeader";
+import { Card } from "@/components/ui/Card";
 import { readTodaySplit } from "@/lib/coach-bridge";
 import type {
   ActiveWorkoutView,
@@ -40,7 +41,6 @@ export function WorkoutApp() {
   const [error, setError] = useState<string | null>(null);
   const [viewSessionId, setViewSessionId] = useState<string | null>(null);
   const [viewExerciseId, setViewExerciseId] = useState<string | null>(null);
-  const [coachRefreshKey, setCoachRefreshKey] = useState(0);
   const [todaySplit, setTodaySplit] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -93,31 +93,47 @@ export function WorkoutApp() {
 
   function handleComplete() {
     setData((prev) => (prev ? { ...prev, activeWorkout: null } : prev));
-    setCoachRefreshKey((k) => k + 1);
+    setTodaySplit(readTodaySplit()?.name ?? null);
     void refresh();
   }
 
+  const inSession = Boolean(data?.activeWorkout);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
-        title="Workouts"
-        subtitle="Train with your Push / Pull / Legs routines. Coach tracks progressive overload and syncs when you finish a session."
+        title={inSession ? "Live workout" : "Workouts"}
+        subtitle={
+          inSession
+            ? "Log every set here. Coach targets update as you finish."
+            : "Start a live session to log sets, reps, and rest. Import past workouts coming later."
+        }
       />
 
       {error ? (
         <p className="text-sm text-[color:var(--color-stress)]">{error}</p>
       ) : null}
 
-      {!data?.activeWorkout && !loading ? (
-        <CoachDayBanner
-          routines={data?.routines ?? []}
-          onStartRoutine={startRoutine}
-        />
+      {!inSession && !loading ? (
+        <>
+          <CoachDayBanner
+            routines={data?.routines ?? []}
+            onStartRoutine={startRoutine}
+          />
+          <div className="flex flex-wrap gap-3 text-sm">
+            <Link
+              href="/workouts/body"
+              className="text-text-secondary hover:text-text-primary"
+            >
+              Body weight & photos →
+            </Link>
+          </div>
+        </>
       ) : null}
 
       <section>
         {loading ? (
-          <p className="body-copy text-text-muted">Loading routines…</p>
+          <p className="body-copy text-text-muted">Loading…</p>
         ) : data?.activeWorkout ? (
           <ActiveWorkout
             workout={data.activeWorkout}
@@ -135,21 +151,14 @@ export function WorkoutApp() {
               highlightRoutineName={todaySplit}
             />
             {data?.dashboard ? <LiftingStats dashboard={data.dashboard} /> : null}
+            <Card className="border-dashed p-4">
+              <p className="metric-label">Import past workouts</p>
+              <p className="mt-1 text-sm text-text-muted">
+                Manual entry or Hevy export — coming in a later update.
+              </p>
+            </Card>
           </>
         )}
-      </section>
-
-      <section className="border-t border-border pt-8">
-        <header className="mb-4">
-          <h2 className="text-base font-semibold text-text-primary">
-            Progressive overload
-          </h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Weight tracking, prescriptions, and lift history. Top sets from
-            finished Train sessions sync here automatically.
-          </p>
-        </header>
-        <Coach refreshKey={coachRefreshKey} />
       </section>
 
       {viewSessionId ? (
