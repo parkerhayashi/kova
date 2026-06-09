@@ -1,0 +1,62 @@
+import {
+  getActivityHistory,
+  getOuraWorkouts,
+  getReadinessHistory,
+  getSleepHistory,
+  isOuraConnected,
+} from "@/lib/data/oura";
+import {
+  getHabitLogs,
+  getHabits,
+  getSupplementLogs,
+  getSupplements,
+  getWeightLogs,
+} from "@/lib/data/tracking";
+import { buildTrendsPayload } from "@/lib/trends/build";
+import type { TrendsInput, TrendsPayload, TrendRange } from "@/lib/trends/types";
+
+export function parseTrendRange(raw: string | undefined): TrendRange {
+  const n = Number(raw);
+  if (n === 7 || n === 30 || n === 90) return n;
+  return 30;
+}
+
+export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload> {
+  const [
+    sleep,
+    readiness,
+    activity,
+    weight,
+    habits,
+    habitLogs,
+    supplements,
+    supplementLogs,
+    workouts,
+    ouraConnected,
+  ] = await Promise.all([
+    getSleepHistory(range),
+    getReadinessHistory(range),
+    getActivityHistory(range),
+    getWeightLogs(range),
+    getHabits(true),
+    getHabitLogs(range),
+    getSupplements(true),
+    getSupplementLogs(range),
+    getOuraWorkouts(range),
+    isOuraConnected(),
+  ]);
+
+  const input: TrendsInput = {
+    sleep,
+    readiness,
+    activity,
+    weight,
+    habitLogs,
+    habitCount: habits.length,
+    supplementLogs,
+    supplementCount: supplements.length,
+    workouts,
+  };
+
+  return buildTrendsPayload(input, range, ouraConnected);
+}
