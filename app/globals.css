@@ -1038,3 +1038,159 @@ input[type="number"]::-webkit-outer-spin-button {
     animation: none;
   }
 }
+
+/*
+ * Persistent quick-stats top bar. Monochrome chrome (per blueprint §4);
+ * only the status dots carry a data accent.
+ */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  padding: max(10px, env(safe-area-inset-top)) 16px 10px;
+  margin: 0 auto;
+  max-width: 64rem;
+  background: color-mix(in srgb, var(--color-background) 88%, transparent);
+  backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.topbar-pill {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.topbar-pill:hover {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-strong);
+}
+
+.topbar-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.topbar-dot-miss {
+  animation: topbar-miss-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes topbar-miss-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--color-stress);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+.topbar-pill-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.topbar-pill-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.topbar-water-wrap {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+
+.topbar-water-pill {
+  flex: 1;
+  border-radius: 11px 0 0 11px;
+  border-right: none;
+}
+
+.topbar-water-add {
+  flex: 0 0 auto;
+  width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-left: none;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  border-radius: 0 11px 11px 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.topbar-water-add:hover {
+  background: var(--color-surface-raised);
+}
+
+.topbar-water-add:active {
+  transform: scale(0.94);
+}
+
+.topbar-water-add.flash {
+  background: color-mix(in srgb, var(--color-sleep) 35%, var(--color-surface));
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 6px;
+  }
+  .topbar-pill {
+    padding: 7px 9px;
+    gap: 6px;
+  }
+  .topbar-pill-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+  .topbar-pill-count {
+    font-size: 11px;
+  }
+  .topbar-water-add {
+    width: 32px;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar-pill-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-dot-miss {
+    animation: none;
+  }
+}
