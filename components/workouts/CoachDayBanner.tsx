@@ -43,7 +43,7 @@ export function CoachDayBanner({
         </p>
       </div>
       {match && !isRest ? (
-        <Button onClick={() => onStartRoutine(match.id)}>
+        <Button variant="primary" onClick={() => onStartRoutine(match.id)}>
           Start {match.name}
         </Button>
       ) : null}

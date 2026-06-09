@@ -47,7 +47,7 @@ export default async function LoginPage({
               autoFocus={!mfaRequired}
               required
               autoComplete="current-password"
-              className="h-11 rounded-lg border border-border bg-surface-raised px-3 text-text-primary outline-none transition-colors focus:border-border-strong"
+              className="field-input h-11"
             />
           </label>
 
@@ -63,7 +63,7 @@ export default async function LoginPage({
                 maxLength={6}
                 required
                 autoFocus
-                className="h-11 rounded-lg border border-border bg-surface-raised px-3 font-mono text-text-primary outline-none transition-colors focus:border-border-strong"
+                className="field-input h-11 font-mono"
               />
             </label>
           ) : null}
@@ -86,10 +86,7 @@ export default async function LoginPage({
             </p>
           ) : null}
 
-          <button
-            type="submit"
-            className="h-11 rounded-lg bg-text-primary font-medium text-background transition-opacity hover:opacity-90"
-          >
+          <button type="submit" className="btn-primary h-11 w-full text-sm">
             Unlock
           </button>
         </form>

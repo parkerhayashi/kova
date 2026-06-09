@@ -80,7 +80,7 @@ export function RoutineList({
               ))}
             </ul>
 
-            <Button className="mt-auto w-full" onClick={() => onStart(routine.id)}>
+            <Button variant="primary" className="mt-auto w-full" onClick={() => onStart(routine.id)}>
               Start {routine.name}
             </Button>
           </Card>

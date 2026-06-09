@@ -1,20 +1,16 @@
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  eyebrow?: string;
 }
 
-/** Section page header — large white title, muted subtitle (blueprint §4). */
-export function PageHeader({ title, subtitle }: PageHeaderProps) {
+/** Section page header — Coach-style title + optional eyebrow rule. */
+export function PageHeader({ title, subtitle, eyebrow }: PageHeaderProps) {
   return (
     <header className="mb-6">
-      <div className="flex items-center gap-2.5">
-        <span
-          className="h-5 w-0.5 rounded-full bg-[color:var(--color-hud)]"
-          style={{ boxShadow: "0 0 8px var(--color-hud)" }}
-        />
-        <h1 className="section-heading">{title}</h1>
-      </div>
-      {subtitle ? <p className="body-copy mt-1.5 pl-[14px]">{subtitle}</p> : null}
+      {eyebrow ? <p className="section-eyebrow">{eyebrow}</p> : null}
+      <h1 className="section-heading">{title}</h1>
+      {subtitle ? <p className="body-copy mt-1.5">{subtitle}</p> : null}
     </header>
   );
 }

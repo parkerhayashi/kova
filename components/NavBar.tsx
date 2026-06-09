@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
   Apple,
   CalendarCheck,
   Droplet,
@@ -42,9 +41,8 @@ function isActive(pathname: string, href: string) {
 }
 
 /**
- * NavBar — desktop side rail + mobile bottom tab bar.
- * Chrome only: active state is white text + rgba(255,255,255,0.08) bg,
- * never a colored accent (blueprint §4 design rules).
+ * NavBar — Coach-style side rail + mobile tab bar.
+ * Active state: white text + subtle fill; no colored chrome.
  */
 export function NavBar() {
   const pathname = usePathname();
@@ -53,19 +51,10 @@ export function NavBar() {
     <>
       {/* Desktop side rail */}
       <aside className="border-border bg-background fixed inset-y-0 left-0 z-20 hidden w-56 flex-col border-r px-3 py-6 md:flex">
-        <div className="flex items-center gap-2.5 px-3 pb-8">
-          <Activity
-            className="size-5 text-[color:var(--color-hud)]"
-            strokeWidth={1.5}
-            style={{ filter: "drop-shadow(0 0 6px var(--color-hud))" }}
-          />
-          <span
-            className="text-text-primary text-lg font-medium tracking-[0.18em] uppercase"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
+        <div className="px-3 pb-8">
+          <span className="text-text-primary text-lg font-bold tracking-tight">
             Kova
           </span>
-          <span className="hud-pulse ml-auto size-1.5 rounded-full bg-[color:var(--color-hud)]" />
         </div>
         <nav className="flex flex-col gap-1">
           {NAV.map(({ href, label, icon: Icon }) => {
@@ -75,18 +64,12 @@ export function NavBar() {
                 key={href}
                 href={href}
                 className={cn(
-                  "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   active
                     ? "bg-[rgba(255,255,255,0.07)] text-text-primary"
-                    : "text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+                    : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary",
                 )}
               >
-                {active ? (
-                  <span
-                    className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-[color:var(--color-hud)]"
-                    style={{ boxShadow: "0 0 8px var(--color-hud)" }}
-                  />
-                ) : null}
                 <Icon className="size-[18px]" strokeWidth={1.5} />
                 {label}
               </Link>
@@ -97,7 +80,7 @@ export function NavBar() {
           <Link
             href="/settings/profile"
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               pathname.startsWith("/settings/profile")
                 ? "bg-[rgba(255,255,255,0.07)] text-text-primary"
                 : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary",
@@ -109,7 +92,7 @@ export function NavBar() {
           <Link
             href="/settings/security"
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               pathname.startsWith("/settings/security")
                 ? "bg-[rgba(255,255,255,0.07)] text-text-primary"
                 : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary",
@@ -121,7 +104,7 @@ export function NavBar() {
           <form action="/api/logout" method="post">
             <button
               type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary"
             >
               <LogOut className="size-[18px]" strokeWidth={1.5} />
               Lock
@@ -140,7 +123,7 @@ export function NavBar() {
               href={href}
               aria-label={label}
               className={cn(
-                "flex min-w-[3.25rem] flex-col items-center gap-1 px-1 py-2 text-[10px] transition-colors",
+                "flex min-w-[3.25rem] flex-col items-center gap-1 px-1 py-2 text-[10px] font-medium transition-colors",
                 active
                   ? "text-text-primary"
                   : "text-text-muted hover:text-text-secondary",

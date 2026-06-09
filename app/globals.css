@@ -1,47 +1,46 @@
 @import "tailwindcss";
 
 /*
- * Kova design system — "JARVIS" HUD on deep OLED black.
- * Chrome stays monochrome (cool near-black + white/gray). The five semantic
- * accents live ONLY on data — metric values, chart lines, bars, dots — now
- * carrying a restrained glow. A single ambient interface cyan (--color-hud) is
- * used sparingly for focus, hover edges, and the backdrop grid: it reads as
- * ambient light, never as colored chrome. See blueprint §4.
+ * Kova design system — Coach aesthetic app-wide.
+ * Monochrome chrome (pure black + white/gray). Semantic accents apply ONLY
+ * to data: metric values, chart lines, status dots — never buttons or nav.
  */
 
 @theme {
-  /* Surfaces — cool near-black, OLED-friendly */
-  --color-background: #06080b; /* page base */
-  --color-surface: #0d1014; /* cards and panels */
-  --color-surface-raised: #141923; /* hover states, nested cards */
+  /* Surfaces — Coach palette */
+  --color-background: #0a0a0b;
+  --color-surface: #111113;
+  --color-surface-raised: #18181b;
 
   /* Text */
-  --color-text-primary: #f4f7fb;
-  --color-text-secondary: rgba(231, 240, 250, 0.58);
-  --color-text-muted: rgba(231, 240, 250, 0.34);
-  --color-text-mono: rgba(231, 240, 250, 0.26);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-text-muted: rgba(255, 255, 255, 0.4);
+  --color-text-mono: rgba(255, 255, 255, 0.25);
 
-  /* Borders — faint cool tint */
-  --color-border: rgba(125, 165, 205, 0.1);
-  --color-border-strong: rgba(125, 165, 205, 0.2);
+  /* Borders — neutral white hairlines */
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
 
   /* Semantic data accents — data only, never chrome */
-  --color-recovery: #2ee6a6; /* readiness, HRV, recovery data */
-  --color-sleep: #5aa2ff; /* sleep stages, SpO2 */
-  --color-activity: #ffc233; /* steps, calories, activity */
-  --color-stress: #ff6b6b; /* stress, warnings */
-  --color-nutrition: #b18cff; /* macros, supplements, weight */
+  --color-recovery: #6ee7b7;
+  --color-sleep: #7dd3fc;
+  --color-activity: #fbbf24;
+  --color-stress: #ff8a8a;
+  --color-nutrition: #d4a574;
 
-  /* Ambient interface light (JARVIS cyan) — chrome glints only */
-  --color-hud: #5be9ff;
+  /* Chrome accent — white/silver, not colored */
+  --color-hud: rgba(255, 255, 255, 0.85);
 
-  /* Fonts */
-  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
-  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  /* Fonts — Inter + system mono (matches Coach) */
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --font-display: var(--font-inter), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* Radii */
-  --radius-card: 14px;
+  --radius-card: 16px;
 }
 
 html {
@@ -57,79 +56,51 @@ body {
   position: relative;
 }
 
-/*
- * Ambient HUD backdrop — a faint cool grid plus a soft glow bloom from the top.
- * Fixed and non-interactive so it sits behind all content.
- */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(125, 165, 205, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(125, 165, 205, 0.045) 1px, transparent 1px);
-  background-size: 44px 44px;
-  -webkit-mask-image: radial-gradient(
-    ellipse 90% 70% at 50% 0%,
-    #000 0%,
-    transparent 75%
-  );
-  mask-image: radial-gradient(
-    ellipse 90% 70% at 50% 0%,
-    #000 0%,
-    transparent 75%
-  );
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 70% 50% at 50% -10%,
-    rgba(91, 233, 255, 0.07),
-    transparent 60%
-  );
-}
-
-/* Keep app content above the backdrop layers */
-body > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Typographic primitives from blueprint §4, tuned for the HUD look */
+/* Typographic + surface primitives (Coach-aligned) */
 @layer components {
   .metric-value {
-    @apply text-text-primary font-medium tracking-tight tabular-nums;
+    @apply text-text-primary font-semibold tracking-tight tabular-nums;
     font-family: var(--font-mono);
-    font-size: clamp(30px, 6vw, 46px);
+    font-size: clamp(28px, 5vw, 42px);
     line-height: 1.05;
     letter-spacing: -0.02em;
-    text-shadow: 0 0 18px rgba(91, 233, 255, 0.12);
   }
 
   .metric-label {
-    @apply text-text-muted font-medium uppercase;
+    @apply text-text-muted font-semibold uppercase;
     font-family: var(--font-mono);
     font-size: 10.5px;
     letter-spacing: 0.14em;
   }
 
   .section-heading {
-    @apply text-text-primary font-medium tracking-tight;
+    @apply text-text-primary font-bold tracking-tight;
     font-family: var(--font-display);
-    font-size: 23px;
-    letter-spacing: -0.01em;
+    font-size: 22px;
+    letter-spacing: -0.015em;
+  }
+
+  .section-eyebrow {
+    @apply text-text-muted font-bold uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    margin-bottom: 8px;
+  }
+
+  .section-eyebrow::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--color-border-strong);
   }
 
   .body-copy {
     @apply text-text-secondary;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 400;
   }
 
@@ -140,31 +111,104 @@ body > * {
     letter-spacing: 0.04em;
   }
 
-  /*
-   * Card: cool surface, hairline border with a faint top highlight, soft
-   * elevation. Hover lifts the border toward the interface cyan.
-   */
   .card {
-    position: relative;
-    background:
-      linear-gradient(180deg, rgba(125, 165, 205, 0.035), transparent 22%),
-      var(--color-surface);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-card);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.03) inset,
-      0 8px 30px rgba(0, 0, 0, 0.35);
     transition:
-      border-color 200ms ease,
-      box-shadow 200ms ease;
+      border-color 180ms ease,
+      background 180ms ease;
   }
 
   .card-interactive:hover {
-    border-color: rgba(91, 233, 255, 0.28);
+    border-color: var(--color-border-strong);
+    background: color-mix(in srgb, var(--color-surface) 92%, white);
+  }
+
+  /* Coach-style primary CTA */
+  .btn-primary {
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    background: linear-gradient(180deg, #ffffff 0%, #e8e5dd 100%);
+    color: #0a0a0b;
+    border-radius: 12px;
+    font-weight: 700;
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.04) inset,
-      0 8px 36px rgba(0, 0, 0, 0.4),
-      0 0 24px rgba(91, 233, 255, 0.06);
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      0 4px 14px rgba(0, 0, 0, 0.4);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Segmented control (Coach po-seg-*) */
+  .seg-control {
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 3px;
+  }
+
+  .seg-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .seg-btn:hover {
+    color: var(--color-text-secondary);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .seg-btn-active {
+    background: linear-gradient(180deg, #ffffff 0%, #e8e5dd 100%);
+    color: #0a0a0b;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 4px 12px rgba(0, 0, 0, 0.35);
+    font-weight: 800;
+  }
+
+  .field-input {
+    @apply w-full text-text-primary;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .field-input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .field-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -175,141 +219,76 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-/* Focus: ambient cyan ring (keyboard accessibility) */
+/* Focus: subtle white ring */
 :focus-visible {
-  outline: 1px solid rgba(91, 233, 255, 0.55);
+  outline: 1px solid rgba(255, 255, 255, 0.45);
   outline-offset: 2px;
 }
 
-/* Thin cool scrollbars */
+/* Thin neutral scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(125, 165, 205, 0.25) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(125, 165, 205, 0.22);
+  background: rgba(255, 255, 255, 0.16);
   border-radius: 99px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(125, 165, 205, 0.38);
+  background: rgba(255, 255, 255, 0.28);
 }
 
-/* Slow ambient pulse for live/status glints */
-@keyframes hud-pulse {
+/* Status pulse for topbar miss state */
+@keyframes status-pulse {
   0%,
   100% {
-    opacity: 1;
-    box-shadow: 0 0 8px rgba(91, 233, 255, 0.55);
+    box-shadow: 0 0 0 0 var(--color-stress);
   }
   50% {
-    opacity: 0.45;
-    box-shadow: 0 0 3px rgba(91, 233, 255, 0.25);
+    box-shadow: 0 0 0 5px transparent;
   }
-}
-.hud-pulse {
-  animation: hud-pulse 2.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hud-pulse {
-    animation: none;
-  }
   .card {
     transition: none;
   }
 }
 
 /* ==========================================================================
- * Home dashboard — a warmer, personal command center (goals, day ring, todo).
- * Self-contained look scoped under .home-dash so it never bleeds into the rest
- * of the monochrome HUD chrome.
+ * Home dashboard — aligned with Coach surfaces (no separate HUD look).
  * ======================================================================== */
 .home-dash {
-  --dash-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --dash-primary: #fafafa;
-  --dash-secondary: #b8b6b0;
-  --dash-tertiary: #76746e;
-  --dash-success: #6be3a4;
-  --dash-warning: #f2c063;
-  --dash-danger: #ff6b6b;
+  --dash-mono: var(--font-mono);
+  --dash-primary: var(--color-text-primary);
+  --dash-secondary: var(--color-text-secondary);
+  --dash-tertiary: var(--color-text-muted);
+  --dash-success: var(--color-recovery);
+  --dash-warning: var(--color-activity);
+  --dash-danger: var(--color-stress);
   position: relative;
-  isolation: isolate;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  color: var(--dash-primary);
-}
-
-/* Soft warm + cool radial washes, slowly drifting */
-.home-dash::before {
-  content: "";
-  position: absolute;
-  inset: -25%;
-  z-index: -2;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      38% 38% at 82% 14%,
-      rgba(224, 118, 88, 0.16),
-      transparent 72%
-    ),
-    radial-gradient(
-      42% 42% at 18% 90%,
-      rgba(180, 180, 200, 0.06),
-      transparent 72%
-    );
-  filter: blur(40px);
-  animation: dash-drift 36s ease-in-out infinite alternate;
-}
-
-/* Faint film grain so the dark never goes plastic */
-.home-dash::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: radial-gradient(
-    rgba(255, 255, 255, 0.014) 1px,
-    transparent 1px
-  );
-  background-size: 3px 3px;
-}
-
-@keyframes dash-drift {
-  from {
-    transform: translate(0, 0) scale(1);
-  }
-  to {
-    transform: translate(2.5%, -2%) scale(1.04);
-  }
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
 }
 
 .dash-title {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.015em;
   margin-bottom: 14px;
   line-height: 1.1;
-  background: linear-gradient(180deg, #ffffff 0%, #c7c4bc 120%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--color-text-primary);
 }
 
 .dash-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: none;
-  border-radius: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   padding: 20px;
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 
 /* --- Component 2: Goal ticker -------------------------------------------- */
@@ -1084,7 +1063,6 @@ input[type="number"]::-webkit-outer-spin-button {
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 6px currentColor;
 }
 
 .topbar-dot-miss {

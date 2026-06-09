@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
-type Variant = "solid" | "ghost" | "danger";
+type Variant = "primary" | "solid" | "ghost" | "danger";
 
 const VARIANTS: Record<Variant, string> = {
-  // Chrome only — monochrome, never an accent color (blueprint §4).
+  primary: "btn-primary",
   solid:
-    "bg-[rgba(255,255,255,0.10)] text-text-primary hover:bg-[rgba(255,255,255,0.16)]",
+    "border border-border bg-[rgba(255,255,255,0.04)] text-text-primary hover:bg-[rgba(255,255,255,0.10)]",
   ghost:
     "border border-border-strong text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
   danger:
@@ -16,7 +16,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
 }
 
-/** Button — monochrome chrome with subtle hover. Accent stays on data only. */
+/** Button — Coach-style chrome. Primary uses white gradient; accents stay on data. */
 export function Button({
   variant = "solid",
   className,
@@ -25,7 +25,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         VARIANTS[variant],
         className,
       )}

@@ -5,20 +5,20 @@
  * selectors are folded onto .po-app itself.
  */
 .po-app {
-  --bg: #0a0a0b;
-  --bg-card: #111113;
-  --text-1: #ffffff;
-  --text-2: rgba(255, 255, 255, 0.6);
-  --text-3: rgba(255, 255, 255, 0.4);
-  --text-4: rgba(255, 255, 255, 0.25);
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --bg: var(--color-background);
+  --bg-card: var(--color-surface);
+  --text-1: var(--color-text-primary);
+  --text-2: var(--color-text-secondary);
+  --text-3: var(--color-text-muted);
+  --text-4: var(--color-text-mono);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
   --accent: #ffffff;
-  --good: #6ee7b7;
-  --warn: #fbbf24;
-  --bad: #ff8a8a;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SF Mono, Menlo, Consolas, monospace;
+  --good: var(--color-recovery);
+  --warn: var(--color-activity);
+  --bad: var(--color-stress);
+  --font: var(--font-sans);
+  --font-mono: var(--font-mono);
 
   position: relative;
   min-height: 100%;

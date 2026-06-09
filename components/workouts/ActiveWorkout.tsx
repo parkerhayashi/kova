@@ -230,7 +230,7 @@ export function ActiveWorkout({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => void finishWorkout()} disabled={busy}>
+        <Button variant="primary" onClick={() => void finishWorkout()} disabled={busy}>
           Finish workout
         </Button>
         <Button variant="danger" onClick={() => void cancelWorkout()} disabled={busy}>
