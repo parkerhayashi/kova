@@ -13,11 +13,16 @@ import { TodoList } from "./TodoList";
  */
 export function DashboardHome() {
   useEffect(() => {
-    void hydrateClientSync(["goals"]).then(() => {
+    function settle() {
       // Streak must be tallied before rollover deletes the historical day records.
       runStreakCheck();
       runRollover();
       window.dispatchEvent(new CustomEvent(GOALS_CHANGED_EVENT));
+    }
+
+    settle();
+    void hydrateClientSync(["goals"]).then((result) => {
+      if (result.goals) settle();
     });
   }, []);
 

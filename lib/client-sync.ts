@@ -7,6 +7,8 @@ import type { ClientSyncPayload } from "@/types";
 
 export type SyncNamespace = "goals" | "coach" | "finances";
 
+export type HydrateResult = Record<SyncNamespace, boolean>;
+
 export const CLIENT_SYNC_CHANGED_EVENT = "client-sync-changed";
 
 const STREAK_KEY = "goal_streak_v1";
@@ -18,12 +20,22 @@ const FINANCE_EXACT_KEYS = [
   "finance_active_tab",
   "nw_currency",
 ] as const;
+const ALL_NAMESPACES: SyncNamespace[] = ["goals", "coach", "finances"];
 
 const PUSH_DELAY_MS = 500;
+const SYNC_CACHE_TTL_MS = 30_000;
 const pushTimers: Partial<Record<SyncNamespace, ReturnType<typeof setTimeout>>> = {};
+
+let cachedSync: ClientSyncPayload | null = null;
+let cacheTime = 0;
+let inflightFetch: Promise<ClientSyncPayload | null> | null = null;
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
+}
+
+function emptyResult(): HydrateResult {
+  return { goals: false, coach: false, finances: false };
 }
 
 function readRaw(key: string): unknown {
@@ -93,6 +105,15 @@ function namespaceHasLocalData(ns: SyncNamespace): boolean {
   return Object.keys(collectNamespace(ns)).length > 0;
 }
 
+function snapshotNamespace(ns: SyncNamespace): string {
+  return JSON.stringify(collectNamespace(ns));
+}
+
+function invalidateSyncCache(): void {
+  cachedSync = null;
+  cacheTime = 0;
+}
+
 function dispatchNamespaceChanged(ns: SyncNamespace): void {
   if (!isBrowser()) return;
   if (ns === "goals") {
@@ -103,33 +124,61 @@ function dispatchNamespaceChanged(ns: SyncNamespace): void {
   );
 }
 
-function applyNamespace(ns: SyncNamespace, keys: Record<string, unknown>): void {
-  if (!isBrowser()) return;
+/** Write keys to localStorage; optionally notify listeners if data changed. */
+function applyNamespaceKeys(
+  ns: SyncNamespace,
+  keys: Record<string, unknown>,
+  notify: boolean,
+): boolean {
+  if (!isBrowser()) return false;
+  const before = snapshotNamespace(ns);
   for (const [key, value] of Object.entries(keys)) {
     writeRaw(key, value);
   }
-  dispatchNamespaceChanged(ns);
+  const changed = before !== snapshotNamespace(ns);
+  if (changed && notify) dispatchNamespaceChanged(ns);
+  return changed;
 }
 
-export async function fetchClientSync(): Promise<ClientSyncPayload | null> {
-  try {
-    const res = await fetch("/api/sync/client", { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return (json?.sync as ClientSyncPayload) ?? null;
-  } catch {
-    return null;
+export async function fetchClientSync(options?: {
+  force?: boolean;
+}): Promise<ClientSyncPayload | null> {
+  if (!isBrowser()) return null;
+
+  const force = options?.force ?? false;
+  const now = Date.now();
+  if (!force && cachedSync && now - cacheTime < SYNC_CACHE_TTL_MS) {
+    return cachedSync;
   }
+  if (!force && inflightFetch) return inflightFetch;
+
+  inflightFetch = (async () => {
+    try {
+      const res = await fetch("/api/sync/client", { cache: "no-store" });
+      if (!res.ok) return null;
+      const json = await res.json();
+      cachedSync = (json?.sync as ClientSyncPayload) ?? {};
+      cacheTime = Date.now();
+      return cachedSync;
+    } catch {
+      return null;
+    } finally {
+      inflightFetch = null;
+    }
+  })();
+
+  return inflightFetch;
 }
 
 async function pushNamespace(ns: SyncNamespace): Promise<void> {
   const keys = collectNamespace(ns);
   try {
-    await fetch("/api/sync/client", {
+    const res = await fetch("/api/sync/client", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [ns]: keys }),
     });
+    if (res.ok) invalidateSyncCache();
   } catch {
     /* offline — localStorage remains until next sync */
   }
@@ -147,35 +196,42 @@ export function scheduleClientSyncPush(ns: SyncNamespace): void {
 }
 
 /**
- * Hydrate namespaces from Supabase on load. Server wins when present; otherwise
- * migrate local data up once.
+ * Hydrate namespaces from Supabase. Server wins when present; otherwise migrate
+ * local data up once. Does not notify listeners (safe during initial mount).
  */
 export async function hydrateClientSync(
-  namespaces: SyncNamespace[] = ["goals", "coach", "finances"],
-): Promise<void> {
+  namespaces: SyncNamespace[] = ALL_NAMESPACES,
+): Promise<HydrateResult> {
+  const result = emptyResult();
   const remote = await fetchClientSync();
+  if (!remote) return result;
 
   for (const ns of namespaces) {
-    const remoteKeys = remote?.[ns];
+    const remoteKeys = remote[ns];
     const hasRemote = remoteKeys && Object.keys(remoteKeys).length > 0;
 
     if (hasRemote) {
-      applyNamespace(ns, remoteKeys);
+      result[ns] = applyNamespaceKeys(ns, remoteKeys, false);
     } else if (namespaceHasLocalData(ns)) {
       await pushNamespace(ns);
     }
   }
+
+  return result;
 }
 
-/** Re-fetch from server (e.g. when another device may have updated). */
-export async function refreshClientSyncFromServer(): Promise<void> {
-  const remote = await fetchClientSync();
-  if (!remote) return;
+/** Re-fetch from server when another device may have updated (notifies on change). */
+export async function refreshClientSyncFromServer(): Promise<HydrateResult> {
+  const result = emptyResult();
+  const remote = await fetchClientSync({ force: true });
+  if (!remote) return result;
 
-  for (const ns of ["goals", "coach", "finances"] as SyncNamespace[]) {
+  for (const ns of ALL_NAMESPACES) {
     const keys = remote[ns];
     if (keys && Object.keys(keys).length > 0) {
-      applyNamespace(ns, keys);
+      result[ns] = applyNamespaceKeys(ns, keys, true);
     }
   }
+
+  return result;
 }

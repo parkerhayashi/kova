@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import "./coach.css";
 import { COACH_HTML, mountCoach } from "./coachApp";
 import {
@@ -16,16 +16,6 @@ import {
  */
 export function Coach() {
   const ref = useRef<HTMLDivElement>(null);
-  const [syncGen, setSyncGen] = useState(0);
-
-  useEffect(() => {
-    const onSync = (e: Event) => {
-      const ns = (e as CustomEvent<{ namespace?: string }>).detail?.namespace;
-      if (ns === "coach") setSyncGen((g) => g + 1);
-    };
-    window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
-    return () => window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
-  }, []);
 
   useEffect(() => {
     const root = ref.current;
@@ -34,18 +24,33 @@ export function Coach() {
     let cancelled = false;
     let cleanup: (() => void) | undefined;
 
-    void hydrateClientSync(["coach"]).then(() => {
+    function renderApp() {
       if (cancelled || !ref.current) return;
+      cleanup?.();
       ref.current.innerHTML = COACH_HTML;
       cleanup = mountCoach();
+    }
+
+    // Render immediately from localStorage; hydrate server data in the background.
+    renderApp();
+
+    void hydrateClientSync(["coach"]).then((result) => {
+      if (result.coach) renderApp();
     });
+
+    const onSync = (e: Event) => {
+      const ns = (e as CustomEvent<{ namespace?: string }>).detail?.namespace;
+      if (ns === "coach") renderApp();
+    };
+    window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
 
     return () => {
       cancelled = true;
+      window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
       cleanup?.();
       if (ref.current) ref.current.innerHTML = "";
     };
-  }, [syncGen]);
+  }, []);
 
   return <div className="po-app" ref={ref} />;
 }
