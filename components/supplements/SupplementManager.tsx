@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { ArrowDown, ArrowUp, Plus, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
 import type { Supplement } from "@/types";
+import {
+  searchSupplements,
+  type SupplementPreset,
+} from "@/lib/supplementCatalog";
 import {
   archiveSupplement,
   createSupplement,
@@ -19,14 +23,36 @@ export function SupplementManager({ supplements }: { supplements: Supplement[] }
   const [name, setName] = useState("");
   const [dose, setDose] = useState("");
   const [unit, setUnit] = useState("");
+  const [note, setNote] = useState("");
+  const [showResults, setShowResults] = useState(false);
   const [order, setOrder] = useState(supplements);
   const [, startTransition] = useTransition();
+  const nameWrapRef = useRef<HTMLDivElement>(null);
+
+  const matches = showResults ? searchSupplements(name) : [];
 
   const idKey = supplements.map((s) => s.id).join();
   useEffect(() => {
     setOrder(supplements);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idKey]);
+
+  // Close the autocomplete on an outside click.
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (!nameWrapRef.current?.contains(e.target as Node)) setShowResults(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  function pick(preset: SupplementPreset) {
+    setName(preset.name);
+    setDose(String(preset.dose));
+    setUnit(preset.unit);
+    setNote(preset.note);
+    setShowResults(false);
+  }
 
   function add(e: React.FormEvent) {
     e.preventDefault();
@@ -35,11 +61,13 @@ export function SupplementManager({ supplements }: { supplements: Supplement[] }
       name,
       default_dose: dose ? Number(dose) : null,
       unit: unit.trim() || null,
-      notes: null,
+      notes: note.trim() || null,
     };
     setName("");
     setDose("");
     setUnit("");
+    setNote("");
+    setShowResults(false);
     startTransition(async () => {
       await createSupplement(payload);
     });
@@ -68,13 +96,56 @@ export function SupplementManager({ supplements }: { supplements: Supplement[] }
       {open ? (
         <div className="space-y-4">
           <form onSubmit={add} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Field label="Name" className="col-span-2 sm:col-span-2">
-              <Input
-                placeholder="e.g. Vitamin D3"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </Field>
+            <div
+              ref={nameWrapRef}
+              className="relative col-span-2 flex flex-col gap-1.5 sm:col-span-2"
+            >
+              <span className="metric-label">Name</span>
+              <div className="relative">
+                <Search
+                  className="text-text-muted pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2"
+                  strokeWidth={1.5}
+                />
+                <Input
+                  className="pl-9"
+                  placeholder="Search e.g. Vitamin D3"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setShowResults(true);
+                    setNote("");
+                  }}
+                  onFocus={() => {
+                    if (name.trim()) setShowResults(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setShowResults(false);
+                    if (e.key === "Enter" && matches.length > 0) {
+                      e.preventDefault();
+                      pick(matches[0]);
+                    }
+                  }}
+                />
+              </div>
+              {matches.length > 0 ? (
+                <ul className="border-border bg-surface-raised absolute top-full z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border py-1 shadow-xl">
+                  {matches.map((m) => (
+                    <li key={m.name}>
+                      <button
+                        type="button"
+                        onClick={() => pick(m)}
+                        className="hover:bg-[rgba(255,255,255,0.05)] flex w-full items-baseline justify-between gap-3 px-3 py-2 text-left"
+                      >
+                        <span className="text-text-primary text-sm">{m.name}</span>
+                        <span className="text-text-muted shrink-0 text-xs">
+                          {m.dose} {m.unit}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
             <Field label="Dose">
               <Input
                 type="number"
@@ -90,6 +161,13 @@ export function SupplementManager({ supplements }: { supplements: Supplement[] }
                 placeholder="IU"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
+              />
+            </Field>
+            <Field label="Note / timing" className="col-span-2 sm:col-span-4">
+              <Input
+                placeholder="e.g. Morning, with food"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
               />
             </Field>
             <div className="col-span-2 sm:col-span-4">
