@@ -10,6 +10,7 @@ interface SearchHit {
   fdcId: number;
   name: string;
   brand: string | null;
+  dataType: string | null;
 }
 
 function ServingsPrompt({
@@ -156,6 +157,9 @@ export function FoodSearch({ date }: { date: string }) {
                 className="hover:bg-surface-raised w-full px-3 py-2.5 text-left text-sm transition-colors"
               >
                 <span className="text-text-primary">{hit.name}</span>
+                {hit.dataType ? (
+                  <span className="text-text-muted ml-2 text-xs">{hit.dataType}</span>
+                ) : null}
                 {hit.brand ? (
                   <span className="text-text-muted ml-2 text-xs">{hit.brand}</span>
                 ) : null}

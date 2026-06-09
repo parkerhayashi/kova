@@ -19,8 +19,43 @@ export interface FoodSearchResult {
   fdcId: number;
   description: string;
   brandName?: string;
+  dataType?: string;
   servingSize?: number;
   servingSizeUnit?: string;
+}
+
+interface UsdaFoodNutrient {
+  nutrient?: { number: string };
+  number?: string | number;
+  nutrientNumber?: string | number;
+  amount?: number;
+  value?: number;
+}
+
+interface UsdaFoodDetail {
+  description: string;
+  servingSize?: number;
+  servingSizeUnit?: string;
+  householdServingFullText?: string;
+  foodNutrients: UsdaFoodNutrient[];
+}
+
+const DATA_TYPE_RANK: Record<string, number> = {
+  Foundation: 0,
+  "SR Legacy": 1,
+  Branded: 2,
+  Survey: 3,
+};
+
+function nutrientNumber(fn: UsdaFoodNutrient): string | null {
+  const raw = fn.nutrient?.number ?? fn.number ?? fn.nutrientNumber;
+  if (raw == null) return null;
+  return String(raw);
+}
+
+function nutrientAmount(fn: UsdaFoodNutrient): number | null {
+  const amount = fn.amount ?? fn.value;
+  return amount != null && Number.isFinite(amount) ? amount : null;
 }
 
 export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
@@ -31,9 +66,17 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
     dataType: "Foundation,SR Legacy,Branded",
   });
   const res = await fetch(`${USDA_BASE}/foods/search?${params}`);
+  if (res.status === 429) {
+    throw new Error("USDA rate limit hit — add USDA_API_KEY to .env.local");
+  }
   if (!res.ok) throw new Error(`USDA search failed: ${res.status}`);
   const json = await res.json();
-  return json.foods ?? [];
+  const foods: FoodSearchResult[] = json.foods ?? [];
+  return foods.sort(
+    (a, b) =>
+      (DATA_TYPE_RANK[a.dataType ?? ""] ?? 99) -
+      (DATA_TYPE_RANK[b.dataType ?? ""] ?? 99),
+  );
 }
 
 /** USDA nutrient number → Kova Meal field. */
@@ -69,33 +112,39 @@ const NUTRIENT_MAP: Record<string, keyof NutrientProfile["nutrients"]> = {
   "418": "vitamin_b12_mcg",
 };
 
-interface UsdaFoodDetail {
-  description: string;
-  servingSize?: number;
-  foodNutrients: {
-    nutrient: { number: string };
-    amount: number;
-  }[];
-}
-
 /** Fetch one food and normalize it to a Kova NutrientProfile. */
 export async function getFood(fdcId: number): Promise<NutrientProfile> {
-  const params = new URLSearchParams({ api_key: apiKey() });
+  const params = new URLSearchParams({
+    api_key: apiKey(),
+    // Foundation foods 404 on default "full" format; abridged is faster and works.
+    format: "abridged",
+  });
   const res = await fetch(`${USDA_BASE}/food/${fdcId}?${params}`);
+  if (res.status === 404) {
+    throw new Error("Food not found — it may have been retired by USDA. Try another match.");
+  }
+  if (res.status === 429) {
+    throw new Error("USDA rate limit hit — add USDA_API_KEY to .env.local");
+  }
   if (!res.ok) throw new Error(`USDA food failed: ${res.status}`);
   const food: UsdaFoodDetail = await res.json();
 
   const nutrients: NutrientProfile["nutrients"] = {};
   for (const fn of food.foodNutrients ?? []) {
-    const field = NUTRIENT_MAP[fn.nutrient?.number];
-    if (field) nutrients[field] = fn.amount;
+    const num = nutrientNumber(fn);
+    const field = num ? NUTRIENT_MAP[num] : undefined;
+    const amount = nutrientAmount(fn);
+    if (field && amount != null) nutrients[field] = amount;
   }
+
+  const servingSize =
+    food.servingSize && food.servingSize > 0 ? food.servingSize : 100;
 
   return {
     food_id: String(fdcId),
     source: "usda",
     name: food.description,
-    serving_size_g: food.servingSize ?? 100,
+    serving_size_g: servingSize,
     nutrients,
   };
 }

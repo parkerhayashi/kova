@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
         fdcId: f.fdcId,
         name: f.description,
         brand: f.brandName ?? null,
+        dataType: f.dataType ?? null,
         servingSize: f.servingSize ?? null,
         servingUnit: f.servingSizeUnit ?? null,
       })),
