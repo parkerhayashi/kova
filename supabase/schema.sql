@@ -334,6 +334,7 @@ create table if not exists user_settings (
   strava_refresh_token    text,   -- encrypted
   hevy_api_key            text,   -- encrypted
   totp_secret             text,   -- encrypted; TOTP MFA seed (null = disabled)
+  water_state             jsonb,  -- synced water tracker state (lib/water.ts shape)
   updated_at              timestamptz default now()
 );
 
@@ -343,6 +344,9 @@ alter table user_settings
 
 alter table user_settings
   add column if not exists totp_secret text;
+
+alter table user_settings
+  add column if not exists water_state jsonb;
 
 -- Single-user app: seed one settings row.
 insert into user_settings (id)

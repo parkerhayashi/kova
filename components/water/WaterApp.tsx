@@ -9,7 +9,6 @@ import {
   computeTargetMl,
   fmtMl,
   loadWater,
-  saveWater,
   subDoseLabel,
   subExtraMl,
   targetUnits,
@@ -20,6 +19,11 @@ import {
   WATER_CHANGED_EVENT,
   type WaterState,
 } from "@/lib/water";
+import {
+  commitWaterState,
+  hydrateWaterState,
+  refreshWaterFromServer,
+} from "@/lib/water-sync";
 
 const SLEEP = "var(--color-sleep)";
 const GOOD = "var(--color-recovery)";
@@ -31,20 +35,32 @@ export function WaterApp() {
   const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
-    setState(loadWater());
-    setMounted(true);
-    const reload = () => setState(loadWater());
-    window.addEventListener(WATER_CHANGED_EVENT, reload);
-    window.addEventListener("storage", reload);
+    hydrateWaterState().then((s) => {
+      setState(s);
+      setMounted(true);
+    });
+    const onLocal = () => setState(loadWater());
+    const onRemote = () => {
+      void refreshWaterFromServer().then((s) => {
+        if (s) setState(s);
+      });
+    };
+    window.addEventListener(WATER_CHANGED_EVENT, onLocal);
+    window.addEventListener("storage", onLocal);
+    window.addEventListener("focus", onRemote);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) onRemote();
+    });
     return () => {
-      window.removeEventListener(WATER_CHANGED_EVENT, reload);
-      window.removeEventListener("storage", reload);
+      window.removeEventListener(WATER_CHANGED_EVENT, onLocal);
+      window.removeEventListener("storage", onLocal);
+      window.removeEventListener("focus", onRemote);
     };
   }, []);
 
   function commit(next: WaterState) {
     setState(next);
-    saveWater(next);
+    commitWaterState(next);
   }
 
   function setToday(n: number) {

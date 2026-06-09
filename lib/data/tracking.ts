@@ -53,6 +53,15 @@ export async function deleteWeight(date: string): Promise<void> {
   await db.from("weight_log").delete().eq("date", date);
 }
 
+export async function getAllWeightLogs(): Promise<WeightLog[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("weight_log")
+    .select("*")
+    .order("date", { ascending: true });
+  return (data as WeightLog[]) ?? [];
+}
+
 // ---------------------------------------------------------------------------
 // Habits
 // ---------------------------------------------------------------------------

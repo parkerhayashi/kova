@@ -419,6 +419,7 @@ export interface UserSettings {
   strava_refresh_token: string | null;
   hevy_api_key: string | null;
   totp_secret: string | null;
+  water_state: Record<string, unknown> | null;
   updated_at: string;
 }
 

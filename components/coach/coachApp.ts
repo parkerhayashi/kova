@@ -1499,16 +1499,61 @@ export function mountCoach(): () => void {
 
   let wtEntries = wtLoad();
 
+  async function wtPushEntry(entry) {
+    try {
+      await fetch("/api/weight/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: entry.dateKey,
+          weight: entry.weight,
+          unit: state.units,
+        }),
+      });
+    } catch (e) {}
+  }
+
+  async function wtMigrateLocalToServer() {
+    if (!wtEntries.length) return;
+    for (const entry of wtEntries) {
+      await wtPushEntry(entry);
+    }
+  }
+
+  async function wtSyncFromServer() {
+    try {
+      const res = await fetch(
+        "/api/weight/logs?unit=" + encodeURIComponent(state.units),
+        { cache: "no-store" },
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!Array.isArray(data.entries)) return;
+      if (data.entries.length > 0) {
+        wtEntries = data.entries.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+        wtSave(wtEntries);
+        wtRender();
+      } else {
+        await wtMigrateLocalToServer();
+      }
+    } catch (e) {}
+  }
+
   function wtSaveEntry(weight) {
     const key = wtDateKey(new Date());
     const existing = wtEntries.find((e) => e.dateKey === key);
-    if (existing) existing.weight = weight;
-    else {
-      wtEntries.push({ dateKey: key, weight });
+    let entry;
+    if (existing) {
+      existing.weight = weight;
+      entry = existing;
+    } else {
+      entry = { dateKey: key, weight };
+      wtEntries.push(entry);
       wtEntries.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
     }
     wtSave(wtEntries);
     wtRender();
+    wtPushEntry(entry);
   }
 
   function wtRender() {
@@ -2081,9 +2126,16 @@ export function mountCoach(): () => void {
   // ============================================================
   renderAll();
   wtRender();
+  wtSyncFromServer();
   photosRender();
 
+  window.addEventListener("focus", wtSyncFromServer);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) wtSyncFromServer();
+  });
+
   return function cleanup() {
+    window.removeEventListener("focus", wtSyncFromServer);
     try {
       closeCam();
     } catch (e) {}

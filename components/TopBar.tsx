@@ -6,11 +6,11 @@ import { Plus } from "lucide-react";
 import { getTodayGoals, GOALS_CHANGED_EVENT } from "@/lib/goals";
 import {
   loadWater,
-  saveWater,
   targetUnits,
   waterDateKey,
   WATER_CHANGED_EVENT,
 } from "@/lib/water";
+import { commitWaterState, refreshWaterFromServer } from "@/lib/water-sync";
 
 type Progress = { done: number; total: number };
 type Status = "idle" | "good" | "warn" | "miss";
@@ -71,6 +71,11 @@ export function TopBar({ initialStack }: { initialStack: Progress }) {
     setWater({ done: w.logs[key] ?? 0, total: targetUnits(w) });
   }
 
+  async function pullRemote() {
+    await refreshWaterFromServer();
+    readLocal();
+  }
+
   async function fetchStack() {
     try {
       const res = await fetch("/api/today/summary", { cache: "no-store" });
@@ -85,11 +90,13 @@ export function TopBar({ initialStack }: { initialStack: Progress }) {
   useEffect(() => {
     setMounted(true);
     readLocal();
+    void pullRemote();
     fetchStack();
 
     const onLocal = () => readLocal();
     const onFocus = () => {
       readLocal();
+      void pullRemote();
       fetchStack();
     };
     const onVisible = () => {
@@ -115,7 +122,7 @@ export function TopBar({ initialStack }: { initialStack: Progress }) {
     const w = loadWater();
     const key = waterDateKey(new Date());
     const logs = { ...w.logs, [key]: (w.logs[key] ?? 0) + 1 };
-    saveWater({ ...w, logs });
+    commitWaterState({ ...w, logs });
     setWater({ done: logs[key], total: targetUnits(w) });
     setFlash(true);
     window.setTimeout(() => setFlash(false), 220);
