@@ -7,8 +7,8 @@ export default function WorkoutBodyPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Workouts"
-        title="Body weight & photos"
-        subtitle="Daily weight, composition estimate, and progress photos. To log lifts, start a live workout from the main Workouts page."
+        title="Progress photos & split"
+        subtitle="Progress photos and split rotation settings. Log daily weight on the main Workouts page."
       />
       <Link
         href="/workouts"

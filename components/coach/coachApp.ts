@@ -8,7 +8,8 @@
  * Weight entries also sync via /api/weight/*.
  */
 
-import { scheduleClientSyncPush } from "@/lib/client-sync";
+import { scheduleClientSyncPush, CLIENT_SYNC_CHANGED_EVENT } from "@/lib/client-sync";
+import { localDateKey, parseLocalDateKey } from "@/lib/coach-rx";
 
 export const COACH_CONFIG = {
   appTitle: "Workouts",
@@ -467,7 +468,10 @@ export function mountCoach(): () => void {
       );
     }
     if (!s.splitAnchor || !s.splitAnchor.date || s.splitAnchor.index == null) {
-      const oldId = (CONFIG.splitAnchor && CONFIG.splitAnchor.splitId) || null;
+      const oldId =
+        (s.splitAnchor && s.splitAnchor.splitId) ||
+        (CONFIG.splitAnchor && CONFIG.splitAnchor.splitId) ||
+        null;
       let idx = 0;
       if (oldId) {
         const oldName = (CONFIG.days || []).find((d) => d.id === oldId);
@@ -478,7 +482,7 @@ export function mountCoach(): () => void {
         if (found >= 0) idx = found;
       }
       s.splitAnchor = {
-        date: (CONFIG.splitAnchor && CONFIG.splitAnchor.date) || new Date().toISOString().slice(0, 10),
+        date: (s.splitAnchor && s.splitAnchor.date) || localDateKey(),
         index: idx,
       };
     }
@@ -488,6 +492,9 @@ export function mountCoach(): () => void {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(state));
       scheduleClientSyncPush("coach");
+      window.dispatchEvent(
+        new CustomEvent(CLIENT_SYNC_CHANGED_EVENT, { detail: { namespace: "coach" } }),
+      );
     } catch (e) {}
   }
   let state = loadState();
@@ -790,11 +797,12 @@ export function mountCoach(): () => void {
     try {
       const rot = state.splitRotation;
       if (!rot || !rot.length) return { name: "—", index: 0 };
-      const a = new Date(state.splitAnchor.date);
-      const t = new Date();
-      a.setHours(0, 0, 0, 0);
-      t.setHours(0, 0, 0, 0);
-      const diffDays = Math.round((t - a) / 86400000);
+      if (state.splitAnchor.index == null || !state.splitAnchor.date) {
+        return { name: rot[0], index: 0 };
+      }
+      const a = parseLocalDateKey(state.splitAnchor.date);
+      const t = parseLocalDateKey(localDateKey());
+      const diffDays = Math.round((t.getTime() - a.getTime()) / 86400000);
       const idx = (((state.splitAnchor.index + diffDays) % rot.length) + rot.length) % rot.length;
       return { name: rot[idx], index: idx };
     } catch (e) {
@@ -1310,7 +1318,7 @@ export function mountCoach(): () => void {
     let newTodayIdx = rotDraftTodayIdx;
     if (newTodayIdx >= cleaned.length) newTodayIdx = 0;
     state.splitRotation = cleaned;
-    state.splitAnchor = { date: new Date().toISOString().slice(0, 10), index: newTodayIdx };
+    state.splitAnchor = { date: localDateKey(), index: newTodayIdx };
     saveState();
     $("rotModalBg").classList.remove("show");
     rotDraft = null;

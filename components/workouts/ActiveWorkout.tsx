@@ -29,7 +29,11 @@ export function ActiveWorkout({
   const [expandedId, setExpandedId] = useState<string | null>(
     workout.exercises[0]?.session_exercise_id ?? null,
   );
-  const [restSeconds, setRestSeconds] = useState<number | null>(null);
+  const [restTimer, setRestTimer] = useState<{ seconds: number; key: number } | null>(null);
+
+  function startRest(seconds: number) {
+    setRestTimer({ seconds, key: Date.now() });
+  }
   const [replaceTarget, setReplaceTarget] = useState<SessionExerciseView | null>(null);
   const [searchQ, setSearchQ] = useState("");
   const [searchResults, setSearchResults] = useState<Exercise[]>([]);
@@ -226,7 +230,7 @@ export function ActiveWorkout({
                     exercise={ex}
                     routineTitle={workout.session.title}
                     onSaved={onUpdate}
-                    onRestStart={setRestSeconds}
+                    onRestStart={startRest}
                   />
                 </div>
               ) : null}
@@ -244,11 +248,12 @@ export function ActiveWorkout({
         </Button>
       </div>
 
-      {restSeconds != null && restSeconds > 0 ? (
+      {restTimer != null && restTimer.seconds > 0 ? (
         <RestTimer
-          seconds={restSeconds}
-          onDone={() => setRestSeconds(null)}
-          onSkip={() => setRestSeconds(null)}
+          key={restTimer.key}
+          initialSeconds={restTimer.seconds}
+          onDone={() => setRestTimer(null)}
+          onSkip={() => setRestTimer(null)}
         />
       ) : null}
 

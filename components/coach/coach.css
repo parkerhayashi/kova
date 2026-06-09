@@ -1874,14 +1874,31 @@
   }
 
   /*
-   * Body-only mode — weight, photos, split settings. Hides the legacy
-   * per-exercise set logger; live workouts are the sole lift-logging path.
+   * Weight-only — daily weight log on the main Workouts page.
+   */
+  &.po-app--weight-only {
+    min-height: 0;
+
+    & .card,
+    & #poTw,
+    & #poTwPastToggle,
+    & #poTwPastBody,
+    & .po-header,
+    & .wt-progress-link {
+      display: none !important;
+    }
+  }
+
+  /*
+   * Body-only — progress photos and split settings. Weight lives on main Workouts page.
    */
   &.po-app--body-only {
     & .card,
     & #poTw,
     & #poTwPastToggle,
-    & #poTwPastBody {
+    & #poTwPastBody,
+    & .wt-divider,
+    & .wt-card {
       display: none !important;
     }
 
@@ -1890,7 +1907,7 @@
     }
 
     & #appTitle::after {
-      content: "Body & split";
+      content: "Photos & split";
       font-size: 22px;
     }
   }

@@ -128,6 +128,15 @@ export type CoachSplitState = {
   splitAnchor: { date: string; index: number };
 };
 
+export function localDateKey(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function parseLocalDateKey(key: string): Date {
+  const [y, m, day] = key.split("-").map(Number);
+  return new Date(y, m - 1, day);
+}
+
 export function getTodaySplit(state: CoachSplitState): {
   name: string;
   index: number;
@@ -135,10 +144,11 @@ export function getTodaySplit(state: CoachSplitState): {
   try {
     const rot = state.splitRotation;
     if (!rot?.length) return { name: "—", index: 0 };
-    const a = new Date(state.splitAnchor.date);
-    const t = new Date();
-    a.setHours(0, 0, 0, 0);
-    t.setHours(0, 0, 0, 0);
+    if (state.splitAnchor.index == null || !state.splitAnchor.date) {
+      return { name: rot[0] ?? "—", index: 0 };
+    }
+    const a = parseLocalDateKey(state.splitAnchor.date);
+    const t = parseLocalDateKey(localDateKey());
     const diffDays = Math.round((t.getTime() - a.getTime()) / 86400000);
     const idx =
       (((state.splitAnchor.index + diffDays) % rot.length) + rot.length) %

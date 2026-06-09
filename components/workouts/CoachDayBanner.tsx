@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CLIENT_SYNC_CHANGED_EVENT } from "@/lib/client-sync";
 import { readTodaySplit } from "@/lib/coach-bridge";
 import { formatSplitLabel, isRestSplit } from "@/lib/coach-rx";
 import type { RoutineDetail } from "@/types";
@@ -17,7 +18,15 @@ export function CoachDayBanner({
   const [split, setSplit] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
-    setSplit(readTodaySplit());
+    function refresh(e?: Event) {
+      const ns = (e as CustomEvent<{ namespace?: string }> | undefined)?.detail
+        ?.namespace;
+      if (ns && ns !== "coach") return;
+      setSplit(readTodaySplit());
+    }
+    refresh();
+    window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, refresh);
+    return () => window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, refresh);
   }, []);
 
   if (!split?.name) return null;

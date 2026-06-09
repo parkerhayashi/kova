@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ActiveWorkout } from "@/components/workouts/ActiveWorkout";
 import { CoachDayBanner } from "@/components/workouts/CoachDayBanner";
+import { CoachWeight } from "@/components/coach/CoachPanel";
 import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
 import { LiftingStats } from "@/components/workouts/LiftingStats";
 import { RoutineList } from "@/components/workouts/RoutineList";
 import { SessionDetailPanel } from "@/components/workouts/SessionDetailPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/Card";
+import { CLIENT_SYNC_CHANGED_EVENT } from "@/lib/client-sync";
 import { readTodaySplit } from "@/lib/coach-bridge";
 import type {
   ActiveWorkoutView,
@@ -60,6 +62,15 @@ export function WorkoutApp() {
   useEffect(() => {
     void refresh();
     setTodaySplit(readTodaySplit()?.name ?? null);
+
+    function onCoachChange(e: Event) {
+      const ns = (e as CustomEvent<{ namespace?: string }>).detail?.namespace;
+      if (ns === "coach") {
+        setTodaySplit(readTodaySplit()?.name ?? null);
+      }
+    }
+    window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onCoachChange);
+    return () => window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, onCoachChange);
   }, [refresh]);
 
   async function startRoutine(routineId: string) {
@@ -116,6 +127,7 @@ export function WorkoutApp() {
 
       {!inSession && !loading ? (
         <>
+          <CoachWeight />
           <CoachDayBanner
             routines={data?.routines ?? []}
             onStartRoutine={startRoutine}
@@ -125,7 +137,7 @@ export function WorkoutApp() {
               href="/workouts/body"
               className="text-text-secondary hover:text-text-primary"
             >
-              Body weight & photos →
+              Progress photos & split settings →
             </Link>
           </div>
         </>
