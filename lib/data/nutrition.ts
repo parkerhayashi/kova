@@ -1,18 +1,70 @@
 import { createServiceClient } from "@/lib/supabase/server";
-import { getTimezone, getUserSettings } from "@/lib/data/oura";
-import { DEFAULT_GOALS, sumMeals, type DailyTotals, type NutritionGoals } from "@/lib/nutrition";
+import {
+  getActivityForDate,
+  getActivityHistory,
+  getTimezone,
+  getUserSettings,
+} from "@/lib/data/oura";
+import { getUserProfile } from "@/lib/data/profile";
+import { getLatestWeight } from "@/lib/data/tracking";
+import {
+  computeNutritionGoals,
+  type ComputedNutritionGoals,
+  type GoalInputs,
+} from "@/lib/nutrition-goals";
+import { sumMeals, type DailyTotals } from "@/lib/nutrition";
 import { addDays, todayInTimezone } from "@/lib/utils";
-import type { Meal } from "@/types";
+import type { Activity, Meal } from "@/types";
 
-export async function getNutritionGoals(): Promise<NutritionGoals> {
-  const settings = await getUserSettings();
+async function gatherGoalInputs(date: string): Promise<GoalInputs> {
+  const [settings, profile, activity] = await Promise.all([
+    getUserSettings(),
+    getUserProfile(),
+    getActivityForDate(date),
+  ]);
+
   return {
-    calories: settings?.calorie_goal ?? DEFAULT_GOALS.calories,
-    protein_g: settings?.protein_goal_g ?? DEFAULT_GOALS.protein_g,
-    carbs_g: settings?.carbs_goal_g ?? DEFAULT_GOALS.carbs_g,
-    fat_g: settings?.fat_goal_g ?? DEFAULT_GOALS.fat_g,
-    water_ml: settings?.water_goal_ml ?? DEFAULT_GOALS.water_ml,
+    weight_lbs: profile.weight_lbs,
+    body_fat_pct: profile.body_fat_pct,
+    weight_goal_lbs: settings?.weight_goal_lbs ?? null,
+    body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
+    height_m: profile.height_m,
+    age: profile.age,
+    biological_sex: profile.biological_sex,
+    oura_total_calories: activity?.total_calories ?? null,
+    oura_active_calories: activity?.active_calories ?? null,
+    water_goal_ml: settings?.water_goal_ml ?? null,
   };
+}
+
+export async function getNutritionGoals(
+  date?: string,
+): Promise<ComputedNutritionGoals> {
+  const timezone = await getTimezone();
+  const targetDate = date ?? todayInTimezone(timezone);
+  const inputs = await gatherGoalInputs(targetDate);
+  return computeNutritionGoals(inputs);
+}
+
+export async function saveNutritionTargets(input: {
+  weight_goal_lbs: number | null;
+  body_fat_goal_pct: number | null;
+}): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("user_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (!row) throw new Error("Settings not found");
+
+  await db
+    .from("user_settings")
+    .update({
+      weight_goal_lbs: input.weight_goal_lbs,
+      body_fat_goal_pct: input.body_fat_goal_pct,
+    })
+    .eq("id", row.id);
 }
 
 export async function getMealsForDate(date: string): Promise<Meal[]> {
@@ -58,25 +110,55 @@ export async function deleteMeal(id: string): Promise<void> {
 
 export async function getCalorieTrend(
   days: number,
-): Promise<{ date: string; calories: number }[]> {
-  const meals = await getMealsSince(days);
+): Promise<{ date: string; calories: number; goal: number }[]> {
   const timezone = await getTimezone();
-  const byDate = new Map<string, Meal[]>();
+  const [meals, activityRows, settings, profile] = await Promise.all([
+    getMealsSince(days),
+    getActivityHistory(days),
+    getUserSettings(),
+    getUserProfile(),
+  ]);
+
+  const activityByDate = new Map<string, Activity>(
+    activityRows.map((a) => [a.date, a]),
+  );
+  const mealsByDate = new Map<string, Meal[]>();
   for (const meal of meals) {
-    const list = byDate.get(meal.date) ?? [];
+    const list = mealsByDate.get(meal.date) ?? [];
     list.push(meal);
-    byDate.set(meal.date, list);
+    mealsByDate.set(meal.date, list);
   }
 
+  const baseInputs: Omit<GoalInputs, "oura_total_calories" | "oura_active_calories"> =
+    {
+      weight_lbs: profile.weight_lbs,
+      body_fat_pct: profile.body_fat_pct,
+      weight_goal_lbs: settings?.weight_goal_lbs ?? null,
+      body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
+      height_m: profile.height_m,
+      age: profile.age,
+      biological_sex: profile.biological_sex,
+      water_goal_ml: settings?.water_goal_ml ?? null,
+    };
+
   const start = addDays(todayInTimezone(timezone), -(days - 1));
-  const out: { date: string; calories: number }[] = [];
+  const out: { date: string; calories: number; goal: number }[] = [];
+
   for (let i = 0; i < days; i++) {
     const date = addDays(start, i);
-    const dayMeals = byDate.get(date) ?? [];
+    const activity = activityByDate.get(date);
+    const goals = computeNutritionGoals({
+      ...baseInputs,
+      oura_total_calories: activity?.total_calories ?? null,
+      oura_active_calories: activity?.active_calories ?? null,
+    });
+    const dayMeals = mealsByDate.get(date) ?? [];
     out.push({
       date,
       calories: Math.round(sumMeals(dayMeals).calories ?? 0),
+      goal: goals.calories,
     });
   }
+
   return out;
 }

@@ -9,15 +9,14 @@ import { shortDate } from "@/lib/utils";
 
 export function CalorieTrend({
   trend,
-  goal,
 }: {
-  trend: { date: string; calories: number }[];
-  goal: number;
+  trend: { date: string; calories: number; goal: number }[];
 }) {
+  const todayGoal = trend[trend.length - 1]?.goal ?? null;
   const data = trend.map((d) => ({
     label: shortDate(d.date),
     value: d.calories > 0 ? d.calories : null,
-    avg: goal,
+    avg: d.goal > 0 ? d.goal : null,
   }));
 
   return (
@@ -26,8 +25,8 @@ export function CalorieTrend({
       data={data}
       accent="nutrition"
       showAvg
-      current={goal ? `${goal} goal` : null}
-      caption="Dashed line = daily calorie goal"
+      current={todayGoal ? `${todayGoal} today` : null}
+      caption="Dashed line = daily goal (Oura burn + weight/body fat targets)"
     />
   );
 }

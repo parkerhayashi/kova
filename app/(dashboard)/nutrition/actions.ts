@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addMeal, deleteMeal } from "@/lib/data/nutrition";
+import { addMeal, deleteMeal, saveNutritionTargets as persistTargets } from "@/lib/data/nutrition";
 import { buildMealRow } from "@/lib/nutrition";
 import type { NutrientProfile } from "@/types";
 
@@ -25,5 +25,13 @@ export async function logMeal(
 export async function removeMeal(id: string): Promise<void> {
   if (!id) return;
   await deleteMeal(id);
+  refresh();
+}
+
+export async function saveNutritionTargets(input: {
+  weight_goal_lbs: number | null;
+  body_fat_goal_pct: number | null;
+}): Promise<void> {
+  await persistTargets(input);
   refresh();
 }

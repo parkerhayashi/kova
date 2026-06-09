@@ -406,6 +406,10 @@ export interface UserSettings {
   id: string;
   sleep_need_hours: number | null;
   weight_goal_lbs: number | null;
+  body_fat_goal_pct: number | null;
+  age: number | null;
+  height_m: number | null;
+  biological_sex: string | null;
   calorie_goal: number | null;
   protein_goal_g: number | null;
   carbs_goal_g: number | null;
@@ -423,6 +427,23 @@ export interface UserSettings {
   client_sync: ClientSyncPayload | null;
   oura_last_synced_at: string | null;
   updated_at: string;
+}
+
+/** Resolved body profile used across nutrition, water, and calculations. */
+export interface UserProfile {
+  age: number | null;
+  height_m: number | null;
+  biological_sex: string | null;
+  weight_lbs: number | null;
+  body_fat_pct: number | null;
+  /** Which fields are explicitly set in user_settings vs inferred from Oura. */
+  sources: {
+    age: "settings" | "oura" | null;
+    height_m: "settings" | "oura" | null;
+    biological_sex: "settings" | "oura" | null;
+    weight_lbs: "weight_log" | "oura" | null;
+    body_fat_pct: "weight_log" | null;
+  };
 }
 
 /** Cross-device localStorage snapshots stored in user_settings.client_sync. */

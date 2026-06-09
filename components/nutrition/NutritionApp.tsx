@@ -1,10 +1,12 @@
 "use client";
 
+import { GoalSettings } from "@/components/nutrition/GoalSettings";
 import { MacroSummary } from "@/components/nutrition/MacroSummary";
 import { MealLog } from "@/components/nutrition/MealLog";
 import { CalorieTrend, MicroProgress } from "@/components/nutrition/NutritionCharts";
 import { BarcodeEntry, FoodSearch } from "@/components/nutrition/FoodSearch";
-import type { DailyTotals, NutritionGoals } from "@/lib/nutrition";
+import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
+import type { DailyTotals } from "@/lib/nutrition";
 import type { Meal } from "@/types";
 
 export function NutritionApp({
@@ -17,12 +19,13 @@ export function NutritionApp({
   today: string;
   meals: Meal[];
   totals: DailyTotals;
-  goals: NutritionGoals;
-  calorieTrend: { date: string; calories: number }[];
+  goals: ComputedNutritionGoals;
+  calorieTrend: { date: string; calories: number; goal: number }[];
 }) {
   return (
     <div className="space-y-6">
-      <MacroSummary totals={totals} goals={goals} />
+      <GoalSettings goals={goals} />
+      <MacroSummary totals={totals} goals={goals} meta={goals.meta} />
 
       <section className="grid gap-4 lg:grid-cols-2">
         <FoodSearch date={today} />
@@ -32,7 +35,7 @@ export function NutritionApp({
       <MealLog meals={meals} />
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <CalorieTrend trend={calorieTrend} goal={goals.calories} />
+        <CalorieTrend trend={calorieTrend} />
         <MicroProgress totals={totals} />
       </section>
     </div>

@@ -18,7 +18,7 @@ export default async function NutritionPage() {
   const [meals, totals, goals, calorieTrend] = await Promise.all([
     getMealsForDate(today),
     getDailyTotals(today),
-    getNutritionGoals(),
+    getNutritionGoals(today),
     getCalorieTrend(7),
   ]);
 

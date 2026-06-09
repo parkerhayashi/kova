@@ -321,6 +321,10 @@ create table if not exists user_settings (
   id                      uuid primary key default gen_random_uuid(),
   sleep_need_hours        float default 8,    -- personal sleep baseline
   weight_goal_lbs         float,
+  body_fat_goal_pct       float,  -- target body fat % for macro/calorie adjustment
+  age                     int,    -- canonical profile (Oura fills gaps until set)
+  height_m                float,    -- meters
+  biological_sex          text,     -- male | female | other
   calorie_goal            int,
   protein_goal_g          int,
   carbs_goal_g            int,
@@ -355,6 +359,18 @@ alter table user_settings
 
 alter table user_settings
   add column if not exists oura_last_synced_at timestamptz;
+
+alter table user_settings
+  add column if not exists body_fat_goal_pct float;
+
+alter table user_settings
+  add column if not exists age int;
+
+alter table user_settings
+  add column if not exists height_m float;
+
+alter table user_settings
+  add column if not exists biological_sex text;
 
 -- Single-user app: seed one settings row.
 insert into user_settings (id)

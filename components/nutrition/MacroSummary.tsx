@@ -2,13 +2,16 @@ import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
 import { Card } from "@/components/ui/Card";
 import { fmtNutrient, macroCalories, type DailyTotals, type NutritionGoals } from "@/lib/nutrition";
+import { burnSourceLabel, type NutritionGoalMeta } from "@/lib/nutrition-goals";
 
 export function MacroSummary({
   totals,
   goals,
+  meta,
 }: {
   totals: DailyTotals;
   goals: NutritionGoals;
+  meta?: NutritionGoalMeta;
 }) {
   const calories = totals.calories ?? 0;
   const macros = macroCalories(totals);
@@ -47,6 +50,21 @@ export function MacroSummary({
           accent="stress"
         />
       </div>
+
+      {meta ? (
+        <Card className="space-y-1">
+          <span className="metric-label">How today&apos;s goal is calculated</span>
+          <p className="text-text-muted text-xs">
+            {meta.oura_burn} kcal {burnSourceLabel(meta.burn_source).toLowerCase()}
+            {meta.calorie_adjustment !== 0
+              ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} kcal`
+              : ""}
+            {meta.adjustment_reason ? ` (${meta.adjustment_reason})` : ""}
+            {" · "}
+            protein from lean mass
+          </p>
+        </Card>
+      ) : null}
 
       <Card className="space-y-3">
         <span className="metric-label">Macro breakdown</span>

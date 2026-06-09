@@ -14,6 +14,7 @@ import {
   getDailyTotals,
   getNutritionGoals,
 } from "@/lib/data/nutrition";
+import { burnSourceLabel } from "@/lib/nutrition-goals";
 import { getWaterState } from "@/lib/data/water";
 import {
   getHabitLogs,
@@ -75,7 +76,7 @@ export default async function TodayPage() {
   const todayIso = todayInTimezone(timezone);
   const [mealTotals, nutritionGoals, waterState] = await Promise.all([
     getDailyTotals(todayIso),
-    getNutritionGoals(),
+    getNutritionGoals(todayIso),
     getWaterState(),
   ]);
   const water = normalizeWater(waterState);
@@ -208,7 +209,7 @@ export default async function TodayPage() {
                   : "—"}
               </span>
               <span className="text-text-muted text-sm">
-                in / {activeCalories ?? "—"} out
+                in / {nutritionGoals.meta.oura_burn} burn
               </span>
             </div>
             <div className="text-text-muted flex gap-4 text-xs">
@@ -230,7 +231,7 @@ export default async function TodayPage() {
               </span>
             </div>
             <span className="timestamp">
-              Goal {nutritionGoals.calories} kcal · tap to log meals
+              Goal {nutritionGoals.calories} kcal ({burnSourceLabel(nutritionGoals.meta.burn_source).toLowerCase()}) · tap to log meals
             </span>
           </Card>
         </Link>

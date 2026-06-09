@@ -5,8 +5,9 @@
  * never a client component (they touch SUPABASE_SERVICE_ROLE_KEY).
  */
 import { after } from "next/server";
-import { createServiceClient } from "@/lib/supabase/server";
+import { seedProfileFromOuraIfEmpty } from "@/lib/data/profile";
 import { decryptToken, encryptToken } from "@/lib/crypto";
+import { createServiceClient } from "@/lib/supabase/server";
 import { DEFAULT_TIMEZONE } from "@/lib/utils";
 import {
   computeSleepDebt,
@@ -118,6 +119,16 @@ export const getReadinessHistory = (days: number) =>
   history<Readiness>("readiness", days);
 export const getActivityHistory = (days: number) =>
   history<Activity>("activity", days);
+
+export async function getActivityForDate(date: string): Promise<Activity | null> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("activity")
+    .select("*")
+    .eq("date", date)
+    .maybeSingle();
+  return data as Activity | null;
+}
 
 /** Detailed sleep periods (incl. hypnogram + intraday HR/HRV samples). */
 export async function getSleepPeriodHistory(days: number): Promise<SleepPeriod[]> {
@@ -356,6 +367,7 @@ export async function syncOura(
       ? await db.from("oura_profile").update(payload).eq("id", existing.id)
       : await db.from("oura_profile").insert(payload);
     if (error) errors.push(`oura_profile: ${error.message}`);
+    else await seedProfileFromOuraIfEmpty();
   }
 
   if (errors.length > 0) throw new Error(errors.join("; "));
