@@ -44,7 +44,8 @@ Don't "fix" these back to the blueprint's versions.
 - Charts (Recharts): no gridlines, colored line + soft gradient fill on dark surface, muted axis text.
 - Large numbers carry visual weight (`.metric-value`); labels are small, uppercase, muted (`.metric-label`).
 
-## Verifying Supabase locally
+## Applying & verifying Supabase
 
-`node --env-file=.env.local scripts/check-supabase.mjs` — confirms connection and that all 13 tables are reachable. Re-run after any schema change.
+- **Apply schema:** `npm run db:push` runs `supabase/schema.sql` against Postgres directly (idempotent — safe to re-run any time, including after edits). Requires `SUPABASE_DB_URL` in `.env.local` (Dashboard → Project Settings → Database → Connection string → Session pooler). No more pasting SQL into the dashboard by hand.
+- **Verify:** `npm run db:check` confirms the connection and that all tables are reachable. Re-run after any schema change.
 
