@@ -3,11 +3,13 @@ import {
   cancelSession,
   completeSession,
   getActiveWorkout,
+  getExerciseStats,
   reorderSessionExercises,
   replaceSessionExercise,
   startSessionFromRoutine,
   upsertWorkoutSet,
 } from "@/lib/data/workouts";
+import { checkSetPRs } from "@/lib/workouts";
 
 export const dynamic = "force-dynamic";
 
@@ -74,22 +76,50 @@ export async function POST(request: NextRequest) {
       if (!sessionExerciseId || !Number.isInteger(setIndex) || setIndex < 0) {
         return NextResponse.json({ error: "Invalid input" }, { status: 400 });
       }
+
+      const weight =
+        body?.weight_lbs === null || body?.weight_lbs === undefined
+          ? null
+          : Number(body.weight_lbs);
+      const reps =
+        body?.reps === null || body?.reps === undefined
+          ? null
+          : Number(body.reps);
+
+      let pr = null;
+      if (
+        body?.completed !== false &&
+        weight != null &&
+        reps != null &&
+        weight > 0 &&
+        reps > 0
+      ) {
+        const { createServiceClient } = await import("@/lib/supabase/server");
+        const db = createServiceClient();
+        const { data: sessionEx } = await db
+          .from("workout_session_exercises")
+          .select("exercise_id")
+          .eq("id", sessionExerciseId)
+          .maybeSingle();
+        if (sessionEx) {
+          const stats = await getExerciseStats(sessionEx.exercise_id);
+          if (stats) {
+            const { exercise: _ex, ...prior } = stats;
+            pr = checkSetPRs(prior, weight, reps);
+          }
+        }
+      }
+
       const set = await upsertWorkoutSet({
         session_id: sessionId,
         session_exercise_id: sessionExerciseId,
         set_index: setIndex,
-        weight_lbs:
-          body?.weight_lbs === null || body?.weight_lbs === undefined
-            ? null
-            : Number(body.weight_lbs),
-        reps:
-          body?.reps === null || body?.reps === undefined
-            ? null
-            : Number(body.reps),
+        weight_lbs: weight,
+        reps,
         completed: body?.completed !== false,
       });
       const workout = await getActiveWorkout(sessionId);
-      return NextResponse.json({ set, workout });
+      return NextResponse.json({ set, workout, pr });
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });

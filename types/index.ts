@@ -316,6 +316,55 @@ export interface ActiveWorkoutView {
   total_volume_lbs: number;
 }
 
+export interface RepRecord {
+  reps: number;
+  weight_lbs: number;
+  date: string;
+  session_id: string;
+}
+
+export interface ExerciseStats {
+  exercise: Exercise;
+  heaviest_weight_lbs: number | null;
+  best_est_1rm_lbs: number | null;
+  best_set_volume_lbs: number | null;
+  best_session_volume_lbs: number | null;
+  rep_records: RepRecord[];
+  total_sets: number;
+  total_sessions: number;
+  last_performed: string | null;
+}
+
+export interface ExerciseHistorySession {
+  session_id: string;
+  date: string;
+  title: string | null;
+  sets: WorkoutSet[];
+  session_volume_lbs: number;
+  best_est_1rm_lbs: number | null;
+}
+
+export interface LiftingDashboard {
+  period_days: number;
+  total_sessions: number;
+  total_sets: number;
+  total_volume_lbs: number;
+  current_streak_days: number;
+  volume_by_day: { date: string; label: string; volume_lbs: number }[];
+  muscle_split: { category: string; sets: number; volume_lbs: number }[];
+}
+
+export type WorkoutTodayStatus = "none" | "in_progress" | "completed_today";
+
+export interface WorkoutTodaySummary {
+  status: WorkoutTodayStatus;
+  title: string | null;
+  session_id: string | null;
+  volume_lbs: number | null;
+  duration_seconds: number | null;
+  started_at: string | null;
+}
+
 export interface WorkoutSession {
   id: string;
   date: string;

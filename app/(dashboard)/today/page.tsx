@@ -14,6 +14,7 @@ import {
   getDailyTotals,
   getNutritionGoals,
 } from "@/lib/data/nutrition";
+import { getTodayWorkoutSummary } from "@/lib/data/workouts";
 import { burnSourceLabel } from "@/lib/nutrition-goals";
 import { getWaterState } from "@/lib/data/water";
 import {
@@ -32,6 +33,7 @@ import {
   latestNonNull,
   secondsToHours,
   todayInTimezone,
+  formatDuration,
 } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -74,10 +76,11 @@ export default async function TodayPage() {
   ]);
 
   const todayIso = todayInTimezone(timezone);
-  const [mealTotals, nutritionGoals, waterState] = await Promise.all([
+  const [mealTotals, nutritionGoals, waterState, workoutSummary] = await Promise.all([
     getDailyTotals(todayIso),
     getNutritionGoals(todayIso),
     getWaterState(),
+    getTodayWorkoutSummary(),
   ]);
   const water = normalizeWater(waterState);
   const waterUnits = water.logs[todayIso] ?? 0;
@@ -291,9 +294,21 @@ export default async function TodayPage() {
         <Link href="/workouts" className="cursor-pointer">
           <MetricCard
             label="Workouts"
-            value={null}
+            value={
+              workoutSummary.status === "in_progress"
+                ? workoutSummary.title
+                : workoutSummary.status === "completed_today"
+                  ? workoutSummary.title
+                  : null
+            }
             accent="activity"
-            caption="log a session"
+            caption={
+              workoutSummary.status === "in_progress"
+                ? `${formatDuration(workoutSummary.duration_seconds)} in progress`
+                : workoutSummary.status === "completed_today"
+                  ? `${workoutSummary.volume_lbs?.toLocaleString() ?? "—"} lb · ${formatDuration(workoutSummary.duration_seconds)}`
+                  : "log a session"
+            }
             className="card-interactive h-full"
           />
         </Link>

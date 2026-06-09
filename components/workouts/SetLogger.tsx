@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { getSuggestedWeight } from "@/lib/coach-bridge";
 import { formatRepRange } from "@/lib/workouts";
 import type { SessionExerciseView, WorkoutSet } from "@/types";
 
@@ -13,14 +14,17 @@ function emptySet(index: number): Partial<WorkoutSet> {
 export function SetLogger({
   sessionId,
   exercise,
+  routineTitle,
   onSaved,
   onRestStart,
 }: {
   sessionId: string;
   exercise: SessionExerciseView;
+  routineTitle: string | null;
   onSaved: (workout: import("@/types").ActiveWorkoutView) => void;
   onRestStart: (seconds: number) => void;
 }) {
+  const suggested = getSuggestedWeight(exercise, routineTitle);
   const targetCount = Math.max(exercise.target_sets, exercise.sets.length || exercise.target_sets);
   const rows: Partial<WorkoutSet>[] = [];
   for (let i = 0; i < targetCount; i++) {
@@ -32,18 +36,25 @@ export function SetLogger({
     for (const row of rows) {
       const idx = row.set_index ?? 0;
       init[idx] = {
-        weight: row.weight_lbs != null ? String(row.weight_lbs) : "",
+        weight:
+          row.weight_lbs != null
+            ? String(row.weight_lbs)
+            : suggested != null && idx === 0
+              ? String(suggested)
+              : "",
         reps: row.reps != null ? String(row.reps) : "",
       };
     }
     return init;
   });
   const [saving, setSaving] = useState<number | null>(null);
+  const [prMessage, setPrMessage] = useState<string | null>(null);
 
   async function saveSet(setIndex: number) {
     const d = draft[setIndex];
     if (!d) return;
     setSaving(setIndex);
+    setPrMessage(null);
     try {
       const res = await fetch("/api/workouts/sessions", {
         method: "POST",
@@ -61,6 +72,16 @@ export function SetLogger({
       if (!res.ok) return;
       const json = await res.json();
       if (json.workout) onSaved(json.workout);
+      if (json.pr) {
+        const labels: string[] = [];
+        if (json.pr.heaviest_weight) labels.push("heaviest weight");
+        if (json.pr.best_est_1rm) labels.push("est. 1RM");
+        if (json.pr.best_set_volume) labels.push("set volume");
+        if (json.pr.rep_record) labels.push("rep record");
+        if (labels.length > 0) {
+          setPrMessage(`PR — ${labels.join(", ")}`);
+        }
+      }
       onRestStart(exercise.rest_seconds);
     } finally {
       setSaving(null);
@@ -69,6 +90,9 @@ export function SetLogger({
 
   return (
     <div className="mt-3 space-y-2 border-t border-border pt-3">
+      {prMessage ? (
+        <p className="text-xs font-medium text-[color:var(--color-recovery)]">{prMessage}</p>
+      ) : null}
       <p className="text-xs text-text-muted">
         Target: {exercise.target_sets} sets · {formatRepRange(exercise.rep_min, exercise.rep_max)}
         {exercise.notes ? ` · ${exercise.notes}` : ""}

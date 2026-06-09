@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import {
   getActiveSession,
   getActiveWorkout,
+  getLiftingDashboard,
   getRoutineDetail,
+  getTodayWorkoutSummary,
   listRecentSessions,
   listRoutines,
 } from "@/lib/data/workouts";
@@ -10,10 +12,12 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [routines, active, recent] = await Promise.all([
+  const [routines, active, recent, dashboard, todaySummary] = await Promise.all([
     listRoutines(),
     getActiveSession(),
     listRecentSessions(5),
+    getLiftingDashboard(28),
+    getTodayWorkoutSummary(),
   ]);
 
   let activeWorkout = null;
@@ -29,5 +33,7 @@ export async function GET() {
     routines: routineDetails.filter(Boolean),
     activeWorkout,
     recentSessions: recent,
+    dashboard,
+    todaySummary,
   });
 }

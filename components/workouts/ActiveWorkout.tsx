@@ -5,8 +5,13 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { RestTimer } from "@/components/workouts/RestTimer";
+import { CoachPrescriptionBadge } from "@/components/workouts/CoachPrescriptionBadge";
 import { SetLogger } from "@/components/workouts/SetLogger";
 import { WorkoutTimer } from "@/components/workouts/WorkoutTimer";
+import {
+  getPrescriptionForTrainExercise,
+  syncSessionToCoach,
+} from "@/lib/coach-bridge";
 import { cn } from "@/lib/utils";
 import { formatRepRange, formatRest, sessionVolumeLbs } from "@/lib/workouts";
 import type { ActiveWorkoutView, Exercise, SessionExerciseView } from "@/types";
@@ -48,7 +53,7 @@ export function ActiveWorkout({
   }
 
   async function finishWorkout() {
-    if (!confirm("Finish this workout?")) return;
+    if (!confirm("Finish this workout? Top sets sync to Coach.")) return;
     setBusy(true);
     try {
       const res = await fetch("/api/workouts/sessions", {
@@ -59,7 +64,10 @@ export function ActiveWorkout({
           session_id: workout.session.id,
         }),
       });
-      if (res.ok) onComplete();
+      if (res.ok) {
+        syncSessionToCoach(workout);
+        onComplete();
+      }
     } finally {
       setBusy(false);
     }
@@ -140,6 +148,10 @@ export function ActiveWorkout({
         {workout.exercises.map((ex, index) => {
           const open = expandedId === ex.session_exercise_id;
           const loggedSets = ex.sets.filter((s) => s.completed).length;
+          const coachRx = getPrescriptionForTrainExercise(
+            ex,
+            workout.session.title,
+          );
           return (
             <Card key={ex.session_exercise_id} className="p-4">
               <button
@@ -167,6 +179,8 @@ export function ActiveWorkout({
 
               {open ? (
                 <div>
+                  <CoachPrescriptionBadge rx={coachRx} />
+
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button
                       type="button"
@@ -204,6 +218,7 @@ export function ActiveWorkout({
                     key={`${ex.session_exercise_id}-${ex.sets.length}`}
                     sessionId={workout.session.id}
                     exercise={ex}
+                    routineTitle={workout.session.title}
                     onSaved={onUpdate}
                     onRestStart={setRestSeconds}
                   />

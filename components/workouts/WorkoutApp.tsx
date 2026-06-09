@@ -3,24 +3,45 @@
 import { useCallback, useEffect, useState } from "react";
 import { Coach } from "@/components/coach/Coach";
 import { ActiveWorkout } from "@/components/workouts/ActiveWorkout";
+import { CoachDayBanner } from "@/components/workouts/CoachDayBanner";
+import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
+import { LiftingStats } from "@/components/workouts/LiftingStats";
 import { RoutineList } from "@/components/workouts/RoutineList";
+import { SessionDetailPanel } from "@/components/workouts/SessionDetailPanel";
 import { PageHeader } from "@/components/PageHeader";
-import { cn } from "@/lib/utils";
-import type { ActiveWorkoutView, RoutineDetail, WorkoutSession } from "@/types";
-
-type Tab = "train" | "coach";
+import { readTodaySplit } from "@/lib/coach-bridge";
+import type {
+  ActiveWorkoutView,
+  LiftingDashboard,
+  RoutineDetail,
+  WorkoutSession,
+} from "@/types";
 
 type WorkoutsPayload = {
   routines: RoutineDetail[];
   activeWorkout: ActiveWorkoutView | null;
   recentSessions: WorkoutSession[];
+  dashboard: LiftingDashboard;
+};
+
+const EMPTY_DASHBOARD: LiftingDashboard = {
+  period_days: 28,
+  total_sessions: 0,
+  total_sets: 0,
+  total_volume_lbs: 0,
+  current_streak_days: 0,
+  volume_by_day: [],
+  muscle_split: [],
 };
 
 export function WorkoutApp() {
-  const [tab, setTab] = useState<Tab>("train");
   const [data, setData] = useState<WorkoutsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewSessionId, setViewSessionId] = useState<string | null>(null);
+  const [viewExerciseId, setViewExerciseId] = useState<string | null>(null);
+  const [coachRefreshKey, setCoachRefreshKey] = useState(0);
+  const [todaySplit, setTodaySplit] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setError(null);
@@ -38,6 +59,7 @@ export function WorkoutApp() {
 
   useEffect(() => {
     void refresh();
+    setTodaySplit(readTodaySplit()?.name ?? null);
   }, [refresh]);
 
   async function startRoutine(routineId: string) {
@@ -54,7 +76,14 @@ export function WorkoutApp() {
     }
     const workout = (await res.json()) as ActiveWorkoutView;
     setData((prev) =>
-      prev ? { ...prev, activeWorkout: workout } : { routines: [], activeWorkout: workout, recentSessions: [] },
+      prev
+        ? { ...prev, activeWorkout: workout }
+        : {
+            routines: [],
+            activeWorkout: workout,
+            recentSessions: [],
+            dashboard: EMPTY_DASHBOARD,
+          },
     );
   }
 
@@ -63,62 +92,78 @@ export function WorkoutApp() {
   }
 
   function handleComplete() {
-    setData((prev) =>
-      prev ? { ...prev, activeWorkout: null } : prev,
-    );
+    setData((prev) => (prev ? { ...prev, activeWorkout: null } : prev));
+    setCoachRefreshKey((k) => k + 1);
     void refresh();
   }
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageHeader
         title="Workouts"
-        subtitle="Log sets, track rest, and run your Push / Pull / Legs split."
+        subtitle="Train with your Push / Pull / Legs routines. Coach tracks progressive overload and syncs when you finish a session."
       />
 
-      <div className="mb-6 flex gap-1 rounded-lg border border-border bg-[rgba(255,255,255,0.02)] p-1">
-        {(["train", "coach"] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={cn(
-              "flex-1 rounded-md px-3 py-2 text-sm font-medium capitalize transition-colors",
-              tab === t
-                ? "bg-[rgba(255,255,255,0.08)] text-text-primary"
-                : "text-text-secondary hover:text-text-primary",
-            )}
-          >
-            {t === "train" ? "Train" : "Coach"}
-          </button>
-        ))}
-      </div>
+      {error ? (
+        <p className="text-sm text-[color:var(--color-stress)]">{error}</p>
+      ) : null}
 
-      {tab === "coach" ? (
-        <Coach />
-      ) : (
-        <div className="space-y-4">
-          {error ? (
-            <p className="text-sm text-[color:var(--color-stress)]">{error}</p>
-          ) : null}
+      {!data?.activeWorkout && !loading ? (
+        <CoachDayBanner
+          routines={data?.routines ?? []}
+          onStartRoutine={startRoutine}
+        />
+      ) : null}
 
-          {loading ? (
-            <p className="body-copy text-text-muted">Loading routines…</p>
-          ) : data?.activeWorkout ? (
-            <ActiveWorkout
-              workout={data.activeWorkout}
-              onUpdate={handleWorkoutUpdate}
-              onComplete={handleComplete}
-            />
-          ) : (
+      <section>
+        {loading ? (
+          <p className="body-copy text-text-muted">Loading routines…</p>
+        ) : data?.activeWorkout ? (
+          <ActiveWorkout
+            workout={data.activeWorkout}
+            onUpdate={handleWorkoutUpdate}
+            onComplete={handleComplete}
+          />
+        ) : (
+          <>
             <RoutineList
               routines={data?.routines ?? []}
               recentSessions={data?.recentSessions ?? []}
               onStart={startRoutine}
+              onViewSession={setViewSessionId}
+              onViewExercise={setViewExerciseId}
+              highlightRoutineName={todaySplit}
             />
-          )}
-        </div>
-      )}
+            {data?.dashboard ? <LiftingStats dashboard={data.dashboard} /> : null}
+          </>
+        )}
+      </section>
+
+      <section className="border-t border-border pt-8">
+        <header className="mb-4">
+          <h2 className="text-base font-semibold text-text-primary">
+            Progressive overload
+          </h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Weight tracking, prescriptions, and lift history. Top sets from
+            finished Train sessions sync here automatically.
+          </p>
+        </header>
+        <Coach refreshKey={coachRefreshKey} />
+      </section>
+
+      {viewSessionId ? (
+        <SessionDetailPanel
+          sessionId={viewSessionId}
+          onClose={() => setViewSessionId(null)}
+        />
+      ) : null}
+      {viewExerciseId ? (
+        <ExerciseDetailPanel
+          exerciseId={viewExerciseId}
+          onClose={() => setViewExerciseId(null)}
+        />
+      ) : null}
     </div>
   );
 }

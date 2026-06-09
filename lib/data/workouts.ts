@@ -1,16 +1,25 @@
 import { createServiceClient } from "@/lib/supabase/server";
-import { estimateRoutineMinutes } from "@/lib/workouts";
-import { todayInTimezone } from "@/lib/utils";
+import {
+  computeExerciseStats,
+  estimate1RM,
+  estimateRoutineMinutes,
+  setVolume,
+} from "@/lib/workouts";
+import { addDays, todayInTimezone } from "@/lib/utils";
 import { getTimezone } from "@/lib/data/oura";
 import type {
   ActiveWorkoutView,
   Exercise,
+  ExerciseHistorySession,
+  ExerciseStats,
+  LiftingDashboard,
   RoutineDetail,
   RoutineExerciseView,
   SessionExerciseView,
   WorkoutRoutine,
   WorkoutSession,
   WorkoutSet,
+  WorkoutTodaySummary,
 } from "@/types";
 
 type DbExercise = Exercise;
@@ -401,4 +410,255 @@ export async function listRecentSessions(limit = 10): Promise<WorkoutSession[]> 
     .order("completed_at", { ascending: false })
     .limit(limit);
   return (data as WorkoutSession[]) ?? [];
+}
+
+type SetWithMeta = WorkoutSet & {
+  session_date: string;
+  session_title: string | null;
+  exercise_category: string | null;
+};
+
+async function fetchCompletedSets(options?: {
+  exerciseId?: string;
+  sinceDate?: string;
+}): Promise<SetWithMeta[]> {
+  const db = createServiceClient();
+  let query = db
+    .from("workout_sets")
+    .select(
+      "*, workout_sessions!inner(date, title, status, completed_at), exercises(category)",
+    )
+    .eq("workout_sessions.status", "completed")
+    .eq("completed", true);
+
+  if (options?.exerciseId) {
+    query = query.eq("exercise_id", options.exerciseId);
+  }
+  if (options?.sinceDate) {
+    query = query.gte("workout_sessions.date", options.sinceDate);
+  }
+
+  const { data } = await query.order("created_at", { ascending: false });
+  if (!data) return [];
+
+  return data.map((row) => {
+    const session = Array.isArray(row.workout_sessions)
+      ? row.workout_sessions[0]
+      : row.workout_sessions;
+    const exercise = Array.isArray(row.exercises)
+      ? row.exercises[0]
+      : row.exercises;
+    const { workout_sessions: _ws, exercises: _ex, ...set } = row;
+    return {
+      ...(set as WorkoutSet),
+      session_date: (session as { date: string }).date,
+      session_title: (session as { title: string | null }).title,
+      exercise_category: (exercise as { category: string | null } | null)?.category ?? null,
+    };
+  });
+}
+
+export async function getExerciseStats(
+  exerciseId: string,
+): Promise<ExerciseStats | null> {
+  const db = createServiceClient();
+  const { data: exercise } = await db
+    .from("exercises")
+    .select("*")
+    .eq("id", exerciseId)
+    .maybeSingle();
+  if (!exercise) return null;
+
+  const sets = await fetchCompletedSets({ exerciseId });
+  const computed = computeExerciseStats(
+    sets.map((s) => ({
+      weight_lbs: s.weight_lbs,
+      reps: s.reps,
+      is_warmup: s.is_warmup,
+      completed: s.completed,
+      session_id: s.session_id,
+      date: s.session_date,
+    })),
+  );
+
+  return { exercise: exercise as Exercise, ...computed };
+}
+
+export async function getExerciseHistory(
+  exerciseId: string,
+  limit = 50,
+): Promise<ExerciseHistorySession[]> {
+  const sets = await fetchCompletedSets({ exerciseId });
+  const bySession = new Map<string, ExerciseHistorySession>();
+
+  for (const set of sets) {
+    let entry = bySession.get(set.session_id);
+    if (!entry) {
+      entry = {
+        session_id: set.session_id,
+        date: set.session_date,
+        title: set.session_title,
+        sets: [],
+        session_volume_lbs: 0,
+        best_est_1rm_lbs: null,
+      };
+      bySession.set(set.session_id, entry);
+    }
+    entry.sets.push(set);
+    if (!set.is_warmup && set.weight_lbs != null && set.reps != null) {
+      entry.session_volume_lbs += setVolume(set.weight_lbs, set.reps);
+      const est = estimate1RM(set.weight_lbs, set.reps);
+      if (entry.best_est_1rm_lbs == null || est > entry.best_est_1rm_lbs) {
+        entry.best_est_1rm_lbs = est;
+      }
+    }
+  }
+
+  return [...bySession.values()]
+    .map((s) => ({
+      ...s,
+      session_volume_lbs: Math.round(s.session_volume_lbs),
+      sets: s.sets.sort((a, b) => a.set_index - b.set_index),
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, limit);
+}
+
+export async function getSessionDetail(
+  sessionId: string,
+): Promise<ActiveWorkoutView | null> {
+  return getActiveWorkout(sessionId);
+}
+
+export async function getLiftingDashboard(
+  periodDays = 28,
+): Promise<LiftingDashboard> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const since = addDays(today, -(periodDays - 1));
+  const sets = await fetchCompletedSets({ sinceDate: since });
+
+  const sessionDates = new Set<string>();
+  let totalSets = 0;
+  let totalVolume = 0;
+  const volumeByDate = new Map<string, number>();
+  const muscleSets = new Map<string, number>();
+  const muscleVolume = new Map<string, number>();
+
+  for (const set of sets) {
+    if (set.is_warmup) continue;
+    totalSets += 1;
+    sessionDates.add(set.session_id);
+    const vol = setVolume(set.weight_lbs, set.reps);
+    totalVolume += vol;
+
+    volumeByDate.set(
+      set.session_date,
+      (volumeByDate.get(set.session_date) ?? 0) + vol,
+    );
+
+    const cat = set.exercise_category ?? "other";
+    muscleSets.set(cat, (muscleSets.get(cat) ?? 0) + 1);
+    muscleVolume.set(cat, (muscleVolume.get(cat) ?? 0) + vol);
+  }
+
+  const volume_by_day: LiftingDashboard["volume_by_day"] = [];
+  for (let i = periodDays - 1; i >= 0; i--) {
+    const date = addDays(today, -i);
+    const d = new Date(`${date}T12:00:00`);
+    volume_by_day.push({
+      date,
+      label: d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: timezone }),
+      volume_lbs: Math.round(volumeByDate.get(date) ?? 0),
+    });
+  }
+
+  const muscle_split = [...muscleSets.entries()]
+    .map(([category, setCount]) => ({
+      category,
+      sets: setCount,
+      volume_lbs: Math.round(muscleVolume.get(category) ?? 0),
+    }))
+    .sort((a, b) => b.sets - a.sets);
+
+  const db = createServiceClient();
+  const { data: sessions } = await db
+    .from("workout_sessions")
+    .select("date")
+    .eq("status", "completed")
+    .gte("date", since)
+    .order("date", { ascending: false });
+
+  const workoutDays = new Set((sessions ?? []).map((s) => s.date as string));
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const date = addDays(today, -i);
+    if (workoutDays.has(date)) {
+      streak += 1;
+    } else if (i > 0) {
+      break;
+    }
+  }
+
+  return {
+    period_days: periodDays,
+    total_sessions: sessionDates.size,
+    total_sets: totalSets,
+    total_volume_lbs: Math.round(totalVolume),
+    current_streak_days: streak,
+    volume_by_day,
+    muscle_split,
+  };
+}
+
+export async function getTodayWorkoutSummary(): Promise<WorkoutTodaySummary> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const active = await getActiveSession();
+
+  if (active) {
+    const workout = await getActiveWorkout(active.id);
+    const startedMs = active.started_at
+      ? new Date(active.started_at).getTime()
+      : Date.now();
+    return {
+      status: "in_progress",
+      title: active.title,
+      session_id: active.id,
+      volume_lbs: workout?.total_volume_lbs ?? null,
+      duration_seconds: Math.max(0, Math.floor((Date.now() - startedMs) / 1000)),
+      started_at: active.started_at,
+    };
+  }
+
+  const db = createServiceClient();
+  const { data: session } = await db
+    .from("workout_sessions")
+    .select("*")
+    .eq("date", today)
+    .eq("status", "completed")
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (session) {
+    const workout = await getActiveWorkout(session.id);
+    return {
+      status: "completed_today",
+      title: session.title,
+      session_id: session.id,
+      volume_lbs: workout?.total_volume_lbs ?? null,
+      duration_seconds: session.duration,
+      started_at: session.started_at,
+    };
+  }
+
+  return {
+    status: "none",
+    title: null,
+    session_id: null,
+    volume_lbs: null,
+    duration_seconds: null,
+    started_at: null,
+  };
 }

@@ -14,7 +14,7 @@ import {
  * markup directly in the effect so each mount starts from a clean DOM, which keeps
  * StrictMode's double-invoke from double-binding the app's event listeners.
  */
-export function Coach() {
+export function Coach({ refreshKey = 0 }: { refreshKey?: number }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function Coach() {
       cleanup?.();
       if (ref.current) ref.current.innerHTML = "";
     };
-  }, []);
+  }, [refreshKey]);
 
   return <div className="po-app" ref={ref} />;
 }
