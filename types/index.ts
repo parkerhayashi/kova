@@ -517,9 +517,12 @@ export interface WeightLog {
   created_at: string;
 }
 
+export type HabitKind = "positive" | "track";
+
 export interface Habit {
   id: string;
   name: string;
+  kind: HabitKind;
   is_active: boolean;
   sort_order: number;
   created_at: string;

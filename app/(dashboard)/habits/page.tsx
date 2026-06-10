@@ -6,7 +6,7 @@ import { HabitManager } from "@/components/habits/HabitManager";
 import { Heatmap } from "@/components/habits/Heatmap";
 import { getTimezone } from "@/lib/data/oura";
 import { getHabitLogs, getHabits } from "@/lib/data/tracking";
-import { addDays, currentStreak, todayInTimezone } from "@/lib/utils";
+import { addDays, clearStreak, currentStreak, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,9 @@ export default async function HabitsPage() {
   ]);
   const today = todayInTimezone(timezone);
 
-  // Per-habit set of completed dates.
+  const positiveHabits = habits.filter((h) => h.kind === "positive");
+  const trackHabits = habits.filter((h) => h.kind === "track");
+
   const doneByHabit = new Map<string, Set<string>>();
   for (const h of habits) doneByHabit.set(h.id, new Set());
   for (const log of logs) {
@@ -29,25 +31,34 @@ export default async function HabitsPage() {
   const rows: HabitRow[] = habits.map((h) => {
     const done = doneByHabit.get(h.id) ?? new Set<string>();
     const weekHits = last7.filter((d) => done.has(d)).length;
+    const streak =
+      h.kind === "track"
+        ? clearStreak(done, today)
+        : currentStreak(done, today);
     return {
       id: h.id,
       name: h.name,
+      kind: h.kind ?? "positive",
       completed: done.has(today),
-      streak: currentStreak(done, today),
+      streak,
       weekRate: weekHits / 7,
     };
   });
 
-  const doneToday = rows.filter((r) => r.completed).length;
+  const positiveRows = rows.filter((r) => r.kind === "positive");
+  const trackRows = rows.filter((r) => r.kind === "track");
+  const habitsDoneToday = positiveRows.filter((r) => r.completed).length;
+  const tagsLoggedToday = trackRows.filter((r) => r.completed).length;
   const bestStreak = rows.reduce((m, r) => Math.max(m, r.streak), 0);
 
-  // Overall completion ratio per day for the heatmap.
   const completedByDate = new Map<string, number>();
   for (const log of logs) {
-    if (log.completed)
-      completedByDate.set(log.date, (completedByDate.get(log.date) ?? 0) + 1);
+    if (!log.completed) continue;
+    const habit = habits.find((h) => h.id === log.habit_id);
+    if (habit?.kind !== "positive") continue;
+    completedByDate.set(log.date, (completedByDate.get(log.date) ?? 0) + 1);
   }
-  const denom = Math.max(1, habits.length);
+  const denom = Math.max(1, positiveHabits.length);
   const ratios: Record<string, number> = {};
   for (const [date, count] of completedByDate)
     ratios[date] = Math.min(1, count / denom);
@@ -56,28 +67,48 @@ export default async function HabitsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Habits"
-        subtitle="Daily checklist with streaks and heatmap."
+        subtitle="Build habits and log day tags — alcohol, late meals, or anything worth noting."
       />
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricCard
-          label="Today"
-          value={habits.length ? `${doneToday}/${habits.length}` : null}
+          label="Habits today"
+          value={
+            positiveHabits.length
+              ? `${habitsDoneToday}/${positiveHabits.length}`
+              : null
+          }
           accent="recovery"
         />
-        <MetricCard label="Best Streak" value={bestStreak || null} unit="d" accent="recovery" />
+        <MetricCard
+          label="Tags logged"
+          value={
+            trackHabits.length
+              ? tagsLoggedToday || null
+              : null
+          }
+          unit={trackHabits.length ? `/${trackHabits.length}` : undefined}
+          accent="stress"
+          caption={trackHabits.length ? "happened today" : "add day tags"}
+        />
+        <MetricCard label="Best streak" value={bestStreak || null} unit="d" accent="recovery" />
         <MetricCard
           label="Active"
           value={habits.length || null}
+          caption={
+            habits.length
+              ? `${positiveHabits.length} habits · ${trackHabits.length} tags`
+              : undefined
+          }
           accent="recovery"
         />
       </section>
 
       <HabitChecklist habits={rows} today={today} />
 
-      {habits.length > 0 ? (
+      {positiveHabits.length > 0 ? (
         <Card>
-          <Heatmap ratios={ratios} today={today} label="Completion · 18 weeks" />
+          <Heatmap ratios={ratios} today={today} label="Habit completion · 18 weeks" />
         </Card>
       ) : null}
 

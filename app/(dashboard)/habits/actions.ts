@@ -7,6 +7,7 @@ import {
   setHabitCompletion,
   updateHabit,
 } from "@/lib/data/tracking";
+import type { HabitKind } from "@/types";
 
 function refresh() {
   revalidatePath("/habits");
@@ -22,10 +23,13 @@ export async function toggleHabit(
   refresh();
 }
 
-export async function createHabit(name: string): Promise<void> {
+export async function createHabit(
+  name: string,
+  kind: HabitKind = "positive",
+): Promise<void> {
   const trimmed = name.trim();
   if (!trimmed) return;
-  await addHabit(trimmed);
+  await addHabit(trimmed, kind);
   refresh();
 }
 

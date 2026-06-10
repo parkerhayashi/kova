@@ -207,9 +207,19 @@ export async function HealthSnapshot() {
           <SnapshotMetric
             label="Habits"
             value={
-              data.habits.total ? `${data.habits.done}/${data.habits.total}` : null
+              data.habits.positiveTotal
+                ? `${data.habits.positiveDone}/${data.habits.positiveTotal}`
+                : null
             }
-            caption={data.habits.total ? "done today" : "add habits"}
+            caption={
+              data.habits.positiveTotal
+                ? data.habits.tagTotal
+                  ? data.habits.tagsLogged
+                    ? `${data.habits.tagsLogged} tag${data.habits.tagsLogged === 1 ? "" : "s"} logged`
+                    : `${data.habits.tagTotal} day tag${data.habits.tagTotal === 1 ? "" : "s"}`
+                  : "done today"
+                : "add habits or tags"
+            }
             accent="var(--color-recovery)"
           />
         </Link>

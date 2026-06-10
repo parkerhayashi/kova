@@ -77,6 +77,18 @@ export function currentStreak(done: Set<string>, today: string): number {
   return streak;
 }
 
+/** Consecutive days without an occurrence (for track / day-tag items). */
+export function clearStreak(occurred: Set<string>, today: string): number {
+  if (occurred.has(today)) return 0;
+  let cursor = today;
+  let streak = 0;
+  while (!occurred.has(cursor)) {
+    streak++;
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
 /** Format a past timestamp for sync status (e.g. "2:34 PM · 45 min ago"). */
 export function formatSyncStatus(
   iso: string | null,

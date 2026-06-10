@@ -9,6 +9,7 @@ import { catalogNutrientsForName } from "@/lib/supplementCatalog";
 import { addDays, todayInTimezone } from "@/lib/utils";
 import type {
   Habit,
+  HabitKind,
   HabitLog,
   Supplement,
   SupplementLog,
@@ -80,7 +81,10 @@ export async function getHabits(activeOnly = true): Promise<Habit[]> {
     .order("created_at", { ascending: true });
   if (activeOnly) query = query.eq("is_active", true);
   const { data } = await query;
-  return (data as Habit[]) ?? [];
+  return ((data as Habit[]) ?? []).map((h) => ({
+    ...h,
+    kind: h.kind ?? "positive",
+  }));
 }
 
 export async function getHabitLogs(sinceDays: number): Promise<HabitLog[]> {
@@ -114,14 +118,21 @@ async function nextSortOrder(table: "habits" | "supplements"): Promise<number> {
   return ((data as { sort_order: number } | null)?.sort_order ?? -1) + 1;
 }
 
-export async function addHabit(name: string): Promise<void> {
+export async function addHabit(
+  name: string,
+  kind: HabitKind = "positive",
+): Promise<void> {
   const db = createServiceClient();
-  await db.from("habits").insert({ name, sort_order: await nextSortOrder("habits") });
+  await db.from("habits").insert({
+    name,
+    kind,
+    sort_order: await nextSortOrder("habits"),
+  });
 }
 
 export async function updateHabit(
   id: string,
-  fields: Partial<Pick<Habit, "name" | "is_active" | "sort_order">>,
+  fields: Partial<Pick<Habit, "name" | "kind" | "is_active" | "sort_order">>,
 ): Promise<void> {
   const db = createServiceClient();
   await db.from("habits").update(fields).eq("id", id);

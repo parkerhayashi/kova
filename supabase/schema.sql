@@ -392,10 +392,13 @@ create table if not exists weight_log (
 create table if not exists habits (
   id          uuid primary key default gen_random_uuid(),
   name        text not null,
+  kind        text not null default 'positive',  -- positive = do this; track = log if it happened
   is_active   boolean default true,
   sort_order  int default 0,
   created_at  timestamptz default now()
 );
+
+alter table habits add column if not exists kind text not null default 'positive';
 
 create table if not exists habit_logs (
   id          uuid primary key default gen_random_uuid(),

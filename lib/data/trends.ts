@@ -46,13 +46,19 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     isOuraConnected(),
   ]);
 
+  const positiveHabits = habits.filter((h) => (h.kind ?? "positive") === "positive");
+  const positiveLogs = habitLogs.filter((log) => {
+    const habit = habits.find((h) => h.id === log.habit_id);
+    return (habit?.kind ?? "positive") === "positive";
+  });
+
   const input: TrendsInput = {
     sleep,
     readiness,
     activity,
     weight,
-    habitLogs,
-    habitCount: habits.length,
+    habitLogs: positiveLogs,
+    habitCount: positiveHabits.length,
     supplementLogs,
     supplementCount: supplements.length,
     workouts,

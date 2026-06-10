@@ -55,7 +55,12 @@ export type HealthSnapshotData = {
   water: { ml: number; goalMl: number };
   workout: WorkoutTodaySummary;
   weight: WeightLog | null;
-  habits: { done: number; total: number };
+  habits: {
+    positiveDone: number;
+    positiveTotal: number;
+    tagsLogged: number;
+    tagTotal: number;
+  };
   supplements: { done: number; total: number };
   trends: SnapshotTrend[];
 };
@@ -109,9 +114,15 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     timeZone: timezone,
   });
 
-  const habitsDone = habitLogs.filter(
-    (l) => l.date === todayIso && l.completed,
-  ).length;
+  const positiveHabits = habits.filter((h) => (h.kind ?? "positive") === "positive");
+  const trackHabits = habits.filter((h) => h.kind === "track");
+  const completedToday = new Set(
+    habitLogs
+      .filter((l) => l.date === todayIso && l.completed)
+      .map((l) => l.habit_id),
+  );
+  const positiveDone = positiveHabits.filter((h) => completedToday.has(h.id)).length;
+  const tagsLogged = trackHabits.filter((h) => completedToday.has(h.id)).length;
   const supplementsTaken = supplementLogs.filter(
     (l) => l.date === todayIso && l.taken,
   ).length;
@@ -155,7 +166,12 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     water: { ml: waterMl, goalMl: waterGoalMl },
     workout,
     weight,
-    habits: { done: habitsDone, total: habits.length },
+    habits: {
+      positiveDone,
+      positiveTotal: positiveHabits.length,
+      tagsLogged,
+      tagTotal: trackHabits.length,
+    },
     supplements: { done: supplementsTaken, total: supplements.length },
     trends: rankedTrends,
   };
