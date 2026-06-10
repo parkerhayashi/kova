@@ -5,6 +5,7 @@ import {
   completeSession,
   getActiveWorkout,
   getExerciseStats,
+  removeSessionExercise,
   reorderSessionExercises,
   replaceSessionExercise,
   startSessionFromRoutine,
@@ -100,6 +101,19 @@ export async function POST(request: NextRequest) {
       if (body?.rest_seconds != null) patch.rest_seconds = Number(body.rest_seconds);
       if (body?.target_sets != null) patch.target_sets = Number(body.target_sets);
       await updateSessionExercise(sessionExerciseId, patch);
+      const workout = await getActiveWorkout(sessionId);
+      return NextResponse.json(workout);
+    }
+
+    if (action === "remove_exercise") {
+      const sessionExerciseId =
+        typeof body?.session_exercise_id === "string"
+          ? body.session_exercise_id
+          : "";
+      if (!sessionExerciseId) {
+        return NextResponse.json({ error: "session_exercise_id required" }, { status: 400 });
+      }
+      await removeSessionExercise(sessionExerciseId);
       const workout = await getActiveWorkout(sessionId);
       return NextResponse.json(workout);
     }

@@ -369,6 +369,38 @@ export async function updateSessionExercise(
   if (error) throw new Error(error.message);
 }
 
+export async function removeSessionExercise(sessionExerciseId: string): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("workout_session_exercises")
+    .select("session_id, position, exercise_id")
+    .eq("id", sessionExerciseId)
+    .maybeSingle();
+  if (!row) throw new Error("Session exercise not found");
+
+  await db
+    .from("workout_sets")
+    .delete()
+    .eq("session_id", row.session_id)
+    .eq("exercise_id", row.exercise_id)
+    .eq("position", row.position);
+
+  await db.from("workout_session_exercises").delete().eq("id", sessionExerciseId);
+
+  const { data: remaining } = await db
+    .from("workout_session_exercises")
+    .select("id")
+    .eq("session_id", row.session_id)
+    .order("position", { ascending: true });
+
+  if (remaining && remaining.length > 0) {
+    await reorderSessionExercises(
+      row.session_id,
+      remaining.map((r) => r.id),
+    );
+  }
+}
+
 export async function replaceSessionExercise(
   sessionExerciseId: string,
   newExerciseId: string,

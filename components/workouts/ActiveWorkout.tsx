@@ -7,6 +7,7 @@ import { CoachPrescriptionBadge } from "@/components/workouts/CoachPrescriptionB
 import { ExerciseSearchModal } from "@/components/workouts/ExerciseSearchModal";
 import { ExerciseThumb } from "@/components/workouts/ExerciseThumb";
 import { MuscleMapBadge } from "@/components/workouts/MuscleMapBadge";
+import { RestTimer } from "@/components/workouts/RestTimer";
 import { SetLogger } from "@/components/workouts/SetLogger";
 import { WorkoutClockSheet } from "@/components/workouts/WorkoutClockSheet";
 import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
@@ -15,6 +16,7 @@ import {
   getPrescriptionForTrainExercise,
   syncSessionToCoach,
 } from "@/lib/coach-bridge";
+import { cn } from "@/lib/utils";
 import { formatRest, sessionVolumeLbs } from "@/lib/workouts";
 import type { ActiveWorkoutView, SessionExerciseView } from "@/types";
 
@@ -28,13 +30,6 @@ function countLoggedSets(exercises: SessionExerciseView[]): number {
   return n;
 }
 
-type ClockState = {
-  open: boolean;
-  seconds: number;
-  autoStart: boolean;
-  mode: "timer" | "stopwatch";
-};
-
 export function ActiveWorkout({
   workout,
   onUpdate,
@@ -44,12 +39,8 @@ export function ActiveWorkout({
   onUpdate: (workout: ActiveWorkoutView | null) => void;
   onComplete: () => void;
 }) {
-  const [clock, setClock] = useState<ClockState>({
-    open: false,
-    seconds: 180,
-    autoStart: false,
-    mode: "timer",
-  });
+  const [clockOpen, setClockOpen] = useState(false);
+  const [restTimer, setRestTimer] = useState<{ seconds: number; key: number } | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [replaceTarget, setReplaceTarget] = useState<SessionExerciseView | null>(null);
@@ -57,6 +48,8 @@ export function ActiveWorkout({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
 
   const elapsed = useWorkoutElapsed(workout.session.started_at);
   const volume = sessionVolumeLbs(workout.exercises);
@@ -65,8 +58,8 @@ export function ActiveWorkout({
     [workout.exercises],
   );
 
-  function openClock(seconds: number, autoStart: boolean, mode: "timer" | "stopwatch" = "timer") {
-    setClock({ open: true, seconds, autoStart, mode });
+  function startRest(seconds: number) {
+    setRestTimer({ seconds, key: Date.now() });
   }
 
   async function apiAction(body: Record<string, unknown>) {
@@ -124,15 +117,25 @@ export function ActiveWorkout({
     }
   }
 
-  async function moveExercise(index: number, direction: -1 | 1) {
-    const next = index + direction;
-    if (next < 0 || next >= workout.exercises.length) return;
+  async function reorderExercises(from: number, to: number) {
+    if (from === to) return;
     const ordered = [...workout.exercises];
-    [ordered[index], ordered[next]] = [ordered[next], ordered[index]];
+    const [moved] = ordered.splice(from, 1);
+    ordered.splice(to, 0, moved);
     const result = await apiAction({
       action: "reorder",
       session_id: workout.session.id,
       ordered_ids: ordered.map((e) => e.session_exercise_id),
+    });
+    if (result && "session" in result) onUpdate(result);
+  }
+
+  async function removeExercise(ex: SessionExerciseView) {
+    if (!confirm(`Remove ${ex.exercise.name} from this workout?`)) return;
+    const result = await apiAction({
+      action: "remove_exercise",
+      session_id: workout.session.id,
+      session_exercise_id: ex.session_exercise_id,
     });
     if (result && "session" in result) onUpdate(result);
     setMenuOpenId(null);
@@ -192,7 +195,7 @@ export function ActiveWorkout({
               type="button"
               aria-label="Open stopwatch"
               className="rounded-lg border border-border px-2.5 py-2 text-text-secondary hover:border-border-strong hover:text-text-primary"
-              onClick={() => openClock(0, false, "stopwatch")}
+              onClick={() => setClockOpen(true)}
             >
               ⏱
             </button>
@@ -239,8 +242,32 @@ export function ActiveWorkout({
           const menuOpen = menuOpenId === ex.session_exercise_id;
 
           return (
-            <Card key={ex.session_exercise_id} className="overflow-visible p-4">
-              <div className="flex items-start gap-3">
+            <Card
+              key={ex.session_exercise_id}
+              className={cn(
+                "wt-exercise-row overflow-visible p-4",
+                dragOver === index && "is-drag-over",
+              )}
+              draggable={!busy}
+              onDragStart={() => setDragFrom(index)}
+              onDragEnd={() => {
+                setDragFrom(null);
+                setDragOver(null);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(index);
+              }}
+              onDrop={() => {
+                if (dragFrom !== null) void reorderExercises(dragFrom, index);
+                setDragFrom(null);
+                setDragOver(null);
+              }}
+            >
+              <div className="flex items-start gap-2">
+                <span className="wt-drag mt-2" title="Drag to reorder" aria-hidden>
+                  ⋮⋮
+                </span>
                 <ExerciseThumb exercise={ex.exercise} size="md" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
@@ -275,22 +302,6 @@ export function ActiveWorkout({
                           <div className="absolute right-0 top-full z-20 mt-1 min-w-[9rem] rounded-xl border border-border bg-surface-raised py-1 shadow-lg">
                             <button
                               type="button"
-                              className="block w-full px-3 py-2 text-left text-sm text-text-secondary hover:bg-[rgba(255,255,255,0.06)] disabled:opacity-40"
-                              disabled={busy || index === 0}
-                              onClick={() => void moveExercise(index, -1)}
-                            >
-                              Move up
-                            </button>
-                            <button
-                              type="button"
-                              className="block w-full px-3 py-2 text-left text-sm text-text-secondary hover:bg-[rgba(255,255,255,0.06)] disabled:opacity-40"
-                              disabled={busy || index === workout.exercises.length - 1}
-                              onClick={() => void moveExercise(index, 1)}
-                            >
-                              Move down
-                            </button>
-                            <button
-                              type="button"
                               className="block w-full px-3 py-2 text-left text-sm text-text-secondary hover:bg-[rgba(255,255,255,0.06)]"
                               disabled={busy}
                               onClick={() => {
@@ -299,6 +310,14 @@ export function ActiveWorkout({
                               }}
                             >
                               Replace
+                            </button>
+                            <button
+                              type="button"
+                              className="block w-full px-3 py-2 text-left text-sm text-[color:var(--color-stress)] hover:bg-[rgba(255,255,255,0.06)]"
+                              disabled={busy}
+                              onClick={() => void removeExercise(ex)}
+                            >
+                              Remove
                             </button>
                           </div>
                         </>
@@ -337,7 +356,7 @@ export function ActiveWorkout({
                 exercise={ex}
                 routineTitle={workout.session.title}
                 onSaved={onUpdate}
-                onOpenClock={(seconds, autoStart) => openClock(seconds, autoStart)}
+                onRestStart={startRest}
               />
             </Card>
           );
@@ -364,13 +383,21 @@ export function ActiveWorkout({
       </div>
 
       <WorkoutClockSheet
-        open={clock.open}
-        initialMode={clock.mode}
-        initialSeconds={clock.mode === "stopwatch" ? 0 : clock.seconds}
-        autoStart={clock.autoStart}
-        onClose={() => setClock((c) => ({ ...c, open: false }))}
-        onTimerComplete={() => setClock((c) => ({ ...c, open: false }))}
+        open={clockOpen}
+        initialMode="stopwatch"
+        initialSeconds={0}
+        autoStart={false}
+        onClose={() => setClockOpen(false)}
       />
+
+      {restTimer != null && restTimer.seconds > 0 ? (
+        <RestTimer
+          key={restTimer.key}
+          initialSeconds={restTimer.seconds}
+          onDone={() => setRestTimer(null)}
+          onSkip={() => setRestTimer(null)}
+        />
+      ) : null}
 
       {addExerciseOpen ? (
         <ExerciseSearchModal
@@ -409,11 +436,12 @@ export function ActiveWorkout({
               </button>
             </div>
             <p className="text-sm text-text-secondary">
-              Rest timers use each exercise&apos;s configured rest (default 3 min). Tap
-              &ldquo;Rest timer&rdquo; under an exercise to adjust before starting.
+              Rest timers appear as a bar at the bottom after you log a set. Use ±15s
+              on the bar to adjust.
             </p>
             <p className="mt-3 text-sm text-text-muted">
-              Use the header stopwatch for a free-running timer during your session.
+              The header stopwatch opens the full clock for free timing during your
+              session.
             </p>
             <Button
               variant="primary"
