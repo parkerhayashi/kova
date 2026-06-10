@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { AppSplash, SPLASH_STYLES } from "@/components/AppSplash";
+import Script from "next/script";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { SplashDismiss } from "@/components/SplashDismiss";
+import { SPLASH_BOOT_SCRIPT, SPLASH_STYLES } from "@/lib/splash-boot";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,10 +49,13 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{ __html: SPLASH_STYLES }} />
       </head>
       <body className="bg-background text-text-primary min-h-full">
-        <AppSplash />
         {children}
-        <SplashDismiss />
         <ServiceWorkerRegister />
+        <Script
+          id="kova-splash-boot"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: SPLASH_BOOT_SCRIPT }}
+        />
       </body>
     </html>
   );

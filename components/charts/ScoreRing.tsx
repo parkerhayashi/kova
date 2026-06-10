@@ -52,7 +52,6 @@ export function ScoreRing({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={circumference * (1 - pct)}
-            style={{ filter: `drop-shadow(0 0 6px ${color})` }}
           />
         )}
       </svg>
@@ -62,7 +61,6 @@ export function ScoreRing({
           style={{
             fontSize: size * 0.3,
             color: value !== null ? color : undefined,
-            textShadow: value !== null ? `0 0 18px ${color}55` : undefined,
           }}
         >
           {value ?? "—"}

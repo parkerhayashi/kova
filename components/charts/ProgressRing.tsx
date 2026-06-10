@@ -59,7 +59,6 @@ export function ProgressRing({
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={circumference * (1 - pct)}
-              style={{ filter: `drop-shadow(0 0 5px ${color})` }}
             />
           ) : null}
         </svg>
@@ -69,7 +68,6 @@ export function ProgressRing({
             style={{
               fontSize: size * 0.26,
               color: hasValue ? color : undefined,
-              textShadow: hasValue ? `0 0 14px ${color}55` : undefined,
             }}
           >
             {display}
