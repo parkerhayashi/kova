@@ -25,14 +25,26 @@ export async function GET(request: NextRequest) {
 
   const cookieStore = await cookies();
   const expectedState = cookieStore.get("oura_oauth_state")?.value;
+  const redirectUri =
+    cookieStore.get("oura_oauth_redirect")?.value ??
+    process.env.OURA_REDIRECT_URI;
   cookieStore.delete("oura_oauth_state");
+  cookieStore.delete("oura_oauth_redirect");
 
   if (!code || !state || state !== expectedState) {
     return NextResponse.redirect(`${origin}/?oura=invalid_state`);
   }
 
+  if (!redirectUri) {
+    console.error("[oura] OAuth callback missing redirect URI");
+    return NextResponse.redirect(`${origin}/?oura=error`);
+  }
+
   try {
-    const tokens = await exchangeToken({ grant_type: "authorization_code", code });
+    const tokens = await exchangeToken(
+      { grant_type: "authorization_code", code },
+      redirectUri,
+    );
 
     const db = createServiceClient();
     const { data: settings } = await db
@@ -52,7 +64,8 @@ export async function GET(request: NextRequest) {
     } else {
       await db.from("user_settings").insert(payload);
     }
-  } catch {
+  } catch (err) {
+    console.error("[oura] OAuth callback failed:", err);
     return NextResponse.redirect(`${origin}/?oura=error`);
   }
 

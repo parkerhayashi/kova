@@ -17,22 +17,28 @@ const OURA_AUTH = "https://cloud.ouraring.com/oauth/authorize";
 const OURA_TOKEN = "https://api.ouraring.com/oauth/token";
 
 export const OURA_SCOPES = [
-  "daily",
+  "daily", // sleep, activity, readiness, stress, resilience summaries
   "heartrate",
   "workout",
-  "tag", // tags / enhanced tags
+  "tag",
   "personal",
   "session",
   "spo2",
-  "heart_health", // VO2 max, cardiovascular age
-  "stress", // daily stress + resilience
 ] as const;
 
+function resolveRedirectUri(override?: string): string {
+  const uri = override ?? process.env.OURA_REDIRECT_URI;
+  if (!uri) {
+    throw new Error("OURA_REDIRECT_URI is not configured.");
+  }
+  return uri;
+}
+
 /** Build the consent URL to start the OAuth flow. */
-export function getAuthUrl(state: string): string {
+export function getAuthUrl(state: string, redirectUri?: string): string {
   const params = new URLSearchParams({
     client_id: process.env.OURA_CLIENT_ID!,
-    redirect_uri: process.env.OURA_REDIRECT_URI!,
+    redirect_uri: resolveRedirectUri(redirectUri),
     response_type: "code",
     scope: OURA_SCOPES.join(" "),
     state,
@@ -46,25 +52,47 @@ interface OuraTokens {
   expires_in: number;
 }
 
+async function readOuraOAuthError(res: Response): Promise<string> {
+  try {
+    const data = (await res.json()) as {
+      error?: string;
+      error_description?: string;
+      detail?: string;
+      title?: string;
+    };
+    const code = data.error ?? String(res.status);
+    const desc = data.error_description ?? data.detail ?? data.title;
+    return desc ? `${code}: ${desc}` : code;
+  } catch {
+    return String(res.status);
+  }
+}
+
 /** Exchange an authorization code (or refresh token) for access tokens. */
 export async function exchangeToken(
   params:
     | { grant_type: "authorization_code"; code: string }
     | { grant_type: "refresh_token"; refresh_token: string },
+  redirectUri?: string,
 ): Promise<OuraTokens> {
   const body = new URLSearchParams({
     client_id: process.env.OURA_CLIENT_ID!,
     client_secret: process.env.OURA_CLIENT_SECRET!,
-    redirect_uri: process.env.OURA_REDIRECT_URI!,
     ...params,
   });
+
+  if (params.grant_type === "authorization_code") {
+    body.set("redirect_uri", resolveRedirectUri(redirectUri));
+  }
 
   const res = await fetch(OURA_TOKEN, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
   });
-  if (!res.ok) throw new Error(`Oura token exchange failed: ${res.status}`);
+  if (!res.ok) {
+    throw new Error(`Oura token exchange failed: ${await readOuraOAuthError(res)}`);
+  }
   return res.json();
 }
 
