@@ -189,9 +189,11 @@ export function WorkoutApp() {
             />
             {data?.dashboard ? <LiftingStats dashboard={data.dashboard} /> : null}
             <Card className="border-dashed p-4">
-              <p className="metric-label">Import past workouts</p>
+              <p className="metric-label">Exercise library</p>
               <p className="mt-1 text-sm text-text-muted">
-                Manual entry or Hevy export — coming in a later update.
+                Search 1,500+ ExerciseDB moves when adding exercises. Run{" "}
+                <code className="text-text-secondary">npm run exercises:sync</code> once to
+                cache the catalog locally.
               </p>
             </Card>
           </>

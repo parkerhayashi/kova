@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { exerciseThumbGlyph } from "@/lib/exercise-display";
 import type { Exercise } from "@/types";
@@ -9,7 +10,7 @@ export function ExerciseThumb({
   size = "md",
   className,
 }: {
-  exercise: Pick<Exercise, "category" | "name">;
+  exercise: Pick<Exercise, "category" | "name" | "gif_url">;
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
@@ -18,6 +19,27 @@ export function ExerciseThumb({
     md: "h-11 w-11 text-base",
     lg: "h-24 w-24 text-3xl",
   };
+
+  if (exercise.gif_url) {
+    return (
+      <div
+        className={cn(
+          "relative shrink-0 overflow-hidden rounded-full border border-border bg-[#0a0a0a]",
+          sizes[size],
+          className,
+        )}
+      >
+        <Image
+          src={exercise.gif_url}
+          alt=""
+          fill
+          unoptimized
+          className="object-cover"
+          sizes={size === "lg" ? "96px" : size === "md" ? "44px" : "36px"}
+        />
+      </div>
+    );
+  }
 
   return (
     <div

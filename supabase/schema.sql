@@ -204,6 +204,31 @@ alter table workout_sessions
 alter table exercises
   add column if not exists exercisedb_id text;
 
+alter table exercises add column if not exists gif_url text;
+alter table exercises add column if not exists instructions jsonb;
+alter table exercises add column if not exists target_muscle text;
+alter table exercises add column if not exists body_part text;
+alter table exercises add column if not exists secondary_muscles jsonb;
+
+create unique index if not exists exercises_exercisedb_id_idx
+  on exercises (exercisedb_id) where exercisedb_id is not null;
+
+-- Full ExerciseDB catalog (~1500 exercises) for search; synced via scripts/sync-exercisedb.mjs
+create table if not exists exercise_catalog (
+  exercisedb_id     text primary key,
+  name              text not null,
+  gif_url           text not null,
+  body_part         text,
+  equipment         text,
+  target_muscle     text,
+  secondary_muscles jsonb default '[]'::jsonb,
+  instructions      jsonb default '[]'::jsonb,
+  category          text,
+  synced_at         timestamptz default now()
+);
+
+create index if not exists exercise_catalog_name_idx on exercise_catalog (name);
+
 -- Seed a starter exercise library (no-op if a name already exists).
 insert into exercises (name, category, equipment) values
   ('Barbell Back Squat', 'legs', 'barbell'),

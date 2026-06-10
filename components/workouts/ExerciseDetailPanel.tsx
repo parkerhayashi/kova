@@ -365,10 +365,21 @@ export function ExerciseDetailPanel({
                   </p>
                 ) : null}
               </div>
-              <Card className="border-dashed p-4 text-sm text-text-muted">
-                Step-by-step instructions and video demos can be linked here when
-                ExerciseDB IDs are populated for your library.
-              </Card>
+              {stats.exercise.instructions && stats.exercise.instructions.length > 0 ? (
+                <ol className="space-y-3 text-sm text-text-secondary">
+                  {stats.exercise.instructions.map((step, i) => (
+                    <li key={i} className="flex gap-3">
+                      <span className="text-text-muted tabular-nums">{i + 1}.</span>
+                      <span>{step.replace(/^Step:\d+\s*/i, "")}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <Card className="border-dashed p-4 text-sm text-text-muted">
+                  Run <code className="text-text-secondary">npm run exercises:sync</code> to
+                  link this exercise to ExerciseDB demos and instructions.
+                </Card>
+              )}
             </div>
           )}
         </div>

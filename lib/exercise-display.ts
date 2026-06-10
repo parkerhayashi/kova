@@ -35,10 +35,20 @@ export function categoryLabel(category: string | null | undefined): string {
   return CATEGORY_LABELS[category] ?? category;
 }
 
-export function exerciseMuscles(exercise: Pick<Exercise, "category">): {
+export function exerciseMuscles(
+  exercise: Pick<Exercise, "category" | "target_muscle" | "secondary_muscles">,
+): {
   primary: string;
   secondary: string[];
 } {
+  if (exercise.target_muscle) {
+    const label = (s: string) =>
+      s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    return {
+      primary: label(exercise.target_muscle),
+      secondary: (exercise.secondary_muscles ?? []).map(label),
+    };
+  }
   const cat = exercise.category ?? "back";
   return (
     CATEGORY_MUSCLES[cat] ?? {

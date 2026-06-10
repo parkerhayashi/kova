@@ -6,6 +6,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "static.exercisedb.dev",
+        pathname: "/media/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

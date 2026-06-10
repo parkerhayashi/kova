@@ -251,9 +251,31 @@ export interface Exercise {
   category: string | null;
   equipment: string | null;
   exercisedb_id: string | null;
+  gif_url: string | null;
+  target_muscle: string | null;
+  body_part: string | null;
+  secondary_muscles: string[] | null;
+  instructions: string[] | null;
   is_active: boolean;
   created_at: string;
 }
+
+export interface ExerciseCatalogItem {
+  exercisedb_id: string;
+  name: string;
+  gif_url: string;
+  body_part: string | null;
+  equipment: string | null;
+  target_muscle: string | null;
+  secondary_muscles: string[];
+  instructions: string[];
+  category: string | null;
+}
+
+export type ExerciseSearchResult = {
+  local: Exercise[];
+  catalog: ExerciseCatalogItem[];
+};
 
 export type WorkoutSessionStatus = "in_progress" | "completed";
 

@@ -32,6 +32,7 @@ const TABLES = [
   "weight_log",
   "habits",
   "habit_logs",
+  "exercise_catalog",
   "supplements",
   "supplement_logs",
   "user_settings",

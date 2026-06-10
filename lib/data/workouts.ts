@@ -1,5 +1,11 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import {
+  fetchExerciseDbById,
+  searchExerciseDbByName,
+  toCatalogItem,
+  toExerciseFields,
+} from "@/lib/exercisedb";
+import {
   computeExerciseStats,
   estimate1RM,
   estimateRoutineMinutes,
@@ -10,7 +16,9 @@ import { getTimezone } from "@/lib/data/oura";
 import type {
   ActiveWorkoutView,
   Exercise,
+  ExerciseCatalogItem,
   ExerciseHistorySession,
+  ExerciseSearchResult,
   ExerciseStats,
   LiftingDashboard,
   RoutineDetail,
@@ -576,19 +584,143 @@ export async function cancelSession(sessionId: string): Promise<void> {
 }
 
 export async function searchExercises(query: string): Promise<Exercise[]> {
+  const result = await searchExerciseLibrary(query);
+  return result.local;
+}
+
+function mapCatalogRow(row: Record<string, unknown>): ExerciseCatalogItem {
+  return {
+    exercisedb_id: row.exercisedb_id as string,
+    name: row.name as string,
+    gif_url: row.gif_url as string,
+    body_part: (row.body_part as string | null) ?? null,
+    equipment: (row.equipment as string | null) ?? null,
+    target_muscle: (row.target_muscle as string | null) ?? null,
+    secondary_muscles: (row.secondary_muscles as string[]) ?? [],
+    instructions: (row.instructions as string[]) ?? [],
+    category: (row.category as string | null) ?? null,
+  };
+}
+
+function mapExerciseRow(row: Record<string, unknown>): Exercise {
+  const base = row as unknown as Exercise;
+  return {
+    ...base,
+    secondary_muscles: (row.secondary_muscles as string[] | null) ?? null,
+    instructions: (row.instructions as string[] | null) ?? null,
+  };
+}
+
+/** Local library + ExerciseDB catalog matches (catalog excludes already-imported). */
+export async function searchExerciseLibrary(
+  query: string,
+): Promise<ExerciseSearchResult> {
   const db = createServiceClient();
   const q = query.trim();
-  let builder = db
+
+  let localBuilder = db
     .from("exercises")
     .select("*")
     .eq("is_active", true)
     .order("name", { ascending: true })
-    .limit(30);
+    .limit(20);
+  if (q) localBuilder = localBuilder.ilike("name", `%${q}%`);
+  const { data: localRows } = await localBuilder;
+  const local = ((localRows as Exercise[]) ?? []).map((r) =>
+    mapExerciseRow(r as unknown as Record<string, unknown>),
+  );
+
+  const importedIds = new Set(
+    local.map((e) => e.exercisedb_id).filter(Boolean) as string[],
+  );
+
+  let catalog: ExerciseCatalogItem[] = [];
   if (q) {
-    builder = builder.ilike("name", `%${q}%`);
+    const { data: catalogRows } = await db
+      .from("exercise_catalog")
+      .select("*")
+      .ilike("name", `%${q}%`)
+      .order("name", { ascending: true })
+      .limit(25);
+
+    if (catalogRows && catalogRows.length > 0) {
+      catalog = catalogRows
+        .map((r) => mapCatalogRow(r as Record<string, unknown>))
+        .filter((c) => !importedIds.has(c.exercisedb_id));
+    } else {
+      const remote = await searchExerciseDbByName(q, 25);
+      catalog = remote
+        .map((r) => ({ ...toCatalogItem(r), category: toCatalogItem(r).category }))
+        .filter((c) => !importedIds.has(c.exercisedb_id));
+    }
   }
-  const { data } = await builder;
-  return (data as Exercise[]) ?? [];
+
+  return { local, catalog };
+}
+
+/** Import a catalog exercise into the local library (or return existing by exercisedb_id). */
+export async function importExerciseFromCatalog(
+  exercisedbId: string,
+): Promise<Exercise> {
+  const db = createServiceClient();
+
+  const { data: existing } = await db
+    .from("exercises")
+    .select("*")
+    .eq("exercisedb_id", exercisedbId)
+    .maybeSingle();
+  if (existing) {
+    return mapExerciseRow(existing as unknown as Record<string, unknown>);
+  }
+
+  const { data: catalogRow } = await db
+    .from("exercise_catalog")
+    .select("*")
+    .eq("exercisedb_id", exercisedbId)
+    .maybeSingle();
+
+  let fields: ReturnType<typeof toExerciseFields>;
+  if (catalogRow) {
+    fields = {
+      exercisedb_id: catalogRow.exercisedb_id,
+      name: catalogRow.name,
+      gif_url: catalogRow.gif_url,
+      body_part: catalogRow.body_part,
+      equipment: catalogRow.equipment,
+      target_muscle: catalogRow.target_muscle,
+      secondary_muscles: (catalogRow.secondary_muscles as string[]) ?? [],
+      instructions: (catalogRow.instructions as string[]) ?? [],
+      category: catalogRow.category,
+    };
+  } else {
+    const remote = await fetchExerciseDbById(exercisedbId);
+    if (!remote) throw new Error("Exercise not found in ExerciseDB");
+    fields = toExerciseFields(remote);
+  }
+
+  const { data: inserted, error } = await db
+    .from("exercises")
+    .insert({ ...fields, is_active: true })
+    .select("*")
+    .single();
+  if (error) {
+    if (error.code === "23505") {
+      const { data: byName } = await db
+        .from("exercises")
+        .select("*")
+        .eq("name", fields.name)
+        .maybeSingle();
+      if (byName) {
+        await db
+          .from("exercises")
+          .update(fields)
+          .eq("id", byName.id);
+        return mapExerciseRow(byName as unknown as Record<string, unknown>);
+      }
+    }
+    throw error;
+  }
+  return mapExerciseRow(inserted as unknown as Record<string, unknown>);
 }
 
 export async function listRecentSessions(limit = 10): Promise<WorkoutSession[]> {
