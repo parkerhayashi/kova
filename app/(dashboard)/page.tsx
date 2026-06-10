@@ -1,5 +1,26 @@
+import { Suspense } from "react";
 import { DashboardHome } from "@/components/home/DashboardHome";
+import { HealthSnapshot } from "@/components/home/HealthSnapshot";
+
+export const dynamic = "force-dynamic";
 
 export default function HomePage() {
-  return <DashboardHome />;
+  return (
+    <DashboardHome
+      snapshot={
+        <Suspense fallback={<HealthSnapshotFallback />}>
+          <HealthSnapshot />
+        </Suspense>
+      }
+    />
+  );
+}
+
+function HealthSnapshotFallback() {
+  return (
+    <section className="snapshot-section section">
+      <h2 className="section-title">Snapshot</h2>
+      <div className="dash-card snapshot-loading">Loading snapshot…</div>
+    </section>
+  );
 }

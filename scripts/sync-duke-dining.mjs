@@ -212,8 +212,9 @@ function foodDevilToItems(locationName, data) {
       if (!value || typeof value !== "object") continue;
       if ("calories" in value && "protein" in value) {
         const servingSize = value.serving_size ?? "1 serving";
+        const legacyKey = [menu, category, key].filter(Boolean).join(":");
         items.push({
-          id: `duke:legacy:${locationId}:${slugify(key)}`,
+          id: `duke:legacy:${locationId}:${slugify(legacyKey)}`,
           name: key,
           location: locationName,
           locationId,
@@ -251,13 +252,13 @@ function foodDevilToItems(locationName, data) {
   return items;
 }
 
-async function fetchNutrition(detailOid) {
+async function fetchNutrition(detailOid, menuOid = "") {
   await sleep(DELAY_MS);
   const html = await post("NutritionDetail/ShowItemNutritionLabel", {
     detailOid,
-    menuOid: "",
+    menuOid,
   });
-  if (typeof html !== "string") return null;
+  if (typeof html !== "string" || !html.includes("cbo_nn_LabelHeader")) return null;
   return parseNutritionLabelHtml(html);
 }
 
@@ -274,35 +275,22 @@ async function scrapeUnit(unit) {
   }
 
   const panels = Object.fromEntries(data.panels.map((p) => [p.id, p.html || ""]));
-  const menuSets = [];
 
-  if (panels.menuPanel?.includes("no menus available")) {
-    console.log("  no live menus on NetNutrition");
-  } else if (panels.menuPanel) {
-    const menus = extractMenus(panels.menuPanel);
-    for (const menu of menus) {
-      await sleep(DELAY_MS);
-      const menuData = await post("Menu/SelectMenu", { menuOid: menu.menuOid });
-      const itemHtml = menuData?.panels?.find((p) => p.id === "itemPanel")?.html;
-      if (itemHtml) menuSets.push({ menu: menu.name, html: itemHtml });
-    }
-  } else if (panels.itemPanel) {
-    menuSets.push({ menu: null, html: panels.itemPanel });
-  }
-
-  for (const { menu, html } of menuSets) {
+  async function scrapeItemPanel(menu, menuOid, html) {
     const parsed = parseItemsFromPanel(html);
     console.log(`  ${menu ?? "menu"}: ${parsed.length} items`);
 
     for (const item of parsed) {
-      if (seen.has(item.detailOid)) continue;
-      seen.add(item.detailOid);
+      const itemKey = `${menuOid || "default"}:${item.detailOid}`;
+      if (seen.has(itemKey)) continue;
+      seen.add(itemKey);
 
-      const label = await fetchNutrition(item.detailOid);
+      // Must fetch while this menu is still selected in the CBORD session.
+      const label = await fetchNutrition(item.detailOid, menuOid || "");
       if (!label) continue;
 
       catalogItems.push({
-        id: `duke:${item.detailOid}`,
+        id: `duke:${locationId}:${item.detailOid}`,
         name: label.name || item.name,
         location: unit.title,
         locationId,
@@ -315,6 +303,20 @@ async function scrapeUnit(unit) {
         ingredients: label.ingredients,
       });
     }
+  }
+
+  if (panels.menuPanel?.includes("no menus available")) {
+    console.log("  no live menus on NetNutrition");
+  } else if (panels.menuPanel) {
+    const menus = extractMenus(panels.menuPanel);
+    for (const menu of menus) {
+      await sleep(DELAY_MS);
+      const menuData = await post("Menu/SelectMenu", { menuOid: menu.menuOid });
+      const itemHtml = menuData?.panels?.find((p) => p.id === "itemPanel")?.html;
+      if (itemHtml) await scrapeItemPanel(menu.name, menu.menuOid, itemHtml);
+    }
+  } else if (panels.itemPanel) {
+    await scrapeItemPanel(null, "", panels.itemPanel);
   }
 
   console.log(`  ✓ ${catalogItems.length} with nutrition`);

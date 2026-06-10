@@ -414,7 +414,42 @@ export interface Run {
   created_at: string;
 }
 
-export type MealSource = "usda" | "open_food_facts" | "duke_dining" | "manual";
+export type MealSource =
+  | "usda"
+  | "open_food_facts"
+  | "duke_dining"
+  | "saved_meal"
+  | "manual";
+
+/** One line item inside a saved meal template. */
+export interface SavedMealComponent {
+  name: string;
+  source?: MealSource;
+  food_id?: string;
+  serving_size_g?: number;
+  servings: number;
+  nutrients: Partial<
+    Omit<
+      Meal,
+      | "id"
+      | "date"
+      | "meal_name"
+      | "food_id"
+      | "source"
+      | "serving_size_g"
+      | "servings"
+      | "logged_at"
+    >
+  >;
+}
+
+export interface SavedMeal {
+  id: string;
+  name: string;
+  components: SavedMealComponent[];
+  sort_order: number;
+  created_at: string;
+}
 
 export interface Meal {
   id: string;

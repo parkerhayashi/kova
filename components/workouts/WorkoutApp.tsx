@@ -7,6 +7,7 @@ import { CoachDayBanner } from "@/components/workouts/CoachDayBanner";
 import { CoachWeight } from "@/components/coach/CoachPanel";
 import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
 import { LiftingStats } from "@/components/workouts/LiftingStats";
+import { RoutineEditor } from "@/components/workouts/RoutineEditor";
 import { RoutineList } from "@/components/workouts/RoutineList";
 import { SessionDetailPanel } from "@/components/workouts/SessionDetailPanel";
 import { PageHeader } from "@/components/PageHeader";
@@ -43,6 +44,7 @@ export function WorkoutApp() {
   const [error, setError] = useState<string | null>(null);
   const [viewSessionId, setViewSessionId] = useState<string | null>(null);
   const [viewExerciseId, setViewExerciseId] = useState<string | null>(null);
+  const [editRoutineId, setEditRoutineId] = useState<string | null>(null);
   const [todaySplit, setTodaySplit] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -108,7 +110,29 @@ export function WorkoutApp() {
     void refresh();
   }
 
+  function handleRoutineUpdated(routine: RoutineDetail) {
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        routines: prev.routines.map((r) =>
+          r.id === routine.id ? routine : r,
+        ),
+      };
+    });
+  }
+
   const inSession = Boolean(data?.activeWorkout);
+
+  if (editRoutineId) {
+    return (
+      <RoutineEditor
+        routineId={editRoutineId}
+        onClose={() => setEditRoutineId(null)}
+        onUpdated={handleRoutineUpdated}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -158,6 +182,7 @@ export function WorkoutApp() {
               routines={data?.routines ?? []}
               recentSessions={data?.recentSessions ?? []}
               onStart={startRoutine}
+              onEdit={setEditRoutineId}
               onViewSession={setViewSessionId}
               onViewExercise={setViewExerciseId}
               highlightRoutineName={todaySplit}

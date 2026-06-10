@@ -307,7 +307,7 @@ create table if not exists meals (
   date                     date not null,
   meal_name                text,
   food_id                  text,        -- USDA or Open Food Facts ID
-  source                   text,        -- 'usda' | 'open_food_facts' | 'duke_dining' | 'manual'
+  source                   text,        -- 'usda' | 'open_food_facts' | 'duke_dining' | 'saved_meal' | 'manual'
   serving_size_g           float,
   servings                 float,
   -- Macros
@@ -352,6 +352,15 @@ create table if not exists meals (
 );
 
 create index if not exists meals_date_idx on meals (date);
+
+-- Saved multi-item meal templates (yogurt bowl, Chipotle order, BYO pasta, etc.)
+create table if not exists saved_meals (
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null,
+  components  jsonb not null default '[]',
+  sort_order  int default 0,
+  created_at  timestamptz default now()
+);
 
 -- ---------------------------------------------------------------------------
 -- Hydration

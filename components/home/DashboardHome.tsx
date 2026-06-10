@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { hydrateClientSync } from "@/lib/client-sync";
 import { GOALS_CHANGED_EVENT, runRollover, runStreakCheck } from "@/lib/goals";
 import { GoalTicker } from "./GoalTicker";
-import { DayRing } from "./DayRing";
 import { TodoList } from "./TodoList";
 
 /**
- * Home dashboard — the personal command center: title, goal ticker, day ring,
- * and the To Do List. Goal state syncs via Supabase (localStorage cache).
+ * Home dashboard — title, goal ticker, health snapshot slot, and to-do list.
+ * Goal state syncs via Supabase (localStorage cache).
  */
-export function DashboardHome() {
+export function DashboardHome({ snapshot }: { snapshot: ReactNode }) {
   useEffect(() => {
     function settle() {
       // Streak must be tallied before rollover deletes the historical day records.
@@ -30,7 +29,7 @@ export function DashboardHome() {
     <div className="home-dash">
       <h1 className="dash-title">My Dashboard</h1>
       <GoalTicker />
-      <DayRing />
+      {snapshot}
       <TodoList />
     </div>
   );

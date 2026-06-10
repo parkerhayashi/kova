@@ -11,6 +11,7 @@ export function RoutineList({
   routines,
   recentSessions,
   onStart,
+  onEdit,
   onViewSession,
   onViewExercise,
   highlightRoutineName,
@@ -18,6 +19,7 @@ export function RoutineList({
   routines: RoutineDetail[];
   recentSessions: WorkoutSession[];
   onStart: (routineId: string) => void;
+  onEdit?: (routineId: string) => void;
   onViewSession?: (sessionId: string) => void;
   onViewExercise?: (exerciseId: string) => void;
   highlightRoutineName?: string | null;
@@ -80,9 +82,20 @@ export function RoutineList({
               ))}
             </ul>
 
-            <Button variant="primary" className="mt-auto w-full" onClick={() => onStart(routine.id)}>
-              Start {routine.name}
-            </Button>
+            <div className="mt-auto grid grid-cols-2 gap-2">
+              {onEdit ? (
+                <Button variant="ghost" onClick={() => onEdit(routine.id)}>
+                  Edit
+                </Button>
+              ) : null}
+              <Button
+                variant="primary"
+                className={onEdit ? "" : "col-span-2 w-full"}
+                onClick={() => onStart(routine.id)}
+              >
+                Start
+              </Button>
+            </div>
           </Card>
           );
         })}

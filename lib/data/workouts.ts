@@ -106,6 +106,122 @@ export async function getRoutineDetail(
   };
 }
 
+export async function updateRoutineName(
+  routineId: string,
+  name: string,
+): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Routine name is required");
+  const db = createServiceClient();
+  const { error } = await db
+    .from("workout_routines")
+    .update({ name: trimmed })
+    .eq("id", routineId);
+  if (error) throw new Error(error.message);
+}
+
+export async function reorderRoutineExercises(
+  routineId: string,
+  orderedIds: string[],
+): Promise<void> {
+  const db = createServiceClient();
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await db
+      .from("workout_routine_exercises")
+      .update({ position: i })
+      .eq("id", orderedIds[i])
+      .eq("routine_id", routineId);
+    if (error) throw new Error(error.message);
+  }
+}
+
+export async function addRoutineExercise(
+  routineId: string,
+  exerciseId: string,
+): Promise<void> {
+  const db = createServiceClient();
+  const { data: last } = await db
+    .from("workout_routine_exercises")
+    .select("position")
+    .eq("routine_id", routineId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const position = (last?.position ?? -1) + 1;
+  const { error } = await db.from("workout_routine_exercises").insert({
+    routine_id: routineId,
+    exercise_id: exerciseId,
+    position,
+    target_sets: 3,
+    rest_seconds: 180,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateRoutineExercise(
+  routineExerciseId: string,
+  patch: {
+    notes?: string | null;
+    rest_seconds?: number;
+    target_sets?: number;
+    rep_min?: number | null;
+    rep_max?: number | null;
+  },
+): Promise<void> {
+  const db = createServiceClient();
+  const payload: Record<string, unknown> = {};
+  if ("notes" in patch) payload.notes = patch.notes;
+  if (patch.rest_seconds != null) payload.rest_seconds = patch.rest_seconds;
+  if (patch.target_sets != null) payload.target_sets = patch.target_sets;
+  if ("rep_min" in patch) payload.rep_min = patch.rep_min;
+  if ("rep_max" in patch) payload.rep_max = patch.rep_max;
+  if (Object.keys(payload).length === 0) return;
+
+  const { error } = await db
+    .from("workout_routine_exercises")
+    .update(payload)
+    .eq("id", routineExerciseId);
+  if (error) throw new Error(error.message);
+}
+
+export async function removeRoutineExercise(routineExerciseId: string): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("workout_routine_exercises")
+    .select("routine_id")
+    .eq("id", routineExerciseId)
+    .maybeSingle();
+  if (!row) throw new Error("Routine exercise not found");
+
+  await db.from("workout_routine_exercises").delete().eq("id", routineExerciseId);
+
+  const { data: remaining } = await db
+    .from("workout_routine_exercises")
+    .select("id")
+    .eq("routine_id", row.routine_id)
+    .order("position", { ascending: true });
+
+  if (remaining && remaining.length > 0) {
+    await reorderRoutineExercises(
+      row.routine_id,
+      remaining.map((r) => r.id),
+    );
+  }
+}
+
+export async function replaceRoutineExercise(
+  routineExerciseId: string,
+  newExerciseId: string,
+): Promise<void> {
+  const db = createServiceClient();
+  const { error } = await db
+    .from("workout_routine_exercises")
+    .update({ exercise_id: newExerciseId })
+    .eq("id", routineExerciseId);
+  if (error) throw new Error(error.message);
+}
+
 export async function getActiveSession(): Promise<WorkoutSession | null> {
   const db = createServiceClient();
   const { data } = await db
