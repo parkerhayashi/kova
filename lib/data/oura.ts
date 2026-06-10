@@ -261,16 +261,47 @@ export async function maybeSyncOuraOnOpen(): Promise<void> {
   });
 }
 
+function isOuraUnauthorized(err: unknown): boolean {
+  return err instanceof Error && /\bfailed: 401\b/.test(err.message);
+}
+
+async function refreshOuraAccessToken(
+  db: ReturnType<typeof createServiceClient>,
+  settings: Pick<UserSettings, "id" | "oura_refresh_token">,
+): Promise<string> {
+  if (!settings.oura_refresh_token) {
+    throw new Error("Oura refresh token missing — reconnect at /api/auth/oura.");
+  }
+
+  const refreshed = await exchangeToken({
+    grant_type: "refresh_token",
+    refresh_token: decryptToken(settings.oura_refresh_token),
+  });
+
+  await db
+    .from("user_settings")
+    .update({
+      oura_access_token: encryptToken(refreshed.access_token),
+      oura_refresh_token: encryptToken(refreshed.refresh_token),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", settings.id);
+
+  return refreshed.access_token;
+}
+
 /**
  * Pull a trailing window of Oura data and upsert it into Supabase. Shared by
  * the daily cron route and the OAuth callback's initial backfill.
  *
- * Uses refresh-first token handling (no expiry column, short-lived access
- * tokens) and computes sleep debt natively before upserting.
+ * Uses the stored access token when possible and refreshes only after a 401.
+ * Pass `accessTokenOverride` right after OAuth connect to avoid burning the
+ * new refresh token immediately.
  */
 export async function syncOura(
   days: number,
   intradayDays = 2,
+  accessTokenOverride?: string,
 ): Promise<SyncResult> {
   const end = new Date();
   const start = new Date();
@@ -284,30 +315,31 @@ export async function syncOura(
     .limit(1)
     .maybeSingle();
 
-  if (!settings?.oura_access_token && !settings?.oura_refresh_token) {
+  if (!accessTokenOverride && !settings?.oura_access_token && !settings?.oura_refresh_token) {
     throw new Error("Oura is not connected.");
   }
 
-  let accessToken: string;
-  if (settings.oura_refresh_token) {
-    const refreshed = await exchangeToken({
-      grant_type: "refresh_token",
-      refresh_token: decryptToken(settings.oura_refresh_token),
-    });
-    accessToken = refreshed.access_token;
-    await db
-      .from("user_settings")
-      .update({
-        oura_access_token: encryptToken(refreshed.access_token),
-        oura_refresh_token: encryptToken(refreshed.refresh_token),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", settings.id);
-  } else {
-    accessToken = decryptToken(settings.oura_access_token!);
+  let accessToken = accessTokenOverride ?? null;
+  if (!accessToken && settings?.oura_access_token) {
+    accessToken = decryptToken(settings.oura_access_token);
+  } else if (!accessToken && settings?.oura_refresh_token) {
+    accessToken = await refreshOuraAccessToken(db, settings);
   }
 
-  const data = await fetchOuraData(accessToken, range);
+  if (!accessToken || !settings) {
+    throw new Error("Oura is not connected.");
+  }
+
+  let data;
+  try {
+    data = await fetchOuraData(accessToken, range);
+  } catch (err) {
+    if (!isOuraUnauthorized(err) || accessTokenOverride || !settings.oura_refresh_token) {
+      throw err;
+    }
+    accessToken = await refreshOuraAccessToken(db, settings);
+    data = await fetchOuraData(accessToken, range);
+  }
 
   // All-day heart rate is the only high-volume source, so it uses its own
   // (shorter) window and is non-fatal — a failure leaves prior days intact.

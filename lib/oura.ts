@@ -26,16 +26,22 @@ export const OURA_SCOPES = [
   "spo2",
 ] as const;
 
-function resolveRedirectUri(override?: string): string {
-  const uri = override ?? process.env.OURA_REDIRECT_URI;
-  if (!uri) {
-    throw new Error("OURA_REDIRECT_URI is not configured.");
+const OURA_CALLBACK_PATH = "/api/auth/oura/callback";
+
+/** Redirect URI for the current site origin — must match an Oura app whitelist entry. */
+export function ouraCallbackRedirectUri(origin: string): string {
+  return `${origin}${OURA_CALLBACK_PATH}`;
+}
+
+function resolveRedirectUri(override: string): string {
+  if (!override) {
+    throw new Error("Oura redirect URI is required for authorization_code exchange.");
   }
-  return uri;
+  return override;
 }
 
 /** Build the consent URL to start the OAuth flow. */
-export function getAuthUrl(state: string, redirectUri?: string): string {
+export function getAuthUrl(state: string, redirectUri: string): string {
   const params = new URLSearchParams({
     client_id: process.env.OURA_CLIENT_ID!,
     redirect_uri: resolveRedirectUri(redirectUri),
@@ -75,19 +81,28 @@ export async function exchangeToken(
     | { grant_type: "refresh_token"; refresh_token: string },
   redirectUri?: string,
 ): Promise<OuraTokens> {
-  const body = new URLSearchParams({
-    client_id: process.env.OURA_CLIENT_ID!,
-    client_secret: process.env.OURA_CLIENT_SECRET!,
-    ...params,
-  });
+  const clientId = process.env.OURA_CLIENT_ID;
+  const clientSecret = process.env.OURA_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new Error("OURA_CLIENT_ID and OURA_CLIENT_SECRET must be set.");
+  }
+
+  const body = new URLSearchParams({ ...params });
 
   if (params.grant_type === "authorization_code") {
+    if (!redirectUri) {
+      throw new Error("Oura redirect URI is required for authorization_code exchange.");
+    }
     body.set("redirect_uri", resolveRedirectUri(redirectUri));
   }
 
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
   const res = await fetch(OURA_TOKEN, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${basic}`,
+    },
     body,
   });
   if (!res.ok) {

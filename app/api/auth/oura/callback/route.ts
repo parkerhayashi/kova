@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
-import { exchangeToken } from "@/lib/oura";
+import { exchangeToken, ouraCallbackRedirectUri } from "@/lib/oura";
 import { encryptToken } from "@/lib/crypto";
 import { syncOura } from "@/lib/data/oura";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -25,26 +25,21 @@ export async function GET(request: NextRequest) {
 
   const cookieStore = await cookies();
   const expectedState = cookieStore.get("oura_oauth_state")?.value;
-  const redirectUri =
-    cookieStore.get("oura_oauth_redirect")?.value ??
-    process.env.OURA_REDIRECT_URI;
   cookieStore.delete("oura_oauth_state");
-  cookieStore.delete("oura_oauth_redirect");
 
   if (!code || !state || state !== expectedState) {
     return NextResponse.redirect(`${origin}/?oura=invalid_state`);
   }
 
-  if (!redirectUri) {
-    console.error("[oura] OAuth callback missing redirect URI");
-    return NextResponse.redirect(`${origin}/?oura=error`);
-  }
+  const redirectUri = ouraCallbackRedirectUri(origin);
+  let accessToken: string;
 
   try {
     const tokens = await exchangeToken(
       { grant_type: "authorization_code", code },
       redirectUri,
     );
+    accessToken = tokens.access_token;
 
     const db = createServiceClient();
     const { data: settings } = await db
@@ -72,8 +67,9 @@ export async function GET(request: NextRequest) {
   // Backfill immediately so the dashboard has history on first load. The daily
   // cron keeps it current afterward; a failure here isn't fatal to connecting.
   try {
-    await syncOura(90);
-  } catch {
+    await syncOura(90, 7, accessToken);
+  } catch (err) {
+    console.error("[oura] initial sync after connect failed:", err);
     return NextResponse.redirect(`${origin}/?oura=connected&sync=failed`);
   }
 
