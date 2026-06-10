@@ -19,13 +19,6 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Kova",
   },
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
-    ],
-    apple: "/icons/apple-touch-icon.png",
-  },
 };
 
 export const viewport: Viewport = {

@@ -44,6 +44,6 @@ export const config = {
   // Run on everything except static assets and PWA files so the login page and
   // service worker still load while logged out.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|icons/|robots.txt|.*\\.svg$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.json|sw.js|icons/|robots.txt|.*\\.svg$).*)",
   ],
 };
