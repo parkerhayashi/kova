@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ProgressRing } from "@/components/charts/ProgressRing";
+import { ScoreRing } from "@/components/charts/ScoreRing";
 import { getHealthSnapshot } from "@/lib/data/health-snapshot";
 import { formatDuration } from "@/lib/utils";
 import { formatR } from "@/lib/trends/correlation";
@@ -56,6 +58,11 @@ export async function HealthSnapshot() {
       })
     : "log on workouts";
 
+  const waterCaption =
+    data.water.ml > 0
+      ? `${data.water.ml} / ${data.water.goalMl} ml`
+      : "tap to log";
+
   return (
     <section className="snapshot-section section">
       <div className="snapshot-header">
@@ -76,51 +83,57 @@ export async function HealthSnapshot() {
 
       <div className="snapshot-grid snapshot-grid-3">
         <Link href="/today" className="snapshot-link-card">
-          <SnapshotMetric
-            label="Readiness"
-            value={data.oura.readinessScore}
-            accent="var(--color-recovery)"
-          />
+          <div className="snapshot-metric dash-card snapshot-metric-rings">
+            <span className="metric-label">Readiness</span>
+            <ScoreRing
+              value={data.oura.readinessScore}
+              accent="recovery"
+              size={80}
+            />
+          </div>
         </Link>
         <Link href="/today" className="snapshot-link-card">
-          <SnapshotMetric
-            label="Sleep"
-            value={data.oura.sleepScore}
-            accent="var(--color-sleep)"
-          />
+          <div className="snapshot-metric dash-card snapshot-metric-rings">
+            <span className="metric-label">Sleep</span>
+            <ScoreRing value={data.oura.sleepScore} accent="sleep" size={80} />
+          </div>
         </Link>
         <Link href="/today" className="snapshot-link-card">
-          <SnapshotMetric
-            label="Activity"
-            value={data.oura.activityScore}
-            accent="var(--color-activity)"
-          />
+          <div className="snapshot-metric dash-card snapshot-metric-rings">
+            <span className="metric-label">Activity</span>
+            <ScoreRing
+              value={data.oura.activityScore}
+              accent="activity"
+              size={80}
+            />
+          </div>
         </Link>
       </div>
 
       <div className="snapshot-grid snapshot-grid-2">
         <Link href="/nutrition" className="snapshot-link-card">
-          <div className="snapshot-metric dash-card">
+          <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Nutrition</span>
-            <span
-              className="snapshot-value"
-              style={
-                data.nutrition.calories != null
-                  ? { color: "var(--color-nutrition)" }
-                  : undefined
-              }
-            >
-              {data.nutrition.calories != null
-                ? Math.round(data.nutrition.calories)
-                : "—"}
-              <span className="snapshot-unit">kcal</span>
-            </span>
+            <div className="snapshot-rings-row">
+              <ProgressRing
+                value={data.nutrition.calories}
+                max={data.nutrition.goalCalories}
+                label="Cal"
+                unit="kcal"
+                accent="nutrition"
+                size={72}
+              />
+              <ProgressRing
+                value={data.nutrition.protein_g}
+                max={data.nutrition.goalProtein_g}
+                label="Protein"
+                unit="g"
+                accent="nutrition"
+                size={72}
+              />
+            </div>
             <span className="snapshot-caption">
-              P{" "}
-              {data.nutrition.protein_g != null
-                ? `${Math.round(data.nutrition.protein_g)}g`
-                : "—"}{" "}
-              · C{" "}
+              C{" "}
               {data.nutrition.carbs_g != null
                 ? `${Math.round(data.nutrition.carbs_g)}g`
                 : "—"}{" "}
@@ -135,13 +148,17 @@ export async function HealthSnapshot() {
           </div>
         </Link>
         <Link href="/water" className="snapshot-link-card">
-          <SnapshotMetric
-            label="Water"
-            value={data.water.ml > 0 ? data.water.ml : null}
-            unit={`/ ${data.water.goalMl} ml`}
-            caption={data.water.ml > 0 ? "logged today" : "tap to log"}
-            accent="var(--color-sleep)"
-          />
+          <div className="snapshot-metric dash-card snapshot-metric-rings">
+            <span className="metric-label">Water</span>
+            <ProgressRing
+              value={data.water.ml > 0 ? data.water.ml : null}
+              max={data.water.goalMl}
+              unit="ml"
+              accent="sleep"
+              size={80}
+              caption={waterCaption}
+            />
+          </div>
         </Link>
       </div>
 

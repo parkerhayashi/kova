@@ -46,6 +46,7 @@ export type HealthSnapshotData = {
     carbs_g: number | null;
     fat_g: number | null;
     goalCalories: number;
+    goalProtein_g: number;
     burnLabel: string;
   };
   water: { ml: number; goalMl: number };
@@ -141,6 +142,7 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       carbs_g: mealTotals.carbs_g ?? null,
       fat_g: mealTotals.fat_g ?? null,
       goalCalories: nutritionGoals.calories,
+      goalProtein_g: nutritionGoals.protein_g,
       burnLabel: burnSourceLabel(nutritionGoals.meta.burn_source).toLowerCase(),
     },
     water: { ml: waterMl, goalMl: waterGoalMl },
