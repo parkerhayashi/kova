@@ -42,6 +42,10 @@ export const SPLASH_BOOT_SCRIPT = `
     return;
   }
 
+  var MIN_MS = 1000;
+  var shownAt = 0;
+  var loaded = false;
+
   function dismiss(el) {
     try {
       sessionStorage.setItem("kova:splash-dismissed", "1");
@@ -52,6 +56,18 @@ export const SPLASH_BOOT_SCRIPT = `
     }, 280);
   }
 
+  function tryDismiss(el) {
+    if (!loaded) return;
+    var remaining = MIN_MS - (Date.now() - shownAt);
+    if (remaining > 0) {
+      window.setTimeout(function () {
+        dismiss(el);
+      }, remaining);
+    } else {
+      dismiss(el);
+    }
+  }
+
   function start() {
     if (!document.body) return;
 
@@ -60,14 +76,17 @@ export const SPLASH_BOOT_SCRIPT = `
     el.setAttribute("aria-hidden", "true");
     el.innerHTML = ${JSON.stringify(splashMarkup)};
     document.body.prepend(el);
+    shownAt = Date.now();
 
     if (document.readyState === "complete") {
-      dismiss(el);
+      loaded = true;
+      tryDismiss(el);
     } else {
       window.addEventListener(
         "load",
         function () {
-          dismiss(el);
+          loaded = true;
+          tryDismiss(el);
         },
         { once: true },
       );
