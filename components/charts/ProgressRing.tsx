@@ -64,11 +64,10 @@ export function ProgressRing({
         </svg>
         <div className="absolute flex flex-col items-center">
           <span
-            className="snapshot-ring-value tabular-nums"
-            style={{
-              fontSize: size * 0.26,
-              color: hasValue ? color : undefined,
-            }}
+            className={`snapshot-ring-value tabular-nums ${
+              hasValue ? "text-text-primary" : "text-text-muted"
+            }`}
+            style={{ fontSize: size * 0.26 }}
           >
             {display}
           </span>
