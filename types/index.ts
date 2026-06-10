@@ -502,6 +502,7 @@ export interface Supplement {
   default_dose: number | null;
   unit: string | null;
   notes: string | null;
+  nutrients: Record<string, number> | null;
   is_active: boolean;
   sort_order: number;
   created_at: string;

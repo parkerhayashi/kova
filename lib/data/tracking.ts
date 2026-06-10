@@ -150,6 +150,26 @@ export async function getSupplementLogs(sinceDays: number): Promise<SupplementLo
   return (data as SupplementLog[]) ?? [];
 }
 
+export async function getSupplementLogsForDate(date: string): Promise<SupplementLog[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("supplement_logs")
+    .select("*")
+    .eq("date", date)
+    .eq("taken", true);
+  return (data as SupplementLog[]) ?? [];
+}
+
+export async function getSupplementLogsSince(startDate: string): Promise<SupplementLog[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("supplement_logs")
+    .select("*")
+    .gte("date", startDate)
+    .eq("taken", true);
+  return (data as SupplementLog[]) ?? [];
+}
+
 export async function setSupplementTaken(input: {
   supplementId: string;
   date: string;
@@ -177,11 +197,14 @@ export async function addSupplement(input: {
   default_dose: number | null;
   unit: string | null;
   notes: string | null;
+  nutrients?: Record<string, number> | null;
 }): Promise<void> {
   const db = createServiceClient();
-  await db
-    .from("supplements")
-    .insert({ ...input, sort_order: await nextSortOrder("supplements") });
+  await db.from("supplements").insert({
+    ...input,
+    nutrients: input.nutrients ?? null,
+    sort_order: await nextSortOrder("supplements"),
+  });
 }
 
 export async function updateSupplement(

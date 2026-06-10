@@ -327,6 +327,48 @@ export async function reorderSessionExercises(
   }
 }
 
+export async function addSessionExercise(
+  sessionId: string,
+  exerciseId: string,
+): Promise<void> {
+  const db = createServiceClient();
+  const { data: last } = await db
+    .from("workout_session_exercises")
+    .select("position")
+    .eq("session_id", sessionId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const position = (last?.position ?? -1) + 1;
+  const { error } = await db.from("workout_session_exercises").insert({
+    session_id: sessionId,
+    exercise_id: exerciseId,
+    position,
+    target_sets: 3,
+    rest_seconds: 180,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateSessionExercise(
+  sessionExerciseId: string,
+  patch: { notes?: string | null; rest_seconds?: number; target_sets?: number },
+): Promise<void> {
+  const db = createServiceClient();
+  const payload: Record<string, unknown> = {};
+  if ("notes" in patch) payload.notes = patch.notes;
+  if (patch.rest_seconds != null) payload.rest_seconds = patch.rest_seconds;
+  if (patch.target_sets != null) payload.target_sets = patch.target_sets;
+  if (Object.keys(payload).length === 0) return;
+
+  const { error } = await db
+    .from("workout_session_exercises")
+    .update(payload)
+    .eq("id", sessionExerciseId);
+  if (error) throw new Error(error.message);
+}
+
 export async function replaceSessionExercise(
   sessionExerciseId: string,
   newExerciseId: string,
@@ -522,6 +564,72 @@ export async function getExerciseHistory(
     }))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, limit);
+}
+
+/** Last completed session's working sets keyed by set_index (for live workout "Previous" column). */
+export async function getLastSessionSetsByIndex(
+  exerciseId: string,
+  excludeSessionId?: string,
+): Promise<Record<number, { weight_lbs: number; reps: number }>> {
+  const history = await getExerciseHistory(exerciseId, 20);
+  const last = history.find((s) => s.session_id !== excludeSessionId);
+  if (!last) return {};
+
+  const byIndex: Record<number, { weight_lbs: number; reps: number }> = {};
+  for (const set of last.sets) {
+    if (set.is_warmup) continue;
+    if (set.weight_lbs == null || set.reps == null) continue;
+    byIndex[set.set_index] = { weight_lbs: set.weight_lbs, reps: set.reps };
+  }
+  return byIndex;
+}
+
+export type ExerciseProgressMetric = "heaviest" | "est_1rm" | "set_volume";
+
+export type ExerciseProgressPoint = {
+  date: string;
+  label: string;
+  value: number;
+};
+
+function formatProgressLabel(date: string): string {
+  const d = new Date(`${date}T12:00:00`);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+export async function getExerciseProgressTrend(
+  exerciseId: string,
+  metric: ExerciseProgressMetric,
+  periodDays = 90,
+): Promise<ExerciseProgressPoint[]> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const since = addDays(today, -(periodDays - 1));
+  const history = await getExerciseHistory(exerciseId, 100);
+
+  const points: ExerciseProgressPoint[] = [];
+  for (const session of history) {
+    if (session.date < since) continue;
+    let best = 0;
+    for (const set of session.sets) {
+      if (set.is_warmup || !set.completed) continue;
+      if (set.weight_lbs == null || set.reps == null) continue;
+      let v = 0;
+      if (metric === "heaviest") v = set.weight_lbs;
+      else if (metric === "est_1rm") v = estimate1RM(set.weight_lbs, set.reps);
+      else v = setVolume(set.weight_lbs, set.reps);
+      if (v > best) best = v;
+    }
+    if (best > 0) {
+      points.push({
+        date: session.date,
+        label: formatProgressLabel(session.date),
+        value: Math.round(best * 10) / 10,
+      });
+    }
+  }
+
+  return points.sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export async function getSessionDetail(

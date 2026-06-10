@@ -8,6 +8,7 @@ import { Field, Input } from "@/components/ui/Input";
 import type { Supplement } from "@/types";
 import {
   searchSupplements,
+  catalogPresetForName,
   type SupplementPreset,
 } from "@/lib/supplementCatalog";
 import {
@@ -62,6 +63,7 @@ export function SupplementManager({ supplements }: { supplements: Supplement[] }
       default_dose: dose ? Number(dose) : null,
       unit: unit.trim() || null,
       notes: note.trim() || null,
+      nutrients: catalogPresetForName(name.trim())?.nutrients ?? null,
     };
     setName("");
     setDose("");

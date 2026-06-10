@@ -133,6 +133,18 @@ export function sumMeals(meals: Meal[]): DailyTotals {
   return totals;
 }
 
+/** Merge two daily total maps (meals + supplements, etc.). */
+export function mergeDailyTotals(a: DailyTotals, b: DailyTotals): DailyTotals {
+  const totals: DailyTotals = { ...a };
+  for (const key of NUMERIC_MEAL_KEYS) {
+    const v = b[key];
+    if (typeof v === "number") {
+      totals[key] = Math.round(((totals[key] ?? 0) + v) * 10) / 10;
+    }
+  }
+  return totals;
+}
+
 export function macroCalories(totals: DailyTotals): {
   protein: number;
   carbs: number;

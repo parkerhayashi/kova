@@ -12,7 +12,13 @@ import {
   type ComputedNutritionGoals,
   type GoalInputs,
 } from "@/lib/nutrition-goals";
-import { sumMeals, type DailyTotals } from "@/lib/nutrition";
+import { sumMeals, mergeDailyTotals, type DailyTotals } from "@/lib/nutrition";
+import { sumTakenSupplements } from "@/lib/supplement-nutrition";
+import {
+  getSupplementLogsForDate,
+  getSupplementLogsSince,
+  getSupplements,
+} from "@/lib/data/tracking";
 import { addDays, todayInTimezone } from "@/lib/utils";
 import type { Activity, Meal } from "@/types";
 
@@ -90,8 +96,14 @@ export async function getMealsSince(days: number): Promise<Meal[]> {
 }
 
 export async function getDailyTotals(date: string): Promise<DailyTotals> {
-  const meals = await getMealsForDate(date);
-  return sumMeals(meals);
+  const [meals, supplements, logs] = await Promise.all([
+    getMealsForDate(date),
+    getSupplements(true),
+    getSupplementLogsForDate(date),
+  ]);
+  const mealTotals = sumMeals(meals);
+  const supplementTotals = sumTakenSupplements(supplements, logs);
+  return mergeDailyTotals(mealTotals, supplementTotals);
 }
 
 export async function addMeal(
@@ -112,11 +124,14 @@ export async function getCalorieTrend(
   days: number,
 ): Promise<{ date: string; calories: number; goal: number }[]> {
   const timezone = await getTimezone();
-  const [meals, activityRows, settings, profile] = await Promise.all([
+  const [meals, activityRows, settings, profile, supplements, supplementLogs] =
+    await Promise.all([
     getMealsSince(days),
     getActivityHistory(days),
     getUserSettings(),
     getUserProfile(),
+    getSupplements(true),
+    getSupplementLogsSince(addDays(todayInTimezone(timezone), -(days - 1))),
   ]);
 
   const activityByDate = new Map<string, Activity>(
@@ -127,6 +142,13 @@ export async function getCalorieTrend(
     const list = mealsByDate.get(meal.date) ?? [];
     list.push(meal);
     mealsByDate.set(meal.date, list);
+  }
+
+  const supplementLogsByDate = new Map<string, typeof supplementLogs>();
+  for (const log of supplementLogs) {
+    const list = supplementLogsByDate.get(log.date) ?? [];
+    list.push(log);
+    supplementLogsByDate.set(log.date, list);
   }
 
   const baseInputs: Omit<GoalInputs, "oura_total_calories" | "oura_active_calories"> =
@@ -153,9 +175,14 @@ export async function getCalorieTrend(
       oura_active_calories: activity?.active_calories ?? null,
     });
     const dayMeals = mealsByDate.get(date) ?? [];
+    const daySupplementLogs = supplementLogsByDate.get(date) ?? [];
+    const dayTotals = mergeDailyTotals(
+      sumMeals(dayMeals),
+      sumTakenSupplements(supplements, daySupplementLogs),
+    );
     out.push({
       date,
-      calories: Math.round(sumMeals(dayMeals).calories ?? 0),
+      calories: Math.round(dayTotals.calories ?? 0),
       goal: goals.calories,
     });
   }

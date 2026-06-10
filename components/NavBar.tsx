@@ -21,7 +21,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+/** Finances code stays at /finances — flip to true to show in nav again. */
+const FINANCES_NAV_ENABLED = false;
+
+const NAV_ALL = [
   { href: "/", label: "Home", icon: LayoutDashboard },
   { href: "/today", label: "Today", icon: Sun },
   { href: "/sleep", label: "Sleep", icon: Moon },
@@ -35,6 +38,10 @@ const NAV = [
   { href: "/finances", label: "Finances", icon: Wallet },
   { href: "/trends", label: "Trends", icon: TrendingUp },
 ] as const;
+
+const NAV = FINANCES_NAV_ENABLED
+  ? NAV_ALL
+  : NAV_ALL.filter((item) => item.href !== "/finances");
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);

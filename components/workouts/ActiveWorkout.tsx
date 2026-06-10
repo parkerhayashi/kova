@@ -1,21 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { RestTimer } from "@/components/workouts/RestTimer";
 import { CoachPrescriptionBadge } from "@/components/workouts/CoachPrescriptionBadge";
+import { ExerciseSearchModal } from "@/components/workouts/ExerciseSearchModal";
+import { ExerciseThumb } from "@/components/workouts/ExerciseThumb";
+import { MuscleMapBadge } from "@/components/workouts/MuscleMapBadge";
 import { SetLogger } from "@/components/workouts/SetLogger";
-import { WorkoutTimer } from "@/components/workouts/WorkoutTimer";
+import { WorkoutClockSheet } from "@/components/workouts/WorkoutClockSheet";
+import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
+import { useWorkoutElapsed } from "@/components/workouts/WorkoutTimer";
 import {
-  formatCoachTarget,
   getPrescriptionForTrainExercise,
   syncSessionToCoach,
 } from "@/lib/coach-bridge";
-import { cn } from "@/lib/utils";
-import { formatRepRange, formatRest, sessionVolumeLbs } from "@/lib/workouts";
-import type { ActiveWorkoutView, Exercise, SessionExerciseView } from "@/types";
+import { formatRest, sessionVolumeLbs } from "@/lib/workouts";
+import type { ActiveWorkoutView, SessionExerciseView } from "@/types";
+
+function countLoggedSets(exercises: SessionExerciseView[]): number {
+  let n = 0;
+  for (const ex of exercises) {
+    for (const set of ex.sets) {
+      if (set.completed) n += 1;
+    }
+  }
+  return n;
+}
+
+type ClockState = {
+  open: boolean;
+  seconds: number;
+  autoStart: boolean;
+  mode: "timer" | "stopwatch";
+};
 
 export function ActiveWorkout({
   workout,
@@ -26,20 +44,30 @@ export function ActiveWorkout({
   onUpdate: (workout: ActiveWorkoutView | null) => void;
   onComplete: () => void;
 }) {
-  const [expandedId, setExpandedId] = useState<string | null>(
-    workout.exercises[0]?.session_exercise_id ?? null,
-  );
-  const [restTimer, setRestTimer] = useState<{ seconds: number; key: number } | null>(null);
-
-  function startRest(seconds: number) {
-    setRestTimer({ seconds, key: Date.now() });
-  }
+  const [clock, setClock] = useState<ClockState>({
+    open: false,
+    seconds: 180,
+    autoStart: false,
+    mode: "timer",
+  });
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [replaceTarget, setReplaceTarget] = useState<SessionExerciseView | null>(null);
-  const [searchQ, setSearchQ] = useState("");
-  const [searchResults, setSearchResults] = useState<Exercise[]>([]);
+  const [detailExerciseId, setDetailExerciseId] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
 
+  const elapsed = useWorkoutElapsed(workout.session.started_at);
   const volume = sessionVolumeLbs(workout.exercises);
+  const loggedSets = useMemo(
+    () => countLoggedSets(workout.exercises),
+    [workout.exercises],
+  );
+
+  function openClock(seconds: number, autoStart: boolean, mode: "timer" | "stopwatch" = "timer") {
+    setClock({ open: true, seconds, autoStart, mode });
+  }
 
   async function apiAction(body: Record<string, unknown>) {
     setBusy(true);
@@ -107,14 +135,19 @@ export function ActiveWorkout({
       ordered_ids: ordered.map((e) => e.session_exercise_id),
     });
     if (result && "session" in result) onUpdate(result);
+    setMenuOpenId(null);
   }
 
-  async function searchExercises(q: string) {
-    setSearchQ(q);
-    const res = await fetch(`/api/workouts/exercises?q=${encodeURIComponent(q)}`);
-    if (!res.ok) return;
-    const json = await res.json();
-    setSearchResults(json.exercises ?? []);
+  async function addExercise(exerciseId: string) {
+    const result = await apiAction({
+      action: "add_exercise",
+      session_id: workout.session.id,
+      exercise_id: exerciseId,
+    });
+    if (result && "session" in result) {
+      onUpdate(result);
+      setAddExerciseOpen(false);
+    }
   }
 
   async function confirmReplace(exerciseId: string) {
@@ -128,172 +161,267 @@ export function ActiveWorkout({
     if (result && "session" in result) {
       onUpdate(result);
       setReplaceTarget(null);
-      setSearchQ("");
-      setSearchResults([]);
     }
   }
 
-  return (
-    <div className="space-y-4 pb-24">
-      <Card className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-text-primary">
-            {workout.session.title ?? "Workout"}
-          </h2>
-          <p className="text-sm text-text-secondary">
-            {workout.exercises.length} exercises ·{" "}
-            <span className="text-[color:var(--color-activity)]">{volume.toLocaleString()} lb</span>{" "}
-            volume
-          </p>
-        </div>
-        <WorkoutTimer startedAt={workout.session.started_at} />
-      </Card>
+  async function saveNotes(sessionExerciseId: string, notes: string) {
+    const result = await apiAction({
+      action: "update_exercise",
+      session_id: workout.session.id,
+      session_exercise_id: sessionExerciseId,
+      notes: notes.trim() || null,
+    });
+    if (result && "session" in result) onUpdate(result);
+  }
 
-      <div className="space-y-3">
+  function noteValue(ex: SessionExerciseView): string {
+    return notesDraft[ex.session_exercise_id] ?? ex.notes ?? "";
+  }
+
+  return (
+    <div className="pb-32">
+      <div className="sticky top-0 z-30 -mx-1 border-b border-border bg-background/95 px-1 pb-3 pt-1 backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="truncate text-base font-semibold text-text-primary">
+              {workout.session.title ?? "Log workout"}
+            </h2>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              aria-label="Open stopwatch"
+              className="rounded-lg border border-border px-2.5 py-2 text-text-secondary hover:border-border-strong hover:text-text-primary"
+              onClick={() => openClock(0, false, "stopwatch")}
+            >
+              ⏱
+            </button>
+            <Button
+              variant="primary"
+              className="px-4 py-2 text-sm"
+              onClick={() => void finishWorkout()}
+              disabled={busy}
+            >
+              Finish
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5">
+          <div className="grid flex-1 grid-cols-3 gap-2">
+            <div>
+              <p className="metric-label">Duration</p>
+              <p className="mt-0.5 font-mono text-sm tabular-nums text-[color:var(--color-activity)]">
+                {formatRest(elapsed)}
+              </p>
+            </div>
+            <div>
+              <p className="metric-label">Volume</p>
+              <p className="mt-0.5 font-mono text-sm tabular-nums text-text-primary">
+                {volume.toLocaleString()} lbs
+              </p>
+            </div>
+            <div>
+              <p className="metric-label">Sets</p>
+              <p className="mt-0.5 font-mono text-sm tabular-nums text-text-primary">
+                {loggedSets}
+              </p>
+            </div>
+          </div>
+          <MuscleMapBadge exercises={workout.exercises} />
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-3">
         {workout.exercises.map((ex, index) => {
-          const open = expandedId === ex.session_exercise_id;
-          const loggedSets = ex.sets.filter((s) => s.completed).length;
-          const coachRx = getPrescriptionForTrainExercise(
-            ex,
-            workout.session.title,
-          );
+          const loggedForEx = ex.sets.filter((s) => s.completed).length;
+          const coachRx = getPrescriptionForTrainExercise(ex, workout.session.title);
+          const menuOpen = menuOpenId === ex.session_exercise_id;
+
           return (
-            <Card key={ex.session_exercise_id} className="p-4">
-              <button
-                type="button"
-                className="flex w-full items-start justify-between gap-3 text-left"
-                onClick={() =>
-                  setExpandedId(open ? null : ex.session_exercise_id)
-                }
-              >
+            <Card key={ex.session_exercise_id} className="overflow-visible p-4">
+              <div className="flex items-start gap-3">
+                <ExerciseThumb exercise={ex.exercise} size="md" />
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-text-primary">{ex.exercise.name}</p>
-                  <p className="mt-0.5 text-sm text-text-muted">
-                    {ex.target_sets} sets · {formatRepRange(ex.rep_min, ex.rep_max)} · Rest{" "}
-                    {formatRest(ex.rest_seconds)}
-                    {loggedSets > 0 ? (
-                      <span className="text-[color:var(--color-recovery)]">
-                        {" "}
-                        · {loggedSets}/{ex.target_sets} logged
-                      </span>
-                    ) : null}
-                  </p>
-                  {coachRx && !open ? (
-                    <p className="mt-1 text-xs text-[color:var(--color-recovery)]">
-                      Coach · {coachRx.tag}: {formatCoachTarget(coachRx)}
+                  <div className="flex items-start justify-between gap-2">
+                    <button
+                      type="button"
+                      className="text-left"
+                      onClick={() => setDetailExerciseId(ex.exercise.id)}
+                    >
+                      <p className="font-semibold text-text-primary hover:underline">
+                        {ex.exercise.name}
+                      </p>
+                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        aria-label="Exercise options"
+                        className="rounded-lg px-2 py-1 text-text-muted hover:bg-[rgba(255,255,255,0.06)] hover:text-text-primary"
+                        onClick={() =>
+                          setMenuOpenId(menuOpen ? null : ex.session_exercise_id)
+                        }
+                      >
+                        ⋯
+                      </button>
+                      {menuOpen ? (
+                        <>
+                          <button
+                            type="button"
+                            className="fixed inset-0 z-10"
+                            aria-label="Close menu"
+                            onClick={() => setMenuOpenId(null)}
+                          />
+                          <div className="absolute right-0 top-full z-20 mt-1 min-w-[9rem] rounded-xl border border-border bg-surface-raised py-1 shadow-lg">
+                            <button
+                              type="button"
+                              className="block w-full px-3 py-2 text-left text-sm text-text-secondary hover:bg-[rgba(255,255,255,0.06)] disabled:opacity-40"
+                              disabled={busy || index === 0}
+                              onClick={() => void moveExercise(index, -1)}
+                            >
+                              Move up
+                            </button>
+                            <button
+                              type="button"
+                              className="block w-full px-3 py-2 text-left text-sm text-text-secondary hover:bg-[rgba(255,255,255,0.06)] disabled:opacity-40"
+                              disabled={busy || index === workout.exercises.length - 1}
+                              onClick={() => void moveExercise(index, 1)}
+                            >
+                              Move down
+                            </button>
+                            <button
+                              type="button"
+                              className="block w-full px-3 py-2 text-left text-sm text-text-secondary hover:bg-[rgba(255,255,255,0.06)]"
+                              disabled={busy}
+                              onClick={() => {
+                                setMenuOpenId(null);
+                                setReplaceTarget(ex);
+                              }}
+                            >
+                              Replace
+                            </button>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <textarea
+                    placeholder="Add notes here…"
+                    rows={2}
+                    value={noteValue(ex)}
+                    onChange={(e) =>
+                      setNotesDraft((prev) => ({
+                        ...prev,
+                        [ex.session_exercise_id]: e.target.value,
+                      }))
+                    }
+                    onBlur={(e) =>
+                      void saveNotes(ex.session_exercise_id, e.target.value)
+                    }
+                    className="mt-2 w-full resize-none rounded-lg border border-transparent bg-transparent px-0 py-1 text-sm text-text-secondary placeholder:text-text-muted focus:border-border focus:bg-[rgba(255,255,255,0.02)] focus:outline-none"
+                  />
+
+                  {loggedForEx > 0 ? (
+                    <p className="text-xs text-[color:var(--color-recovery)]">
+                      {loggedForEx} set{loggedForEx === 1 ? "" : "s"} logged
                     </p>
                   ) : null}
                 </div>
-                <span className="text-text-muted">{open ? "−" : "+"}</span>
-              </button>
+              </div>
 
-              {open ? (
-                <div>
-                  <CoachPrescriptionBadge rx={coachRx} />
+              <CoachPrescriptionBadge rx={coachRx} />
 
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="text-xs"
-                      disabled={busy || index === 0}
-                      onClick={() => void moveExercise(index, -1)}
-                    >
-                      Move up
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="text-xs"
-                      disabled={busy || index === workout.exercises.length - 1}
-                      onClick={() => void moveExercise(index, 1)}
-                    >
-                      Move down
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="text-xs"
-                      disabled={busy}
-                      onClick={() => {
-                        setReplaceTarget(ex);
-                        void searchExercises("");
-                      }}
-                    >
-                      Replace
-                    </Button>
-                  </div>
-
-                  <SetLogger
-                    key={`${ex.session_exercise_id}-${ex.sets.length}`}
-                    sessionId={workout.session.id}
-                    exercise={ex}
-                    routineTitle={workout.session.title}
-                    onSaved={onUpdate}
-                    onRestStart={startRest}
-                  />
-                </div>
-              ) : null}
+              <SetLogger
+                sessionId={workout.session.id}
+                exercise={ex}
+                routineTitle={workout.session.title}
+                onSaved={onUpdate}
+                onOpenClock={(seconds, autoStart) => openClock(seconds, autoStart)}
+              />
             </Card>
           );
         })}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button variant="primary" onClick={() => void finishWorkout()} disabled={busy}>
-          Finish workout
+      <div className="mt-4 space-y-2">
+        <Button
+          variant="solid"
+          className="w-full"
+          onClick={() => setAddExerciseOpen(true)}
+          disabled={busy}
+        >
+          + Add Exercise
         </Button>
-        <Button variant="danger" onClick={() => void cancelWorkout()} disabled={busy}>
-          Discard
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="ghost" onClick={() => setSettingsOpen(true)} disabled={busy}>
+            Settings
+          </Button>
+          <Button variant="danger" onClick={() => void cancelWorkout()} disabled={busy}>
+            Discard workout
+          </Button>
+        </div>
       </div>
 
-      {restTimer != null && restTimer.seconds > 0 ? (
-        <RestTimer
-          key={restTimer.key}
-          initialSeconds={restTimer.seconds}
-          onDone={() => setRestTimer(null)}
-          onSkip={() => setRestTimer(null)}
+      <WorkoutClockSheet
+        open={clock.open}
+        initialMode={clock.mode}
+        initialSeconds={clock.mode === "stopwatch" ? 0 : clock.seconds}
+        autoStart={clock.autoStart}
+        onClose={() => setClock((c) => ({ ...c, open: false }))}
+        onTimerComplete={() => setClock((c) => ({ ...c, open: false }))}
+      />
+
+      {addExerciseOpen ? (
+        <ExerciseSearchModal
+          title="Add exercise"
+          onClose={() => setAddExerciseOpen(false)}
+          onSelect={addExercise}
         />
       ) : null}
 
       {replaceTarget ? (
+        <ExerciseSearchModal
+          title="Replace exercise"
+          onClose={() => setReplaceTarget(null)}
+          onSelect={confirmReplace}
+        />
+      ) : null}
+
+      {detailExerciseId ? (
+        <ExerciseDetailPanel
+          exerciseId={detailExerciseId}
+          onClose={() => setDetailExerciseId(null)}
+        />
+      ) : null}
+
+      {settingsOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <Card className="max-h-[80vh] w-full max-w-md overflow-y-auto">
+          <Card className="w-full max-w-md">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-medium text-text-primary">Replace exercise</h3>
+              <h3 className="font-medium text-text-primary">Workout settings</h3>
               <button
                 type="button"
                 className="text-text-muted hover:text-text-primary"
-                onClick={() => setReplaceTarget(null)}
+                onClick={() => setSettingsOpen(false)}
               >
                 ✕
               </button>
             </div>
-            <Input
-              placeholder="Search exercises…"
-              value={searchQ}
-              onChange={(e) => void searchExercises(e.target.value)}
-              autoFocus
-            />
-            <ul className="mt-3 space-y-1">
-              {searchResults.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    className={cn(
-                      "w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-[rgba(255,255,255,0.06)]",
-                    )}
-                    onClick={() => void confirmReplace(item.id)}
-                  >
-                    {item.name}
-                    {item.equipment ? (
-                      <span className="text-text-muted"> · {item.equipment}</span>
-                    ) : null}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <p className="text-sm text-text-secondary">
+              Rest timers use each exercise&apos;s configured rest (default 3 min). Tap
+              &ldquo;Rest timer&rdquo; under an exercise to adjust before starting.
+            </p>
+            <p className="mt-3 text-sm text-text-muted">
+              Use the header stopwatch for a free-running timer during your session.
+            </p>
+            <Button
+              variant="primary"
+              className="mt-4 w-full"
+              onClick={() => setSettingsOpen(false)}
+            >
+              Done
+            </Button>
           </Card>
         </div>
       ) : null}

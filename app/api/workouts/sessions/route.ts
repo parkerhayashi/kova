@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  addSessionExercise,
   cancelSession,
   completeSession,
   getActiveWorkout,
@@ -7,6 +8,7 @@ import {
   reorderSessionExercises,
   replaceSessionExercise,
   startSessionFromRoutine,
+  updateSessionExercise,
   upsertWorkoutSet,
 } from "@/lib/data/workouts";
 import { checkSetPRs } from "@/lib/workouts";
@@ -63,6 +65,41 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Invalid input" }, { status: 400 });
       }
       await replaceSessionExercise(sessionExerciseId, exerciseId);
+      const workout = await getActiveWorkout(sessionId);
+      return NextResponse.json(workout);
+    }
+
+    if (action === "add_exercise") {
+      const exerciseId =
+        typeof body?.exercise_id === "string" ? body.exercise_id : "";
+      if (!exerciseId) {
+        return NextResponse.json({ error: "exercise_id required" }, { status: 400 });
+      }
+      await addSessionExercise(sessionId, exerciseId);
+      const workout = await getActiveWorkout(sessionId);
+      return NextResponse.json(workout);
+    }
+
+    if (action === "update_exercise") {
+      const sessionExerciseId =
+        typeof body?.session_exercise_id === "string"
+          ? body.session_exercise_id
+          : "";
+      if (!sessionExerciseId) {
+        return NextResponse.json({ error: "session_exercise_id required" }, { status: 400 });
+      }
+      const patch: {
+        notes?: string | null;
+        rest_seconds?: number;
+        target_sets?: number;
+      } = {};
+      if ("notes" in body) {
+        patch.notes =
+          body.notes === null || typeof body.notes === "string" ? body.notes : null;
+      }
+      if (body?.rest_seconds != null) patch.rest_seconds = Number(body.rest_seconds);
+      if (body?.target_sets != null) patch.target_sets = Number(body.target_sets);
+      await updateSessionExercise(sessionExerciseId, patch);
       const workout = await getActiveWorkout(sessionId);
       return NextResponse.json(workout);
     }

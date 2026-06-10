@@ -7,10 +7,13 @@ import {
   setSupplementTaken,
   updateSupplement,
 } from "@/lib/data/tracking";
+import { catalogPresetForName } from "@/lib/supplementCatalog";
 
 function refresh() {
   revalidatePath("/supplements");
   revalidatePath("/");
+  revalidatePath("/nutrition");
+  revalidatePath("/today");
 }
 
 export async function toggleSupplement(
@@ -38,9 +41,15 @@ export async function createSupplement(input: {
   default_dose: number | null;
   unit: string | null;
   notes: string | null;
+  nutrients?: Record<string, number> | null;
 }): Promise<void> {
   if (!input.name.trim()) return;
-  await addSupplement({ ...input, name: input.name.trim() });
+  const preset = catalogPresetForName(input.name.trim());
+  await addSupplement({
+    ...input,
+    name: input.name.trim(),
+    nutrients: input.nutrients ?? preset?.nutrients ?? null,
+  });
   refresh();
 }
 

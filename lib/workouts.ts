@@ -25,6 +25,15 @@ export function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** Hevy-style previous set label, e.g. "130lbs x 8". */
+export function formatPreviousSet(
+  weightLbs: number | null | undefined,
+  reps: number | null | undefined,
+): string | null {
+  if (weightLbs == null || reps == null) return null;
+  return `${weightLbs}lbs x ${reps}`;
+}
+
 /** Epley estimated 1RM. */
 export function estimate1RM(weightLbs: number, reps: number): number {
   if (reps < 2) return weightLbs;

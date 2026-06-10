@@ -421,6 +421,8 @@ create table if not exists supplement_logs (
   unique (supplement_id, date)
 );
 
+alter table supplements add column if not exists nutrients jsonb;
+
 -- ---------------------------------------------------------------------------
 -- Settings, goals, and encrypted integration tokens
 -- ---------------------------------------------------------------------------
