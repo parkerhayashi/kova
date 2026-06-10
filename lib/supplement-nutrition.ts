@@ -2,22 +2,29 @@ import { mergeDailyTotals, scaleNutrients, type DailyTotals } from "@/lib/nutrit
 import { catalogNutrientsForName } from "@/lib/supplementCatalog";
 import type { Supplement, SupplementLog } from "@/types";
 
-/** Nutrients per the supplement's reference dose (default_dose or catalog dose). */
+/** Nutrients per the supplement's catalog reference dose (or default_dose when custom). */
 export function nutrientsForSupplement(
   supplement: Supplement,
 ): { baseDose: number; nutrients: DailyTotals } | null {
-  const stored = supplement.nutrients;
-  if (stored && Object.keys(stored).length > 0) {
-    return {
-      baseDose: supplement.default_dose ?? 1,
-      nutrients: stored,
-    };
-  }
-
   const catalog = catalogNutrientsForName(supplement.name);
-  if (!catalog) return null;
+  const stored = supplement.nutrients;
+  const hasStored = stored != null && Object.keys(stored).length > 0;
 
-  return { baseDose: catalog.dose, nutrients: catalog.nutrients };
+  const nutrients = hasStored
+    ? { ...(catalog?.nutrients ?? {}), ...stored }
+    : catalog?.nutrients;
+
+  if (!nutrients || Object.keys(nutrients).length === 0) return null;
+
+  // Catalog nutrients are defined per catalog dose (e.g. 1000 mg fish oil), not
+  // necessarily the user's default_dose. Using default_dose as the reference
+  // under-counts when they differ (2400 mg taken vs 1000 mg reference).
+  const baseDose =
+    catalog?.dose ??
+    supplement.default_dose ??
+    1;
+
+  return { baseDose, nutrients };
 }
 
 function doseMultiplier(supplement: Supplement, log: SupplementLog, baseDose: number): number {

@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/Card";
-import { DualTrendChart } from "@/components/charts/DualTrendChart";
+import { LazyDualTrendChart as DualTrendChart } from "@/components/charts/lazyCharts";
 import type { DualTrendView } from "@/lib/trends/types";
 
 export function DualTrendCard({ view }: { view: DualTrendView }) {

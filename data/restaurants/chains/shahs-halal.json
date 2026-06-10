@@ -1,0 +1,302 @@
+{
+  "id": "shahs-halal",
+  "name": "Shah's Halal Food",
+  "source": "shahshalalfood.com/nutrition-and-allergen",
+  "syncedAt": "2026-06-10T15:00:14.633Z",
+  "items": [
+    {
+      "id": "shahs-halal:chicken-over-rice",
+      "name": "Chicken Over Rice",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "212.6 g",
+      "serving_size_g": 213,
+      "tags": [],
+      "nutrients": {
+        "calories": 455,
+        "protein_g": null,
+        "carbs_g": null,
+        "fat_g": null,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:shahwarma-over-rice",
+      "name": "Shahwarma Over Rice",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "212.6 g",
+      "serving_size_g": 213,
+      "tags": [],
+      "nutrients": {
+        "calories": 412,
+        "protein_g": 133.37,
+        "carbs_g": 50,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:beef-and-lamb-over-rice",
+      "name": "Beef and Lamb Over Rice",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "212.6 g",
+      "serving_size_g": 213,
+      "tags": [],
+      "nutrients": {
+        "calories": 533,
+        "protein_g": 721.68,
+        "carbs_g": 47.28,
+        "fat_g": 6.81,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:all-lamb-over-rice",
+      "name": "All Lamb Over Rice",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "148.8 g",
+      "serving_size_g": 149,
+      "tags": [],
+      "nutrients": {
+        "calories": 492,
+        "protein_g": 408.37,
+        "carbs_g": 22.5,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:combo-over-rice",
+      "name": "Combo Over Rice",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "212.6 g",
+      "serving_size_g": 213,
+      "tags": [],
+      "nutrients": {
+        "calories": 523,
+        "protein_g": 504.475,
+        "carbs_g": 65.435,
+        "fat_g": 0.525,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:falafel-over-rice",
+      "name": "Falafel Over Rice",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "240.9 g",
+      "serving_size_g": 241,
+      "tags": [],
+      "nutrients": {
+        "calories": 630,
+        "protein_g": 603.78,
+        "carbs_g": 0,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:fish-over-rice-2pcs",
+      "name": "Fish Over Rice (2pcs)",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "212.6 g",
+      "serving_size_g": 213,
+      "tags": [],
+      "nutrients": {
+        "calories": 585,
+        "protein_g": 1,
+        "carbs_g": 25.875,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:kofta-kabab-over-rice",
+      "name": "Kofta Kabab Over Rice",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "191.35 g",
+      "serving_size_g": 191,
+      "tags": [],
+      "nutrients": {
+        "calories": 534,
+        "protein_g": 408.32,
+        "carbs_g": 102.2,
+        "fat_g": 0.035,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:chicken-gyro",
+      "name": "Chicken Gyro",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "538.6 g",
+      "serving_size_g": 539,
+      "tags": [],
+      "nutrients": {
+        "calories": 498,
+        "protein_g": 927.48,
+        "carbs_g": 149.21,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:all-lamb-gyro",
+      "name": "All Lamb Gyro",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "453.6 g",
+      "serving_size_g": 454,
+      "tags": [],
+      "nutrients": {
+        "calories": 594,
+        "protein_g": 1349.54,
+        "carbs_g": 100,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:falafel-gyro",
+      "name": "Falafel Gyro",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "566.9 g",
+      "serving_size_g": 567,
+      "tags": [],
+      "nutrients": {
+        "calories": 624,
+        "protein_g": 1339.54,
+        "carbs_g": 0,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:chicken-cheese-steak",
+      "name": "Chicken Cheese Steak",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "538.6 g",
+      "serving_size_g": 539,
+      "tags": [],
+      "nutrients": {
+        "calories": 897,
+        "protein_g": 1,
+        "carbs_g": 125.5,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:philly-cheese-steak",
+      "name": "Philly Cheese Steak",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "538.6 g",
+      "serving_size_g": 539,
+      "tags": [],
+      "nutrients": {
+        "calories": 955,
+        "protein_g": 1620.51,
+        "carbs_g": 108.45,
+        "fat_g": 0,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    },
+    {
+      "id": "shahs-halal:build-your-own-salad",
+      "name": "Build Your Own Salad",
+      "category": "Plates & Gyros",
+      "menu": null,
+      "servingSize": "1 serving",
+      "serving_size_g": 212,
+      "tags": [],
+      "nutrients": {
+        "calories": 11.9,
+        "protein_g": 34,
+        "carbs_g": 3.8,
+        "fat_g": 0.1,
+        "saturated_fat_g": null,
+        "trans_fat_g": null,
+        "cholesterol_mg": null,
+        "sodium_mg": null,
+        "fiber_g": null,
+        "sugar_g": null
+      }
+    }
+  ]
+}

@@ -418,6 +418,7 @@ export type MealSource =
   | "usda"
   | "open_food_facts"
   | "duke_dining"
+  | "restaurant"
   | "saved_meal"
   | "manual";
 

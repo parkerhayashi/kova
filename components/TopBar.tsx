@@ -56,11 +56,11 @@ function Pill({
   );
 }
 
-export function TopBar({ initialStack }: { initialStack: Progress }) {
+export function TopBar() {
   const [mounted, setMounted] = useState(false);
   const [goals, setGoals] = useState<Progress>({ done: 0, total: 0 });
   const [water, setWater] = useState<Progress>({ done: 0, total: 0 });
-  const [stack, setStack] = useState<Progress>(initialStack);
+  const [stack, setStack] = useState<Progress>({ done: 0, total: 0 });
   const [flash, setFlash] = useState(false);
 
   function readLocal() {
@@ -107,9 +107,7 @@ export function TopBar({ initialStack }: { initialStack: Progress }) {
     window.addEventListener("storage", onLocal);
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisible);
-    const iv = window.setInterval(onFocus, 60 * 1000);
     return () => {
-      window.clearInterval(iv);
       window.removeEventListener(GOALS_CHANGED_EVENT, onLocal);
       window.removeEventListener(WATER_CHANGED_EVENT, onLocal);
       window.removeEventListener("storage", onLocal);

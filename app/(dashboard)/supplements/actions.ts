@@ -62,7 +62,11 @@ export async function editSupplement(
     notes?: string | null;
   },
 ): Promise<void> {
-  await updateSupplement(id, fields);
+  const preset = fields.name ? catalogPresetForName(fields.name.trim()) : null;
+  await updateSupplement(id, {
+    ...fields,
+    ...(preset?.nutrients ? { nutrients: preset.nutrients } : {}),
+  });
   refresh();
 }
 

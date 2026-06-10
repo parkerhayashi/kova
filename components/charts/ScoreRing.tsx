@@ -58,7 +58,7 @@ export function ScoreRing({
       </svg>
       <div className="absolute flex flex-col items-center">
         <span
-          className="font-mono font-medium tracking-tight tabular-nums"
+          className="font-bold tracking-tight tabular-nums"
           style={{
             fontSize: size * 0.3,
             color: value !== null ? color : undefined,

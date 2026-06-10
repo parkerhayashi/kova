@@ -1,0 +1,10 @@
+{
+  "error": true,
+  "url": "https://www.jerseymikes.com/content/dam/jerseymikes/documents/nutrition/Jersey-Mikes-Nutrition-Guide.pdf",
+  "statusCode": 404,
+  "statusMessage": "Page not found: /content/dam/jerseymikes/documents/nutrition/Jersey-Mikes-Nutrition-Guide.pdf",
+  "message": "Page not found: /content/dam/jerseymikes/documents/nutrition/Jersey-Mikes-Nutrition-Guide.pdf",
+  "data": {
+    "path": "/content/dam/jerseymikes/documents/nutrition/Jersey-Mikes-Nutrition-Guide.pdf"
+  }
+}

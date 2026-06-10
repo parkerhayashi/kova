@@ -34,7 +34,7 @@ export function ContributorList({
               }}
             />
           </span>
-          <span className="text-text-secondary w-8 shrink-0 text-right font-mono text-sm tabular-nums">
+          <span className="text-text-secondary w-8 shrink-0 text-right text-sm font-medium tabular-nums">
             {value ?? "—"}
           </span>
         </li>

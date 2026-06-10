@@ -27,6 +27,7 @@ const TABLES = [
   "workout_sets",
   "runs",
   "meals",
+  "saved_meals",
   "water_logs",
   "weight_log",
   "habits",

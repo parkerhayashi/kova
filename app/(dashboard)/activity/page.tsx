@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { ScoreRing } from "@/components/charts/ScoreRing";
 import { ContributorList } from "@/components/charts/ContributorList";
-import { IntradayChart } from "@/components/charts/IntradayChart";
+import { LazyIntradayChart as IntradayChart } from "@/components/charts/lazyCharts";
 import {
   getActivityHistory,
   getLatestHeartRateDay,

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { TrendChart } from "@/components/charts/TrendChart";
+import { LazyTrendChart as TrendChart } from "@/components/charts/lazyCharts";
 import { ExerciseThumb } from "@/components/workouts/ExerciseThumb";
 import {
   exerciseMuscles,

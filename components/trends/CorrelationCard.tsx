@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/Card";
-import { ScatterChart } from "@/components/charts/ScatterChart";
+import { LazyScatterChart as ScatterChart } from "@/components/charts/lazyCharts";
 import {
   describeCorrelation,
   formatR,

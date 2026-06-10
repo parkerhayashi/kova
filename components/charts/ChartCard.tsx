@@ -1,6 +1,15 @@
+import dynamic from "next/dynamic";
 import { Card } from "@/components/ui/Card";
-import { TrendChart } from "@/components/charts/TrendChart";
+import { ChartSkeleton } from "@/components/charts/ChartSkeleton";
 import type { Accent } from "@/lib/utils";
+
+const TrendChart = dynamic(
+  () =>
+    import("@/components/charts/TrendChart").then((m) => ({
+      default: m.TrendChart,
+    })),
+  { loading: () => <ChartSkeleton /> },
+);
 
 interface ChartCardProps {
   title: string;

@@ -63,7 +63,27 @@ export function GoalTicker() {
 
     rebuild(true);
     tick();
-    const interval = setInterval(tick, 5000);
+
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    function startTicker() {
+      if (interval || document.hidden) return;
+      interval = setInterval(tick, 5000);
+    }
+
+    function stopTicker() {
+      if (!interval) return;
+      clearInterval(interval);
+      interval = null;
+    }
+
+    function onVisibility() {
+      if (document.hidden) stopTicker();
+      else startTicker();
+    }
+
+    startTicker();
+    document.addEventListener("visibilitychange", onVisibility);
 
     function onChange() {
       rebuild(true);
@@ -71,7 +91,8 @@ export function GoalTicker() {
     }
     window.addEventListener(GOALS_CHANGED_EVENT, onChange);
     return () => {
-      clearInterval(interval);
+      stopTicker();
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener(GOALS_CHANGED_EVENT, onChange);
     };
   }, []);

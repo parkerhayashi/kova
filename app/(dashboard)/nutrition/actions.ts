@@ -9,7 +9,7 @@ import {
 } from "@/lib/data/saved-meals";
 import { buildMealRow } from "@/lib/nutrition";
 import { sumSavedMealComponents } from "@/lib/saved-meals";
-import type { NutrientProfile, SavedMealComponent } from "@/types";
+import type { NutrientProfile, SavedMeal, SavedMealComponent } from "@/types";
 
 function refresh() {
   revalidatePath("/nutrition");
@@ -46,9 +46,10 @@ export async function saveSavedMealAction(input: {
   id?: string;
   name: string;
   components: SavedMealComponent[];
-}): Promise<void> {
-  await saveSavedMeal(input);
+}): Promise<SavedMeal> {
+  const saved = await saveSavedMeal(input);
   revalidatePath("/nutrition");
+  return saved;
 }
 
 export async function deleteSavedMealAction(id: string): Promise<void> {

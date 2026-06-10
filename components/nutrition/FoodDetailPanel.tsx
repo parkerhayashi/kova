@@ -108,9 +108,11 @@ export function FoodDetailPanel({
             ? "USDA"
             : profile.source === "duke_dining"
               ? "Duke Dining"
-              : profile.source === "saved_meal"
-                ? "Saved meal"
-                : "Open Food Facts"}
+              : profile.source === "restaurant"
+                ? "Restaurant"
+                : profile.source === "saved_meal"
+                  ? "Saved meal"
+                  : "Open Food Facts"}
         </span>
         <h3 className="text-text-primary mt-1 text-base font-medium leading-snug">
           {profile.name}

@@ -36,7 +36,7 @@ export const SUPPLEMENT_CATALOG: SupplementPreset[] = [
     name: "Omega-3 Fish Oil",
     dose: 1000,
     unit: "mg",
-    note: "With food",
+    note: "With food · nutrients per 1000 mg fish oil (not EPA+DHA alone)",
     nutrients: { calories: 10, fat_g: 1, omega3_g: 0.3 },
   },
   {
@@ -186,7 +186,11 @@ export const SUPPLEMENT_CATALOG: SupplementPreset[] = [
 ];
 
 function normalizeName(name: string): string {
-  return name.trim().toLowerCase();
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[-–—]/g, " ")
+    .replace(/\s+/g, " ");
 }
 
 export function searchSupplements(query: string, limit = 6): SupplementPreset[] {

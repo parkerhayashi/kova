@@ -307,7 +307,7 @@ create table if not exists meals (
   date                     date not null,
   meal_name                text,
   food_id                  text,        -- USDA or Open Food Facts ID
-  source                   text,        -- 'usda' | 'open_food_facts' | 'duke_dining' | 'saved_meal' | 'manual'
+  source                   text,        -- 'usda' | 'open_food_facts' | 'duke_dining' | 'restaurant' | 'saved_meal' | 'manual'
   serving_size_g           float,
   servings                 float,
   -- Macros
@@ -712,6 +712,7 @@ alter table workout_routine_exercises enable row level security;
 alter table workout_session_exercises enable row level security;
 alter table runs              enable row level security;
 alter table meals             enable row level security;
+alter table saved_meals       enable row level security;
 alter table water_logs        enable row level security;
 alter table weight_log        enable row level security;
 alter table habits            enable row level security;

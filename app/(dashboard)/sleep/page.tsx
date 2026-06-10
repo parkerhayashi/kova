@@ -7,7 +7,7 @@ import { StageBars } from "@/components/charts/StageBars";
 import { ScoreRing } from "@/components/charts/ScoreRing";
 import { ContributorList } from "@/components/charts/ContributorList";
 import { Hypnogram } from "@/components/charts/Hypnogram";
-import { IntradayChart } from "@/components/charts/IntradayChart";
+import { LazyIntradayChart as IntradayChart } from "@/components/charts/lazyCharts";
 import {
   getLatestSleepPeriod,
   getReadinessHistory,

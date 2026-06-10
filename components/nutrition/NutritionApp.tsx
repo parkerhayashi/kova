@@ -6,6 +6,7 @@ import { MealLog } from "@/components/nutrition/MealLog";
 import { CalorieTrend, MicroProgress } from "@/components/nutrition/NutritionCharts";
 import { SavedMeals } from "@/components/nutrition/SavedMeals";
 import { DukeDiningSearch } from "@/components/nutrition/DukeDiningSearch";
+import { RestaurantSearch } from "@/components/nutrition/RestaurantSearch";
 import { BarcodeEntry, FoodSearch } from "@/components/nutrition/FoodSearch";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import type { DailyTotals } from "@/lib/nutrition";
@@ -37,6 +38,8 @@ export function NutritionApp({
       </section>
 
       <DukeDiningSearch date={today} />
+
+      <RestaurantSearch date={today} />
 
       <SavedMeals date={today} meals={savedMeals} />
 

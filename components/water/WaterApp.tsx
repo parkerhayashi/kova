@@ -178,7 +178,7 @@ export function WaterApp() {
             <span className="absolute inset-y-0 w-px bg-[rgba(255,255,255,0.18)]" style={{ left: `${65 / 1.5}%` }} />
             <span className="absolute inset-y-0 w-px bg-[rgba(255,255,255,0.18)]" style={{ left: `${100 / 1.5}%` }} />
           </div>
-          <div className="mt-1.5 flex justify-between font-mono text-[10px] text-text-muted">
+          <div className="mt-1.5 flex justify-between text-[10px] text-text-muted tabular-nums">
             <span>0</span>
             <span className="font-bold uppercase tracking-wider" style={{ color: GOOD }}>
               healthy zone
@@ -261,7 +261,7 @@ export function WaterApp() {
               <span className="font-bold" style={{ color: GOOD }}>
                 Daily target
               </span>
-              <span className="font-mono font-bold" style={{ color: GOOD }}>
+              <span className="font-bold tabular-nums" style={{ color: GOOD }}>
                 {fmtMl(breakdown.total)} ≈ {target} {unitName}
               </span>
             </div>
@@ -282,7 +282,7 @@ export function WaterApp() {
                 key={h.label}
                 className="grid grid-cols-[70px_1fr_auto] items-center gap-3 py-2.5 text-[13px]"
               >
-                <span className="font-mono text-[11px] text-text-muted">{h.label}</span>
+                <span className="timestamp">{h.label}</span>
                 <span className="h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.05)]">
                   <span
                     className="block h-full rounded-full"
@@ -310,7 +310,7 @@ function WhyRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between py-0.5">
       <span className="text-text-secondary">{label}</span>
-      <span className="text-text-primary font-mono font-semibold tabular-nums">{value}</span>
+      <span className="text-text-primary font-semibold tabular-nums">{value}</span>
     </div>
   );
 }

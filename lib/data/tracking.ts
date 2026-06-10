@@ -5,6 +5,7 @@
  * Server Actions — never a client component.
  */
 import { createServiceClient } from "@/lib/supabase/server";
+import { catalogNutrientsForName } from "@/lib/supplementCatalog";
 import { addDays, todayInTimezone } from "@/lib/utils";
 import type {
   Habit,
@@ -13,6 +14,11 @@ import type {
   SupplementLog,
   WeightLog,
 } from "@/types";
+
+function catalogNutrientsPayload(name: string): Record<string, number> | null {
+  const match = catalogNutrientsForName(name);
+  return match?.nutrients ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // Weight
@@ -138,7 +144,22 @@ export async function getSupplements(activeOnly = true): Promise<Supplement[]> {
     .order("created_at", { ascending: true });
   if (activeOnly) query = query.eq("is_active", true);
   const { data } = await query;
-  return (data as Supplement[]) ?? [];
+  const supplements = (data as Supplement[]) ?? [];
+
+  // Backfill catalog nutrients for rows created before the nutrients column existed.
+  await Promise.all(
+    supplements.map(async (supplement) => {
+      const hasStored =
+        supplement.nutrients != null && Object.keys(supplement.nutrients).length > 0;
+      if (hasStored) return;
+      const nutrients = catalogNutrientsPayload(supplement.name);
+      if (!nutrients) return;
+      supplement.nutrients = nutrients;
+      await db.from("supplements").update({ nutrients }).eq("id", supplement.id);
+    }),
+  );
+
+  return supplements;
 }
 
 export async function getSupplementLogs(sinceDays: number): Promise<SupplementLog[]> {
@@ -212,7 +233,13 @@ export async function updateSupplement(
   fields: Partial<
     Pick<
       Supplement,
-      "name" | "default_dose" | "unit" | "notes" | "is_active" | "sort_order"
+      | "name"
+      | "default_dose"
+      | "unit"
+      | "notes"
+      | "nutrients"
+      | "is_active"
+      | "sort_order"
     >
   >,
 ): Promise<void> {

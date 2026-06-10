@@ -1,0 +1,5735 @@
+{
+  "id": "jersey-mikes",
+  "name": "Jersey Mike's",
+  "source": "subs.jerseymikes.com/nutrition",
+  "syncedAt": "2026-06-10T14:59:57.502Z",
+  "items": [
+    {
+      "id": "jersey-mikes:chicken-salad-mini",
+      "name": "Chicken Salad (Mini)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 696.7,
+        "protein_g": 27.7,
+        "carbs_g": 45.9,
+        "fat_g": 44.8,
+        "saturated_fat_g": 6.1,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 68.7,
+        "sodium_mg": 1189.8,
+        "fiber_g": 3.4,
+        "sugar_g": 4.4
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-regular",
+      "name": "Chicken Salad (Regular)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 953.6,
+        "protein_g": 33,
+        "carbs_g": 68.3,
+        "fat_g": 61.2,
+        "saturated_fat_g": 8.2,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 71.9,
+        "sodium_mg": 1479.5,
+        "fiber_g": 4.9,
+        "sugar_g": 6.2
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-giant",
+      "name": "Chicken Salad (Giant)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1832.1,
+        "protein_g": 62,
+        "carbs_g": 134.1,
+        "fat_g": 116.9,
+        "saturated_fat_g": 15.5,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 130.8,
+        "sodium_mg": 2823.5,
+        "fiber_g": 9.2,
+        "sugar_g": 11
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-wrap",
+      "name": "Chicken Salad (Wrap)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1262.3,
+        "protein_g": 44.7,
+        "carbs_g": 126.9,
+        "fat_g": 64.1,
+        "saturated_fat_g": 8.5,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 71.9,
+        "sodium_mg": 2174.7,
+        "fiber_g": 7.4,
+        "sugar_g": 7.9
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-bowl",
+      "name": "Chicken Salad (Bowl)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 644.9,
+        "protein_g": 21.4,
+        "carbs_g": 9.6,
+        "fat_g": 58.3,
+        "saturated_fat_g": 7.8,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 71.9,
+        "sodium_mg": 784.3,
+        "fiber_g": 2.5,
+        "sugar_g": 4.4
+      }
+    },
+    {
+      "id": "jersey-mikes:mike-s-hot-italian-regular",
+      "name": "Mike's Hot Italian (Regular)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 716.4,
+        "protein_g": 42.6,
+        "carbs_g": 71.5,
+        "fat_g": 29.3,
+        "saturated_fat_g": 12.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 89.6,
+        "sodium_mg": 3067.6,
+        "fiber_g": 5,
+        "sugar_g": 9.9
+      }
+    },
+    {
+      "id": "jersey-mikes:mike-s-hot-italian-giant",
+      "name": "Mike's Hot Italian (Giant)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1432.8,
+        "protein_g": 85.2,
+        "carbs_g": 142.9,
+        "fat_g": 58.6,
+        "saturated_fat_g": 24.4,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 179.2,
+        "sodium_mg": 6135.2,
+        "fiber_g": 10.1,
+        "sugar_g": 19.7
+      }
+    },
+    {
+      "id": "jersey-mikes:mike-s-hot-italian-bowl",
+      "name": "Mike's Hot Italian (Bowl)",
+      "category": "Deals",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 407.7,
+        "protein_g": 31,
+        "carbs_g": 12.8,
+        "fat_g": 26.4,
+        "saturated_fat_g": 11.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 89.6,
+        "sodium_mg": 2372.4,
+        "fiber_g": 2.6,
+        "sugar_g": 8.1
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-mini",
+      "name": "Chicken Salad (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 563.9,
+        "protein_g": 20.4,
+        "carbs_g": 44.8,
+        "fat_g": 33.8,
+        "saturated_fat_g": 4.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 42.5,
+        "sodium_mg": 926.5,
+        "fiber_g": 3.2,
+        "sugar_g": 4
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-regular",
+      "name": "Chicken Salad (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 953.6,
+        "protein_g": 33,
+        "carbs_g": 68.3,
+        "fat_g": 61.2,
+        "saturated_fat_g": 8.2,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 71.9,
+        "sodium_mg": 1479.5,
+        "fiber_g": 4.9,
+        "sugar_g": 6.2
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-giant",
+      "name": "Chicken Salad (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1832.1,
+        "protein_g": 62,
+        "carbs_g": 134.1,
+        "fat_g": 116.9,
+        "saturated_fat_g": 15.5,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 130.8,
+        "sodium_mg": 2823.5,
+        "fiber_g": 9.2,
+        "sugar_g": 11
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-wrap",
+      "name": "Chicken Salad (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 934.9,
+        "protein_g": 29.4,
+        "carbs_g": 57.6,
+        "fat_g": 66.3,
+        "saturated_fat_g": 11.8,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 71.9,
+        "sodium_mg": 1354.3,
+        "fiber_g": 4.5,
+        "sugar_g": 5.4
+      }
+    },
+    {
+      "id": "jersey-mikes:chicken-salad-bowl",
+      "name": "Chicken Salad (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 644.9,
+        "protein_g": 21.4,
+        "carbs_g": 9.6,
+        "fat_g": 58.3,
+        "saturated_fat_g": 7.8,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 71.9,
+        "sodium_mg": 784.3,
+        "fiber_g": 2.5,
+        "sugar_g": 4.4
+      }
+    },
+    {
+      "id": "jersey-mikes:2-jersey-shore-s-favorite-mini",
+      "name": "#2 Jersey Shore's Favorite (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 480.4,
+        "protein_g": 22.4,
+        "carbs_g": 44.8,
+        "fat_g": 24,
+        "saturated_fat_g": 6.2,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 35.4,
+        "sodium_mg": 1126.5,
+        "fiber_g": 2.9,
+        "sugar_g": 4.8
+      }
+    },
+    {
+      "id": "jersey-mikes:2-jersey-shore-s-favorite-regular",
+      "name": "#2 Jersey Shore's Favorite (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 823.6,
+        "protein_g": 39.2,
+        "carbs_g": 68.6,
+        "fat_g": 44.4,
+        "saturated_fat_g": 10.6,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 65.7,
+        "sodium_mg": 2008.9,
+        "fiber_g": 4.4,
+        "sugar_g": 7.9
+      }
+    },
+    {
+      "id": "jersey-mikes:2-jersey-shore-s-favorite-giant",
+      "name": "#2 Jersey Shore's Favorite (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1554.4,
+        "protein_g": 68.4,
+        "carbs_g": 134,
+        "fat_g": 84,
+        "saturated_fat_g": 18.9,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 107.5,
+        "sodium_mg": 3547.8,
+        "fiber_g": 8.2,
+        "sugar_g": 13.7
+      }
+    },
+    {
+      "id": "jersey-mikes:2-jersey-shore-s-favorite-wrap",
+      "name": "#2 Jersey Shore's Favorite (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 804.9,
+        "protein_g": 35.6,
+        "carbs_g": 57.9,
+        "fat_g": 49.4,
+        "saturated_fat_g": 14.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 65.7,
+        "sodium_mg": 1883.7,
+        "fiber_g": 4,
+        "sugar_g": 7.2
+      }
+    },
+    {
+      "id": "jersey-mikes:2-jersey-shore-s-favorite-bowl",
+      "name": "#2 Jersey Shore's Favorite (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 514.9,
+        "protein_g": 27.6,
+        "carbs_g": 9.9,
+        "fat_g": 41.4,
+        "saturated_fat_g": 10.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 65.7,
+        "sodium_mg": 1313.7,
+        "fiber_g": 2,
+        "sugar_g": 6.2
+      }
+    },
+    {
+      "id": "jersey-mikes:3-ham-and-provolone-mini",
+      "name": "#3 Ham and Provolone (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 482.6,
+        "protein_g": 22.7,
+        "carbs_g": 44.4,
+        "fat_g": 24.2,
+        "saturated_fat_g": 6.3,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 36.2,
+        "sodium_mg": 1152.7,
+        "fiber_g": 2.9,
+        "sugar_g": 4.6
+      }
+    },
+    {
+      "id": "jersey-mikes:3-ham-and-provolone-regular",
+      "name": "#3 Ham and Provolone (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 816.8,
+        "protein_g": 38.2,
+        "carbs_g": 67.9,
+        "fat_g": 44.4,
+        "saturated_fat_g": 10.7,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 63.4,
+        "sodium_mg": 1962.5,
+        "fiber_g": 4.4,
+        "sugar_g": 7.3
+      }
+    },
+    {
+      "id": "jersey-mikes:3-ham-and-provolone-giant",
+      "name": "#3 Ham and Provolone (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1549.8,
+        "protein_g": 67.8,
+        "carbs_g": 132.9,
+        "fat_g": 84.3,
+        "saturated_fat_g": 19.1,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 106.1,
+        "sodium_mg": 3527.6,
+        "fiber_g": 8.2,
+        "sugar_g": 12.9
+      }
+    },
+    {
+      "id": "jersey-mikes:3-ham-and-provolone-wrap",
+      "name": "#3 Ham and Provolone (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 798.1,
+        "protein_g": 34.6,
+        "carbs_g": 57.2,
+        "fat_g": 49.4,
+        "saturated_fat_g": 14.4,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 63.4,
+        "sodium_mg": 1837.3,
+        "fiber_g": 4,
+        "sugar_g": 6.6
+      }
+    },
+    {
+      "id": "jersey-mikes:3-ham-and-provolone-bowl",
+      "name": "#3 Ham and Provolone (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 508.1,
+        "protein_g": 26.6,
+        "carbs_g": 9.2,
+        "fat_g": 41.4,
+        "saturated_fat_g": 10.4,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 63.4,
+        "sodium_mg": 1267.3,
+        "fiber_g": 2,
+        "sugar_g": 5.6
+      }
+    },
+    {
+      "id": "jersey-mikes:14-the-veggie-mini",
+      "name": "#14 The Veggie (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 567.6,
+        "protein_g": 24.4,
+        "carbs_g": 45.2,
+        "fat_g": 32.5,
+        "saturated_fat_g": 11.8,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 48.8,
+        "sodium_mg": 831.7,
+        "fiber_g": 3.3,
+        "sugar_g": 4.1
+      }
+    },
+    {
+      "id": "jersey-mikes:14-the-veggie-regular",
+      "name": "#14 The Veggie (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 953.6,
+        "protein_g": 39.3,
+        "carbs_g": 68.7,
+        "fat_g": 58.6,
+        "saturated_fat_g": 20.2,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 81.4,
+        "sodium_mg": 1310.5,
+        "fiber_g": 4.9,
+        "sugar_g": 6.1
+      }
+    },
+    {
+      "id": "jersey-mikes:14-the-veggie-giant",
+      "name": "#14 The Veggie (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1896.5,
+        "protein_g": 78.1,
+        "carbs_g": 135.1,
+        "fat_g": 117,
+        "saturated_fat_g": 40.4,
+        "trans_fat_g": 1.5,
+        "cholesterol_mg": 162.8,
+        "sodium_mg": 2616.7,
+        "fiber_g": 9.1,
+        "sugar_g": 10.9
+      }
+    },
+    {
+      "id": "jersey-mikes:14-the-veggie-wrap",
+      "name": "#14 The Veggie (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 934.9,
+        "protein_g": 35.7,
+        "carbs_g": 58.1,
+        "fat_g": 63.6,
+        "saturated_fat_g": 23.9,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 81.4,
+        "sodium_mg": 1185.3,
+        "fiber_g": 4.5,
+        "sugar_g": 5.4
+      }
+    },
+    {
+      "id": "jersey-mikes:14-the-veggie-bowl",
+      "name": "#14 The Veggie (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 644.9,
+        "protein_g": 27.7,
+        "carbs_g": 10.1,
+        "fat_g": 55.6,
+        "saturated_fat_g": 19.9,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 81.4,
+        "sodium_mg": 615.3,
+        "fiber_g": 2.5,
+        "sugar_g": 4.4
+      }
+    },
+    {
+      "id": "jersey-mikes:5-the-super-sub-mini",
+      "name": "#5 The Super Sub (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 505.3,
+        "protein_g": 26.3,
+        "carbs_g": 45.8,
+        "fat_g": 24.5,
+        "saturated_fat_g": 6.3,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 42.7,
+        "sodium_mg": 1335.3,
+        "fiber_g": 2.9,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:5-the-super-sub-regular",
+      "name": "#5 The Super Sub (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 837.5,
+        "protein_g": 41.7,
+        "carbs_g": 70,
+        "fat_g": 44.2,
+        "saturated_fat_g": 10.3,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 68,
+        "sodium_mg": 2120.8,
+        "fiber_g": 4.4,
+        "sugar_g": 9
+      }
+    },
+    {
+      "id": "jersey-mikes:5-the-super-sub-giant",
+      "name": "#5 The Super Sub (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1585.3,
+        "protein_g": 73.7,
+        "carbs_g": 136.7,
+        "fat_g": 83.9,
+        "saturated_fat_g": 18.4,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 113.8,
+        "sodium_mg": 3800.1,
+        "fiber_g": 8.2,
+        "sugar_g": 15.8
+      }
+    },
+    {
+      "id": "jersey-mikes:5-the-super-sub-wrap",
+      "name": "#5 The Super Sub (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 818.7,
+        "protein_g": 38.1,
+        "carbs_g": 59.4,
+        "fat_g": 49.2,
+        "saturated_fat_g": 14,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 68,
+        "sodium_mg": 1995.6,
+        "fiber_g": 4,
+        "sugar_g": 8.3
+      }
+    },
+    {
+      "id": "jersey-mikes:5-the-super-sub-bowl",
+      "name": "#5 The Super Sub (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 528.7,
+        "protein_g": 30.1,
+        "carbs_g": 11.4,
+        "fat_g": 41.2,
+        "saturated_fat_g": 10,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 68,
+        "sodium_mg": 1425.6,
+        "fiber_g": 2,
+        "sugar_g": 7.3
+      }
+    },
+    {
+      "id": "jersey-mikes:7-turkey-and-provolone-mini",
+      "name": "#7 Turkey and Provolone (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 482.1,
+        "protein_g": 26.2,
+        "carbs_g": 43.7,
+        "fat_g": 22.7,
+        "saturated_fat_g": 5.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 41,
+        "sodium_mg": 1153,
+        "fiber_g": 2.9,
+        "sugar_g": 3.9
+      }
+    },
+    {
+      "id": "jersey-mikes:7-turkey-and-provolone-regular",
+      "name": "#7 Turkey and Provolone (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 817.2,
+        "protein_g": 45.4,
+        "carbs_g": 66.5,
+        "fat_g": 41.4,
+        "saturated_fat_g": 9.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 73.5,
+        "sodium_mg": 1976.4,
+        "fiber_g": 4.4,
+        "sugar_g": 6
+      }
+    },
+    {
+      "id": "jersey-mikes:7-turkey-and-provolone-giant",
+      "name": "#7 Turkey and Provolone (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1550.3,
+        "protein_g": 79.7,
+        "carbs_g": 130.6,
+        "fat_g": 79.3,
+        "saturated_fat_g": 16.5,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 122.9,
+        "sodium_mg": 3549.3,
+        "fiber_g": 8.2,
+        "sugar_g": 10.5
+      }
+    },
+    {
+      "id": "jersey-mikes:7-turkey-and-provolone-wrap",
+      "name": "#7 Turkey and Provolone (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 780.4,
+        "protein_g": 37.9,
+        "carbs_g": 55.7,
+        "fat_g": 46.3,
+        "saturated_fat_g": 12.8,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 65.6,
+        "sodium_mg": 1695.3,
+        "fiber_g": 4,
+        "sugar_g": 5.1
+      }
+    },
+    {
+      "id": "jersey-mikes:7-turkey-and-provolone-bowl",
+      "name": "#7 Turkey and Provolone (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 490.4,
+        "protein_g": 29.9,
+        "carbs_g": 7.7,
+        "fat_g": 38.3,
+        "saturated_fat_g": 8.8,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 65.6,
+        "sodium_mg": 1125.3,
+        "fiber_g": 2,
+        "sugar_g": 4.1
+      }
+    },
+    {
+      "id": "jersey-mikes:10-tuna-fish-mini",
+      "name": "#10 Tuna Fish (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 628,
+        "protein_g": 20.5,
+        "carbs_g": 44,
+        "fat_g": 41.8,
+        "saturated_fat_g": 5.9,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 33.1,
+        "sodium_mg": 849,
+        "fiber_g": 3.1,
+        "sugar_g": 4.2
+      }
+    },
+    {
+      "id": "jersey-mikes:10-tuna-fish-regular",
+      "name": "#10 Tuna Fish (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1062.1,
+        "protein_g": 33.1,
+        "carbs_g": 67,
+        "fat_g": 74.7,
+        "saturated_fat_g": 10.5,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 55.9,
+        "sodium_mg": 1348.4,
+        "fiber_g": 4.8,
+        "sugar_g": 6.4
+      }
+    },
+    {
+      "id": "jersey-mikes:10-tuna-fish-giant",
+      "name": "#10 Tuna Fish (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2029.4,
+        "protein_g": 62.1,
+        "carbs_g": 131.7,
+        "fat_g": 141.5,
+        "saturated_fat_g": 19.7,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 101.7,
+        "sodium_mg": 2585,
+        "fiber_g": 8.9,
+        "sugar_g": 11.5
+      }
+    },
+    {
+      "id": "jersey-mikes:10-tuna-fish-wrap",
+      "name": "#10 Tuna Fish (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1043.4,
+        "protein_g": 29.5,
+        "carbs_g": 56.3,
+        "fat_g": 79.8,
+        "saturated_fat_g": 14.1,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 55.9,
+        "sodium_mg": 1223.1,
+        "fiber_g": 4.4,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:10-tuna-fish-bowl",
+      "name": "#10 Tuna Fish (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 753.4,
+        "protein_g": 21.5,
+        "carbs_g": 8.3,
+        "fat_g": 71.8,
+        "saturated_fat_g": 10.1,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 55.9,
+        "sodium_mg": 653.1,
+        "fiber_g": 2.4,
+        "sugar_g": 4.7
+      }
+    },
+    {
+      "id": "jersey-mikes:6-roast-beef-and-provolone-mini",
+      "name": "#6 Roast Beef and Provolone (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 563,
+        "protein_g": 37.6,
+        "carbs_g": 43.4,
+        "fat_g": 26.1,
+        "saturated_fat_g": 6.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 77.1,
+        "sodium_mg": 875.1,
+        "fiber_g": 2.9,
+        "sugar_g": 3.5
+      }
+    },
+    {
+      "id": "jersey-mikes:6-roast-beef-and-provolone-regular",
+      "name": "#6 Roast Beef and Provolone (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 913.3,
+        "protein_g": 56.9,
+        "carbs_g": 65.8,
+        "fat_g": 46.2,
+        "saturated_fat_g": 11.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 116.8,
+        "sodium_mg": 1323.9,
+        "fiber_g": 4.4,
+        "sugar_g": 5.3
+      }
+    },
+    {
+      "id": "jersey-mikes:6-roast-beef-and-provolone-giant",
+      "name": "#6 Roast Beef and Provolone (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1776.3,
+        "protein_g": 110.1,
+        "carbs_g": 129.5,
+        "fat_g": 89.3,
+        "saturated_fat_g": 20.6,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 224,
+        "sodium_mg": 2552.2,
+        "fiber_g": 8.2,
+        "sugar_g": 9.5
+      }
+    },
+    {
+      "id": "jersey-mikes:6-roast-beef-and-provolone-wrap",
+      "name": "#6 Roast Beef and Provolone (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 894.6,
+        "protein_g": 53.3,
+        "carbs_g": 55.2,
+        "fat_g": 51.3,
+        "saturated_fat_g": 14.9,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 116.8,
+        "sodium_mg": 1198.7,
+        "fiber_g": 4,
+        "sugar_g": 4.6
+      }
+    },
+    {
+      "id": "jersey-mikes:6-roast-beef-and-provolone-bowl",
+      "name": "#6 Roast Beef and Provolone (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 604.6,
+        "protein_g": 45.3,
+        "carbs_g": 7.2,
+        "fat_g": 43.3,
+        "saturated_fat_g": 10.9,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 116.8,
+        "sodium_mg": 628.7,
+        "fiber_g": 2,
+        "sugar_g": 3.6
+      }
+    },
+    {
+      "id": "jersey-mikes:13-the-original-italian-mini",
+      "name": "#13 The Original Italian (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 573.5,
+        "protein_g": 29.3,
+        "carbs_g": 46.4,
+        "fat_g": 30.5,
+        "saturated_fat_g": 8.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 56.8,
+        "sodium_mg": 1597.2,
+        "fiber_g": 2.9,
+        "sugar_g": 6.2
+      }
+    },
+    {
+      "id": "jersey-mikes:13-the-original-italian-regular",
+      "name": "#13 The Original Italian (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 956,
+        "protein_g": 46.8,
+        "carbs_g": 71.1,
+        "fat_g": 54.5,
+        "saturated_fat_g": 14.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 92.4,
+        "sodium_mg": 2571.2,
+        "fiber_g": 4.5,
+        "sugar_g": 9.9
+      }
+    },
+    {
+      "id": "jersey-mikes:13-the-original-italian-giant",
+      "name": "#13 The Original Italian (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1815.8,
+        "protein_g": 83.6,
+        "carbs_g": 138.7,
+        "fat_g": 104.1,
+        "saturated_fat_g": 26,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 161.3,
+        "sodium_mg": 4678.2,
+        "fiber_g": 8.3,
+        "sugar_g": 17.5
+      }
+    },
+    {
+      "id": "jersey-mikes:13-the-original-italian-wrap",
+      "name": "#13 The Original Italian (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 937.3,
+        "protein_g": 43.2,
+        "carbs_g": 60.4,
+        "fat_g": 59.6,
+        "saturated_fat_g": 17.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 92.4,
+        "sodium_mg": 2446,
+        "fiber_g": 4.1,
+        "sugar_g": 9.2
+      }
+    },
+    {
+      "id": "jersey-mikes:13-the-original-italian-bowl",
+      "name": "#13 The Original Italian (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 647.3,
+        "protein_g": 35.2,
+        "carbs_g": 12.4,
+        "fat_g": 51.6,
+        "saturated_fat_g": 13.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 92.4,
+        "sodium_mg": 1876,
+        "fiber_g": 2.1,
+        "sugar_g": 8.2
+      }
+    },
+    {
+      "id": "jersey-mikes:8-club-sub-mini",
+      "name": "#8 Club Sub (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 664.7,
+        "protein_g": 30.7,
+        "carbs_g": 44.7,
+        "fat_g": 41,
+        "saturated_fat_g": 9.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 61,
+        "sodium_mg": 1530.3,
+        "fiber_g": 2.9,
+        "sugar_g": 4.8
+      }
+    },
+    {
+      "id": "jersey-mikes:8-club-sub-regular",
+      "name": "#8 Club Sub (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1163,
+        "protein_g": 50.2,
+        "carbs_g": 68.3,
+        "fat_g": 77.8,
+        "saturated_fat_g": 16.5,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 105.1,
+        "sodium_mg": 2563.9,
+        "fiber_g": 4.4,
+        "sugar_g": 7.8
+      }
+    },
+    {
+      "id": "jersey-mikes:8-club-sub-giant",
+      "name": "#8 Club Sub (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2221,
+        "protein_g": 87.2,
+        "carbs_g": 133.7,
+        "fat_g": 150.9,
+        "saturated_fat_g": 30.5,
+        "trans_fat_g": 1.2,
+        "cholesterol_mg": 180.5,
+        "sodium_mg": 4547.9,
+        "fiber_g": 8.2,
+        "sugar_g": 13.5
+      }
+    },
+    {
+      "id": "jersey-mikes:8-club-sub-wrap",
+      "name": "#8 Club Sub (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1125.5,
+        "protein_g": 43.7,
+        "carbs_g": 57.3,
+        "fat_g": 82.2,
+        "saturated_fat_g": 19.9,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 98.7,
+        "sodium_mg": 2279.2,
+        "fiber_g": 4,
+        "sugar_g": 6.7
+      }
+    },
+    {
+      "id": "jersey-mikes:8-club-sub-bowl",
+      "name": "#8 Club Sub (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 835.5,
+        "protein_g": 35.7,
+        "carbs_g": 9.3,
+        "fat_g": 74.2,
+        "saturated_fat_g": 15.9,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 98.7,
+        "sodium_mg": 1709.2,
+        "fiber_g": 2,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:9-club-supreme-mini",
+      "name": "#9 Club Supreme (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 684.6,
+        "protein_g": 36,
+        "carbs_g": 43.9,
+        "fat_g": 40.7,
+        "saturated_fat_g": 8.9,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 78.3,
+        "sodium_mg": 1167,
+        "fiber_g": 2.9,
+        "sugar_g": 4.1
+      }
+    },
+    {
+      "id": "jersey-mikes:9-club-supreme-regular",
+      "name": "#9 Club Supreme (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1191.2,
+        "protein_g": 59.3,
+        "carbs_g": 66.9,
+        "fat_g": 76.7,
+        "saturated_fat_g": 15.6,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 132,
+        "sodium_mg": 2050.7,
+        "fiber_g": 4.4,
+        "sugar_g": 6.4
+      }
+    },
+    {
+      "id": "jersey-mikes:9-club-supreme-giant",
+      "name": "#9 Club Supreme (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2267,
+        "protein_g": 101.4,
+        "carbs_g": 131.5,
+        "fat_g": 149.4,
+        "saturated_fat_g": 29.4,
+        "trans_fat_g": 0.8,
+        "cholesterol_mg": 223.5,
+        "sodium_mg": 3688.5,
+        "fiber_g": 8.2,
+        "sugar_g": 11.4
+      }
+    },
+    {
+      "id": "jersey-mikes:9-club-supreme-wrap",
+      "name": "#9 Club Supreme (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1172.5,
+        "protein_g": 55.7,
+        "carbs_g": 56.2,
+        "fat_g": 81.8,
+        "saturated_fat_g": 19.3,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 132,
+        "sodium_mg": 1925.4,
+        "fiber_g": 4,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:9-club-supreme-bowl",
+      "name": "#9 Club Supreme (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 882.5,
+        "protein_g": 47.7,
+        "carbs_g": 8.2,
+        "fat_g": 73.8,
+        "saturated_fat_g": 15.3,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 132,
+        "sodium_mg": 1355.4,
+        "fiber_g": 2,
+        "sugar_g": 4.7
+      }
+    },
+    {
+      "id": "jersey-mikes:1-blt-mini",
+      "name": "#1 BLT (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 480.9,
+        "protein_g": 18.9,
+        "carbs_g": 42.4,
+        "fat_g": 27.1,
+        "saturated_fat_g": 6.2,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 36.6,
+        "sodium_mg": 1055.1,
+        "fiber_g": 2.7,
+        "sugar_g": 3.7
+      }
+    },
+    {
+      "id": "jersey-mikes:1-blt-regular",
+      "name": "#1 BLT (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 788.1,
+        "protein_g": 28.6,
+        "carbs_g": 64.3,
+        "fat_g": 47.8,
+        "saturated_fat_g": 10.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 58.6,
+        "sodium_mg": 1633.4,
+        "fiber_g": 4.1,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:1-blt-giant",
+      "name": "#1 BLT (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1568.8,
+        "protein_g": 56.8,
+        "carbs_g": 127.1,
+        "fat_g": 95.5,
+        "saturated_fat_g": 20.6,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 117.3,
+        "sodium_mg": 3262.9,
+        "fiber_g": 7.6,
+        "sugar_g": 10.4
+      }
+    },
+    {
+      "id": "jersey-mikes:1-blt-wrap",
+      "name": "#1 BLT (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 776.3,
+        "protein_g": 25.3,
+        "carbs_g": 55.2,
+        "fat_g": 52.9,
+        "saturated_fat_g": 14,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 58.6,
+        "sodium_mg": 1510.1,
+        "fiber_g": 4.1,
+        "sugar_g": 6
+      }
+    },
+    {
+      "id": "jersey-mikes:1-blt-bowl",
+      "name": "#1 BLT (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 477.7,
+        "protein_g": 16.9,
+        "carbs_g": 5.3,
+        "fat_g": 44.8,
+        "saturated_fat_g": 10,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 58.6,
+        "sodium_mg": 937.7,
+        "fiber_g": 1.5,
+        "sugar_g": 3.7
+      }
+    },
+    {
+      "id": "jersey-mikes:4-the-number-four-mini",
+      "name": "#4 The Number Four (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 480.3,
+        "protein_g": 22.7,
+        "carbs_g": 45.7,
+        "fat_g": 23.4,
+        "saturated_fat_g": 5.8,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 33.4,
+        "sodium_mg": 1120.7,
+        "fiber_g": 2.9,
+        "sugar_g": 5.5
+      }
+    },
+    {
+      "id": "jersey-mikes:4-the-number-four-regular",
+      "name": "#4 The Number Four (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 806.1,
+        "protein_g": 37.2,
+        "carbs_g": 70,
+        "fat_g": 42.6,
+        "saturated_fat_g": 9.6,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 55.9,
+        "sodium_mg": 1851.2,
+        "fiber_g": 4.4,
+        "sugar_g": 8.9
+      }
+    },
+    {
+      "id": "jersey-mikes:4-the-number-four-giant",
+      "name": "#4 The Number Four (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1530.5,
+        "protein_g": 65.8,
+        "carbs_g": 136.5,
+        "fat_g": 81.3,
+        "saturated_fat_g": 17.3,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 93,
+        "sodium_mg": 3329.2,
+        "fiber_g": 8.2,
+        "sugar_g": 15.4
+      }
+    },
+    {
+      "id": "jersey-mikes:4-the-number-four-wrap",
+      "name": "#4 The Number Four (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 787.4,
+        "protein_g": 33.6,
+        "carbs_g": 59.4,
+        "fat_g": 47.7,
+        "saturated_fat_g": 13.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 55.9,
+        "sodium_mg": 1726,
+        "fiber_g": 4,
+        "sugar_g": 8.2
+      }
+    },
+    {
+      "id": "jersey-mikes:4-the-number-four-bowl",
+      "name": "#4 The Number Four (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 497.4,
+        "protein_g": 25.6,
+        "carbs_g": 11.4,
+        "fat_g": 39.7,
+        "saturated_fat_g": 9.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 55.9,
+        "sodium_mg": 1156,
+        "fiber_g": 2,
+        "sugar_g": 7.2
+      }
+    },
+    {
+      "id": "jersey-mikes:11-stickball-special-mini",
+      "name": "#11 Stickball Special (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 505.6,
+        "protein_g": 21.8,
+        "carbs_g": 44.4,
+        "fat_g": 27.1,
+        "saturated_fat_g": 7.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 38.5,
+        "sodium_mg": 1164.9,
+        "fiber_g": 2.9,
+        "sugar_g": 4.6
+      }
+    },
+    {
+      "id": "jersey-mikes:11-stickball-special-regular",
+      "name": "#11 Stickball Special (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 887.5,
+        "protein_g": 39.4,
+        "carbs_g": 68.3,
+        "fat_g": 51.3,
+        "saturated_fat_g": 13.5,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 75.9,
+        "sodium_mg": 2170.8,
+        "fiber_g": 4.4,
+        "sugar_g": 7.7
+      }
+    },
+    {
+      "id": "jersey-mikes:11-stickball-special-giant",
+      "name": "#11 Stickball Special (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1667.3,
+        "protein_g": 69.1,
+        "carbs_g": 133.6,
+        "fat_g": 96.2,
+        "saturated_fat_g": 23.9,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 125.9,
+        "sodium_mg": 3846.1,
+        "fiber_g": 8.2,
+        "sugar_g": 13.4
+      }
+    },
+    {
+      "id": "jersey-mikes:11-stickball-special-wrap",
+      "name": "#11 Stickball Special (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 868.7,
+        "protein_g": 35.8,
+        "carbs_g": 57.6,
+        "fat_g": 56.4,
+        "saturated_fat_g": 17.2,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 75.9,
+        "sodium_mg": 2045.6,
+        "fiber_g": 4,
+        "sugar_g": 7
+      }
+    },
+    {
+      "id": "jersey-mikes:11-stickball-special-bowl",
+      "name": "#11 Stickball Special (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 578.7,
+        "protein_g": 27.8,
+        "carbs_g": 9.6,
+        "fat_g": 48.4,
+        "saturated_fat_g": 13.2,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 75.9,
+        "sodium_mg": 1475.6,
+        "fiber_g": 2,
+        "sugar_g": 6
+      }
+    },
+    {
+      "id": "jersey-mikes:12-cancro-special-mini",
+      "name": "#12 Cancro Special (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 556.6,
+        "protein_g": 33,
+        "carbs_g": 43.6,
+        "fat_g": 27.5,
+        "saturated_fat_g": 7.4,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 67.9,
+        "sodium_mg": 917.1,
+        "fiber_g": 2.9,
+        "sugar_g": 3.7
+      }
+    },
+    {
+      "id": "jersey-mikes:12-cancro-special-regular",
+      "name": "#12 Cancro Special (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 966.3,
+        "protein_g": 59.1,
+        "carbs_g": 66.3,
+        "fat_g": 51,
+        "saturated_fat_g": 12.9,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 127.3,
+        "sodium_mg": 1504.6,
+        "fiber_g": 4.5,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:12-cancro-special-giant",
+      "name": "#12 Cancro Special (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1807.4,
+        "protein_g": 102.5,
+        "carbs_g": 130.5,
+        "fat_g": 96.2,
+        "saturated_fat_g": 23,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 213.7,
+        "sodium_mg": 2790.7,
+        "fiber_g": 8.3,
+        "sugar_g": 10.2
+      }
+    },
+    {
+      "id": "jersey-mikes:12-cancro-special-wrap",
+      "name": "#12 Cancro Special (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 947.6,
+        "protein_g": 55.4,
+        "carbs_g": 55.7,
+        "fat_g": 56,
+        "saturated_fat_g": 16.5,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 127.3,
+        "sodium_mg": 1379.3,
+        "fiber_g": 4,
+        "sugar_g": 5
+      }
+    },
+    {
+      "id": "jersey-mikes:12-cancro-special-bowl",
+      "name": "#12 Cancro Special (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 657.6,
+        "protein_g": 47.4,
+        "carbs_g": 7.7,
+        "fat_g": 48,
+        "saturated_fat_g": 12.5,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 127.3,
+        "sodium_mg": 809.3,
+        "fiber_g": 2,
+        "sugar_g": 4
+      }
+    },
+    {
+      "id": "jersey-mikes:chipotle-turkey-sub-mini",
+      "name": "Chipotle Turkey Sub (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 626.8,
+        "protein_g": 26.4,
+        "carbs_g": 44.6,
+        "fat_g": 38.6,
+        "saturated_fat_g": 8,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 53,
+        "sodium_mg": 1332.7,
+        "fiber_g": 3,
+        "sugar_g": 4.5
+      }
+    },
+    {
+      "id": "jersey-mikes:chipotle-turkey-sub-regular",
+      "name": "Chipotle Turkey Sub (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1088.5,
+        "protein_g": 42,
+        "carbs_g": 68.1,
+        "fat_g": 72.9,
+        "saturated_fat_g": 14.1,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 89.7,
+        "sodium_mg": 2180,
+        "fiber_g": 4.5,
+        "sugar_g": 7.1
+      }
+    },
+    {
+      "id": "jersey-mikes:chipotle-turkey-sub-giant",
+      "name": "Chipotle Turkey Sub (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2129.2,
+        "protein_g": 80.6,
+        "carbs_g": 134,
+        "fat_g": 142.7,
+        "saturated_fat_g": 26.4,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 171.1,
+        "sodium_mg": 4268.1,
+        "fiber_g": 8.4,
+        "sugar_g": 13
+      }
+    },
+    {
+      "id": "jersey-mikes:chipotle-turkey-sub-wrap",
+      "name": "Chipotle Turkey Sub (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1072.1,
+        "protein_g": 38.1,
+        "carbs_g": 57.4,
+        "fat_g": 78.3,
+        "saturated_fat_g": 18,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 89.7,
+        "sodium_mg": 2043.5,
+        "fiber_g": 4.1,
+        "sugar_g": 6.4
+      }
+    },
+    {
+      "id": "jersey-mikes:chipotle-turkey-sub-bowl",
+      "name": "Chipotle Turkey Sub (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 782.1,
+        "protein_g": 30.1,
+        "carbs_g": 9.4,
+        "fat_g": 70.3,
+        "saturated_fat_g": 14,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 89.7,
+        "sodium_mg": 1473.5,
+        "fiber_g": 2.1,
+        "sugar_g": 5.4
+      }
+    },
+    {
+      "id": "jersey-mikes:pepperoni-cheese-mini",
+      "name": "Pepperoni & Cheese (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 607.8,
+        "protein_g": 21.4,
+        "carbs_g": 45.1,
+        "fat_g": 38.3,
+        "saturated_fat_g": 11,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 52.9,
+        "sodium_mg": 1298.3,
+        "fiber_g": 3.1,
+        "sugar_g": 4.8
+      }
+    },
+    {
+      "id": "jersey-mikes:pepperoni-cheese-regular",
+      "name": "Pepperoni & Cheese (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1004,
+        "protein_g": 33.5,
+        "carbs_g": 68.6,
+        "fat_g": 66.7,
+        "saturated_fat_g": 18.3,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 84.6,
+        "sodium_mg": 2034.9,
+        "fiber_g": 4.7,
+        "sugar_g": 7.4
+      }
+    },
+    {
+      "id": "jersey-mikes:pepperoni-cheese-giant",
+      "name": "Pepperoni & Cheese (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1860.8,
+        "protein_g": 59.7,
+        "carbs_g": 134.2,
+        "fat_g": 121.5,
+        "saturated_fat_g": 31.7,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 141.1,
+        "sodium_mg": 3639.3,
+        "fiber_g": 8.7,
+        "sugar_g": 12.9
+      }
+    },
+    {
+      "id": "jersey-mikes:pepperoni-cheese-wrap",
+      "name": "Pepperoni & Cheese (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 990.2,
+        "protein_g": 30.2,
+        "carbs_g": 58,
+        "fat_g": 72.1,
+        "saturated_fat_g": 22.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 85.7,
+        "sodium_mg": 1920.6,
+        "fiber_g": 4.3,
+        "sugar_g": 6.7
+      }
+    },
+    {
+      "id": "jersey-mikes:pepperoni-cheese-bowl",
+      "name": "Pepperoni & Cheese (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 700.2,
+        "protein_g": 22.2,
+        "carbs_g": 10,
+        "fat_g": 64.1,
+        "saturated_fat_g": 18.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 85.7,
+        "sodium_mg": 1350.6,
+        "fiber_g": 2.3,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:salami-and-cheese-mini",
+      "name": "Salami and Cheese (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 647.8,
+        "protein_g": 24.2,
+        "carbs_g": 45.3,
+        "fat_g": 41.1,
+        "saturated_fat_g": 13.1,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 63.5,
+        "sodium_mg": 1585,
+        "fiber_g": 3,
+        "sugar_g": 5.3
+      }
+    },
+    {
+      "id": "jersey-mikes:salami-and-cheese-regular",
+      "name": "Salami and Cheese (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1038,
+        "protein_g": 36.5,
+        "carbs_g": 68.7,
+        "fat_g": 68.6,
+        "saturated_fat_g": 20.5,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 95.3,
+        "sodium_mg": 2384.9,
+        "fiber_g": 4.5,
+        "sugar_g": 8
+      }
+    },
+    {
+      "id": "jersey-mikes:salami-and-cheese-giant",
+      "name": "Salami and Cheese (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1983.8,
+        "protein_g": 67.7,
+        "carbs_g": 134.9,
+        "fat_g": 130.4,
+        "saturated_fat_g": 37.7,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 172.8,
+        "sodium_mg": 4496,
+        "fiber_g": 8.3,
+        "sugar_g": 14.4
+      }
+    },
+    {
+      "id": "jersey-mikes:california-club-sub-mini",
+      "name": "California Club Sub (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 555.2,
+        "protein_g": 29,
+        "carbs_g": 46.1,
+        "fat_g": 29.1,
+        "saturated_fat_g": 6.8,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 47.1,
+        "sodium_mg": 1268.6,
+        "fiber_g": 4.8,
+        "sugar_g": 4.1
+      }
+    },
+    {
+      "id": "jersey-mikes:california-club-sub-regular",
+      "name": "California Club Sub (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 978.1,
+        "protein_g": 52,
+        "carbs_g": 71.4,
+        "fat_g": 55.3,
+        "saturated_fat_g": 12.4,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 88.9,
+        "sodium_mg": 2240.6,
+        "fiber_g": 8.2,
+        "sugar_g": 6.4
+      }
+    },
+    {
+      "id": "jersey-mikes:california-club-sub-giant",
+      "name": "California Club Sub (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1862.4,
+        "protein_g": 92.2,
+        "carbs_g": 140.4,
+        "fat_g": 106.3,
+        "saturated_fat_g": 22.6,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 151.6,
+        "sodium_mg": 4055.7,
+        "fiber_g": 15.8,
+        "sugar_g": 11.4
+      }
+    },
+    {
+      "id": "jersey-mikes:california-club-sub-wrap",
+      "name": "California Club Sub (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 959.4,
+        "protein_g": 48.4,
+        "carbs_g": 60.7,
+        "fat_g": 60.3,
+        "saturated_fat_g": 16.1,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 88.9,
+        "sodium_mg": 2115.3,
+        "fiber_g": 7.8,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:california-club-sub-bowl",
+      "name": "California Club Sub (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 669.4,
+        "protein_g": 40.4,
+        "carbs_g": 12.7,
+        "fat_g": 52.3,
+        "saturated_fat_g": 12.1,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 88.9,
+        "sodium_mg": 1545.3,
+        "fiber_g": 5.8,
+        "sugar_g": 4.7
+      }
+    },
+    {
+      "id": "jersey-mikes:turkey-club-sub-mini",
+      "name": "Turkey Club Sub (Mini)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 645.3,
+        "protein_g": 28.9,
+        "carbs_g": 44.1,
+        "fat_g": 39.8,
+        "saturated_fat_g": 8.7,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 55.9,
+        "sodium_mg": 1367.2,
+        "fiber_g": 2.9,
+        "sugar_g": 4.2
+      }
+    },
+    {
+      "id": "jersey-mikes:turkey-club-sub-regular",
+      "name": "Turkey Club Sub (Regular)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1127.9,
+        "protein_g": 46.7,
+        "carbs_g": 67.2,
+        "fat_g": 75.7,
+        "saturated_fat_g": 15.6,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 95.5,
+        "sodium_mg": 2237.6,
+        "fiber_g": 4.4,
+        "sugar_g": 6.6
+      }
+    },
+    {
+      "id": "jersey-mikes:turkey-club-sub-giant",
+      "name": "Turkey Club Sub (Giant)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2198.1,
+        "protein_g": 89.4,
+        "carbs_g": 132.2,
+        "fat_g": 147.7,
+        "saturated_fat_g": 29,
+        "trans_fat_g": 1.2,
+        "cholesterol_mg": 180.5,
+        "sodium_mg": 4361.5,
+        "fiber_g": 8.2,
+        "sugar_g": 12
+      }
+    },
+    {
+      "id": "jersey-mikes:turkey-club-sub-wrap",
+      "name": "Turkey Club Sub (Wrap)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1109.2,
+        "protein_g": 43.1,
+        "carbs_g": 56.5,
+        "fat_g": 80.8,
+        "saturated_fat_g": 19.3,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 95.5,
+        "sodium_mg": 2112.4,
+        "fiber_g": 4,
+        "sugar_g": 5.9
+      }
+    },
+    {
+      "id": "jersey-mikes:turkey-club-sub-bowl",
+      "name": "Turkey Club Sub (Bowl)",
+      "category": "Cold Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 819.2,
+        "protein_g": 35.1,
+        "carbs_g": 8.5,
+        "fat_g": 72.8,
+        "saturated_fat_g": 15.3,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 95.5,
+        "sodium_mg": 1542.4,
+        "fiber_g": 2,
+        "sugar_g": 4.9
+      }
+    },
+    {
+      "id": "jersey-mikes:mike-s-hot-italian-regular",
+      "name": "Mike's Hot Italian (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 716.4,
+        "protein_g": 42.6,
+        "carbs_g": 71.5,
+        "fat_g": 29.3,
+        "saturated_fat_g": 12.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 89.6,
+        "sodium_mg": 3067.6,
+        "fiber_g": 5,
+        "sugar_g": 9.9
+      }
+    },
+    {
+      "id": "jersey-mikes:mike-s-hot-italian-giant",
+      "name": "Mike's Hot Italian (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1432.8,
+        "protein_g": 85.2,
+        "carbs_g": 142.9,
+        "fat_g": 58.6,
+        "saturated_fat_g": 24.4,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 179.2,
+        "sodium_mg": 6135.2,
+        "fiber_g": 10.1,
+        "sugar_g": 19.7
+      }
+    },
+    {
+      "id": "jersey-mikes:mike-s-hot-italian-bowl",
+      "name": "Mike's Hot Italian (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 407.7,
+        "protein_g": 31,
+        "carbs_g": 12.8,
+        "fat_g": 26.4,
+        "saturated_fat_g": 11.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 89.6,
+        "sodium_mg": 2372.4,
+        "fiber_g": 2.6,
+        "sugar_g": 8.1
+      }
+    },
+    {
+      "id": "jersey-mikes:16-mike-s-chicken-philly-regular",
+      "name": "#16 Mike's Chicken Philly (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 683.8,
+        "protein_g": 48.3,
+        "carbs_g": 73,
+        "fat_g": 21.7,
+        "saturated_fat_g": 9.9,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 134.5,
+        "sodium_mg": 2187.8,
+        "fiber_g": 3.2,
+        "sugar_g": 10.6
+      }
+    },
+    {
+      "id": "jersey-mikes:16-mike-s-chicken-philly-giant",
+      "name": "#16 Mike's Chicken Philly (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1367.7,
+        "protein_g": 96.7,
+        "carbs_g": 146,
+        "fat_g": 43.3,
+        "saturated_fat_g": 19.9,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 269,
+        "sodium_mg": 4375.5,
+        "fiber_g": 6.4,
+        "sugar_g": 21.3
+      }
+    },
+    {
+      "id": "jersey-mikes:16-mike-s-chicken-philly-wrap",
+      "name": "#16 Mike's Chicken Philly (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 665.1,
+        "protein_g": 44.7,
+        "carbs_g": 62.3,
+        "fat_g": 26.7,
+        "saturated_fat_g": 13.6,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 134.5,
+        "sodium_mg": 2062.5,
+        "fiber_g": 2.8,
+        "sugar_g": 9.9
+      }
+    },
+    {
+      "id": "jersey-mikes:16-mike-s-chicken-philly-bowl",
+      "name": "#16 Mike's Chicken Philly (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 375.1,
+        "protein_g": 36.7,
+        "carbs_g": 14.3,
+        "fat_g": 18.7,
+        "saturated_fat_g": 9.6,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 134.5,
+        "sodium_mg": 1492.5,
+        "fiber_g": 0.8,
+        "sugar_g": 8.9
+      }
+    },
+    {
+      "id": "jersey-mikes:42-chipotle-chicken-cheese-steak-regular",
+      "name": "#42 Chipotle Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 973.3,
+        "protein_g": 48.8,
+        "carbs_g": 74.7,
+        "fat_g": 53.4,
+        "saturated_fat_g": 14.9,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 158.6,
+        "sodium_mg": 2547.2,
+        "fiber_g": 3.3,
+        "sugar_g": 11.9
+      }
+    },
+    {
+      "id": "jersey-mikes:42-chipotle-chicken-cheese-steak-giant",
+      "name": "#42 Chipotle Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1946.5,
+        "protein_g": 97.6,
+        "carbs_g": 149.3,
+        "fat_g": 106.8,
+        "saturated_fat_g": 29.7,
+        "trans_fat_g": 0.9,
+        "cholesterol_mg": 317.2,
+        "sodium_mg": 5094.3,
+        "fiber_g": 6.6,
+        "sugar_g": 23.8
+      }
+    },
+    {
+      "id": "jersey-mikes:42-chipotle-chicken-cheese-steak-wrap",
+      "name": "#42 Chipotle Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 954.5,
+        "protein_g": 45.2,
+        "carbs_g": 64,
+        "fat_g": 58.5,
+        "saturated_fat_g": 18.5,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 158.6,
+        "sodium_mg": 2421.9,
+        "fiber_g": 2.9,
+        "sugar_g": 11.1
+      }
+    },
+    {
+      "id": "jersey-mikes:42-chipotle-chicken-cheese-steak-bowl",
+      "name": "#42 Chipotle Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 664.5,
+        "protein_g": 37.2,
+        "carbs_g": 16,
+        "fat_g": 50.5,
+        "saturated_fat_g": 14.5,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 158.6,
+        "sodium_mg": 1851.9,
+        "fiber_g": 0.9,
+        "sugar_g": 10.1
+      }
+    },
+    {
+      "id": "jersey-mikes:55-big-kahuna-chicken-cheese-steak-regular",
+      "name": "#55 Big Kahuna Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 741.3,
+        "protein_g": 51.1,
+        "carbs_g": 75.2,
+        "fat_g": 26.1,
+        "saturated_fat_g": 12.7,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 147.7,
+        "sodium_mg": 2741,
+        "fiber_g": 3.7,
+        "sugar_g": 11.8
+      }
+    },
+    {
+      "id": "jersey-mikes:55-big-kahuna-chicken-cheese-steak-giant",
+      "name": "#55 Big Kahuna Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1482.5,
+        "protein_g": 102.2,
+        "carbs_g": 150.4,
+        "fat_g": 52.2,
+        "saturated_fat_g": 25.3,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 295.5,
+        "sodium_mg": 5481.9,
+        "fiber_g": 7.3,
+        "sugar_g": 23.7
+      }
+    },
+    {
+      "id": "jersey-mikes:55-big-kahuna-chicken-cheese-steak-wrap",
+      "name": "#55 Big Kahuna Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 719.7,
+        "protein_g": 47.4,
+        "carbs_g": 63.9,
+        "fat_g": 31.2,
+        "saturated_fat_g": 16.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 147.7,
+        "sodium_mg": 2615.5,
+        "fiber_g": 3.1,
+        "sugar_g": 10.8
+      }
+    },
+    {
+      "id": "jersey-mikes:55-big-kahuna-chicken-cheese-steak-bowl",
+      "name": "#55 Big Kahuna Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 429.7,
+        "protein_g": 39.4,
+        "carbs_g": 15.9,
+        "fat_g": 23.2,
+        "saturated_fat_g": 12.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 147.7,
+        "sodium_mg": 2045.5,
+        "fiber_g": 1.1,
+        "sugar_g": 9.8
+      }
+    },
+    {
+      "id": "jersey-mikes:26-bacon-ranch-chicken-cheese-steak-regular",
+      "name": "#26 Bacon Ranch Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 923.8,
+        "protein_g": 55.1,
+        "carbs_g": 71.4,
+        "fat_g": 46.8,
+        "saturated_fat_g": 14.8,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 163.7,
+        "sodium_mg": 2485.1,
+        "fiber_g": 3.7,
+        "sugar_g": 8.8
+      }
+    },
+    {
+      "id": "jersey-mikes:26-bacon-ranch-chicken-cheese-steak-giant",
+      "name": "#26 Bacon Ranch Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1844.1,
+        "protein_g": 109.9,
+        "carbs_g": 142,
+        "fat_g": 93.6,
+        "saturated_fat_g": 29.5,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 327.4,
+        "sodium_mg": 4969.2,
+        "fiber_g": 7.3,
+        "sugar_g": 17.1
+      }
+    },
+    {
+      "id": "jersey-mikes:26-bacon-ranch-chicken-cheese-steak-wrap",
+      "name": "#26 Bacon Ranch Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 905.1,
+        "protein_g": 51.4,
+        "carbs_g": 60.7,
+        "fat_g": 51.9,
+        "saturated_fat_g": 18.4,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 163.7,
+        "sodium_mg": 2359.9,
+        "fiber_g": 3.3,
+        "sugar_g": 8.1
+      }
+    },
+    {
+      "id": "jersey-mikes:26-bacon-ranch-chicken-cheese-steak-bowl",
+      "name": "#26 Bacon Ranch Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 615.1,
+        "protein_g": 43.4,
+        "carbs_g": 12.7,
+        "fat_g": 43.9,
+        "saturated_fat_g": 14.4,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 163.7,
+        "sodium_mg": 1789.9,
+        "fiber_g": 1.3,
+        "sugar_g": 7.1
+      }
+    },
+    {
+      "id": "jersey-mikes:31-california-chicken-cheese-steak-regular",
+      "name": "#31 California Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 931.8,
+        "protein_g": 49.2,
+        "carbs_g": 70,
+        "fat_g": 50.8,
+        "saturated_fat_g": 14.4,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 150.1,
+        "sodium_mg": 2148,
+        "fiber_g": 3.7,
+        "sugar_g": 8.4
+      }
+    },
+    {
+      "id": "jersey-mikes:31-california-chicken-cheese-steak-giant",
+      "name": "#31 California Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1860.1,
+        "protein_g": 98.2,
+        "carbs_g": 139.3,
+        "fat_g": 101.6,
+        "saturated_fat_g": 28.7,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 300.1,
+        "sodium_mg": 4295.1,
+        "fiber_g": 7.3,
+        "sugar_g": 16.3
+      }
+    },
+    {
+      "id": "jersey-mikes:31-california-chicken-cheese-steak-wrap",
+      "name": "#31 California Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 913.1,
+        "protein_g": 45.6,
+        "carbs_g": 59.4,
+        "fat_g": 55.9,
+        "saturated_fat_g": 18,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 150.1,
+        "sodium_mg": 2022.8,
+        "fiber_g": 3.3,
+        "sugar_g": 7.7
+      }
+    },
+    {
+      "id": "jersey-mikes:31-california-chicken-cheese-steak-bowl",
+      "name": "#31 California Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 623.1,
+        "protein_g": 37.6,
+        "carbs_g": 11.4,
+        "fat_g": 47.9,
+        "saturated_fat_g": 14,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 150.1,
+        "sodium_mg": 1452.8,
+        "fiber_g": 1.3,
+        "sugar_g": 6.7
+      }
+    },
+    {
+      "id": "jersey-mikes:44-buffalo-chicken-cheese-steak-regular",
+      "name": "#44 Buffalo Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 894.5,
+        "protein_g": 50.3,
+        "carbs_g": 72.9,
+        "fat_g": 44.5,
+        "saturated_fat_g": 14.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 155,
+        "sodium_mg": 3588.3,
+        "fiber_g": 4.1,
+        "sugar_g": 9.5
+      }
+    },
+    {
+      "id": "jersey-mikes:44-buffalo-chicken-cheese-steak-giant",
+      "name": "#44 Buffalo Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1785.5,
+        "protein_g": 100.5,
+        "carbs_g": 145.1,
+        "fat_g": 88.9,
+        "saturated_fat_g": 28.5,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 310,
+        "sodium_mg": 7175.6,
+        "fiber_g": 8.1,
+        "sugar_g": 18.5
+      }
+    },
+    {
+      "id": "jersey-mikes:44-buffalo-chicken-cheese-steak-wrap",
+      "name": "#44 Buffalo Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 875.7,
+        "protein_g": 46.7,
+        "carbs_g": 62.3,
+        "fat_g": 49.5,
+        "saturated_fat_g": 17.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 155,
+        "sodium_mg": 3463,
+        "fiber_g": 3.7,
+        "sugar_g": 8.7
+      }
+    },
+    {
+      "id": "jersey-mikes:44-buffalo-chicken-cheese-steak-bowl",
+      "name": "#44 Buffalo Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 585.7,
+        "protein_g": 38.7,
+        "carbs_g": 14.3,
+        "fat_g": 41.5,
+        "saturated_fat_g": 13.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 155,
+        "sodium_mg": 2893,
+        "fiber_g": 1.7,
+        "sugar_g": 7.7
+      }
+    },
+    {
+      "id": "jersey-mikes:17-mike-s-famous-philly-regular",
+      "name": "#17 Mike's Famous Philly (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 748.3,
+        "protein_g": 45.9,
+        "carbs_g": 74,
+        "fat_g": 30.3,
+        "saturated_fat_g": 14.4,
+        "trans_fat_g": 0.8,
+        "cholesterol_mg": 120,
+        "sodium_mg": 2164.6,
+        "fiber_g": 3.2,
+        "sugar_g": 9.7
+      }
+    },
+    {
+      "id": "jersey-mikes:17-mike-s-famous-philly-giant",
+      "name": "#17 Mike's Famous Philly (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1496.7,
+        "protein_g": 91.9,
+        "carbs_g": 148,
+        "fat_g": 60.6,
+        "saturated_fat_g": 28.8,
+        "trans_fat_g": 1.5,
+        "cholesterol_mg": 240.1,
+        "sodium_mg": 4329.2,
+        "fiber_g": 6.4,
+        "sugar_g": 19.3
+      }
+    },
+    {
+      "id": "jersey-mikes:17-mike-s-famous-philly-wrap",
+      "name": "#17 Mike's Famous Philly (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 729.6,
+        "protein_g": 42.3,
+        "carbs_g": 63.3,
+        "fat_g": 35.4,
+        "saturated_fat_g": 18.1,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 120,
+        "sodium_mg": 2039.4,
+        "fiber_g": 2.8,
+        "sugar_g": 8.9
+      }
+    },
+    {
+      "id": "jersey-mikes:17-mike-s-famous-philly-bowl",
+      "name": "#17 Mike's Famous Philly (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 439.6,
+        "protein_g": 34.3,
+        "carbs_g": 15.3,
+        "fat_g": 27.4,
+        "saturated_fat_g": 14.1,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 120,
+        "sodium_mg": 1469.4,
+        "fiber_g": 0.8,
+        "sugar_g": 7.9
+      }
+    },
+    {
+      "id": "jersey-mikes:43-chipotle-cheese-steak-regular",
+      "name": "#43 Chipotle Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1037.8,
+        "protein_g": 46.4,
+        "carbs_g": 75.7,
+        "fat_g": 62,
+        "saturated_fat_g": 19.3,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 144.1,
+        "sodium_mg": 2524,
+        "fiber_g": 3.3,
+        "sugar_g": 10.9
+      }
+    },
+    {
+      "id": "jersey-mikes:43-chipotle-cheese-steak-giant",
+      "name": "#43 Chipotle Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2075.5,
+        "protein_g": 92.8,
+        "carbs_g": 151.4,
+        "fat_g": 124.1,
+        "saturated_fat_g": 38.6,
+        "trans_fat_g": 1.9,
+        "cholesterol_mg": 288.3,
+        "sodium_mg": 5048.1,
+        "fiber_g": 6.6,
+        "sugar_g": 21.8
+      }
+    },
+    {
+      "id": "jersey-mikes:43-chipotle-cheese-steak-wrap",
+      "name": "#43 Chipotle Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1019,
+        "protein_g": 42.8,
+        "carbs_g": 65,
+        "fat_g": 67.1,
+        "saturated_fat_g": 23,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 144.1,
+        "sodium_mg": 2398.8,
+        "fiber_g": 2.9,
+        "sugar_g": 10.2
+      }
+    },
+    {
+      "id": "jersey-mikes:43-chipotle-cheese-steak-bowl",
+      "name": "#43 Chipotle Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 729,
+        "protein_g": 34.8,
+        "carbs_g": 17,
+        "fat_g": 59.1,
+        "saturated_fat_g": 19,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 144.1,
+        "sodium_mg": 1828.8,
+        "fiber_g": 0.9,
+        "sugar_g": 9.2
+      }
+    },
+    {
+      "id": "jersey-mikes:56-big-kahuna-cheese-steak-regular",
+      "name": "#56 Big Kahuna Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 802.9,
+        "protein_g": 48.7,
+        "carbs_g": 75.6,
+        "fat_g": 34.7,
+        "saturated_fat_g": 17.1,
+        "trans_fat_g": 0.8,
+        "cholesterol_mg": 133.3,
+        "sodium_mg": 2717.5,
+        "fiber_g": 3.5,
+        "sugar_g": 10.6
+      }
+    },
+    {
+      "id": "jersey-mikes:56-big-kahuna-cheese-steak-giant",
+      "name": "#56 Big Kahuna Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1608.7,
+        "protein_g": 97.4,
+        "carbs_g": 151.8,
+        "fat_g": 69.5,
+        "saturated_fat_g": 34.2,
+        "trans_fat_g": 1.7,
+        "cholesterol_mg": 266.5,
+        "sodium_mg": 5435.3,
+        "fiber_g": 7.2,
+        "sugar_g": 21.5
+      }
+    },
+    {
+      "id": "jersey-mikes:56-big-kahuna-cheese-steak-wrap",
+      "name": "#56 Big Kahuna Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 784.2,
+        "protein_g": 45,
+        "carbs_g": 64.9,
+        "fat_g": 39.8,
+        "saturated_fat_g": 20.8,
+        "trans_fat_g": 0.8,
+        "cholesterol_mg": 133.3,
+        "sodium_mg": 2592.3,
+        "fiber_g": 3.1,
+        "sugar_g": 9.8
+      }
+    },
+    {
+      "id": "jersey-mikes:56-big-kahuna-cheese-steak-bowl",
+      "name": "#56 Big Kahuna Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 494.2,
+        "protein_g": 37,
+        "carbs_g": 16.9,
+        "fat_g": 31.8,
+        "saturated_fat_g": 16.8,
+        "trans_fat_g": 0.8,
+        "cholesterol_mg": 133.3,
+        "sodium_mg": 2022.3,
+        "fiber_g": 1.1,
+        "sugar_g": 8.8
+      }
+    },
+    {
+      "id": "jersey-mikes:20-grilled-pastrami-reuben-regular",
+      "name": "#20 Grilled Pastrami Reuben (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 721.3,
+        "protein_g": 41.7,
+        "carbs_g": 74.2,
+        "fat_g": 29.8,
+        "saturated_fat_g": 8.2,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 99.8,
+        "sodium_mg": 1914.9,
+        "fiber_g": 5.5,
+        "sugar_g": 9.1
+      }
+    },
+    {
+      "id": "jersey-mikes:20-grilled-pastrami-reuben-giant",
+      "name": "#20 Grilled Pastrami Reuben (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1381.2,
+        "protein_g": 83.4,
+        "carbs_g": 146.6,
+        "fat_g": 53.4,
+        "saturated_fat_g": 15.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 193.4,
+        "sodium_mg": 3725.9,
+        "fiber_g": 11,
+        "sugar_g": 16.3
+      }
+    },
+    {
+      "id": "jersey-mikes:20-grilled-pastrami-reuben-bowl",
+      "name": "#20 Grilled Pastrami Reuben (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 412.6,
+        "protein_g": 30.1,
+        "carbs_g": 15.6,
+        "fat_g": 26.8,
+        "saturated_fat_g": 7.9,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 99.8,
+        "sodium_mg": 1219.7,
+        "fiber_g": 3.1,
+        "sugar_g": 7.4
+      }
+    },
+    {
+      "id": "jersey-mikes:teriyaki-chicken-sub-regular",
+      "name": "Teriyaki Chicken Sub (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 683.8,
+        "protein_g": 48.3,
+        "carbs_g": 73,
+        "fat_g": 21.7,
+        "saturated_fat_g": 9.9,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 134.5,
+        "sodium_mg": 2187.8,
+        "fiber_g": 3.2,
+        "sugar_g": 10.6
+      }
+    },
+    {
+      "id": "jersey-mikes:teriyaki-chicken-sub-giant",
+      "name": "Teriyaki Chicken Sub (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1367.7,
+        "protein_g": 96.7,
+        "carbs_g": 146,
+        "fat_g": 43.3,
+        "saturated_fat_g": 19.9,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 269,
+        "sodium_mg": 4375.5,
+        "fiber_g": 6.4,
+        "sugar_g": 21.3
+      }
+    },
+    {
+      "id": "jersey-mikes:teriyaki-chicken-sub-wrap",
+      "name": "Teriyaki Chicken Sub (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 665.1,
+        "protein_g": 44.7,
+        "carbs_g": 62.3,
+        "fat_g": 26.7,
+        "saturated_fat_g": 13.6,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 134.5,
+        "sodium_mg": 2062.5,
+        "fiber_g": 2.8,
+        "sugar_g": 9.9
+      }
+    },
+    {
+      "id": "jersey-mikes:teriyaki-chicken-sub-bowl",
+      "name": "Teriyaki Chicken Sub (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 375.1,
+        "protein_g": 36.7,
+        "carbs_g": 14.3,
+        "fat_g": 18.7,
+        "saturated_fat_g": 9.6,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 134.5,
+        "sodium_mg": 1492.5,
+        "fiber_g": 0.8,
+        "sugar_g": 8.9
+      }
+    },
+    {
+      "id": "jersey-mikes:19-bbq-beef-regular",
+      "name": "#19 BBQ Beef (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 708.1,
+        "protein_g": 60.1,
+        "carbs_g": 87.4,
+        "fat_g": 11.4,
+        "saturated_fat_g": 3.3,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 123.6,
+        "sodium_mg": 1811.5,
+        "fiber_g": 3.6,
+        "sugar_g": 20.1
+      }
+    },
+    {
+      "id": "jersey-mikes:19-bbq-beef-giant",
+      "name": "#19 BBQ Beef (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1291.8,
+        "protein_g": 106.8,
+        "carbs_g": 163.3,
+        "fat_g": 20.4,
+        "saturated_fat_g": 5.7,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 213.4,
+        "sodium_mg": 3228.5,
+        "fiber_g": 6.8,
+        "sugar_g": 32.9
+      }
+    },
+    {
+      "id": "jersey-mikes:19-bbq-beef-wrap",
+      "name": "#19 BBQ Beef (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 689.3,
+        "protein_g": 56.5,
+        "carbs_g": 76.7,
+        "fat_g": 16.4,
+        "saturated_fat_g": 6.9,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 123.6,
+        "sodium_mg": 1686.3,
+        "fiber_g": 3.2,
+        "sugar_g": 19.4
+      }
+    },
+    {
+      "id": "jersey-mikes:19-bbq-beef-bowl",
+      "name": "#19 BBQ Beef (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 399.3,
+        "protein_g": 48.5,
+        "carbs_g": 28.7,
+        "fat_g": 8.4,
+        "saturated_fat_g": 2.9,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 123.6,
+        "sodium_mg": 1116.3,
+        "fiber_g": 1.2,
+        "sugar_g": 18.4
+      }
+    },
+    {
+      "id": "jersey-mikes:chixroni-lto-regular",
+      "name": "ChixRoni LTO (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 898.7,
+        "protein_g": 58.5,
+        "carbs_g": 72.5,
+        "fat_g": 41.8,
+        "saturated_fat_g": 20.5,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 190,
+        "sodium_mg": 2952.3,
+        "fiber_g": 3.1,
+        "sugar_g": 9
+      }
+    },
+    {
+      "id": "jersey-mikes:chixroni-lto-giant",
+      "name": "ChixRoni LTO (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1804,
+        "protein_g": 117.2,
+        "carbs_g": 145.1,
+        "fat_g": 84.1,
+        "saturated_fat_g": 41.3,
+        "trans_fat_g": 0.9,
+        "cholesterol_mg": 381.4,
+        "sodium_mg": 5927.2,
+        "fiber_g": 6.2,
+        "sugar_g": 18
+      }
+    },
+    {
+      "id": "jersey-mikes:chixroni-lto-wrap",
+      "name": "ChixRoni LTO (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 880,
+        "protein_g": 54.9,
+        "carbs_g": 61.9,
+        "fat_g": 46.9,
+        "saturated_fat_g": 24.2,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 190,
+        "sodium_mg": 2827.1,
+        "fiber_g": 2.7,
+        "sugar_g": 8.3
+      }
+    },
+    {
+      "id": "jersey-mikes:chixroni-lto-bowl",
+      "name": "ChixRoni LTO (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 590,
+        "protein_g": 46.9,
+        "carbs_g": 13.9,
+        "fat_g": 38.9,
+        "saturated_fat_g": 20.2,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 190,
+        "sodium_mg": 2257.1,
+        "fiber_g": 0.7,
+        "sugar_g": 7.3
+      }
+    },
+    {
+      "id": "jersey-mikes:17-halal-steak-philly-regular",
+      "name": "#17 Halal Steak Philly (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 756.3,
+        "protein_g": 42.1,
+        "carbs_g": 69.4,
+        "fat_g": 31,
+        "saturated_fat_g": 13,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 97.7,
+        "sodium_mg": 1992.5,
+        "fiber_g": 3.2,
+        "sugar_g": 9
+      }
+    },
+    {
+      "id": "jersey-mikes:17-halal-steak-philly-giant",
+      "name": "#17 Halal Steak Philly (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1512.5,
+        "protein_g": 84.2,
+        "carbs_g": 138.7,
+        "fat_g": 62,
+        "saturated_fat_g": 26,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 195.3,
+        "sodium_mg": 3984.9,
+        "fiber_g": 6.4,
+        "sugar_g": 18
+      }
+    },
+    {
+      "id": "jersey-mikes:17-halal-steak-philly-wrap",
+      "name": "#17 Halal Steak Philly (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 737.5,
+        "protein_g": 38.5,
+        "carbs_g": 58.7,
+        "fat_g": 36.1,
+        "saturated_fat_g": 16.7,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 97.7,
+        "sodium_mg": 1867.2,
+        "fiber_g": 2.8,
+        "sugar_g": 8.3
+      }
+    },
+    {
+      "id": "jersey-mikes:17-halal-steak-philly-bowl",
+      "name": "#17 Halal Steak Philly (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 447.5,
+        "protein_g": 30.5,
+        "carbs_g": 10.7,
+        "fat_g": 28.1,
+        "saturated_fat_g": 12.7,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 97.7,
+        "sodium_mg": 1297.2,
+        "fiber_g": 0.8,
+        "sugar_g": 7.3
+      }
+    },
+    {
+      "id": "jersey-mikes:43-halal-chipotle-cheese-steak-regular",
+      "name": "#43 Halal Chipotle Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1045.7,
+        "protein_g": 42.6,
+        "carbs_g": 71,
+        "fat_g": 62.7,
+        "saturated_fat_g": 17.9,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 121.8,
+        "sodium_mg": 2351.9,
+        "fiber_g": 3.3,
+        "sugar_g": 10.2
+      }
+    },
+    {
+      "id": "jersey-mikes:43-halal-chipotle-cheese-steak-giant",
+      "name": "#43 Halal Chipotle Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2091.4,
+        "protein_g": 85.2,
+        "carbs_g": 142.1,
+        "fat_g": 125.5,
+        "saturated_fat_g": 35.9,
+        "trans_fat_g": 0.9,
+        "cholesterol_mg": 243.5,
+        "sodium_mg": 4703.7,
+        "fiber_g": 6.6,
+        "sugar_g": 20.5
+      }
+    },
+    {
+      "id": "jersey-mikes:43-halal-chipotle-cheese-steak-wrap",
+      "name": "#43 Halal Chipotle Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1027,
+        "protein_g": 39,
+        "carbs_g": 60.4,
+        "fat_g": 67.8,
+        "saturated_fat_g": 21.6,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 121.8,
+        "sodium_mg": 2226.6,
+        "fiber_g": 2.9,
+        "sugar_g": 9.5
+      }
+    },
+    {
+      "id": "jersey-mikes:43-halal-chipotle-cheese-steak-bowl",
+      "name": "#43 Halal Chipotle Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 737,
+        "protein_g": 31,
+        "carbs_g": 12.4,
+        "fat_g": 59.8,
+        "saturated_fat_g": 17.6,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 121.8,
+        "sodium_mg": 1656.6,
+        "fiber_g": 0.9,
+        "sugar_g": 8.5
+      }
+    },
+    {
+      "id": "jersey-mikes:56-halal-big-kahuna-cheese-steak-regular",
+      "name": "#56 Halal Big Kahuna Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 810.9,
+        "protein_g": 44.8,
+        "carbs_g": 70.9,
+        "fat_g": 35.4,
+        "saturated_fat_g": 15.7,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 110.9,
+        "sodium_mg": 2545.4,
+        "fiber_g": 3.5,
+        "sugar_g": 9.9
+      }
+    },
+    {
+      "id": "jersey-mikes:56-halal-big-kahuna-cheese-steak-giant",
+      "name": "#56 Halal Big Kahuna Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1624.6,
+        "protein_g": 89.7,
+        "carbs_g": 142.5,
+        "fat_g": 70.9,
+        "saturated_fat_g": 31.5,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 221.8,
+        "sodium_mg": 5091,
+        "fiber_g": 7.2,
+        "sugar_g": 20.1
+      }
+    },
+    {
+      "id": "jersey-mikes:56-halal-big-kahuna-cheese-steak-wrap",
+      "name": "#56 Halal Big Kahuna Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 792.1,
+        "protein_g": 41.2,
+        "carbs_g": 60.3,
+        "fat_g": 40.5,
+        "saturated_fat_g": 19.4,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 110.9,
+        "sodium_mg": 2420.2,
+        "fiber_g": 3.1,
+        "sugar_g": 9.2
+      }
+    },
+    {
+      "id": "jersey-mikes:56-halal-big-kahuna-cheese-steak-bowl",
+      "name": "#56 Halal Big Kahuna Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 502.1,
+        "protein_g": 33.2,
+        "carbs_g": 12.3,
+        "fat_g": 32.5,
+        "saturated_fat_g": 15.4,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 110.9,
+        "sodium_mg": 1850.2,
+        "fiber_g": 1.1,
+        "sugar_g": 8.2
+      }
+    },
+    {
+      "id": "jersey-mikes:16-halal-chicken-philly-regular",
+      "name": "#16 Halal Chicken Philly (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 661.2,
+        "protein_g": 48.5,
+        "carbs_g": 69.4,
+        "fat_g": 20.1,
+        "saturated_fat_g": 9.6,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 119.7,
+        "sodium_mg": 1901.1,
+        "fiber_g": 3.2,
+        "sugar_g": 9
+      }
+    },
+    {
+      "id": "jersey-mikes:16-halal-chicken-philly-giant",
+      "name": "#16 Halal Chicken Philly (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1322.4,
+        "protein_g": 97,
+        "carbs_g": 138.7,
+        "fat_g": 40.2,
+        "saturated_fat_g": 19.2,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 239.4,
+        "sodium_mg": 3802.1,
+        "fiber_g": 6.4,
+        "sugar_g": 18
+      }
+    },
+    {
+      "id": "jersey-mikes:16-halal-chicken-philly-wrap",
+      "name": "#16 Halal Chicken Philly (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 642.5,
+        "protein_g": 44.9,
+        "carbs_g": 58.7,
+        "fat_g": 25.2,
+        "saturated_fat_g": 13.3,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 119.7,
+        "sodium_mg": 1775.9,
+        "fiber_g": 2.8,
+        "sugar_g": 8.3
+      }
+    },
+    {
+      "id": "jersey-mikes:16-halal-chicken-philly-bowl",
+      "name": "#16 Halal Chicken Philly (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 352.5,
+        "protein_g": 36.9,
+        "carbs_g": 10.7,
+        "fat_g": 17.2,
+        "saturated_fat_g": 9.3,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 119.7,
+        "sodium_mg": 1205.9,
+        "fiber_g": 0.8,
+        "sugar_g": 7.3
+      }
+    },
+    {
+      "id": "jersey-mikes:42-halal-chipotle-chicken-cheese-steak-regular",
+      "name": "#42 Halal Chipotle Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 950.6,
+        "protein_g": 48.9,
+        "carbs_g": 71,
+        "fat_g": 51.8,
+        "saturated_fat_g": 14.5,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 143.8,
+        "sodium_mg": 2260.5,
+        "fiber_g": 3.3,
+        "sugar_g": 10.2
+      }
+    },
+    {
+      "id": "jersey-mikes:42-halal-chipotle-chicken-cheese-steak-giant",
+      "name": "#42 Halal Chipotle Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1901.3,
+        "protein_g": 97.9,
+        "carbs_g": 142.1,
+        "fat_g": 103.6,
+        "saturated_fat_g": 29.1,
+        "trans_fat_g": 0.9,
+        "cholesterol_mg": 287.6,
+        "sodium_mg": 4521,
+        "fiber_g": 6.6,
+        "sugar_g": 20.5
+      }
+    },
+    {
+      "id": "jersey-mikes:42-halal-chipotle-chicken-cheese-steak-wrap",
+      "name": "#42 Halal Chipotle Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 931.9,
+        "protein_g": 45.3,
+        "carbs_g": 60.4,
+        "fat_g": 56.9,
+        "saturated_fat_g": 18.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 143.8,
+        "sodium_mg": 2135.3,
+        "fiber_g": 2.9,
+        "sugar_g": 9.5
+      }
+    },
+    {
+      "id": "jersey-mikes:42-halal-chipotle-chicken-cheese-steak-bowl",
+      "name": "#42 Halal Chipotle Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 641.9,
+        "protein_g": 37.3,
+        "carbs_g": 12.4,
+        "fat_g": 48.9,
+        "saturated_fat_g": 14.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 143.8,
+        "sodium_mg": 1565.3,
+        "fiber_g": 0.9,
+        "sugar_g": 8.5
+      }
+    },
+    {
+      "id": "jersey-mikes:55-halal-big-kahuna-chicken-cheese-steak-regular",
+      "name": "#55 Halal Big Kahuna Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 718.7,
+        "protein_g": 51.3,
+        "carbs_g": 71.6,
+        "fat_g": 24.5,
+        "saturated_fat_g": 12.3,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 132.9,
+        "sodium_mg": 2454.3,
+        "fiber_g": 3.7,
+        "sugar_g": 10.2
+      }
+    },
+    {
+      "id": "jersey-mikes:55-halal-big-kahuna-chicken-cheese-steak-giant",
+      "name": "#55 Halal Big Kahuna Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1437.3,
+        "protein_g": 102.5,
+        "carbs_g": 143.2,
+        "fat_g": 49,
+        "saturated_fat_g": 24.6,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 265.8,
+        "sodium_mg": 4908.5,
+        "fiber_g": 7.3,
+        "sugar_g": 20.4
+      }
+    },
+    {
+      "id": "jersey-mikes:55-halal-big-kahuna-chicken-cheese-steak-wrap",
+      "name": "#55 Halal Big Kahuna Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 697.1,
+        "protein_g": 47.6,
+        "carbs_g": 60.3,
+        "fat_g": 29.6,
+        "saturated_fat_g": 16,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 132.9,
+        "sodium_mg": 2328.8,
+        "fiber_g": 3.1,
+        "sugar_g": 9.2
+      }
+    },
+    {
+      "id": "jersey-mikes:55-halal-big-kahuna-chicken-cheese-steak-bowl",
+      "name": "#55 Halal Big Kahuna Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 407.1,
+        "protein_g": 39.6,
+        "carbs_g": 12.3,
+        "fat_g": 21.6,
+        "saturated_fat_g": 12,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 132.9,
+        "sodium_mg": 1758.8,
+        "fiber_g": 1.1,
+        "sugar_g": 8.2
+      }
+    },
+    {
+      "id": "jersey-mikes:44-halal-buffalo-chicken-cheese-steak-regular",
+      "name": "#44 Halal Buffalo Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 871.8,
+        "protein_g": 50.5,
+        "carbs_g": 69.3,
+        "fat_g": 42.9,
+        "saturated_fat_g": 13.9,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 140.2,
+        "sodium_mg": 3301.6,
+        "fiber_g": 4.1,
+        "sugar_g": 7.9
+      }
+    },
+    {
+      "id": "jersey-mikes:44-halal-buffalo-chicken-cheese-steak-giant",
+      "name": "#44 Halal Buffalo Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1740.2,
+        "protein_g": 100.7,
+        "carbs_g": 137.9,
+        "fat_g": 85.7,
+        "saturated_fat_g": 27.9,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 280.3,
+        "sodium_mg": 6602.2,
+        "fiber_g": 8.1,
+        "sugar_g": 15.2
+      }
+    },
+    {
+      "id": "jersey-mikes:44-halal-buffalo-chicken-cheese-steak-wrap",
+      "name": "#44 Halal Buffalo Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 853.1,
+        "protein_g": 46.8,
+        "carbs_g": 58.7,
+        "fat_g": 48,
+        "saturated_fat_g": 17.6,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 140.2,
+        "sodium_mg": 3176.4,
+        "fiber_g": 3.7,
+        "sugar_g": 7.1
+      }
+    },
+    {
+      "id": "jersey-mikes:44-halal-buffalo-chicken-cheese-steak-bowl",
+      "name": "#44 Halal Buffalo Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 563.1,
+        "protein_g": 38.8,
+        "carbs_g": 10.7,
+        "fat_g": 40,
+        "saturated_fat_g": 13.6,
+        "trans_fat_g": 0.3,
+        "cholesterol_mg": 140.2,
+        "sodium_mg": 2606.4,
+        "fiber_g": 1.7,
+        "sugar_g": 6.1
+      }
+    },
+    {
+      "id": "jersey-mikes:31-halal-chicken-california-regular",
+      "name": "#31 Halal Chicken California (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 909.2,
+        "protein_g": 49.3,
+        "carbs_g": 66.4,
+        "fat_g": 49.2,
+        "saturated_fat_g": 14,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 135.2,
+        "sodium_mg": 1861.3,
+        "fiber_g": 3.7,
+        "sugar_g": 6.8
+      }
+    },
+    {
+      "id": "jersey-mikes:31-halal-chicken-california-giant",
+      "name": "#31 Halal Chicken California (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1814.8,
+        "protein_g": 98.5,
+        "carbs_g": 132.1,
+        "fat_g": 98.5,
+        "saturated_fat_g": 28,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 270.5,
+        "sodium_mg": 3721.7,
+        "fiber_g": 7.3,
+        "sugar_g": 13.1
+      }
+    },
+    {
+      "id": "jersey-mikes:31-halal-chicken-california-wrap",
+      "name": "#31 Halal Chicken California (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 890.4,
+        "protein_g": 45.7,
+        "carbs_g": 55.7,
+        "fat_g": 54.3,
+        "saturated_fat_g": 17.7,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 135.2,
+        "sodium_mg": 1736.1,
+        "fiber_g": 3.3,
+        "sugar_g": 6.1
+      }
+    },
+    {
+      "id": "jersey-mikes:31-halal-chicken-california-bowl",
+      "name": "#31 Halal Chicken California (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 600.4,
+        "protein_g": 37.7,
+        "carbs_g": 7.7,
+        "fat_g": 46.3,
+        "saturated_fat_g": 13.7,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 135.2,
+        "sodium_mg": 1166.1,
+        "fiber_g": 1.3,
+        "sugar_g": 5.1
+      }
+    },
+    {
+      "id": "jersey-mikes:26-halal-bacon-ranch-chicken-cheese-steak-regular",
+      "name": "#26 Halal Bacon Ranch Chicken Cheese Steak (Regular)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 935.9,
+        "protein_g": 60.1,
+        "carbs_g": 69.7,
+        "fat_g": 46,
+        "saturated_fat_g": 14.6,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 174.5,
+        "sodium_mg": 2349.2,
+        "fiber_g": 3.7,
+        "sugar_g": 8.7
+      }
+    },
+    {
+      "id": "jersey-mikes:26-halal-bacon-ranch-chicken-cheese-steak-giant",
+      "name": "#26 Halal Bacon Ranch Chicken Cheese Steak (Giant)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1868.3,
+        "protein_g": 119.9,
+        "carbs_g": 138.6,
+        "fat_g": 92,
+        "saturated_fat_g": 29.2,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 349,
+        "sodium_mg": 4697.4,
+        "fiber_g": 7.3,
+        "sugar_g": 16.9
+      }
+    },
+    {
+      "id": "jersey-mikes:26-halal-bacon-ranch-chicken-cheese-steak-wrap",
+      "name": "#26 Halal Bacon Ranch Chicken Cheese Steak (Wrap)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Wrap",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 917.2,
+        "protein_g": 56.4,
+        "carbs_g": 59,
+        "fat_g": 51.1,
+        "saturated_fat_g": 18.3,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 174.5,
+        "sodium_mg": 2224,
+        "fiber_g": 3.3,
+        "sugar_g": 8
+      }
+    },
+    {
+      "id": "jersey-mikes:26-halal-bacon-ranch-chicken-cheese-steak-bowl",
+      "name": "#26 Halal Bacon Ranch Chicken Cheese Steak (Bowl)",
+      "category": "Hot Subs",
+      "menu": null,
+      "servingSize": "Bowl",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 627.2,
+        "protein_g": 48.4,
+        "carbs_g": 11,
+        "fat_g": 43.1,
+        "saturated_fat_g": 14.3,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 174.5,
+        "sodium_mg": 1654,
+        "fiber_g": 1.3,
+        "sugar_g": 7
+      }
+    },
+    {
+      "id": "jersey-mikes:chips-regular",
+      "name": "Chips (Regular)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 240,
+        "protein_g": 3,
+        "carbs_g": 23,
+        "fat_g": 16,
+        "saturated_fat_g": 2,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 250,
+        "fiber_g": 2,
+        "sugar_g": 1
+      }
+    },
+    {
+      "id": "jersey-mikes:fountain-drink-regular",
+      "name": "Fountain Drink (Regular)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 278.7,
+        "protein_g": 0,
+        "carbs_g": 75.9,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 59.2,
+        "fiber_g": 0,
+        "sugar_g": 75.7
+      }
+    },
+    {
+      "id": "jersey-mikes:fountain-drink-giant",
+      "name": "Fountain Drink (Giant)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 405.4,
+        "protein_g": 0,
+        "carbs_g": 110.4,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 86.1,
+        "fiber_g": 0,
+        "sugar_g": 110.1
+      }
+    },
+    {
+      "id": "jersey-mikes:soda-bottle-20-oz",
+      "name": "Soda Bottle (20 oz)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "20 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 250,
+        "protein_g": 0,
+        "carbs_g": 69,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 55,
+        "fiber_g": 0,
+        "sugar_g": 69
+      }
+    },
+    {
+      "id": "jersey-mikes:soda-bottle-2-liter",
+      "name": "Soda Bottle (2 Liter)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "2 Liter",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 845,
+        "protein_g": 0,
+        "carbs_g": 231,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 169,
+        "fiber_g": 0,
+        "sugar_g": 231
+      }
+    },
+    {
+      "id": "jersey-mikes:hot-chopped-pepper-relish-16-oz",
+      "name": "Hot Chopped Pepper Relish (16 oz)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "16 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 65.8,
+        "protein_g": 2.2,
+        "carbs_g": 13.6,
+        "fat_g": 0.2,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 5662.9,
+        "fiber_g": 4.8,
+        "sugar_g": 8.5
+      }
+    },
+    {
+      "id": "jersey-mikes:celsius-12-oz",
+      "name": "Celsius (12 oz)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "12 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 10,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 0,
+        "sugar_g": 0
+      }
+    },
+    {
+      "id": "jersey-mikes:gatorade-20-oz",
+      "name": "Gatorade (20 oz)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "20 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 140,
+        "protein_g": 0,
+        "carbs_g": 36,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 270,
+        "fiber_g": 0,
+        "sugar_g": 34
+      }
+    },
+    {
+      "id": "jersey-mikes:amp-energy-drink-each",
+      "name": "AMP Energy Drink (Each)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Each",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 220,
+        "protein_g": 0,
+        "carbs_g": 58,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 140,
+        "fiber_g": 0,
+        "sugar_g": 58
+      }
+    },
+    {
+      "id": "jersey-mikes:stubborn-soda-12-oz-can",
+      "name": "Stubborn Soda (12 oz Can)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "12 oz Can",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "protein_g": 0,
+        "carbs_g": 39,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 70,
+        "fiber_g": 0,
+        "sugar_g": 39
+      }
+    },
+    {
+      "id": "jersey-mikes:pure-leaf-tea-18-5-oz",
+      "name": "Pure Leaf Tea (18.5 oz)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "18.5 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "protein_g": 0,
+        "carbs_g": 38,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 10,
+        "fiber_g": 0,
+        "sugar_g": 38
+      }
+    },
+    {
+      "id": "jersey-mikes:juice-regular",
+      "name": "Juice (Regular)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 210,
+        "protein_g": 3,
+        "carbs_g": 51,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 30,
+        "fiber_g": 0,
+        "sugar_g": 42
+      }
+    },
+    {
+      "id": "jersey-mikes:cookie-regular",
+      "name": "Cookie (Regular)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 280,
+        "protein_g": 3,
+        "carbs_g": 37,
+        "fat_g": 14,
+        "saturated_fat_g": 8,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 35,
+        "sodium_mg": 220,
+        "fiber_g": 2,
+        "sugar_g": 21
+      }
+    },
+    {
+      "id": "jersey-mikes:cookie-three-pack",
+      "name": "Cookie (Three Pack)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Three Pack",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 840,
+        "protein_g": 9,
+        "carbs_g": 111,
+        "fat_g": 42,
+        "saturated_fat_g": 24,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 105,
+        "sodium_mg": 660,
+        "fiber_g": 6,
+        "sugar_g": 63
+      }
+    },
+    {
+      "id": "jersey-mikes:cookie-gf-snickerdoodle",
+      "name": "Cookie (GF SnickerDoodle)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "GF SnickerDoodle",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 210,
+        "protein_g": 1,
+        "carbs_g": 34,
+        "fat_g": 8,
+        "saturated_fat_g": 4.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 40,
+        "sodium_mg": 150,
+        "fiber_g": 0,
+        "sugar_g": 17
+      }
+    },
+    {
+      "id": "jersey-mikes:cookie-mini-pack",
+      "name": "Cookie (Mini Pack)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Mini Pack",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 770,
+        "protein_g": 8.3,
+        "carbs_g": 101.8,
+        "fat_g": 38.5,
+        "saturated_fat_g": 22,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 96.3,
+        "sodium_mg": 605,
+        "fiber_g": 5.5,
+        "sugar_g": 57.8
+      }
+    },
+    {
+      "id": "jersey-mikes:gf-snickerdoodle-regular",
+      "name": "GF Snickerdoodle (Regular)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 210,
+        "protein_g": 1,
+        "carbs_g": 34,
+        "fat_g": 8,
+        "saturated_fat_g": 4.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 40,
+        "sodium_mg": 150,
+        "fiber_g": 0,
+        "sugar_g": 17
+      }
+    },
+    {
+      "id": "jersey-mikes:brownie-regular",
+      "name": "Brownie (Regular)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 499.6,
+        "protein_g": 5.4,
+        "carbs_g": 62.3,
+        "fat_g": 27.8,
+        "saturated_fat_g": 10.6,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 89.4,
+        "sodium_mg": 181.4,
+        "fiber_g": 2.7,
+        "sugar_g": 46.7
+      }
+    },
+    {
+      "id": "jersey-mikes:tastykake-regular",
+      "name": "Tastykake (Regular)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 220,
+        "protein_g": 2,
+        "carbs_g": 39,
+        "fat_g": 7,
+        "saturated_fat_g": 2,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 50,
+        "sodium_mg": 150,
+        "fiber_g": 0,
+        "sugar_g": 26
+      }
+    },
+    {
+      "id": "jersey-mikes:french-fries-6-oz",
+      "name": "French Fries (6 oz)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "6 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 371.9,
+        "protein_g": 3.7,
+        "carbs_g": 40.5,
+        "fat_g": 22.8,
+        "saturated_fat_g": 3.7,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 625.9,
+        "fiber_g": 1.9,
+        "sugar_g": 0
+      }
+    },
+    {
+      "id": "jersey-mikes:french-fries-5-oz",
+      "name": "French Fries (5 oz)",
+      "category": "Sides, Drinks, & Desserts",
+      "menu": null,
+      "servingSize": "5 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 309.9,
+        "protein_g": 3.1,
+        "carbs_g": 33.8,
+        "fat_g": 19,
+        "saturated_fat_g": 3.1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 521.6,
+        "fiber_g": 1.6,
+        "sugar_g": 0
+      }
+    },
+    {
+      "id": "jersey-mikes:1-porkroll-egg-and-cheese-mini",
+      "name": "#1 Porkroll, Egg and Cheese (Mini)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 614.3,
+        "protein_g": 30.2,
+        "carbs_g": 42.6,
+        "fat_g": 36.2,
+        "saturated_fat_g": 14.7,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 307.6,
+        "sodium_mg": 1592.3,
+        "fiber_g": 1.7,
+        "sugar_g": 4.2
+      }
+    },
+    {
+      "id": "jersey-mikes:1-porkroll-egg-and-cheese-regular",
+      "name": "#1 Porkroll, Egg and Cheese (Regular)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 837.8,
+        "protein_g": 39.9,
+        "carbs_g": 63.8,
+        "fat_g": 47.6,
+        "saturated_fat_g": 20.2,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 336,
+        "sodium_mg": 2256.8,
+        "fiber_g": 2.4,
+        "sugar_g": 5.8
+      }
+    },
+    {
+      "id": "jersey-mikes:2-bacon-egg-and-cheese-mini",
+      "name": "#2 Bacon, Egg and Cheese (Mini)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 484.5,
+        "protein_g": 26.5,
+        "carbs_g": 41.4,
+        "fat_g": 23.7,
+        "saturated_fat_g": 8.6,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 278.5,
+        "sodium_mg": 1232,
+        "fiber_g": 1.7,
+        "sugar_g": 3.1
+      }
+    },
+    {
+      "id": "jersey-mikes:2-bacon-egg-and-cheese-regular",
+      "name": "#2 Bacon, Egg and Cheese (Regular)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 672.3,
+        "protein_g": 35.4,
+        "carbs_g": 62.3,
+        "fat_g": 31.7,
+        "saturated_fat_g": 12.4,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 298.9,
+        "sodium_mg": 1800.9,
+        "fiber_g": 2.4,
+        "sugar_g": 4.3
+      }
+    },
+    {
+      "id": "jersey-mikes:3-sausage-egg-and-cheese-mini",
+      "name": "#3 Sausage, Egg and Cheese (Mini)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 852.3,
+        "protein_g": 33,
+        "carbs_g": 41.4,
+        "fat_g": 60.5,
+        "saturated_fat_g": 22.1,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 348.1,
+        "sodium_mg": 1627.7,
+        "fiber_g": 1.7,
+        "sugar_g": 3
+      }
+    },
+    {
+      "id": "jersey-mikes:3-sausage-egg-and-cheese-regular",
+      "name": "#3 Sausage, Egg and Cheese (Regular)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1123.9,
+        "protein_g": 42.8,
+        "carbs_g": 62.2,
+        "fat_g": 76.9,
+        "saturated_fat_g": 29,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 384.1,
+        "sodium_mg": 2264.4,
+        "fiber_g": 2.4,
+        "sugar_g": 4.1
+      }
+    },
+    {
+      "id": "jersey-mikes:4-ham-egg-and-cheese-mini",
+      "name": "#4 Ham, Egg and Cheese (Mini)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 459.9,
+        "protein_g": 29.9,
+        "carbs_g": 42.7,
+        "fat_g": 18.7,
+        "saturated_fat_g": 6.9,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 282.3,
+        "sodium_mg": 1450.9,
+        "fiber_g": 1.7,
+        "sugar_g": 4.3
+      }
+    },
+    {
+      "id": "jersey-mikes:4-ham-egg-and-cheese-regular",
+      "name": "#4 Ham, Egg and Cheese (Regular)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 635.3,
+        "protein_g": 39.2,
+        "carbs_g": 63.9,
+        "fat_g": 24.8,
+        "saturated_fat_g": 10.1,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 302.5,
+        "sodium_mg": 2099.8,
+        "fiber_g": 2.4,
+        "sugar_g": 5.9
+      }
+    },
+    {
+      "id": "jersey-mikes:5-steak-egg-and-cheese-mini",
+      "name": "#5 Steak, Egg and Cheese (Mini)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 512.9,
+        "protein_g": 40.4,
+        "carbs_g": 41.4,
+        "fat_g": 19.7,
+        "saturated_fat_g": 7.2,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 312.8,
+        "sodium_mg": 1044.1,
+        "fiber_g": 1.7,
+        "sugar_g": 3
+      }
+    },
+    {
+      "id": "jersey-mikes:5-steak-egg-and-cheese-regular",
+      "name": "#5 Steak, Egg and Cheese (Regular)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 706,
+        "protein_g": 53.1,
+        "carbs_g": 62.2,
+        "fat_g": 26.1,
+        "saturated_fat_g": 10.4,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 342.8,
+        "sodium_mg": 1544.2,
+        "fiber_g": 2.4,
+        "sugar_g": 4.1
+      }
+    },
+    {
+      "id": "jersey-mikes:7-bacon-egg-cheese-peppers-and-mushrooms-regular",
+      "name": "#7 Bacon, Egg, Cheese, Peppers and Mushrooms (Regular)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 661.7,
+        "protein_g": 37.1,
+        "carbs_g": 61.2,
+        "fat_g": 29.7,
+        "saturated_fat_g": 11.6,
+        "trans_fat_g": 0.9,
+        "cholesterol_mg": 291.5,
+        "sodium_mg": 1487.3,
+        "fiber_g": 2.5,
+        "sugar_g": 3.3
+      }
+    },
+    {
+      "id": "jersey-mikes:8-cheese-ham-bacon-peppers-and-mushrooms-regular",
+      "name": "#8 Cheese, Ham, Bacon, Peppers and Mushrooms (Regular)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 700.6,
+        "protein_g": 43,
+        "carbs_g": 61.9,
+        "fat_g": 31.2,
+        "saturated_fat_g": 12.2,
+        "trans_fat_g": 0.9,
+        "cholesterol_mg": 305,
+        "sodium_mg": 1819.4,
+        "fiber_g": 2.5,
+        "sugar_g": 4
+      }
+    },
+    {
+      "id": "jersey-mikes:egg-and-cheese-mini",
+      "name": "Egg and Cheese (Mini)",
+      "category": "Breakfast",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 452.1,
+        "protein_g": 23.2,
+        "carbs_g": 42.1,
+        "fat_g": 20.8,
+        "saturated_fat_g": 7.4,
+        "trans_fat_g": 0.9,
+        "cholesterol_mg": 378.9,
+        "sodium_mg": 890.2,
+        "fiber_g": 1.7,
+        "sugar_g": 3.6
+      }
+    },
+    {
+      "id": "jersey-mikes:54-big-kahuna-hot-veggie-regular",
+      "name": "#54 Big Kahuna Hot Veggie (Regular)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 715.1,
+        "protein_g": 39.4,
+        "carbs_g": 67.3,
+        "fat_g": 32.6,
+        "saturated_fat_g": 17.1,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 81.4,
+        "sodium_mg": 1307.1,
+        "fiber_g": 5,
+        "sugar_g": 5.2
+      }
+    },
+    {
+      "id": "jersey-mikes:87-teriyaki-chicken-regular",
+      "name": "#87 Teriyaki Chicken (Regular)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 604.7,
+        "protein_g": 45.6,
+        "carbs_g": 65.1,
+        "fat_g": 17.3,
+        "saturated_fat_g": 7.2,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 121.3,
+        "sodium_mg": 1720.8,
+        "fiber_g": 2.6,
+        "sugar_g": 4.9
+      }
+    },
+    {
+      "id": "jersey-mikes:88-teriyaki-steak-regular",
+      "name": "#88 Teriyaki Steak (Regular)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1945.4,
+        "protein_g": 177.6,
+        "carbs_g": 89.4,
+        "fat_g": 97.5,
+        "saturated_fat_g": 41.1,
+        "trans_fat_g": 3.3,
+        "cholesterol_mg": 508.8,
+        "sodium_mg": 4309.5,
+        "fiber_g": 2.6,
+        "sugar_g": 7.2
+      }
+    },
+    {
+      "id": "jersey-mikes:6-halal-roast-beef-and-provolone-mini",
+      "name": "#6 Halal Roast Beef and Provolone (Mini)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 508.5,
+        "protein_g": 29.3,
+        "carbs_g": 46.1,
+        "fat_g": 24.1,
+        "saturated_fat_g": 6.2,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 30.4,
+        "sodium_mg": 1303.1,
+        "fiber_g": 2.9,
+        "sugar_g": 4.9
+      }
+    },
+    {
+      "id": "jersey-mikes:6-halal-roast-beef-and-provolone-regular",
+      "name": "#6 Halal Roast Beef and Provolone (Regular)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 830.5,
+        "protein_g": 44.4,
+        "carbs_g": 70,
+        "fat_g": 43.3,
+        "saturated_fat_g": 10.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 45.9,
+        "sodium_mg": 1973.8,
+        "fiber_g": 4.4,
+        "sugar_g": 7.4
+      }
+    },
+    {
+      "id": "jersey-mikes:6-halal-roast-beef-and-provolone-giant",
+      "name": "#6 Halal Roast Beef and Provolone (Giant)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1611.6,
+        "protein_g": 85.2,
+        "carbs_g": 137.8,
+        "fat_g": 83.4,
+        "saturated_fat_g": 18.5,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 83.2,
+        "sodium_mg": 3844.2,
+        "fiber_g": 8.2,
+        "sugar_g": 13.5
+      }
+    },
+    {
+      "id": "jersey-mikes:7-halal-turkey-breast-and-provolone-mini",
+      "name": "#7 Halal Turkey Breast and Provolone (Mini)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 479.9,
+        "protein_g": 25,
+        "carbs_g": 46.6,
+        "fat_g": 22.1,
+        "saturated_fat_g": 5.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 43.5,
+        "sodium_mg": 1251.8,
+        "fiber_g": 2.9,
+        "sugar_g": 4.6
+      }
+    },
+    {
+      "id": "jersey-mikes:7-halal-turkey-breast-and-provolone-regular",
+      "name": "#7 Halal Turkey Breast and Provolone (Regular)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 795.5,
+        "protein_g": 39.4,
+        "carbs_g": 71.2,
+        "fat_g": 40.1,
+        "saturated_fat_g": 9.1,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 69.9,
+        "sodium_mg": 1985.9,
+        "fiber_g": 4.4,
+        "sugar_g": 7.1
+      }
+    },
+    {
+      "id": "jersey-mikes:7-halal-turkey-breast-and-provolone-giant",
+      "name": "#7 Halal Turkey Breast and Provolone (Giant)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1543.2,
+        "protein_g": 75.6,
+        "carbs_g": 140.3,
+        "fat_g": 77.2,
+        "saturated_fat_g": 16.4,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 131.5,
+        "sodium_mg": 3880.1,
+        "fiber_g": 8.2,
+        "sugar_g": 13.1
+      }
+    },
+    {
+      "id": "jersey-mikes:9-halal-club-supreme-mini",
+      "name": "#9 Halal Club Supreme (Mini)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 671.9,
+        "protein_g": 33.2,
+        "carbs_g": 48.2,
+        "fat_g": 39.7,
+        "saturated_fat_g": 8.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 68.5,
+        "sodium_mg": 1538.6,
+        "fiber_g": 2.9,
+        "sugar_g": 6
+      }
+    },
+    {
+      "id": "jersey-mikes:9-halal-club-supreme-regular",
+      "name": "#9 Halal Club Supreme (Regular)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1181.6,
+        "protein_g": 56.2,
+        "carbs_g": 74.8,
+        "fat_g": 75.2,
+        "saturated_fat_g": 15.2,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 125.6,
+        "sodium_mg": 2659.7,
+        "fiber_g": 4.4,
+        "sugar_g": 10
+      }
+    },
+    {
+      "id": "jersey-mikes:9-halal-club-supreme-giant",
+      "name": "#9 Halal Club Supreme (Giant)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 2263.4,
+        "protein_g": 98.3,
+        "carbs_g": 144.5,
+        "fat_g": 147.3,
+        "saturated_fat_g": 28.7,
+        "trans_fat_g": 0.7,
+        "cholesterol_mg": 221.2,
+        "sodium_mg": 4726.6,
+        "fiber_g": 8.2,
+        "sugar_g": 17.7
+      }
+    },
+    {
+      "id": "jersey-mikes:halal-sliced-buffalo-chicken-sub-mini",
+      "name": "Halal Sliced Buffalo Chicken Sub (Mini)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Mini",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 502.7,
+        "protein_g": 27.4,
+        "carbs_g": 45.6,
+        "fat_g": 22.6,
+        "saturated_fat_g": 5.5,
+        "trans_fat_g": 0.2,
+        "cholesterol_mg": 49.4,
+        "sodium_mg": 1240.3,
+        "fiber_g": 2.9,
+        "sugar_g": 5.7
+      }
+    },
+    {
+      "id": "jersey-mikes:halal-sliced-buffalo-chicken-sub-regular",
+      "name": "Halal Sliced Buffalo Chicken Sub (Regular)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Regular",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 833.6,
+        "protein_g": 43.4,
+        "carbs_g": 69.5,
+        "fat_g": 41,
+        "saturated_fat_g": 9.1,
+        "trans_fat_g": 0.4,
+        "cholesterol_mg": 79.9,
+        "sodium_mg": 1966.7,
+        "fiber_g": 4.4,
+        "sugar_g": 9
+      }
+    },
+    {
+      "id": "jersey-mikes:halal-sliced-buffalo-chicken-sub-giant",
+      "name": "Halal Sliced Buffalo Chicken Sub (Giant)",
+      "category": "Miscellaneous",
+      "menu": null,
+      "servingSize": "Giant",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 1619.3,
+        "protein_g": 83.6,
+        "carbs_g": 136.8,
+        "fat_g": 79,
+        "saturated_fat_g": 16.4,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 151.3,
+        "sodium_mg": 3841.6,
+        "fiber_g": 8.2,
+        "sugar_g": 16.7
+      }
+    },
+    {
+      "id": "jersey-mikes:kid-s-drink-12-oz",
+      "name": "Kid's Drink (12 oz)",
+      "category": "Kid's Items",
+      "menu": null,
+      "servingSize": "12 oz",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 152,
+        "protein_g": 0,
+        "carbs_g": 41.4,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 32.3,
+        "fiber_g": 0,
+        "sugar_g": 41.3
+      }
+    },
+    {
+      "id": "jersey-mikes:kid-s-sub-ham-kids",
+      "name": "Kid's Sub Ham (Kids)",
+      "category": "Kid's Items",
+      "menu": null,
+      "servingSize": "Kids",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 237.1,
+        "protein_g": 14.1,
+        "carbs_g": 32.8,
+        "fat_g": 5.8,
+        "saturated_fat_g": 2.4,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 19.2,
+        "sodium_mg": 708.1,
+        "fiber_g": 2.1,
+        "sugar_g": 3.2
+      }
+    },
+    {
+      "id": "jersey-mikes:kid-s-sub-turkey-kids",
+      "name": "Kid's Sub Turkey (Kids)",
+      "category": "Kid's Items",
+      "menu": null,
+      "servingSize": "Kids",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 240.5,
+        "protein_g": 16.8,
+        "carbs_g": 32.4,
+        "fat_g": 5,
+        "saturated_fat_g": 2,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 23.5,
+        "sodium_mg": 740.7,
+        "fiber_g": 2.1,
+        "sugar_g": 2.8
+      }
+    },
+    {
+      "id": "jersey-mikes:kid-s-sub-salami-kids",
+      "name": "Kid's Sub Salami (Kids)",
+      "category": "Kid's Items",
+      "menu": null,
+      "servingSize": "Kids",
+      "serving_size_g": 250,
+      "tags": [
+        "mikes-way-default"
+      ],
+      "nutrients": {
+        "calories": 265.5,
+        "protein_g": 12.1,
+        "carbs_g": 32.7,
+        "fat_g": 9.7,
+        "saturated_fat_g": 4,
+        "trans_fat_g": 0.1,
+        "cholesterol_mg": 21,
+        "sodium_mg": 687.6,
+        "fiber_g": 2.1,
+        "sugar_g": 3.1
+      }
+    }
+  ]
+}
