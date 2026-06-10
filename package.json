@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:push": "node --env-file=.env.local scripts/apply-schema.mjs",
-    "db:check": "node --env-file=.env.local scripts/check-supabase.mjs"
+    "db:check": "node --env-file=.env.local scripts/check-supabase.mjs",
+    "duke:sync": "node scripts/sync-duke-dining.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

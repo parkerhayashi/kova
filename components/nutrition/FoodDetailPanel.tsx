@@ -103,7 +103,13 @@ export function FoodDetailPanel({
   return (
     <Card className="space-y-4">
       <div>
-        <span className="metric-label">{profile.source === "usda" ? "USDA" : "Open Food Facts"}</span>
+        <span className="metric-label">
+          {profile.source === "usda"
+            ? "USDA"
+            : profile.source === "duke_dining"
+              ? "Duke Dining"
+              : "Open Food Facts"}
+        </span>
         <h3 className="text-text-primary mt-1 text-base font-medium leading-snug">
           {profile.name}
         </h3>

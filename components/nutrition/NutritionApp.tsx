@@ -4,6 +4,7 @@ import { GoalSettings } from "@/components/nutrition/GoalSettings";
 import { MacroSummary } from "@/components/nutrition/MacroSummary";
 import { MealLog } from "@/components/nutrition/MealLog";
 import { CalorieTrend, MicroProgress } from "@/components/nutrition/NutritionCharts";
+import { DukeDiningSearch } from "@/components/nutrition/DukeDiningSearch";
 import { BarcodeEntry, FoodSearch } from "@/components/nutrition/FoodSearch";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import type { DailyTotals } from "@/lib/nutrition";
@@ -31,6 +32,8 @@ export function NutritionApp({
         <FoodSearch date={today} />
         <BarcodeEntry date={today} />
       </section>
+
+      <DukeDiningSearch date={today} />
 
       <MealLog meals={meals} />
 

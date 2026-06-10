@@ -414,7 +414,7 @@ export interface Run {
   created_at: string;
 }
 
-export type MealSource = "usda" | "open_food_facts" | "manual";
+export type MealSource = "usda" | "open_food_facts" | "duke_dining" | "manual";
 
 export interface Meal {
   id: string;

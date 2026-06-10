@@ -307,7 +307,7 @@ create table if not exists meals (
   date                     date not null,
   meal_name                text,
   food_id                  text,        -- USDA or Open Food Facts ID
-  source                   text,        -- 'usda' | 'open_food_facts' | 'manual'
+  source                   text,        -- 'usda' | 'open_food_facts' | 'duke_dining' | 'manual'
   serving_size_g           float,
   servings                 float,
   -- Macros
