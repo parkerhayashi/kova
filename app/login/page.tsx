@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { KovaWordmark } from "@/components/brand/KovaWordmark";
 import { isMfaEnabled } from "@/lib/data/auth";
 
 export const metadata: Metadata = {
@@ -25,11 +26,9 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-dvh items-center justify-center px-6">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <div className="metric-label mb-2">Personal Health OS</div>
-          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
-            Kova
-          </h1>
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="metric-label">Personal Health OS</div>
+          <KovaWordmark height={36} />
         </div>
 
         <form

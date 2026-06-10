@@ -22,6 +22,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
+import { KovaWordmark } from "@/components/brand/KovaWordmark";
 import { cn } from "@/lib/utils";
 
 /** Finances code stays at /finances — flip to true to show in nav again. */
@@ -128,9 +129,9 @@ export function NavBar() {
       {/* Desktop side rail */}
       <aside className="border-border bg-background fixed inset-y-0 left-0 z-20 hidden w-56 flex-col border-r px-3 py-6 md:flex">
         <div className="px-3 pb-8">
-          <span className="text-text-primary text-lg font-bold tracking-tight">
-            Kova
-          </span>
+          <Link href="/" aria-label="Kova home">
+            <KovaWordmark height={26} />
+          </Link>
         </div>
         <nav className="flex flex-col gap-1">
           {NAV.map(({ href, label, icon }) => (

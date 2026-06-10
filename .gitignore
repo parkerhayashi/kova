@@ -20,6 +20,10 @@
 # production
 /build
 
+# branding unpack scratch
+docs/branding/.extracted/
+docs/branding/.extracted-package/
+
 # misc
 .DS_Store
 *.pem

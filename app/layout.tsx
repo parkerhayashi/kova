@@ -6,6 +6,7 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -19,13 +20,16 @@ export const metadata: Metadata = {
     title: "Kova",
   },
   icons: {
-    icon: "/icons/icon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+    ],
     apple: "/icons/apple-touch-icon.png",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0b",
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

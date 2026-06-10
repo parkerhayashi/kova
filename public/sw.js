@@ -1,7 +1,7 @@
 // Kova service worker — minimal offline shell (blueprint §1, PWA).
 // App-shell + static assets are cached; data always comes from Supabase over
 // the network so the dashboard never shows stale synced metrics.
-const CACHE = "kova-v2";
+const CACHE = "kova-v3";
 const APP_SHELL = ["/", "/manifest.json", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {

@@ -36,11 +36,23 @@ Don't "fix" these back to the blueprint's versions.
 - **Integration modules in `lib/*.ts` are source-agnostic.** Adding or swapping a wearable is one file.
 - **Schema is single source of truth.** `supabase/schema.sql` and `types/index.ts` must stay in lockstep.
 
-## Design rules (blueprint §4 — enforce strictly)
+## Branding
 
-- Dark monochrome chrome (`#0E0E0E` bg, `#161616` cards). **No colored chrome — ever.** Active nav state is white text + `rgba(255,255,255,0.08)` background, not an accent color.
+**Source:** `docs/branding/guide/Kova_Brand_Guidelines.pdf` (v1.0 · 2026). Drop updates in `docs/branding/incoming/` → `npm run branding:apply`.
+
+**Logo usage:** Mark *or* Wordmark per surface — never both (`<KovaMark>` / `<KovaWordmark>` in `components/brand/`). Wordmark is custom letterforms; never re-type "Kova" in another font.
+
+**Colors (brand):** Kova Black `#000000`, Kova White `#FFFFFF`, Muted `#6B7280`, Border `#E5E7EB`, Surface `#F9FAFB` (light contexts). Dark app chrome uses black bg + white text; see `app/globals.css` `@theme`.
+
+**Type:** Inter — Bold headings, SemiBold subheadings/labels, Regular body (`app/layout.tsx`).
+
+**Icons:** Primary app icon = black rounded square + white mark (`public/icons/icon.svg`). Assets in `public/brand/`.
+
+## Design rules (enforce strictly)
+
+- Monochrome chrome per brand. **No colored chrome — ever.** Active nav: white text + `rgba(255,255,255,0.07)` fill, not an accent color.
 - Five semantic accent colors (`--color-recovery`, `--color-sleep`, `--color-activity`, `--color-stress`, `--color-nutrition`) apply **only to data**: metric values, chart lines, indicator dots. Never to buttons, borders, or nav.
-- Cards: 0.5px border `rgba(255,255,255,0.07)`, 12px radius, `#161616` background. Use the `.card` class or `<Card>`.
+- Cards: brand border tokens, 16px radius, `#0a0a0a` surface. Use `.card` or `<Card>`.
 - Charts (Recharts): no gridlines, colored line + soft gradient fill on dark surface, muted axis text.
 - Large numbers carry visual weight (`.metric-value`); labels are small, uppercase, muted (`.metric-label`).
 

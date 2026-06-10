@@ -1,0 +1,52 @@
+{
+  "appliedAt": "2026-06-10T15:46:14.054Z",
+  "files": [
+    {
+      "bucket": "guide",
+      "name": "Kova_Brand_Guidelines.pdf",
+      "source": "Kova_Brand_Guidelines.pdf",
+      "bytes": 72882
+    },
+    {
+      "bucket": "assets",
+      "name": "kova-brand-package.zip",
+      "source": "kova-brand-package.zip",
+      "bytes": 1038857
+    },
+    {
+      "bucket": "assets",
+      "name": "kova-icon-black-bg.svg",
+      "source": "kova-icon-black-bg.svg",
+      "bytes": 1706
+    },
+    {
+      "bucket": "assets",
+      "name": "kova-mark-white.svg",
+      "source": "kova-mark-white.svg",
+      "bytes": 1562
+    },
+    {
+      "bucket": "assets",
+      "name": "kova-wordmark-white.svg",
+      "source": "kova-wordmark-white.svg",
+      "bytes": 6989
+    }
+  ],
+  "promoted": [
+    {
+      "type": "icon",
+      "from": "kova-icon-black-bg.svg",
+      "to": "public/icons/kova-icon-black-bg.svg"
+    },
+    {
+      "type": "logo",
+      "from": "kova-mark-white.svg",
+      "to": "public/brand/kova-mark-white.svg"
+    },
+    {
+      "type": "logo",
+      "from": "kova-wordmark-white.svg",
+      "to": "public/brand/kova-wordmark-white.svg"
+    }
+  ]
+}
