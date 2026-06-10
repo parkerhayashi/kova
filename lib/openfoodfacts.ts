@@ -1,15 +1,23 @@
 /**
- * Open Food Facts integration (blueprint §2) — barcode scanning for packaged
- * food. No API key required. Used by the PWA camera barcode scanner.
+ * Open Food Facts integration — barcode lookup and text search for packaged
+ * food. No API key required.
  */
 import type { NutrientProfile } from "@/types";
 
-const OFF_BASE = "https://world.openfoodfacts.org/api/v2";
+const OFF_V2 = "https://world.openfoodfacts.org/api/v2";
+const OFF_SEARCH = "https://world.openfoodfacts.org/cgi/search.pl";
+
+const USER_AGENT = "Kova/1.0 (personal health dashboard)";
 
 interface OffProduct {
   product_name?: string;
+  brands?: string;
   serving_quantity?: number;
   nutriments?: Record<string, number>;
+}
+
+interface OffSearchProduct extends OffProduct {
+  code?: string;
 }
 
 /** Map Open Food Facts `nutriments` (per 100g) to Kova nutrient fields. */
@@ -32,16 +40,20 @@ const NUTRIENT_MAP: Record<string, keyof NutrientProfile["nutrients"]> = {
   zinc_100g: "zinc_mg",
 };
 
-/** Look up a product by barcode and normalize to a NutrientProfile. */
-export async function getByBarcode(
-  barcode: string,
-): Promise<NutrientProfile | null> {
-  const res = await fetch(`${OFF_BASE}/product/${barcode}.json`);
-  if (!res.ok) throw new Error(`Open Food Facts failed: ${res.status}`);
-  const json = await res.json();
-  if (json.status !== 1 || !json.product) return null;
+export interface OffSearchHit {
+  code: string;
+  name: string;
+  brand: string | null;
+  calories: number | null;
+}
 
-  const product: OffProduct = json.product;
+function normalizeProduct(
+  code: string,
+  product: OffProduct,
+): NutrientProfile | null {
+  const name = product.product_name?.trim();
+  if (!name) return null;
+
   const nutrients: NutrientProfile["nutrients"] = {};
   for (const [offKey, field] of Object.entries(NUTRIENT_MAP)) {
     const val = product.nutriments?.[offKey];
@@ -49,10 +61,65 @@ export async function getByBarcode(
   }
 
   return {
-    food_id: barcode,
+    food_id: code,
     source: "open_food_facts",
-    name: product.product_name ?? "Unknown product",
+    name,
     serving_size_g: product.serving_quantity ?? 100,
     nutrients,
   };
+}
+
+/** Text search — returns popular packaged products matching the query. */
+export async function searchProducts(
+  query: string,
+  pageSize = 15,
+): Promise<OffSearchHit[]> {
+  const params = new URLSearchParams({
+    action: "process",
+    json: "1",
+    search_terms: query,
+    page_size: String(pageSize),
+    fields: "code,product_name,brands,nutriments,serving_quantity",
+    sort_by: "unique_scans_n",
+  });
+
+  const res = await fetch(`${OFF_SEARCH}?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) throw new Error(`Open Food Facts search failed: ${res.status}`);
+
+  const json = (await res.json()) as { products?: OffSearchProduct[] };
+  const hits: OffSearchHit[] = [];
+
+  for (const raw of json.products ?? []) {
+    const code = String(raw.code ?? "").trim();
+    const name = raw.product_name?.trim();
+    if (!code || !name) continue;
+
+    hits.push({
+      code,
+      name,
+      brand: raw.brands?.split(",")[0]?.trim() || null,
+      calories:
+        typeof raw.nutriments?.["energy-kcal_100g"] === "number"
+          ? Math.round(raw.nutriments["energy-kcal_100g"])
+          : null,
+    });
+  }
+
+  return hits;
+}
+
+/** Look up a product by barcode and normalize to a NutrientProfile. */
+export async function getByBarcode(
+  barcode: string,
+): Promise<NutrientProfile | null> {
+  const res = await fetch(`${OFF_V2}/product/${barcode}.json`, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) throw new Error(`Open Food Facts failed: ${res.status}`);
+  const json = await res.json();
+  if (json.status !== 1 || !json.product) return null;
+
+  return normalizeProduct(barcode, json.product as OffProduct);
 }

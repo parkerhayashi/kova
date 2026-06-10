@@ -6,16 +6,26 @@ import { Card } from "@/components/ui/Card";
 import { FoodDetailPanel } from "@/components/nutrition/FoodDetailPanel";
 import type { NutrientProfile } from "@/types";
 
-interface SearchHit {
+interface UsdaHit {
+  source: "usda";
   fdcId: number;
   name: string;
   brand: string | null;
   dataType: string | null;
 }
 
+interface OffHit {
+  source: "off";
+  code: string;
+  name: string;
+  brand: string | null;
+  calories: number | null;
+}
+
 export function FoodSearch({ date }: { date: string }) {
   const [query, setQuery] = useState("");
-  const [hits, setHits] = useState<SearchHit[]>([]);
+  const [usdaHits, setUsdaHits] = useState<UsdaHit[]>([]);
+  const [offHits, setOffHits] = useState<OffHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<NutrientProfile | null>(null);
@@ -25,7 +35,8 @@ export function FoodSearch({ date }: { date: string }) {
     if (debounce.current) clearTimeout(debounce.current);
     const q = query.trim();
     if (q.length < 2) {
-      setHits([]);
+      setUsdaHits([]);
+      setOffHits([]);
       return;
     }
     debounce.current = setTimeout(async () => {
@@ -35,10 +46,20 @@ export function FoodSearch({ date }: { date: string }) {
         const res = await fetch(`/api/nutrition/search?q=${encodeURIComponent(q)}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Search failed");
-        setHits(data.foods ?? []);
+        setUsdaHits(
+          (data.foods ?? []).map(
+            (hit: Omit<UsdaHit, "source">): UsdaHit => ({ ...hit, source: "usda" }),
+          ),
+        );
+        setOffHits(
+          (data.off ?? []).map(
+            (hit: Omit<OffHit, "source">): OffHit => ({ ...hit, source: "off" }),
+          ),
+        );
       } catch (err) {
         setError((err as Error).message);
-        setHits([]);
+        setUsdaHits([]);
+        setOffHits([]);
       } finally {
         setLoading(false);
       }
@@ -48,7 +69,7 @@ export function FoodSearch({ date }: { date: string }) {
     };
   }, [query]);
 
-  async function pickFood(fdcId: number) {
+  async function pickUsda(fdcId: number) {
     setLoading(true);
     setError(null);
     try {
@@ -63,10 +84,27 @@ export function FoodSearch({ date }: { date: string }) {
     }
   }
 
+  async function pickOff(code: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/nutrition/barcode?code=${encodeURIComponent(code)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Lookup failed");
+      setProfile(data.profile);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const hasHits = usdaHits.length > 0 || offHits.length > 0;
+
   return (
     <div className="space-y-3">
       <Card className="space-y-3">
-        <span className="metric-label">Add food · USDA search</span>
+        <span className="metric-label">Add food · USDA + Open Food Facts</span>
         <div className="relative">
           <Search className="text-text-muted pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
           <input
@@ -83,29 +121,66 @@ export function FoodSearch({ date }: { date: string }) {
 
         {error ? <p className="text-xs text-[var(--color-stress)]">{error}</p> : null}
 
-        {hits.length > 0 ? (
-          <ul className="border-border max-h-48 divide-y overflow-y-auto rounded-lg border">
-            {hits.map((hit) => (
-              <li key={hit.fdcId}>
-                <button
-                  type="button"
-                  onClick={() => pickFood(hit.fdcId)}
-                  className={`hover:bg-surface-raised w-full px-3 py-2.5 text-left text-sm transition-colors ${
-                    profile?.food_id === String(hit.fdcId)
-                      ? "bg-[rgba(255,255,255,0.06)]"
-                      : ""
-                  }`}
-                >
-                  <span className="text-text-primary">{hit.name}</span>
-                  {hit.dataType ? (
-                    <span className="text-text-muted ml-2 text-xs">{hit.dataType}</span>
-                  ) : null}
-                  {hit.brand ? (
-                    <span className="text-text-muted ml-2 text-xs">{hit.brand}</span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
+        {hasHits ? (
+          <ul className="border-border max-h-56 divide-y overflow-y-auto rounded-lg border">
+            {usdaHits.length > 0 ? (
+              <>
+                <li className="metric-label bg-[rgba(255,255,255,0.02)] px-3 py-1.5">
+                  USDA
+                </li>
+                {usdaHits.map((hit) => (
+                  <li key={`usda-${hit.fdcId}`}>
+                    <button
+                      type="button"
+                      onClick={() => pickUsda(hit.fdcId)}
+                      className={`hover:bg-surface-raised w-full px-3 py-2.5 text-left text-sm transition-colors ${
+                        profile?.food_id === String(hit.fdcId)
+                          ? "bg-[rgba(255,255,255,0.06)]"
+                          : ""
+                      }`}
+                    >
+                      <span className="text-text-primary">{hit.name}</span>
+                      {hit.dataType ? (
+                        <span className="text-text-muted ml-2 text-xs">{hit.dataType}</span>
+                      ) : null}
+                      {hit.brand ? (
+                        <span className="text-text-muted ml-2 text-xs">{hit.brand}</span>
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+              </>
+            ) : null}
+            {offHits.length > 0 ? (
+              <>
+                <li className="metric-label bg-[rgba(255,255,255,0.02)] px-3 py-1.5">
+                  Open Food Facts
+                </li>
+                {offHits.map((hit) => (
+                  <li key={`off-${hit.code}`}>
+                    <button
+                      type="button"
+                      onClick={() => pickOff(hit.code)}
+                      className={`hover:bg-surface-raised w-full px-3 py-2.5 text-left text-sm transition-colors ${
+                        profile?.food_id === hit.code
+                          ? "bg-[rgba(255,255,255,0.06)]"
+                          : ""
+                      }`}
+                    >
+                      <span className="text-text-primary">{hit.name}</span>
+                      {hit.brand ? (
+                        <span className="text-text-muted ml-2 text-xs">{hit.brand}</span>
+                      ) : null}
+                      {hit.calories != null ? (
+                        <span className="text-text-muted ml-2 text-xs tabular-nums">
+                          {hit.calories} kcal/100g
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+              </>
+            ) : null}
           </ul>
         ) : null}
 
@@ -123,7 +198,8 @@ export function FoodSearch({ date }: { date: string }) {
           onDone={() => {
             setProfile(null);
             setQuery("");
-            setHits([]);
+            setUsdaHits([]);
+            setOffHits([]);
           }}
           onCancel={() => setProfile(null)}
         />
