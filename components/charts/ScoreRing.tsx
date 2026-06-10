@@ -21,7 +21,7 @@ export function ScoreRing({
   size = 140,
   caption,
 }: ScoreRingProps) {
-  const stroke = 10;
+  const stroke = 6;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const pct = value === null ? 0 : Math.max(0, Math.min(100, value)) / 100;
@@ -49,7 +49,7 @@ export function ScoreRing({
             fill="none"
             stroke={color}
             strokeWidth={stroke}
-            strokeLinecap="round"
+            strokeLinecap="butt"
             strokeDasharray={circumference}
             strokeDashoffset={circumference * (1 - pct)}
           />

@@ -22,7 +22,7 @@ export function ProgressRing({
   size = 88,
   caption,
 }: ProgressRingProps) {
-  const stroke = 8;
+  const stroke = 5;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const hasValue = value !== null && value > 0;
@@ -56,7 +56,7 @@ export function ProgressRing({
               fill="none"
               stroke={color}
               strokeWidth={stroke}
-              strokeLinecap="round"
+              strokeLinecap="butt"
               strokeDasharray={circumference}
               strokeDashoffset={circumference * (1 - pct)}
             />
