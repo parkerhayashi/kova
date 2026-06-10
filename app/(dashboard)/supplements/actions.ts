@@ -13,7 +13,6 @@ function refresh() {
   revalidatePath("/supplements");
   revalidatePath("/");
   revalidatePath("/nutrition");
-  revalidatePath("/today");
 }
 
 export async function toggleSupplement(

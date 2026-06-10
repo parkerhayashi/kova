@@ -7,6 +7,6 @@ export async function updateProfile(patch: ProfilePatch): Promise<void> {
   await saveUserProfile(patch);
   revalidatePath("/settings/profile");
   revalidatePath("/nutrition");
-  revalidatePath("/today");
+  revalidatePath("/");
   revalidatePath("/water");
 }

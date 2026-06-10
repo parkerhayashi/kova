@@ -13,7 +13,7 @@ import type { NutrientProfile, SavedMeal, SavedMealComponent } from "@/types";
 
 function refresh() {
   revalidatePath("/nutrition");
-  revalidatePath("/today");
+  revalidatePath("/");
 }
 
 export async function logMeal(

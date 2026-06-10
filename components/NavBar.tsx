@@ -16,7 +16,6 @@ import {
   Moon,
   Pill,
   Shield,
-  Sun,
   TrendingUp,
   User,
   Wallet,
@@ -30,7 +29,6 @@ const FINANCES_NAV_ENABLED = false;
 
 const NAV_ALL = [
   { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/today", label: "Today", icon: Sun },
   { href: "/sleep", label: "Sleep", icon: Moon },
   { href: "/recovery", label: "Readiness", icon: HeartPulse },
   { href: "/activity", label: "Activity", icon: Flame },
@@ -49,7 +47,7 @@ const NAV = FINANCES_NAV_ENABLED
 
 const MOBILE_PRIMARY = [
   { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/today", label: "Today", icon: Sun },
+  { href: "/recovery", label: "Readiness", icon: HeartPulse },
   { href: "/workouts", label: "Workouts", icon: Dumbbell },
   { href: "/nutrition", label: "Nutrition", icon: Apple },
 ] as const;

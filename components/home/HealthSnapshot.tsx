@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProgressRing } from "@/components/charts/ProgressRing";
 import { ScoreRing } from "@/components/charts/ScoreRing";
+import { OuraRefreshControl } from "@/components/oura/OuraRefreshControl";
 import { getHealthSnapshot } from "@/lib/data/health-snapshot";
 import { formatDuration } from "@/lib/utils";
 import { formatR } from "@/lib/trends/correlation";
@@ -66,8 +67,16 @@ export async function HealthSnapshot() {
   return (
     <section className="snapshot-section section">
       <div className="snapshot-header">
-        <h2 className="section-title">Snapshot</h2>
-        <span className="snapshot-date">{data.todayLabel}</span>
+        <div>
+          <h2 className="section-title">Snapshot</h2>
+          <span className="snapshot-date">{data.todayLabel}</span>
+        </div>
+        {data.oura.connected ? (
+          <OuraRefreshControl
+            lastSyncedAt={data.oura.lastSyncedAt}
+            timeZone={data.timezone}
+          />
+        ) : null}
       </div>
 
       {!data.oura.connected && (
@@ -82,7 +91,7 @@ export async function HealthSnapshot() {
       )}
 
       <div className="snapshot-grid snapshot-grid-3">
-        <Link href="/today" className="snapshot-link-card">
+        <Link href="/recovery" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Readiness</span>
             <ScoreRing
@@ -92,13 +101,13 @@ export async function HealthSnapshot() {
             />
           </div>
         </Link>
-        <Link href="/today" className="snapshot-link-card">
+        <Link href="/sleep" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Sleep</span>
             <ScoreRing value={data.oura.sleepScore} accent="sleep" size={80} />
           </div>
         </Link>
-        <Link href="/today" className="snapshot-link-card">
+        <Link href="/activity" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Activity</span>
             <ScoreRing
@@ -208,7 +217,7 @@ export async function HealthSnapshot() {
 
       {(data.oura.steps != null || data.oura.stress != null) && (
         <div className="snapshot-grid snapshot-grid-2">
-          <Link href="/today" className="snapshot-link-card">
+          <Link href="/activity" className="snapshot-link-card">
             <SnapshotMetric
               label="Steps"
               value={data.oura.steps?.toLocaleString() ?? null}
@@ -216,7 +225,7 @@ export async function HealthSnapshot() {
               accent="var(--color-activity)"
             />
           </Link>
-          <Link href="/today" className="snapshot-link-card">
+          <Link href="/recovery" className="snapshot-link-card">
             <SnapshotMetric
               label="Stress"
               value={data.oura.stress}

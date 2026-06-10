@@ -563,10 +563,15 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .snapshot-header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.snapshot-header .snapshot-date {
+  display: block;
+  margin-top: 4px;
 }
 
 .snapshot-header .section-title {

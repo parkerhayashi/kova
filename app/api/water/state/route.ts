@@ -20,7 +20,7 @@ export async function PUT(request: NextRequest) {
   await saveWaterState(state);
   revalidatePath("/settings/profile");
   revalidatePath("/water");
-  revalidatePath("/today");
+  revalidatePath("/");
   revalidatePath("/nutrition");
   return NextResponse.json({ ok: true });
 }

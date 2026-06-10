@@ -1,5 +1,6 @@
 import {
   getActivityHistory,
+  getOuraLastSyncedAt,
   getReadinessHistory,
   getSleepHistory,
   getTimezone,
@@ -31,9 +32,11 @@ export type SnapshotTrend = {
 
 export type HealthSnapshotData = {
   todayLabel: string;
+  timezone: string;
   oura: {
     connected: boolean;
     hasData: boolean;
+    lastSyncedAt: string | null;
     readinessScore: number | null;
     sleepScore: number | null;
     activityScore: number | null;
@@ -64,6 +67,7 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     activityRows,
     connected,
     timezone,
+    ouraLastSyncedAt,
     habits,
     habitLogs,
     supplements,
@@ -76,6 +80,7 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     getActivityHistory(400),
     isOuraConnected(),
     getTimezone(),
+    getOuraLastSyncedAt(),
     getHabits(true),
     getHabitLogs(1),
     getSupplements(true),
@@ -127,9 +132,11 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
 
   return {
     todayLabel,
+    timezone,
     oura: {
       connected,
       hasData: hasOuraData,
+      lastSyncedAt: ouraLastSyncedAt,
       readinessScore: latestNonNull(readinessRows, "score"),
       sleepScore: latestNonNull(sleepRows, "score"),
       activityScore: latestNonNull(activityRows, "activity_score"),
