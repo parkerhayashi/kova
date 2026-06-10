@@ -1,7 +1,29 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { parseNutrientAmount, parseServingSizeG, slugify } from "@/lib/netnutrition";
 import type { NutrientProfile } from "@/types";
+
+function loadJson<T>(path: string, fallback: T): T {
+  if (!existsSync(path)) return fallback;
+  return JSON.parse(readFileSync(path, "utf8")) as T;
+}
+
+function applyItemOverrides<T extends { id: string; nutrients: NutrientProfile["nutrients"] }>(
+  items: T[],
+  overrides: Record<string, Partial<T>>,
+): T[] {
+  return items.map((item) => {
+    const patch = overrides[item.id];
+    if (!patch) return item;
+    return {
+      ...item,
+      ...patch,
+      nutrients: patch.nutrients
+        ? { ...item.nutrients, ...patch.nutrients }
+        : item.nutrients,
+    };
+  });
+}
 
 export interface DukeDiningItem {
   id: string;
@@ -33,11 +55,21 @@ export interface DukeDiningCatalog {
 let catalogCache: DukeDiningCatalog | null = null;
 
 const CATALOG_PATH = join(process.cwd(), "data/duke-dining/catalog.json");
+const CURATED_PATH = join(process.cwd(), "data/duke-dining/curated.json");
+const OVERRIDES_PATH = join(process.cwd(), "data/duke-dining/overrides.json");
 
 export function loadDukeCatalog(): DukeDiningCatalog {
   if (catalogCache) return catalogCache;
-  const raw = readFileSync(CATALOG_PATH, "utf8");
-  catalogCache = JSON.parse(raw) as DukeDiningCatalog;
+  const path = existsSync(CURATED_PATH) ? CURATED_PATH : CATALOG_PATH;
+  let catalog = JSON.parse(readFileSync(path, "utf8")) as DukeDiningCatalog;
+
+  const overrides = loadJson<Record<string, Partial<DukeDiningItem>>>(OVERRIDES_PATH, {});
+  catalog = {
+    ...catalog,
+    items: applyItemOverrides(catalog.items, overrides),
+  };
+
+  catalogCache = catalog;
   return catalogCache;
 }
 

@@ -1,6 +1,28 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import type { NutrientProfile } from "@/types";
+
+function loadJson<T>(path: string, fallback: T): T {
+  if (!existsSync(path)) return fallback;
+  return JSON.parse(readFileSync(path, "utf8")) as T;
+}
+
+function applyItemOverrides<T extends { id: string; nutrients: NutrientProfile["nutrients"] }>(
+  items: T[],
+  overrides: Record<string, Partial<T>>,
+): T[] {
+  return items.map((item) => {
+    const patch = overrides[item.id];
+    if (!patch) return item;
+    return {
+      ...item,
+      ...patch,
+      nutrients: patch.nutrients
+        ? { ...item.nutrients, ...patch.nutrients }
+        : item.nutrients,
+    };
+  });
+}
 
 export interface RestaurantItem {
   id: string;
@@ -32,11 +54,31 @@ export interface RestaurantCatalog {
 let catalogCache: RestaurantCatalog | null = null;
 
 const CATALOG_PATH = join(process.cwd(), "data/restaurants/catalog.json");
+const OVERRIDES_PATH = join(process.cwd(), "data/restaurants/overrides.json");
+const ALLOWLIST_PATH = join(process.cwd(), "data/restaurants/allowlist.json");
 
 export function loadRestaurantCatalog(): RestaurantCatalog {
   if (catalogCache) return catalogCache;
   const raw = readFileSync(CATALOG_PATH, "utf8");
-  catalogCache = JSON.parse(raw) as RestaurantCatalog;
+  let catalog = JSON.parse(raw) as RestaurantCatalog;
+
+  const allowlist = loadJson<string[] | null>(ALLOWLIST_PATH, null);
+  if (allowlist?.length) {
+    const allowed = new Set(allowlist);
+    catalog = {
+      ...catalog,
+      restaurants: catalog.restaurants.filter((r) => allowed.has(r.id)),
+      items: catalog.items.filter((i) => allowed.has(i.restaurantId)),
+    };
+  }
+
+  const overrides = loadJson<Record<string, Partial<RestaurantItem>>>(OVERRIDES_PATH, {});
+  catalog = {
+    ...catalog,
+    items: applyItemOverrides(catalog.items, overrides),
+  };
+
+  catalogCache = catalog;
   return catalogCache;
 }
 

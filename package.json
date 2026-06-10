@@ -12,6 +12,7 @@
     "duke:sync": "node scripts/sync-duke-dining.mjs",
     "restaurants:scrape": "node scripts/scrapers/run-all.mjs",
     "restaurants:sync": "node scripts/sync-restaurants.mjs",
+    "nutrition:import": "node scripts/import-nutrition.mjs",
     "branding:apply": "node scripts/apply-branding.mjs"
   },
   "dependencies": {
