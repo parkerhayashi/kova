@@ -1,0 +1,584 @@
+
+
+Recipe
+Cal.
+Cal.  
+from Fat
+Total  
+Fat (g)
+Sat.  
+Fat (g)
+Tr a n s . fa t  
+(g)
+Chol. (mg)
+Sodium 
+(mg)
+Carb.  
+(g)
+Fiber  
+(g)
+Sugar  
+(g)
+Protein  
+(g)
+C U R AT E D B O W L S
+Spicy Lamb + Avocado Bowl
+800
+46052140105167049171143
+Steak + Harissa Bowl
+620
+310351001051830397737
+Harissa Avocado Bowl
+830
+44049120155201062121241
+Chicken + Rice Bowl
+700
+370421001651810447840
+Greek Salad Bowl
+580
+360401001651810198537
+Falafel Crunch Bowl
+860
+470569015221088181324
+Salmon + Yogurt Dill
+710
+390439011018704951035
+Salmon + Strawberry Sesame
+700
+385439011018604671336
+CURATED PITAS
+Spicy Chicken + Avocado
+930
+43048110155229080131348
+Steak + Feta Pita
+820
+370421001051800689944
+Greek Chicken
+720
+27030901702230648648
+BASES
+Brown Rice
+310
+901020077048527
+Saffron Basmati Rice
+290
+60710077054215
+Black Lentils
+270
+7071005203715318
+Super Greens
+35
+50.5000356423
+Arugula
+20
+50.5000253122
+Baby Spinach
+20
+50000703203
+Romaine
+20
+50000104311
+Power Greens 
+30
+20000354212
+MAINS
+Braised Lamb
+210
+11012606545021024
+Grilled Chicken
+250
+120133015067031028
+Falafel
+350
+2302620081024536
+Grilled Steak
+170
+80 9308528010023
+Harissa Honey Chicken
+260
+120143013567072326
+Roasted Vegetables
+100
+404.50.50060014553
+Spicy Lamb Meatballs
+300
+19021809068031124
+Glazed Salmon
+320
+210233.509063050523
+NUTRITION AND ALLERGEN GUIDE
+Nutrition Guide 
+While  we  take  great  care  to  identify  allergens  and  avoid  contamination,  we  encourage  guests  to  review  this  guide  routinely  if  you  have  any  food  allergies  or   
+intolerances or specific dietary restrictions. We cannot guarantee that our ingredients are 100% free of allergens or animal products, particularly given our reliance 
+on supplier information, potential for allergen cross-contact with other foods, including salmon and shrimp, in shared preparation and cooking areas, and potential 
+ingredient substitutions, which may occur due to variations in supplier practices. Self-service juice and fountain beverage information is calculated without ice.
+See page 4 for Allergen Guide.
+KIDS MEAL
+Kids Saffron Basmati Rice
+150
+303.50.50039027103
+Kids Brown Rice
+150
+45510039024213
+Kids Black Lentils
+130
+303.500026018729
+Kids Chicken
+120
+6071.507533011014
+Kids Harissa Honey Chicken
+130
+6071.506534041213
+Kids Falafel
+170
+1201310040012213
+Kids Spicy Lamb Meatballs
+150
+10011404534020112
+Kids Roasted Vegetables
+50
+2020003007332
+Kids Braised Lamb
+110
+606303023010012
+Kids Grilled Steak
+90
+404.51.504014000011
+Kids Pita Chips
+140
+4040.50031020215
+
+DRESSINGS
+Balsamic Date Vinaigrette
+60
+3540.5002507150
+Yogurt Dill
+30
+2021051901002
+Lemon Herb Tahini
+70
+5061001404202
+Strawberry Sesame
+60
+4050.5001303121
+Greek Vinaigrette
+130
+120142002301000
+Skhug
+80
+8091001501000
+Hot Harissa Vinaigrette
+70
+6071002701010
+Garlic Dressing
+180
+170201.500900000
+SIDES
+Whole Pita
+320
+506100700546313
+Side Pita
+80
+151.500018014213
+Pita Chips
+280
+808100630415210
+Sumac Sour Cream + Onion  
+Pita Chips
+290
+8093.50074 0435310
+Greyston Chocolate Chip Blondie
+140
+455303510220162
+Greyston Brownie
+150
+809604510171132
+Whisked! Apricot Honey (DMV)
+220
+8096040150341193
+Whisked! Salted Dark  
+Chocolate Oat Cookie
+240
+120137035115313174
+Cal.
+Cal.  
+from Fat
+Total  
+Fat (g)
+Sat.  
+Fat (g)
+Tr a n s . fa t  
+(g)
+Chol. (mg)
+Sodium 
+(mg)
+Carb.  
+(g)
+Fiber  
+(g)
+Sugar  
+(g)
+Protein  
+(g)
+TOPPINGS
+Shredded Romaine
+5
+0000001000
+Pita Crisps
+70
+70111.500256001
+Sumac Slaw
+30
+151.50001703111
+Tomato + Onion
+20
+151.50001252010
+Persian Cucumber
+15
+1010001101010
+Tomato + Cucumber
+5
+0000001010
+Kalamata Olives
+35
+2530.5003602200
+Fiery Broccoli
+35
+252.50001702111
+Pickled Onions
+20
+0000005040
+Salt-Brined Pickles
+5
+000001800000
+Crumbled Feta
+35
+202.51.50101250013
+Fire-Roasted Corn
+45
+252.50001055121
+Avocado
+110
+90101.50006401
+DRINKS*
+Classic Lemonade - Kids (12 oz)
+200
+000000520500
+Classic Lemonade - Small (16 oz)
+260
+000000690660
+Classic Lemonade - Large (22 oz)
+360
+000000950910
+Classic Lemonade (CA) - Kids (12 oz)
+160
+000000410390
+Classic Lemonade (CA) - Small (16 oz)
+210
+000000550520
+Classic Lemonade (CA) - Large (22 oz)
+290
+000000750710
+Black Tea Unsweetened - Kids (12 oz)
+0
+00000100000
+DIPS + SPREADS
+Tzatziki
+30
+202.51.5010601012
+Hummus
+50
+252.5000904202
+Roasted Eggplant
+50
+4050.5001602100
+Crazy Feta
+®
+70
+50630152301004
+Harissa
+70
+5061002505121
+Red Pepper Hummus
+40
+101.50001055212
+
+Cal.
+Cal.  
+from Fat
+Total  
+Fat (g)
+Sat.  
+Fat (g)
+Tr a n s . fa t  
+(g)
+Chol. (mg)
+Sodium 
+(mg)
+Carb.  
+(g)
+Fiber  
+(g)
+Sugar  
+(g)
+Protein  
+(g)
+DRINKS*
+Black Tea Unsweetened - Small (16 oz)
+0
+00000150000
+Black Tea Unsweetened - Large (22 oz)
+0
+00000200000
+Sweet Tea - Kids (12 oz)
+110
+0000010280280
+Sweet Tea - Small (16 oz)
+150
+0000015370370
+Sweet Tea - Large (22 oz)
+200
+0000020510510
+Jasmine Green Tea - Kids (12 oz)
+0
+00000100000
+Jasmine Green Tea - Small (16 oz)
+0
+00000150000
+Jasmine Green Tea - Large (22 oz)
+0
+00000200000
+Strawberry Citrus - Kids (12 oz)
+100
+0000010261240
+Strawberry Citrus - Small (16 oz)
+140
+0000010351320
+Strawberry Citrus - Large (22 oz)
+190
+0000015481441
+Cucumber Mint Lime - Kids (12 oz)
+130
+000000330310
+Cucumber Mint Lime - Small (16 oz)
+180
+000000440411
+Cucumber Mint Lime - Large (22 oz)
+240
+000000611571
+Blueberry Lavender - Kids (12 oz)
+110
+0000010270250
+Blueberry Lavender - Small (16 oz)
+140
+0000010360340
+Blueberry Lavender - Large (22 oz)
+190
+0000015500460
+Pineapple Apple Mint Juice - Kids (12 oz)
+80
+500005221170
+Pineapple Apple Mint Juice - Small (16 oz)
+110
+50.500010291230
+Pineapple Apple Mint Juice - Large (22 oz)
+160
+50.500010391311
+Tangerine Aleppo - Kids (12oz)
+140
+0000011370351
+Tangerine Aleppo - Small (16 oz)
+180
+0000015490461
+Tangerine Aleppo - Large (22oz)
+250
+0000023670631
+Maine Root Soda (Fountain) - Kids (12 oz)
+145
+0000035350350
+Maine Root Soda (Fountain) - Small (16 oz)
+190
+0000050500500
+Maine Root Soda (Fountain) - Large (22oz)
+270
+0000060600600
+Maine Root Soda (Bottled)
+145
+0000035350350
+Maine Root Diet Soda (Fountain) - Kids (12oz)
+0
+00000300000
+Maine Root Diet Soda (Fountain) -  
+Small (16 oz)
+0
+00000400000
+Maine Root Diet Soda (Fountain) - Large 
+(22oz)
+0
+00000500000
+Spindrift Grapefruit
+17
+0000004030
+Spindrift Raspberry Lime
+5
+0000001010
+Spindrift Lemon
+3
+0000001000
+Spindrift Half Tea + Half Lemon
+5
+0000001000
+Chocolate Milk
+150
+252.51.5010200220218
+1% Milk
+110
+252.51.5015125120128
+Honest Apple Juice
+35
+00000159080
+
+CURATED PITAS
+Spicy Chicken + Avocado Pita
+ 
+Steak + Feta Pita
+Greek Chicken Pita
+ 
+BASES
+Brown Rice
+Saffron Basmati Rice
+Black Lentils
+Super Greens
+Arugula
+Baby Spinach
+Romaine
+Power Greens 
+MAINS
+Braised Lamb
+Grilled Chicken
+Grilled Steak
+Falafel
+Harissa Honey Chicken
+Roasted Vegetables
+Spicy Lamb Meatballs
+Glazed Salmon
+DIET Contains Compliant IngredientsContains ALLERGEN
+DIPS + SPREADS
+Tzatziki
+Hummus
+Roasted Eggplant
+Crazy Feta
+®
+Harissa
+Red Pepper Hummus
+TOPPINGS
+Sumac Slaw
+Tomato + Onion
+Recipe
+WheatMilkSoyEggsTr e e N u t sSesamePeanuts
+Fish 
+(Salmon)
+Shellfish
+(Shrimp 
+where 
+available)
+VeganVegetarian
+C U R AT E D B O W L
+Spicy Lamb + Avocado Bowl
+Steak + Harissa Bowl
+  
+Harissa Avocado Bowl
+Chicken + Rice Bowl
+  
+Greek Salad Bowl
+Salmon + Yogurt Dill
+Salmon + Strawberry Sesame
+Falafel Crunch Bowl
+Allergen Guide 
+While we take great care to identify allergens and avoid contamination, we encourage guests to review this guide routinely if you have any food allergies or intolerances or specific dietary restrictions. 
+We cannot guarantee that our ingredients are 100% free of allergens or animal products, particularly given our reliance on supplier information, potential for allergen cross-contact with other foods, 
+including salmon and shrimp, in shared preparation and cooking areas, and potential ingredient substitutions, which may occur due to variations in supplier practices. Self-service juice and fountain 
+beverage information is calculated without ice.
+
+DIET Contains Compliant IngredientsContains ALLERGEN
+Recipe
+WheatMilkSoyEggsTr e e N u t sSesamePeanuts
+Fish 
+(Salmon)
+Shellfish
+(Shrimp 
+where 
+available)
+VeganVegetarian
+TOPPINGS
+Persian Cucumber
+Kalamata Olives
+Fiery Broccoli
+Pickled Onions
+Salt-Brined Pickles
+Crumbled Feta
+Fire-Roasted Corn
+Avocado
+Shredded Romaine
+Pita Crisps
+Tomato + Cucumber
+SIDES
+Side Pita
+Pita Chips
+Sumac Sour Cream Pita Chips
+Greyston Blondie
+Greyston Brownie
+Whisked! Apricot Honey
+Whisked! Salted Dark Chocolate Oat Cookie
+DRESSINGS
+Balsamic Date Vinaigrette
+Yogurt Dill
+Lemon Herb Tahini
+Strawberry Sesame
+Greek Vinaigrette
+Skhug
+Hot Harissa Vinaigrette
+Garlic Dressing
+KIDS MEAL
+Kids Pita Chips
+Kids Saffron Basmati Rice
+Kids Brown Rice
+Kids Black Lentils
+Kids Chicken
+Kids Harissa Honey Chicken
+Kids Falafel
+Kids Spicy Lamb Meatballs
+Kids Roasted Vegetables
+Kids Braised Lamb
+Kids Grilled Steak
+DRINKS
+Classic Lemonade 
+Classic Lemonade (CA) 
+
+DIET Contains Compliant IngredientsContains ALLERGEN
+Recipe
+WheatMilkSoyEggsTr e e N u t sSesamePeanuts
+Fish 
+(Salmon)
+Shellfish
+(Shrimp)
+VeganVegetarian
+DRINKS
+Sweet Tea 
+Jasmine Green Tea 
+Unsweetened Black Tea 
+Strawberry Citrus 
+Pineapple Apple Mint 
+Cucumber Mint Lime 
+Blueberry Lavender 
+Tangerine Aleppo
+Maine Root Soda (Fountain) 
+Maine Root Soda (Bottled)
+Spindrift Grapefruit
+Spindrift Lemon
+Spindrift Raspberry Lime
+Spindrift Half Tea + Half Lemon
+1% Milk
+Chocolate Milk
+Honest Apple Juice
+CAVA-REC-GID-0326-AllergReg

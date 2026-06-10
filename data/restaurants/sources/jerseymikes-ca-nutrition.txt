@@ -1,0 +1,486 @@
+
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+MINI
+#1 - BLT Mini Mike's - Rosemary Parmesan Bread 1Serving470                 27              7                          0                                41                  3                      4                           18                 45                        1,010               
+#1 - BLT Mini Mike's - Wheat Sub 1Serving460                 26              6                          0                                41                  4                      4                           17                 40                        940                   
+#1 - BLT Mini Mike's - White Sub 1Serving460                 26              6                          0                                41                  2                      4                           16                 40                        960                   
+#10 - Tuna Fish Mini Mike's Way - Rosemary Parmesan 1Serving590                 39              6                          0                                42                  3                      4                           20                 50                        850                   
+#10 - Tuna Fish Mini Mike's Way - Wheat Sub 1Serving580                 38              6                          0                                41                  4                      4                           20                 45                        790                   
+#10 - Tuna Fish Mini Mike's Way - White Sub 1Serving570                 38              6                          0                                41                  3                      4                           18                 45                        810                   
+#11 - Stickball Special Mini Mike's Way - Rosemary Parmesan 1
+Serving500                 27              9                          0                                42                  3                      4                           22                 45                        1,200               
+#11 - Stickball Special Mini Mike's Way - Wheat Sub 1Serving490                 26              6                          0                                42                  4                      4                           22                 45                        1,140               
+#11 - Stickball Special Mini Mike's Way - White Sub 1Serving480                 26              8                          0                                42                  3                      4                           20                 45                        1,150               
+#12 - Cancro Special Mini Mike's Way - Rosemary Parmesan 1Serving530                 27              9                          0                                42                  3                      4                           30                 65                        900                   
+#12 - Cancro Special Mini Mike's Way - Wheat Sub 1Serving510                 26              8                          0                                42                  4                      4                           30                 65                        840                   
+#12 - Cancro Special Mini Mike's Way - White Sub 1Serving510                 26              8                          0                                42                  3                      4                           28                 65                        850                   
+#13 - The Original Italian Mini Mike's Way - Rosemary Parmesan 1Serving560                 30              10                        0                                44                  3                      4                           30                 70                        
+1,750               
+#13 - The Original Italian Mini Mike's Way - Wheat Sub 1Serving540                 29              9                          0                                43                  4                      5                           29                 65                        1,680               
+#13 - The Original Italian Mini Mike's Way - White Sub 1Serving540                 29              9                          0                                43                  3                      4                           28                 65                        1,700               
+#14 - The Veggie Mini Mike's Way - Rosemary Parmesan 1Serving570                 33              13                        1                                43                  3                      4                           24                 50                        800                   
+#14 - The Veggie Mini Mike's Way - Wheat Sub 1Serving550                 31              13                        1                                43                  4                      4                           24                 45                        730                   
+#14 - The Veggie Mini Mike's Way - White Sub 1Serving550                 32              13                        1                                43                  3                      4                           22                 45                        750                   
+#2 - Jersey Shore's Favorite Mini Mike's Way - Rosemary Parmesan 1Serving470                 24              7                          0                                43                  3                      4                           22                 45                        1,200               
+#2 - Jersey Shore's Favorite Mini Mike's Way - Wheat Sub 1Serving460                 23              7                          0                                43                  4                      5                           
+22                 40                        1,130               
+#2 - Jersey Shore's Favorite Mini Mike's Way - White Sub 1Serving450                 23              7                          0                                42                  3                      4                           21                 40                        1,150               
+#3 - Ham and Provolone Mini Mike's Way - Rosemary Parmesan 1Serving470                 24              7                          0                                42                  3                      4                           23                 45                        1,230               
+#3 - Ham and Provolone Mini Mike's Way - Wheat Sub 1Serving460                 23              7                          0                                42                  4                      4                           22                 45                        1,170               
+#3 - Ham and Provolone Mini Mike's Way - White Sub 1Serving450                 23              7                          0                                42                  3                      4                           21                 45                        1,180               
+#4 - The Number Four Mini Mike's Way - Rosemary Parmesan 1Serving470                 24              7                          0                                43                  3                      4                           23                 45                        1,240               
+#4 - The Number Four Mini Mike's Way - Wheat Sub 1Serving460                 23              7                          0                                43                  4                      5                           23                 40                        1,170               
+#4 - The Number Four Mini Mike's Way - White Sub 1Serving450                 23              7                          0                                42                  
+3                      4                           21                 40                        1,190               
+#5 - The Super Sub Mini Mike's Way - Rosemary Parmesan 1Serving500                 25              8                          0                                43                  3                      4                           26                 55                        1,490               
+#5 - The Super Sub  Mini Mike's Way - Wheat Sub 1Serving480                 23              7                          0                                43                  4                      5                           26                 55                        1,420               
+#5 - The Super Sub  Mini Mike's Way - White Sub 1Serving470                 23              7                          0                                43                  3                      4                           25                 55                        1,440               
+#6 - Roast Beef and Provolone Mini Mike's Way - Rosemary Parmesan 1Serving530                 26              8                          0                                42                  3                      4                           33                 75                        860                   
+#6 - Roast Beef and Provolone Mini Mike's Way - Wheat Sub 1Serving520                 25              7                          0                                42                  4                      4                           33                 70                        800                   
+#6 - Roast Beef and Provolone Mini Mike's Way - White Sub 1Serving510                 25              8                          0                                41                  3                      4                           32                 70                        820                   
+Page 1 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#7 - Turkey and Provolone Mini Mike's Way - Rosemary Parmesan 1Serving480                 25              8                          0                                43                  3                      4                           23                 45                        1,040               
+#7 - Turkey and Provolone Mini Mike's Way - Wheat Sub 1Serving460                 23              7                          0                                43                  4                      5                           23                 45                        980                   
+#7 - Turkey and Provolone Mini Mike's Way - White Sub 1Serving460                 23              7                          0                                43                  3                      4                           21                 45                        990                   
+#8 - Club Sub Mini Mike's Way - Rosemary Parmesan 1Serving530                 28              9                          0                                43                  3                      4                           28                 60                        1,400               
+#8 - Club Sub Mini Mike's Way - Wheat Sub 1Serving510                 26              8                          0                                43                  4                      5                           28                 60                        1,340               
+#8 - Club Sub Mini Mike's Way - White Sub 1Serving500                 26              8                          0                                43                  3                      4                           26                 60                        1,360               
+#9 - Club Supreme Mini Mike's Way - Rosemary Parmesan 1Serving530                 27              8                          0                                43                  3                      4                           31                 
+65                        1,070               
+#9 - Club Supreme Mini Mike's Way - Wheat Sub 1Serving510                 26              8                          0                                42                  4                      5                           30                 65                        1,000               
+#9 - Club Supreme Mini Mike's Way - White Sub 1Serving510                 26              8                          0                                42                  3                      4                           29                 65                        1,020               
+REGULAR COLD
+#1 - BLT Regular Mike's Cold - Rosemary Parmesan Bread 1Serving77047110.3614527751550
+#1 - BLT Regular Mike's Cold - Sub in a Tub 1Serving46043100.25231570820
+#1 - BLT Regular Mike's Cold - Wheat Sub 1Serving75046100.2605626701450
+#1 - BLT Regular Mike's Cold - White Sub 1Serving75046100.2604525701480
+#1 - BLT Regular Mike's Cold - Wheat Wrap 1Serving75052130.3518523701330
+#1 - BLT Regular Mike's Cold - White Wrap 1Serving77053130.3534523701460
+#10 - Tuna Fish Regular Mike's Way Cold - Rosemary Parmesan 1Serving100070110.462553285
+1340
+#10 - Tuna Fish Regular Mike's Way Cold - Sub in a Tub 1Serving70066100.36232180600
+#10 - Tuna Fish Regular Mike's Way Cold - Wheat Sub 1Serving97068100.3626631801240
+#10 - Tuna Fish Regular Mike's Way Cold - White Sub 1Serving97068100.3614530801270
+#10 - Tuna Fish Regular Mike's Way Cold - Wheat Wrap 1Serving98075130.4528529801110
+#10 - Tuna Fish Regular Mike's Way Cold - White Wrap 1Serving101076130.4544529801240
+#11 - Stickball Special Regular Mike's Way Cold - Rosemary Parmesan 1Serving86050150.5634639902280
+#11 - Stickball Special Regular Mike's Way Cold - Sub in a Tub 1Serving55046140.472428851540
+#11 - Stickball Special Regular Mike's Way Cold - Wheat Sub 1Serving85049140.4625739852180
+#11 - Stickball Special Regular Mike's Way Cold - White Sub 1Serving83048140.4624637852200
+#11 - Stickball Special Regular Mike's Way Cold - Wheat Wrap 1Serving84055170.5538636852050
+#11 - Stickball Special Regular Mike's Way Cold - White Wrap 1Serving
+87056170.5554636852180
+#12 - Cancro Special Regular Mike's Way Cold - Rosemary Parmesan 1Serving91050150.56346531201470
+#12 - Cancro Special Regular Mike's Way Cold - Sub in a Tub 1Serving60046140.562441115730
+#12 - Cancro Special Regular Mike's Way Cold - Wheat Sub 1Serving89049140.56266521151370
+#12 - Cancro Special Regular Mike's Way Cold - White Sub 1Serving88048140.56246511151400
+#12 - Cancro Special Regular Mike's Way Cold - Wheat Wrap 1Serving88055170.55286491151240
+#12 - Cancro Special Regular Mike's Way Cold - White Wrap 1Serving91056170.55446491151370
+Page 2 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#13 - The Original Italian Regular Mike's Way Cold - Rosemary Parmesan 1Serving920
+53160.5654747
+1152820
+#13 - The Original Italian Regular Mike's Way Cold - Sub in a Tub 1Serving62049150.5925361102080
+#13 - The Original Italian Regular Mike's Way Cold - Wheat Sub 1Serving90052150.56468471102720
+#13 - The Original Italian Regular Mike's Way Cold - White Sub 1Serving90052150.56447451102740
+#13 -The Original Italian Regular Mike's Way Cold - Wheat Wrap 1Serving90058180.55587441102590
+#13 - The Original Italian Regular Mike's Way Cold - White Wrap 1Serving93059180.55747441102720
+#14 - The Veggie Regular Mike's Way Cold - Rosemary Parmesan 1Serving94058231654639851240
+#14 -  The Veggie Regular Mike's Way Cold - Sub in a Tub 1Serving630542219242780500
+#14 -  The Veggie Regular Mike's Way Cold - Wheat Sub 1Serving91056221646738801140
+#14 -  The Veggie Regular Mike's Way Cold - White Sub 1Serving90056221644636801160
+#14 -  The Veggie Regular Mike's Way Cold- Wheat Wrap 1Serving91063251558635801010
+#14 -  The Veggie Regular Mike's Way Cold - White Wrap 1Serving940
+64251574635801140
+#2 - Regular Mike's Way Cold -  Wheat Wrap 1Serving78048140.4548636801970
+#2 - Regular Mike's Way Cold -  White Wrap 1Serving80049140.4564636802100
+#2 - Jersey Shore's Favorite Regular Mike's Way Cold - Rosemary Parmesan 1Serving79043120.4644639852190
+#2 - Jersey Shore's Favorite Regular Mike's Way Cold - Sub in a Tub 1Serving49039110.382428801460
+#2 - Jersey Shore's Favorite Regular Mike's Way Cold - Wheat Sub 1Serving78042110.3635739802100
+#2 - Jersey Shore's Favorite Regular Mike's Way Cold - White Sub 1Serving77042110.3634637802120
+#3 -  Ham and Provolone Regular Mike's Way Cold - Rosemary Parmesan 1Serving78043120.4634638802120
+#3 -  Ham and Provolone Regular Mike's Way Cold - Sub in a Tub 1Serving48039110.372427751380
+#3 -  Ham and Provolone Regular Mike's Way Cold - Wheat Sub 1Serving76041110.3625738752020
+#3 -  Ham and Provolone Regular Mike's Way Cold - White Sub 1Serving75041110.362
+4636752050
+#3 -  Ham and Provolone Regular Mike's Way Cold - Wheat Wrap 1Serving77048140.4538635751890
+#3 -  Ham and Provolone Regular Mike's Way Cold - White Wrap 1Serving79049140.4554635752020
+#4 - Regular Mike's Way Cold - Rosemary Parmesan 1Serving79043120.4644638752070
+#4 - Regular Mike's Way Cold - Sub in a Tub 1Serving48039110.382426701330
+#4 - Regular Mike's Way Cold - Wheat Sub 1Serving76041110.3635737701970
+#4 - Regular Mike's Way Cold - White Sub 1Serving75041110.4634635701990
+#4 - Regular Mike's Way Cold - Wheat Wrap 1Serving77048140.4548634701840
+#4 - Regular Mike's Way Cold - White Wrap 1Serving79049140.4564634701970
+#5 - The Super Sub Regular Mike's Way Cold - Rosemary Parmesan 1Serving81044120.4644742902370
+#5 - The Super Sub Regular Mike's Way Cold - Sub in a Tub 1Serving50039110.38253185
+1640
+#5  -The Super Sub Regular Mike's Way Cold - Wheat Sub 1Serving79042110.3645741852270
+#5 - The Super Sub Regular Mike's Way Cold - White Sub 1Serving78042110.4634740852300
+Page 3 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#5 - The Super Sub Regular Mike's Way Cold - Wheat Wrap 1Serving790
+48140.4548739
+852150
+#5 - The Super Sub Regular Mike's Way Cold - White Wrap 1Serving81049150.4564739852280
+#6 -  Roast Beef and Provolone Regular Mike's Way Cold - Rosemary Parmesan 1Serving85046130.56245501101290
+#6 -  Roast Beef and Provolone Regular Mike's Way Cold - Sub in a Tub 1Serving55042120.462339105550
+#6 -  Roast Beef and Provolone Regular Mike's Way Cold - Wheat Sub 1Serving83044120.46156501051190
+#6 -  Roast Beef and Provolone Regular Mike's Way Cold - White Sub 1Serving82044120.46145481051220
+#6 -  Roast Beef and Provolone Regular Mike's Way Cold - Wheat Wrap 1Serving84051150.55285471051060
+#6 -  Roast Beef and Provolone Regular Mike's Way Cold - White Wrap 1Serving86052160.55445471051190
+#7 -  Turkey and Provolone Regular Mike's Way Cold - Rosemary Parmesan 1Serving80044130.4654639801750
+#7 - Turkey and Provolone Regular Mike's Way Cold - Sub in a Tub 1Serving50040110.382427751010
+#7 - Turkey and Provolone Regular Mike's Way Cold - Wheat Sub 1Serving79043120.3645738751650
+#7 - Turkey and Provolone Regular Mike's Way Cold - White Sub 1Serving780
+43120.3644636751680
+#7 - Turkey and Provolone Regular Mike's Way Cold - Wheat Wrap 1Serving78049140.4548635751520
+#7 -  Turkey and Provolone Regular Mike's Way Cold - White Wrap 1Serving81050150.4564635751650
+#8 - Club Sub Regular Mike's Way Cold - Rosemary Parmesan 1Serving88050150.46446461052340
+#8 - Club Sub Regular Mike's Way Cold - Sub in a Tub 1Serving57045130.3824351001600
+#8 - Club Sub Regular Mike's Way Cold - Wheat Sub 1Serving86048140.36457451002240
+#8 - Club Sub Regular Mike's Way Cold - White Sub 1Serving85048140.36346441002270
+#8 - Club Sub Regular Mike's Way Cold - Wheat Wrap 1Serving86054160.45486431002110
+#8 - Club Sub Regular Mike's Way Cold - White Wrap 1Serving88055170.45646431002240
+#9 - Club Supreme Regular Mike's Way Cold - Rosemary Parmesan 1Serving90050140.36446501101800
+#9 - Club Supreme Regular Mike's Way Cold - Sub in a Tub 1Serving59046130.38
+24381051060
+#9 - Club Supreme Regular Mike's Way Cold- Wheat Sub 1Serving87048130.36357491051700
+#9 - Club Supreme Regular Mike's Way Cold - White Sub 1Serving87048130.36346481051730
+#9 - Club Supreme Regular Mike's Way Cold - Wheat Wrap 1Serving88055160.45486461051570
+#9 - Club Supreme Regular Mike's Way Cold - White Wrap 1Serving90056160.45646461051700
+Regular Mike's (Hot) 
+#16 - Hot Regular - Chicken Philly - Rosemary Parmesan 1Serving6301680.469310531202100
+#16 - Hot Regular - Chicken Philly - Sub in a Tub 1Serving3201260.31218421151370
+#16 - Hot Regular - Chicken Philly - Wheat Sub 1Serving6001470.368511521152000
+#16 - Hot Regular - Chicken Philly - White Sub 1Serving6001470.368310511152030
+#16 - Hot Regular - Chicken Philly - Wheat Wrap 1Serving6102190.458710501151880
+#16 - Hot Regular - Chicken Philly - White Wrap 1Serving63022100.46031050
+1152010
+#17 - Hot Regular - Steak Philly - Rosemary Parmesan 1Serving68026120.467310461252160
+Page 4 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#17 - Hot Regular - Steak Philly - Sub in a Tub 1Serving380
+22110.3111835
+1201420
+#17 - Hot Regular - Steak Philly - Wheat Sub 1Serving67025110.367511461202060
+#17 - Hot Regular - Steak Philly - White Sub 1Serving66025110.367310441202090
+#17 - Hot Regular - Steak Philly - Wheat Wrap 1Serving67031140.457710431201930
+#17 - Hot Regular - Steak Philly - White Wrap 1Serving69032140.459310431202060
+#26 - Hot Regular - Chicken Bacon Ranch Cheesesteak - Rosemary Parmesan 1Serving870411216848581452420
+#26 - Hot Regular - Chicken Bacon Ranch Cheesesteak - Sub in a Tub 1Serving56037110.51116471401680
+#26 - Hot Regular - Chicken Bacon Ranch Cheesesteak - Wheat Sub 1Serving850401116759571402320
+#26 - Hot Regular - Chicken Bacon Ranch Cheesesteak - White Sub 1Serving850401116738561402350
+#26 - Hot Regular - Chicken Bacon Ranch Cheesesteak - Wheat Wrap 1Serving850461415778551402190
+#26 - Hot Regular - Chicken Bacon Ranch Cheesesteak - White Wrap 1Serving870471415938551402320
+#31 - Hot Regular - California Chicken Cheesesteak - Rosemary Parmesan 1Serving830
+41110.56547531402060
+#31 - Hot Regular - California Chicken Cheesesteak - Sub in a Tub 1Serving5303790.5815421351320
+#31 - Hot Regular - California Chicken Cheesesteak - Wheat Sub 1Serving82040100.56458531351960
+#31 - Hot Regular - California Chicken Cheesesteak - White Sub 1Serving81040100.56437511351990
+#31 - Hot Regular - California Chicken Cheesesteak - Wheat Wrap 1Serving82046120.55477501351830
+#31 - Hot Regular - California Chicken Cheesesteak - White Wrap 1Serving84047130.55637501351960
+#42 - Hot Regular - Chipotle Chicken Philly - Rosemary Parmesan 1Serving91047120.570311531402430
+#42 - Hot Regular - Chipotle Chicken Philly - Sub in a Tub 1Serving61043110.51419421351690
+#42 - Hot Regular - Chipotle Chicken Philly - Wheat Sub 1Serving88045110.570512521352330
+#42 - Hot Regular - Chipotle Chicken Philly - White Sub 1Serving88045110.570311511352360
+#42 - Hot Regular - Chipotle Chicken Philly - Wheat Wrap 1Serving89052140.560
+711501352200
+#42 - Hot Regular - Chipotle Chicken Philly - White Wrap 1Serving92053140.562311501352330
+#43 - Hot Regular - Chipotle Steak Philly - Rosemary Parmesan 1Serving98058170.569311471502520
+#43 - Hot Regular - Chipotle Steak Philly - Sub in a Tub 1Serving68054160.51319361451780
+#43 - Hot Regular - Chipotle Steak Philly - Wheat Sub 1Serving95056160.569512461452420
+#43 - Hot Regular - Chipotle Steak Philly - White Sub 1Serving95056160.568311451452450
+#43 - Hot Regular - Chipotle Steak Philly - Wheat Wrap 1Serving97063190.559711441452290
+#43 - Hot Regular - Chipotle Steak Philly - White Wrap 1Serving99064190.561311441452420
+#44 - Hot Regular - Buffalo Chicken Cheesesteak - Rosemary Parmesan 1Serving820371016948541303600
+#44 - Hot Regular - Buffalo Chicken Cheesesteak - Sub in a Tub 1Serving5103290.51316421252860
+#44 - Hot Regular - Buffalo Chicken Cheesesteak - Wheat Sub 1Serving7903591695953125
+3500
+#44 - Hot Regular - Buffalo Chicken Cheesesteak - White Sub 1Serving79035916938521253530
+#44 - Hot Regular - Buffalo Chicken Cheesesteak - Wheat Wrap 1Serving790411215978501253370
+Page 5 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#44 - Hot Regular - Buffalo Chicken Cheesesteak - White Wrap 1Serving820
+42121613850
+1253500
+#54 - Hot Regular - Hot Veggie - Rosemary Parmesan 1Serving57019110.57461128551820
+#54 - Hot Regular - Hot Veggie - Sub in a Tub 1Serving2601590.5184916501080
+#54 - Hot Regular - Hot Veggie - Wheat Sub 1Serving54017100.57381227501720
+#54 - Hot Regular - Hot Veggie - White Sub 1Serving54017100.57361126501750
+#54 - Hot Regular - Hot Veggie - Wheat Wrap 1Serving55024120.564101124501590
+#54 - Hot Regular - Hot Veggie - White Wrap 1Serving57025130.56661124501720
+#55 - Hot Regular - Chicken Big Kahuna - Rosemary Parmesan 1Serving6601890.571411561252430
+#55 - Hot Regular - Chicken Big Kahuna - Sub in a Tub 1Serving3601480.41519441201690
+#55 - Hot Regular - Chicken Big Kahuna - Wheat Sub 1Serving6401780.470512551202330
+#55 - Hot Regular - Chicken Big Kahuna - White Sub 1Serving6401780.470311541202360
+#55 - Hot Regular - Chicken Big Kahuna - Wheat Wrap 1Serving650
+23110.561711521202200
+#55 - Hot Regular - Chicken Big Kahuna - White Wrap 1Serving67024110.563311521202330
+#56 - Hot Regular - Big Kahuna - Rosemary Parmesan 1Serving73029140.570411501352530
+#56 - Hot Regular - Big Kahuna - Sub in a Tub 1Serving43025130.41419381301790
+#56 - Hot Regular - Big Kahuna - Wheat Sub 1Serving71028130.469512491302430
+#56 - Hot Regular - Big Kahuna - White Sub 1Serving71028130.469311481302460
+#56 - Hot Regular - Big Kahuna - Wheat Wrap 1Serving72034160.560711461302300
+#56 - Hot Regular - Big Kahuna - White Wrap 1Serving74035160.562311461302430
+#64 - Hot Regular - Portabella Mushroom & Swiss - Rosemary Parmesan 1Serving65031110.469582635920
+#64 - Hot Regular - Portabella Mushroom & Swiss - Sub in a Tub 1Serving34026100.413361430180
+#64 - Hot Regular - Portabella Mushroom & Swiss - Wheat Sub 1Serving62029100.468
+792530820
+#64 - Hot Regular - Portabella Mushroom & Swiss - White Sub 1Serving62029100.468582430850
+#64 - Hot Regular - Portabella Mushroom & Swiss - Wheat Wrap 1Serving62035130.559982230690
+#64 - Hot Regular - Portabella Mushroom & Swiss - White Wrap 1Serving65036140.561582230820
+#65 - Hot Regular - Portabella Chicken Philly - Rosemary Parmesan 1Serving6201570.470411531152080
+#65 - Hot Regular - Portabella Chicken Philly - Sub in a Tub 1Serving3201160.31419421101340
+#65 - Hot Regular - Portabella Chicken Philly - Wheat Sub 1Serving6001460.369512521101980
+#65 - Hot Regular - Portabella Chicken Philly - White Sub 1Serving6001460.369311511102000
+#65 - Hot Regular - Portabella Chicken Philly - Wheat Wrap 1Serving6102090.460711501101850
+#65 - Hot Regular - Portabella Chicken Philly - White Wrap 1Serving6302190.462311501101980
+#66 - Hot Regular - Portabella Steak Philly - Rosemary Parmesan 1Serving69026120.46941147125
+2180
+#66 - Hot Regular - Portabella Steak Philly - Sub in a Tub 1Serving39022110.31319361201440
+#66 - Hot Regular - Portabella Steak Philly - Wheat Sub 1Serving67025110.368512461202080
+Page 6 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#66 - Hot Regular - Portabella Steak Philly - White Sub 1Serving67025110.368311451202100
+#66 - Hot Regular - Portabella Steak Philly - Wheat Wrap 1Serving68031140.459711441201950
+#66 - Hot Regular - Portabella Steak Philly - White Wrap 1Serving70032140.461311441202080
+Giant Mike's (Cold) 
+#1 - Giant Mike's Cold - Rosemary Parmesan Bread 1Serving154095220.5121710531503100
+#1 - Giant Mike's Cold - Wheat Sub 1Serving148091200.51191012521402900
+#1 - Giant Mike's Cold - White Sub 1Serving148091200.5119710491402960
+#2 - Giant Mike's Way Cold - Rosemary Parmesan 1Serving136075180.512481152902990
+#2 - Giant Mike's Way Cold - Wheat Sub 1Serving132072160.3122101350802790
+#2 - Giant Mike's Way Cold - White Sub 1Serving131072160.412271147802850
+#3 - Giant Mike's Way Cold - Rosemary Parmesan 1Serving149082220.5124810681353810
+#3 - Giant Mike's Way Cold - Wheat Sub 1Serving145079200.51231012661253610
+#3 - Giant Mike's Way Cold - White Sub 1Serving144079200.5122710631253660
+#4 - Giant Mike's Way Cold - Rosemary Parmesan 1Serving149082220.5125811661303700
+#4 - Giant Mike's Way Cold - Wheat Sub 1Serving1450
+79200.51241013651203500
+#4 - Giant Mike's Way Cold - White Sub 1Serving144079200.5124711621203560
+#5 - Giant Mike's Way Cold - Rosemary Parmesan 1Serving153083230.5126812741554250
+#5 - Giant Mike's Way Cold - Wheat Sub 1Serving149080210.51251013731454050
+#5 - Giant Mike's Way Cold - White Sub 1Serving148080210.5124712701454100
+#6 - Giant Mike's Way Cold - Rosemary Parmesan 1Serving16608925112289972102520
+#6 - Giant Mike's Way Cold - Wheat Sub 1Serving162086230.51211011962052320
+#6 - Giant Mike's Way Cold - White Sub 1Serving161085230.512179932052380
+#7 - Giant Mike's Way Cold - Rosemary Parmesan 1Serving153085230.5126811681403190
+#7 - Giant Mike's Way Cold - Wheat Sub 1Serving148081210.51251013671302990
+#7 - Giant Mike's Way Cold - White Sub 1Serving147081210.5125
+711641303050
+#8 - Giant Mike's Way Cold - Wheat Sub 1Serving162092250.51241013791653890
+#8 - Giant Mike's Way Cold - White Sub 1Serving161092250.5124711751653950
+#8 - Giant Mike's Way Cold- Rosemary Parmesan 1Serving166095270.5126811801754090
+#9 - Club Supreme Giant Mike's Way Cold - Rosemary Parmesan 1Serving168095260.5125811861853230
+#9 - Club Supreme Giant Mike's Way Cold - Wheat Sub 1Serving164092240.51241013851753030
+#9 - Club Supreme Giant Mike's Way Cold - White Sub 1Serving1,640             92              24                        1                                124                7                      11                        82                 175                     3,090               
+#10 - Tuna Fish Giant Mike's Way Cold -  Rosemary Parmesan 1Serving1,910             133           21                        1                                123                8                      10                        60                 150                     2,580               
+#10 - Tuna Fish Giant Mike's Way Cold -  Wheat Sub 1Serving1,870             130           19                        1                                121                11                   12                        59                 140                     2,380               
+#10 - Tuna Fish Giant Mike's Way Cold -  White Sub 1Serving1,860             
+130           19                        1                                121                8                      10                        56                 140                     2,430               
+Page 7 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#11 - Stickball Special Giant Mike's Way Cold - Rosemary Parmesan 1Serving1,630             95              27                        1                                124                8                      10                        69                 155                     4,030               
+#11 - Stickball Special Giant Mike's Way Cold - Wheat Sub 1Serving1,580             91              25                        1                                123                10                   12                        68                 145                     3,830               
+#11 - Stickball Special Giant Mike's Way Cold - White Sub 1Serving1,570             91              25                        1                                122                7                      10                        65                 145                     3,880               
+#12 - Cancro Special Giant Mike's Way Cold - Rosemary Parmesan 1Serving1,700             95              27                        1                                123                8                      10                        92                 205                     2,760               
+#12 - Cancro Special Giant Mike's Way Cold - Wheat Sub 1Serving1,660             92              25                        1                                122                10                   12                        91                 195                     2,560               
+#12 - Cancro Special Giant Mike's Way Cold - White Sub 1Serving1,650             92              25                        1                                122                7                      10                        88                 195                     2,610               
+#13 - The Original Italian Giant Mike's Way Cold - Rosemary Parmesan 1Serving1,750             102           30                        1                                127                8                      12                        85                 
+200                     5,110               
+#13 - The Original Italian Giant Mike's Way Cold - Wheat Sub 1Serving1,710             99              28                        1                                126                11                   14                        83                 190                     4,910               
+#13 - The Original Italian Giant Mike's Way Cold - White Sub 1Serving1,700             99              28                        1                                125                7                      12                        80                 190                     4,960               
+#14 - The Veggie Giant Mike's Way Cold - Rosemary Parmesan 1Serving1,860             116           46                        2                                128                8                      10                        77                 165                     2,470               
+#14 - The Veggie Giant Mike's Way Cold - Wheat Sub 1Serving1,830             113           44                        2                                127                11                   12                        75                 155                     2,270               
+#14 - The Veggie Giant Mike's Way Cold - White Sub 1Serving1,810             113           44                        2                                126                7                      10                        72                 155                     2,330               
+GIANT HOT
+#16 - Hot Giant - Chicken Philly - Rosemary Parmesan 1Serving1,240             31              15                        1                                137                6                      20                        105              235                     4,150               
+#16 - Hot Giant - Chicken Philly - Wheat Sub 1Serving1,190             27              12                        1                                136                
+9                      22                        104              225                     3,950               
+#16 - Hot Giant - Chicken Philly - White Sub 1Serving1,180             27              12                        1                                136                6                      20                        101              225                     4,000               
+#17 - Hot Giant - Steak Philly - Rosemary Parmesan 1Serving1,380             53              25                        1                                135                6                      20                        93                 255                     4,350               
+#17 - Hot Giant - Steak Philly - Wheat Sub 1Serving1,330             49              22                        1                                134                9                      22                        92                 245                     4,150               
+#17 - Hot Giant - Steak Philly - White Sub 1Serving1,320             49              22                        1                                134                6                      20                        89                 245                     4,200               
+#26 - Hot Giant - Chicken Bacon Ranch Cheesesteak - Rosemary Parmesan 1Serving1,740             83              24                        2                                135                7                      16                        116              295                     4,840               
+#26 - Hot Giant - Chicken Bacon Ranch Cheesesteak - Wheat Sub 1Serving1,680             79              22                        2                                133                10                   18                        114              285                     4,650               
+#26 - Hot Giant - Chicken Bacon Ranch Cheesesteak - White Sub 1Serving1,680             79              22                        
+2                                133                6                      16                        111              285                     4,700               
+#31 - Hot Giant - California Chicken Cheesesteak - Rosemary Parmesan 1Serving1,670             83              22                        1                                128                7                      13                        107              280                     4,120               
+#31 - Hot Giant - California Chicken Cheesesteak - Wheat Sub 1Serving1,630             80              20                        1                                127                10                   15                        105              270                     3,920               
+#31 - Hot Giant - California Chicken Cheesesteak - White Sub 1Serving1,620             79              20                        1                                127                6                      13                        102              270                     3,980               
+#42 - Hot Giant - Chipotle Chicken Philly - Rosemary Parmesan 1Serving1,820             94              24                        1                                141                7                      23                        106              280                     4,870               
+#42 - Hot Giant - Chipotle Chicken Philly - Wheat Sub 1Serving1,780             91              22                        1                                140                9                      24                        105              270                     4,670               
+#42 - Hot Giant - Chipotle Chicken Philly - White Sub 1Serving1,770             91              22                        1                                139                6                      23                        102              270                     4,720               
+#43 - Hot Giant - Chipotle Steak Philly - Rosemary Parmesan 1Serving1,960             
+116           34                        1                                139                7                      23                        94                 300                     5,070               
+#43 - Hot Giant - Chipotle Steak Philly - Wheat Sub 1Serving1,920             113           32                        1                                138                9                      24                        93                 290                     4,870               
+#43 - Hot Giant - Chipotle Steak Philly - White Sub 1Serving1,910             113           32                        1                                137                9                      23                        90                 290                     4,920               
+#44 - Hot Giant - Buffalo Chicken Cheesesteak - Rosemary Parmesan 1Serving1,620             73              20                        2                                138                7                      16                        107              260                     7,200               
+#44 - Hot Giant - Buffalo Chicken Cheesesteak - Wheat Sub 1Serving1,580             70              18                        2                                137                10                   18                        106              250                     7,000               
+#44 - Hot Giant - Buffalo Chicken Cheesesteak - White Sub 1Serving1,570             70              18                        2                                136                6                      16                        103              250                     7,060               
+Page 8 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#54 - Hot Giant - Hot Veggie - Rosemary Parmesan 1Serving1,130             38              22                        1                                147                12                   21                        55                 110                     3,640               
+#54 - Hot Giant - Hot Veggie - Wheat Sub 1Serving1,090             35              20                        1                                146                15                   23                        54                 100                     3,440               
+#54 - Hot Giant - Hot Veggie - White Sub 1Serving1,080             35              20                        1                                146                11                   21                        51                 100                     3,490               
+#55 - Hot Giant - Chicken Big Kahuna - Rosemary Parmesan 1Serving1,330             37              18                        1                                141                8                      21                        111              255                     4,830               
+#55 - Hot Giant - Chicken Big Kahuna - Wheat Sub 1Serving1,280             33              16                        1                                140                10                   23                        110              245                     4,630               
+#55 - Hot Giant - Chicken Big Kahuna - White Sub 1Serving1,270             33              16                        1                                140                7                      21                        107              245                     4,690               
+#56 - Hot Giant - Big Kahuna - Rosemary Parmesan 1Serving1,470             59              29                        1                                140                8                      21                        99                 
+275                     5,060               
+#56 - Hot Giant - Big Kahuna - Wheat Sub 1Serving1,420             55              26                        1                                138                10                   23                        98                 265                     4,860               
+#56 - Hot Giant - Big Kahuna - White Sub 1Serving1,410             55              26                        1                                138                7                      21                        95                 265                     4,920               
+#64 - Hot Giant - Portabella Mushroom & Swiss - Rosemary Parmesan 1Serving1,290             61              23                        1                                138                11                   16                        52                 75                        1,840               
+#64 - Hot Giant - Portabella Mushroom & Swiss - Wheat Sub 1Serving1,240             58              21                        1                                136                13                   18                        50                 65                        1,640               
+#64 - Hot Giant - Portabella Mushroom & Swiss - White Sub 1Serving1,230             58              21                        1                                136                10                   16                        47                 65                        1,690               
+#65 - Hot Giant - Portabella Chicken Philly - Rosemary Parmesan 1Serving1,250             31              15                        1                                140                7                      21                        106              235                     4,150               
+#65 - Hot Giant - Portabella Chicken Philly - Wheat Sub 1Serving1,200             28              12                        1                                138                10                   
+23                        105              225                     3,950               
+#65 - Hot Giant - Portabella Chicken Philly - White Sub 1Serving1,190             27              12                        1                                138                6                      21                        102              225                     4,010               
+#66 - Hot Giant - Portabella Steak Philly - Rosemary Parmesan 1Serving1,390             53              25                        1                                138                7                      21                        94                 255                     4,350               
+#66 - Hot Giant - Portabella Steak Philly - Wheat Sub 1Serving1,350             50              22                        1                                136                10                   23                        93                 245                     4,150               
+#66 - Hot Giant - Portabella Steak Philly - White Sub 1Serving1,330             49              22                        1                                136                6                      21                        90                 245                     4,210               
+KID'S MENU
+    #3 - Ham and Provolone Kid's Menu - Wheat Sub 1Serving220                 5                 2                          0                                31                  3                      4                           14                 20                        700                   
+    #3 - Ham and Provolone Kid's Menu - White Sub 1Serving220                 5                 2                          0                                31                  2                      3                           13                 20                        720                   
+    #7 - Turkey and Provolone Kid's Menu - Wheat Sub 1Serving220                 5                 3                          
+0                                32                  3                      4                           14                 25                        630                   
+    #7 - Turkey and Provolone Kid's Menu - White Sub 1Serving230                 5                 3                          0                                32                  2                      3                           14                 25                        640                   
+    Salami & Cheese - Kid's Menu - Wheat Sub 1Serving250                 9                 4                          0                                31                  3                      3                           12                 20                        610                   
+    Salami & Cheese - Kid's Menu - White Sub 1Serving250                 9                 4                          0                                31                  2                      3                           11                 20                        630                   
+DESSERTS
+    Chocolate Chunk Cookie1Each280                 14              8                          0                                37                  2                      21                        3                    35                        220                   
+     Mini Chocolate Chunk Cookie 1Serving150                 7                 4                          0                                19                  1                      10                        2                    20                        110                   
+    Chocolate Chip Brownie1Serving170                 9                 4                          0                                21                  1                      16                        2                    30                        70                      
+ Mini  Extra's 
+            
+Add Pepperoni1Serving60520.1100315230
+Add Bacon1Serving30310000210100
+#1 - Mini Extra Bacon1Serving70620000515200
+#2 - Mini Extra Meat  1Serving250.50.20100410290
+Page 9 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#3 - Mini Extra Meat  1Serving3010.20000615390
+#4 - Mini Extra Meat  1Serving200.500100310230
+#5 - Mini Extra Meat  1Serving3510.30100615420
+#6 - Mini Extra Meat  1Serving501.50.500001025110
+#7 - Mini Extra Meat  1Serving3510.40100615270
+#8 - Mini Extra Meat  1Serving7041.50100825430
+#9 - Mini Extra Meat  1Serving804.51.500001030290
+#10 - Mini Extra Meat  1Serving110101.50.1000520150
+#11 - Mini Extra Meat  1Serving402.510000415290
+#12 - Mini Extra Meat  1Serving4020.50000615100
+#13 - Mini Extra Meat  1Serving70
+41.50.1100825560
+#2 - Mini Extra Cheese  1Serving80640.2000620110
+#3 - Mini Extra Cheese  1Serving80640.2000620110
+#4 - Mini Extra Cheese  1Serving80640.2000620110
+#5 - Mini Extra Cheese  1Serving80640.2000620110
+#6 - Mini Extra Cheese  1Serving80640.2000620110
+#7 - Mini Extra Cheese  1Serving80640.2000620110
+#8 - Mini Extra Cheese  1Serving80640.2000620110
+#9 - Mini Extra Cheese  1Serving604.530.110041565
+#11 - Mini Extra Cheese  1Serving80640.2000620110
+#12 - Mini Extra Cheese  1Serving80640.20
+00620110
+#13 - Mini Extra Cheese  1Serving80640.2000620110
+#14 - Mini Extra Cheese 1Serving21016100.52001545260
+ Regular Extra's 
+      
+      
+Add Pepperoni1Serving90830.1101420340
+Add Bacon1Serving70620000515200
+Add/Extra Portabello 1Serving10000101100
+#1 - Regular Extra Bacon1Serving100830000725300
+#2 - Regular Extra Meat  1Serving4510.40101825570
+#3 - Regular Extra Meat  1Serving4010.40000825590
+#4 - Regular Extra Meat  1Serving4010.40101720450
+#5 - Regular Extra Meat  1Serving7020.501011235850
+#6 - Regular Extra Meat  1Serving802.510.10001440170
+#7 - Regular Extra Meat  1Serving6020.50101925400
+Page 10 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#8 - Regular Extra Meat  1Serving14082.501011645840
+#9 - Regular Extra Meat  1Serving1709301012160590
+#10 - Regular Extra Meat  1Serving210192.50.20001040270
+#11 - Regular Extra Meat  1Serving704.51.50.1000825560
+#12 - Regular Extra Meat  1Serving8041.50.10001130200
+#13 - Regular Extra Meat  1Serving13072.50.120115501100
+#14 - Regular Extra Cheese1Serving350261713002680440
+#2 - Regular Extra Cheese  1Serving120960.3100930160
+#3 - Regular Extra Cheese  1Serving120960.3100930160
+#4 - Regular Extra Cheese  1Serving120960.3100930160
+#5 - Regular Extra Cheese  1Serving120
+960.3100930160
+#6 - Regular Extra Cheese  1Serving120960.3100930160
+#7 - Regular Extra Cheese  1Serving120960.3100930160
+#8 - Regular Extra Cheese  1Serving120960.3100930160
+#9 - Regular Extra Cheese  1Serving10074.50.2100720100
+#11 - Regular Extra Cheese  1Serving120960.3100930160
+#12 - Regular Extra Cheese  1Serving120960.3100930160
+#13 - Regular Extra Cheese  1Serving120960.3100930160
+Extra Beef Philly1Serving12072.501011345290
+Extra Chicken Philly1Serving801001011640240
+Extra White American Cheese1Serving90640.22
+01620420
+Giant Extra's 
+            
+Add Pepperoni1Serving1901660.2201940680
+Add Bacon1Serving1301140000930400
+Add/Extra Portabello 1Serving10000211105
+#1 - Giant Extra Bacon1Serving21017601011445600
+#2 - Giant Extra Meat  1Serving7020.502011235860
+#3 - Giant Extra Meat  1Serving8020.501001440980
+#4 - Giant Extra Meat  1Serving601.50.502011030690
+#5 - Giant Extra Meat  1Serving1002.510.120118501280
+#6 - Giant Extra Meat  1Serving1404.51.50.10002465270
+#7 - Giant Extra Meat  1Serving903102011440660
+#8 - Giant Extra Meat  1Serving240
+145020126801390
+#9 - Giant Extra Meat  1Serving2801660.12013295960
+Page 11 of 12
+
+Jersey Mike's Menu Label Report Nutrition DataQuantityMeasureCaloriesFat (g)SatFat (g)TransFat (g)Carb (g)Fibre (g)Sugars (g)Prot (g)Chol (mg)Sod (mg)
+#10 - Giant Extra Meat  1Serving3903550.31001870490
+#11 - Giant Extra Meat  1Serving11072.50.11001140850
+#12 - Giant Extra Meat  1Serving120620.10001645300
+#13 - Giant Extra Meat  1Serving2001140.230123751670
+#2 - Giant Extra Cheese  1Serving1901490.51001545270
+#3 - Giant Extra Cheese  1Serving1901490.51001545270
+#4 - Giant Extra Cheese  1Serving1901490.51001545270
+#5 - Giant Extra Cheese  1Serving1901490.51001545270
+#6 - Giant Extra Cheese  1Serving1901490.51001545270
+#7 - Giant Extra Cheese  1Serving1901490.51001545270
+#8 - Giant Extra Cheese  1Serving190
+1490.51001545270
+#9 - Giant Extra Cheese  1Serving1601280.41001130170
+#11 - Giant Extra Cheese  1Serving1901490.51001545270
+#12 - Giant Extra Cheese  1Serving1901490.51001545270
+#13 - Giant Extra Cheese  1Serving1901490.51001545270
+#14 - Giant   Extra Cheese1Serving69052341.550051155870
+Extra Beef Philly1Serving23013501012690580
+Extra Chicken Philly1Serving1502002013280480
+Extra White American Cheese1Serving1701280.44021240840
+      
+       
+The average adult requires approximately 2,000 calories per day, however, individual calorie needs may vary.
+Please Note: Cornmeal is used during the baking process of our bread.
+Disclaimer: Nutritional information is calculated based on Jersey Mike's Subs standardized recipes and has been rounded for consistency with Health Canada labeling regulations. Our products are handcrafted and 
+may be customized. Variations in serving sizes, preparation techniques, ingredient substitutions, product testing, sources of supply, regional and seasonal differences, and other factors may affect the nutrition 
+values and ingredient contents for each product. While a particular product may not contain a particular allergen, it may be prepared on the same equipment and in the same kitchen area as products that do contain 
+that allergen. Cross-contact with allergens is possible and neither we nor our franchisees nor any employees assume responsibility for sensitivity or allergy to any food item. This document reflects information for 
+our products as of November 2025.
+Page 12 of 12

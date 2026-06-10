@@ -1,0 +1,70 @@
+[
+  {
+    "name": "Il Forno — Chicken Alfredo",
+    "components": [
+      { "id": "duke:il-forno:285886347", "servings": 1 },
+      { "id": "duke:il-forno:285886374", "servings": 1 },
+      { "id": "duke:il-forno:285886441", "servings": 1 },
+      { "id": "duke:il-forno:285886375", "servings": 1 }
+    ]
+  },
+  {
+    "name": "Il Forno — Chicken Basil Pesto",
+    "components": [
+      { "id": "duke:il-forno:285886348", "servings": 1 },
+      { "id": "duke:il-forno:285886374", "servings": 1 },
+      { "id": "duke:il-forno:285886441", "servings": 1 },
+      { "id": "duke:il-forno:285886375", "servings": 1 }
+    ]
+  },
+  {
+    "name": "Farmstead — Tangy Bourbon Chicken",
+    "components": [
+      { "id": "duke:the-farmstead:285908522", "servings": 1 },
+      { "id": "duke:the-farmstead:285908529", "servings": 1 }
+    ]
+  },
+  {
+    "name": "Farmstead — Blackened Salmon Plate",
+    "components": [
+      { "id": "duke:the-farmstead:285908524", "servings": 1 },
+      { "id": "duke:sprout:285908597", "servings": 1 },
+      { "id": "duke:the-farmstead:285908528", "servings": 1 }
+    ]
+  },
+  {
+    "name": "Tandoor — Thursday Non-Veg Combo",
+    "components": [
+      { "id": "duke:tandoor-indian-cuisine:285911228", "servings": 1 },
+      { "id": "duke:tandoor-indian-cuisine:285911232", "servings": 1 },
+      { "id": "duke:tandoor-indian-cuisine:285911234", "servings": 1 },
+      { "id": "duke:tandoor-indian-cuisine:285911242", "servings": 1 }
+    ]
+  },
+  {
+    "name": "Ginger + Soy — Teriyaki MYO Bowl",
+    "components": [
+      { "id": "duke:ginger-soy:285896341", "servings": 1 },
+      { "id": "duke:ginger-soy:285896345", "servings": 2 },
+      { "id": "duke:ginger-soy:285896350", "servings": 1 },
+      { "id": "duke:ginger-soy:285896352", "servings": 1 },
+      { "id": "duke:ginger-soy:285896354", "servings": 1 },
+      { "id": "duke:ginger-soy:285896356", "servings": 1 },
+      { "id": "duke:ginger-soy:285896360", "servings": 1 },
+      { "id": "duke:ginger-soy:285896367", "servings": 1 }
+    ]
+  },
+  {
+    "name": "Ginger + Soy — Bulgogi MYO Bowl",
+    "components": [
+      { "id": "duke:ginger-soy:285896341", "servings": 1 },
+      { "id": "duke:ginger-soy:285896342", "servings": 2 },
+      { "id": "duke:ginger-soy:285896350", "servings": 1 },
+      { "id": "duke:ginger-soy:285896352", "servings": 1 },
+      { "id": "duke:ginger-soy:285896354", "servings": 1 },
+      { "id": "duke:ginger-soy:285896357", "servings": 1 },
+      { "id": "duke:ginger-soy:285896363", "servings": 1 },
+      { "id": "duke:ginger-soy:285896351", "servings": 1 }
+    ]
+  }
+]
