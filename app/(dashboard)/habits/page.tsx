@@ -33,7 +33,7 @@ export default async function HabitsPage() {
     const weekHits = last7.filter((d) => done.has(d)).length;
     const streak =
       h.kind === "track"
-        ? clearStreak(done, today)
+        ? clearStreak(done, today, h.created_at.slice(0, 10))
         : currentStreak(done, today);
     return {
       id: h.id,

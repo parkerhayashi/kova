@@ -78,11 +78,16 @@ export function currentStreak(done: Set<string>, today: string): number {
 }
 
 /** Consecutive days without an occurrence (for track / day-tag items). */
-export function clearStreak(occurred: Set<string>, today: string): number {
+export function clearStreak(
+  occurred: Set<string>,
+  today: string,
+  since?: string,
+): number {
   if (occurred.has(today)) return 0;
   let cursor = today;
   let streak = 0;
   while (!occurred.has(cursor)) {
+    if (since && cursor < since) break;
     streak++;
     cursor = addDays(cursor, -1);
   }
