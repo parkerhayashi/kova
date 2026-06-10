@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatRest } from "@/lib/workouts";
 
@@ -17,17 +17,30 @@ export function RestTimer({
 }) {
   const [remaining, setRemaining] = useState(initialSeconds);
   const [duration, setDuration] = useState(initialSeconds);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  const doneCalledRef = useRef(false);
+
+  useEffect(() => {
+    setRemaining(initialSeconds);
+    setDuration(initialSeconds);
+    doneCalledRef.current = false;
+  }, [initialSeconds]);
 
   useEffect(() => {
     if (remaining <= 0) {
-      onDone();
+      if (!doneCalledRef.current) {
+        doneCalledRef.current = true;
+        onDoneRef.current();
+      }
       return;
     }
     const id = window.setTimeout(() => setRemaining((r) => r - 1), 1000);
     return () => window.clearTimeout(id);
-  }, [remaining, onDone]);
+  }, [remaining]);
 
   function adjust(delta: number) {
+    doneCalledRef.current = false;
     if (delta > 0) {
       setRemaining((r) => r + delta);
       setDuration((d) => d + delta);

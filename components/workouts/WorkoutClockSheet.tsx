@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 const ADJUST_STEP = 15;
+const DEFAULT_TIMER_SECONDS = 180;
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -22,7 +23,7 @@ export function WorkoutClockSheet({
   open,
   onClose,
   initialMode = "timer",
-  initialSeconds = 180,
+  initialSeconds = DEFAULT_TIMER_SECONDS,
   autoStart = false,
   onTimerComplete,
 }: {
@@ -34,16 +35,22 @@ export function WorkoutClockSheet({
   onTimerComplete?: () => void;
 }) {
   const [mode, setMode] = useState<ClockMode>(initialMode);
-  const [duration, setDuration] = useState(initialSeconds);
-  const [remaining, setRemaining] = useState(initialSeconds);
+  const [duration, setDuration] = useState(DEFAULT_TIMER_SECONDS);
+  const [remaining, setRemaining] = useState(DEFAULT_TIMER_SECONDS);
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
+  const onTimerCompleteRef = useRef(onTimerComplete);
+  onTimerCompleteRef.current = onTimerComplete;
 
   useEffect(() => {
     if (!open) return;
+    const timerSecs =
+      initialMode === "timer" && initialSeconds > 0
+        ? initialSeconds
+        : DEFAULT_TIMER_SECONDS;
     setMode(initialMode);
-    setDuration(initialSeconds);
-    setRemaining(initialSeconds);
+    setDuration(timerSecs);
+    setRemaining(timerSecs);
     setElapsed(0);
     setRunning(autoStart);
   }, [open, initialMode, initialSeconds, autoStart]);
@@ -51,19 +58,23 @@ export function WorkoutClockSheet({
   useEffect(() => {
     if (!open || !running) return;
 
-    if (mode === "timer") {
-      if (remaining <= 0) {
-        setRunning(false);
-        onTimerComplete?.();
-        return;
+    const id = window.setInterval(() => {
+      if (mode === "timer") {
+        setRemaining((r) => {
+          if (r <= 1) {
+            setRunning(false);
+            onTimerCompleteRef.current?.();
+            return 0;
+          }
+          return r - 1;
+        });
+      } else {
+        setElapsed((e) => e + 1);
       }
-      const id = window.setTimeout(() => setRemaining((r) => r - 1), 1000);
-      return () => window.clearTimeout(id);
-    }
+    }, 1000);
 
-    const id = window.setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => window.clearInterval(id);
-  }, [open, running, mode, remaining, onTimerComplete]);
+  }, [open, running, mode]);
 
   function adjustTimer(delta: number) {
     if (mode !== "timer") return;
@@ -77,9 +88,21 @@ export function WorkoutClockSheet({
 
   function toggleRunning() {
     if (mode === "timer" && remaining <= 0) {
-      setRemaining(duration);
+      setRemaining(duration > 0 ? duration : DEFAULT_TIMER_SECONDS);
     }
     setRunning((r) => !r);
+  }
+
+  function switchMode(tab: ClockMode) {
+    setMode(tab);
+    setRunning(false);
+    if (tab === "timer") {
+      const secs = duration > 0 ? duration : DEFAULT_TIMER_SECONDS;
+      setDuration(secs);
+      setRemaining(secs);
+    } else {
+      setElapsed(0);
+    }
   }
 
   const displaySeconds = mode === "timer" ? Math.max(0, remaining) : elapsed;
@@ -121,15 +144,7 @@ export function WorkoutClockSheet({
             <button
               key={tab}
               type="button"
-              onClick={() => {
-                setMode(tab);
-                setRunning(false);
-                if (tab === "timer") {
-                  setRemaining(duration);
-                } else {
-                  setElapsed(0);
-                }
-              }}
+              onClick={() => switchMode(tab)}
               className={cn(
                 "flex-1 rounded-lg py-2 text-sm font-medium capitalize transition-colors",
                 mode === tab
