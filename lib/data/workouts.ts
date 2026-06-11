@@ -698,6 +698,11 @@ export async function importExerciseFromCatalog(
     fields = toExerciseFields(remote);
   }
 
+  if (fields.instructions.length === 0 || !fields.gif_url) {
+    const remote = await fetchExerciseDbById(exercisedbId);
+    if (remote) fields = toExerciseFields(remote);
+  }
+
   const { data: inserted, error } = await db
     .from("exercises")
     .insert({ ...fields, is_active: true })

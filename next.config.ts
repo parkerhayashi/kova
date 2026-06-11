@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
         hostname: "static.exercisedb.dev",
         pathname: "/media/**",
       },
+      {
+        protocol: "https",
+        hostname: "assets.exercisedb.dev",
+        pathname: "/media/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.exercisedb.dev",
+        pathname: "/media/**",
+      },
     ],
   },
 };
