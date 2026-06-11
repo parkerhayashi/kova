@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 /**
- * Sync ExerciseDB catalog into exercise_catalog and link local exercises.
+ * Sync merged ExerciseDB catalog into exercise_catalog and link local exercises.
  *
  * Usage: node --env-file=.env.local scripts/sync-exercisedb.mjs
  *
- * Set EXERCISEDB_RAPIDAPI_KEY for RapidAPI (defaults to v2).
- * Set EXERCISEDB_API_VERSION=v1 for the v1 product instead.
- * Without a key, falls back to free oss.exercisedb.dev keyword harvest.
+ * Always harvests the free OSS catalog (~1,500 exercises). When
+ * EXERCISEDB_RAPIDAPI_KEY is set, also merges the RapidAPI v2 slice.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -28,7 +27,12 @@ const apiVersion =
     ? "v1"
     : "v2";
 
-const client = rapidApiKey
+const ossClient = {
+  base: OSS_BASE,
+  headers: { Accept: "application/json" },
+};
+
+const rapidClient = rapidApiKey
   ? {
       base: `https://${apiVersion === "v1" ? V1_HOST : V2_HOST}/api/v1`,
       headers: {
@@ -36,17 +40,27 @@ const client = rapidApiKey
         "X-RapidAPI-Key": rapidApiKey,
         "X-RapidAPI-Host": apiVersion === "v1" ? V1_HOST : V2_HOST,
       },
-      mode: "rapidapi",
       apiVersion,
     }
-  : {
-      base: OSS_BASE,
-      headers: { Accept: "application/json" },
-      mode: "oss",
-      apiVersion: null,
-    };
+  : null;
 
 const db = createClient(url, serviceKey);
+
+function titleCaseName(name) {
+  return name
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) =>
+      word
+        .split("-")
+        .map((part) =>
+          part ? part.charAt(0).toUpperCase() + part.slice(1) : part,
+        )
+        .join("-"),
+    )
+    .join(" ");
+}
 
 function mapBodyPartToCategory(bodyPart) {
   switch ((bodyPart ?? "").toLowerCase()) {
@@ -99,15 +113,13 @@ function pickMediaUrl(raw) {
 }
 
 function normalizeList(values) {
-  return (values ?? []).map((value) =>
-    value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()),
-  );
+  return (values ?? []).map((value) => titleCaseName(value));
 }
 
 function normalizeRecord(raw) {
   return {
     exerciseId: raw.exerciseId,
-    name: raw.name.trim(),
+    name: titleCaseName(raw.name),
     gifUrl: pickMediaUrl(raw),
     bodyParts: normalizeList(raw.bodyParts),
     equipments: normalizeList(raw.equipments),
@@ -137,11 +149,26 @@ function normalizeName(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
+function isRapidApiExerciseId(exerciseId) {
+  return exerciseId.startsWith("exr_") || exerciseId.startsWith("edb_");
+}
+
+function preferRecord(a, b) {
+  const aRapid = isRapidApiExerciseId(a.exerciseId);
+  const bRapid = isRapidApiExerciseId(b.exerciseId);
+  if (aRapid !== bRapid) return aRapid ? a : b;
+  if (a.instructions.length !== b.instructions.length) {
+    return a.instructions.length > b.instructions.length ? a : b;
+  }
+  if (Boolean(a.gifUrl) !== Boolean(b.gifUrl)) return a.gifUrl ? a : b;
+  return a;
+}
+
 async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function fetchPage(path, params) {
+async function fetchPage(client, path, params) {
   for (let attempt = 0; attempt < 8; attempt++) {
     const url = params
       ? `${client.base}${path}?${params}`
@@ -162,19 +189,77 @@ async function fetchPage(path, params) {
   throw new Error("ExerciseDB rate limit — try again in a few minutes");
 }
 
-async function fetchAllViaRapidApi() {
+async function fetchOssTaxonomy(path) {
+  const json = await fetchPage(ossClient, path);
+  return (json.data ?? []).map((entry) =>
+    typeof entry === "string" ? entry : entry.name,
+  );
+}
+
+async function harvestOssByFilter(filterKey, value) {
+  const records = [];
+  const seen = new Set();
+  let after = null;
+
+  for (;;) {
+    const params = new URLSearchParams({ [filterKey]: value, limit: "100" });
+    if (after) params.set("after", after);
+    const json = await fetchPage(ossClient, "/exercises", params);
+    let added = 0;
+    for (const row of json.data ?? []) {
+      if (seen.has(row.exerciseId)) continue;
+      seen.add(row.exerciseId);
+      records.push(normalizeRecord(row));
+      added += 1;
+    }
+    if (!json.meta?.hasNextPage || !json.meta.nextCursor || added === 0) break;
+    after = json.meta.nextCursor;
+    await sleep(400);
+  }
+
+  return records;
+}
+
+async function fetchAllOssRecords() {
+  const byId = new Map();
+  const filters = [
+    ["bodyParts", await fetchOssTaxonomy("/bodyparts")],
+    ["equipments", await fetchOssTaxonomy("/equipments")],
+    ["targetMuscles", await fetchOssTaxonomy("/muscles")],
+  ];
+
+  for (const [filterKey, values] of filters) {
+    for (const value of values) {
+      const batch = await harvestOssByFilter(filterKey, value);
+      let added = 0;
+      for (const record of batch) {
+        if (byId.has(record.exerciseId)) continue;
+        byId.set(record.exerciseId, record);
+        added += 1;
+      }
+      process.stdout.write(
+        `\rOSS ${filterKey} "${value}" → ${byId.size} total (+${added})…`,
+      );
+      await sleep(600);
+    }
+  }
+  console.log();
+  return [...byId.values()];
+}
+
+async function fetchAllRapidRecords() {
   const all = [];
   let after = null;
 
   for (;;) {
     const params = new URLSearchParams({ limit: "25" });
     if (after) params.set("after", after);
-    const json = await fetchPage("/exercises", params);
+    const json = await fetchPage(rapidClient, "/exercises", params);
     for (const row of json.data ?? []) {
       all.push(normalizeRecord(row));
     }
     process.stdout.write(
-      `\rListed ${all.length} / ${json.meta?.total ?? "?"} exercises…`,
+      `\rRapidAPI ${all.length} / ${json.meta?.total ?? "?"} exercises…`,
     );
 
     if (!json.meta?.hasNextPage || !json.meta.nextCursor) break;
@@ -185,100 +270,52 @@ async function fetchAllViaRapidApi() {
   return all;
 }
 
-const OSS_SEARCH_TERMS = [
-  "barbell",
-  "dumbbell",
-  "cable",
-  "machine",
-  "band",
-  "kettlebell",
-  "bodyweight",
-  "smith",
-  "press",
-  "bench",
-  "squat",
-  "deadlift",
-  "row",
-  "curl",
-  "raise",
-  "fly",
-  "extension",
-  "crunch",
-  "plank",
-  "pull",
-  "push",
-  "lunge",
-  "hip",
-  "calf",
-  "shrug",
-  "dip",
-  "pulldown",
-  "pushdown",
-  "thrust",
-  "step",
-  "run",
-  "walk",
-  "stretch",
-  "rotation",
-  "twist",
-  "hold",
-  "clean",
-  "snatch",
-  "swing",
-  "cardio",
-];
-
-async function fetchAllViaOssHarvest() {
-  const all = [];
-  const seen = new Set();
-
-  for (const term of OSS_SEARCH_TERMS) {
-    const params = new URLSearchParams({ name: term, limit: "100" });
-    const json = await fetchPage("/exercises", params);
-    let added = 0;
-    for (const row of json.data ?? []) {
-      if (seen.has(row.exerciseId)) continue;
-      seen.add(row.exerciseId);
-      all.push(normalizeRecord(row));
-      added += 1;
-    }
-    process.stdout.write(
-      `\rHarvested ${all.length} exercises (term "${term}" +${added})…`,
-    );
-    await sleep(800);
-  }
-  console.log();
-  return all;
-}
-
 async function fetchAllRecords() {
-  if (client.mode === "rapidapi") {
-    console.log(`Using ExerciseDB ${client.apiVersion} RapidAPI…`);
-    return fetchAllViaRapidApi();
+  console.log("Harvesting free OSS catalog (body parts, equipment, muscles)…");
+  const byId = new Map();
+  for (const record of await fetchAllOssRecords()) {
+    byId.set(record.exerciseId, record);
   }
-  console.log("No EXERCISEDB_RAPIDAPI_KEY — using free OSS keyword harvest…");
-  return fetchAllViaOssHarvest();
+  console.log(`OSS catalog: ${byId.size} exercises`);
+
+  if (rapidClient) {
+    console.log(`Merging ExerciseDB ${rapidClient.apiVersion} RapidAPI…`);
+    for (const record of await fetchAllRapidRecords()) {
+      byId.set(record.exerciseId, record);
+    }
+  }
+
+  return [...byId.values()];
 }
 
 function findExactMatch(localName, catalogByNorm) {
   return catalogByNorm.get(normalizeName(localName)) ?? null;
 }
 
+function buildLinkIndex(rows) {
+  const byNorm = new Map();
+  for (const row of rows) {
+    const key = normalizeName(row.name);
+    const existing = byNorm.get(key);
+    if (!existing) {
+      byNorm.set(key, row);
+      continue;
+    }
+    const prefer =
+      isRapidApiExerciseId(row.exercisedb_id) &&
+      !isRapidApiExerciseId(existing.exercisedb_id)
+        ? row
+        : existing;
+    byNorm.set(key, prefer);
+  }
+  return byNorm;
+}
+
 async function main() {
-  console.log("Fetching ExerciseDB catalog…");
   const records = await fetchAllRecords();
   const rows = records.map(toCatalogRow);
 
-  if (client.mode === "rapidapi") {
-    console.log("Replacing exercise_catalog with RapidAPI snapshot…");
-    const { error: clearError } = await db
-      .from("exercise_catalog")
-      .delete()
-      .neq("exercisedb_id", "");
-    if (clearError) throw clearError;
-  }
-
-  console.log(`Upserting ${rows.length} rows into exercise_catalog…`);
+  console.log(`Upserting ${rows.length} merged rows into exercise_catalog…`);
   const CHUNK = 100;
   for (let i = 0; i < rows.length; i += CHUNK) {
     const chunk = rows.slice(i, i + CHUNK);
@@ -288,7 +325,7 @@ async function main() {
     if (error) throw error;
   }
 
-  const catalogByNorm = new Map(rows.map((r) => [normalizeName(r.name), r]));
+  const catalogByNorm = buildLinkIndex(rows);
 
   const { data: localExercises, error: localErr } = await db
     .from("exercises")

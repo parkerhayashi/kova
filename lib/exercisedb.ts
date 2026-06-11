@@ -1,8 +1,8 @@
 /**
  * ExerciseDB catalog — server-side only.
  *
- * RapidAPI: set EXERCISEDB_RAPIDAPI_KEY (defaults to v2; set EXERCISEDB_API_VERSION=v1 for v1).
- * Free fallback: oss.exercisedb.dev (no key; broken cursor pagination).
+ * Sync merges the free OSS catalog (~1,500 GIFs) with RapidAPI v2 when
+ * EXERCISEDB_RAPIDAPI_KEY is set. Set EXERCISEDB_API_VERSION=v1 for v1 instead.
  */
 
 const OSS_BASE = "https://oss.exercisedb.dev/api/v1";
@@ -56,31 +56,52 @@ type ExerciseDbClient = {
   apiVersion: "v1" | "v2" | null;
 };
 
-function getExerciseDbClient(): ExerciseDbClient {
+const OSS_CLIENT: ExerciseDbClient = {
+  base: OSS_BASE,
+  headers: { Accept: "application/json" },
+  mode: "oss",
+  apiVersion: null,
+};
+
+function getRapidApiClient(): ExerciseDbClient | null {
   const key = process.env.EXERCISEDB_RAPIDAPI_KEY?.trim();
-  if (key) {
-    const version =
-      process.env.EXERCISEDB_API_VERSION?.trim().toLowerCase() === "v1"
-        ? "v1"
-        : "v2";
-    const host = version === "v1" ? V1_HOST : V2_HOST;
-    return {
-      base: `https://${host}/api/v1`,
-      headers: {
-        Accept: "application/json",
-        "X-RapidAPI-Key": key,
-        "X-RapidAPI-Host": host,
-      },
-      mode: "rapidapi",
-      apiVersion: version,
-    };
-  }
+  if (!key) return null;
+
+  const version =
+    process.env.EXERCISEDB_API_VERSION?.trim().toLowerCase() === "v1"
+      ? "v1"
+      : "v2";
+  const host = version === "v1" ? V1_HOST : V2_HOST;
   return {
-    base: OSS_BASE,
-    headers: { Accept: "application/json" },
-    mode: "oss",
-    apiVersion: null,
+    base: `https://${host}/api/v1`,
+    headers: {
+      Accept: "application/json",
+      "X-RapidAPI-Key": key,
+      "X-RapidAPI-Host": host,
+    },
+    mode: "rapidapi",
+    apiVersion: version,
   };
+}
+
+function getExerciseDbClient(): ExerciseDbClient {
+  return getRapidApiClient() ?? OSS_CLIENT;
+}
+
+export function titleCaseName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) =>
+      word
+        .split("-")
+        .map((part) =>
+          part ? part.charAt(0).toUpperCase() + part.slice(1) : part,
+        )
+        .join("-"),
+    )
+    .join(" ");
 }
 
 function pickMediaUrl(raw: RawExerciseDbRecord): string {
@@ -108,17 +129,13 @@ function pickMediaUrl(raw: RawExerciseDbRecord): string {
 }
 
 function normalizeList(raw: string[] | undefined): string[] {
-  return (raw ?? []).map((value) =>
-    value
-      .toLowerCase()
-      .replace(/\b\w/g, (char) => char.toUpperCase()),
-  );
+  return (raw ?? []).map((value) => titleCaseName(value));
 }
 
 export function normalizeExerciseDbRecord(raw: RawExerciseDbRecord): ExerciseDbRecord {
   return {
     exerciseId: raw.exerciseId,
-    name: raw.name.trim(),
+    name: titleCaseName(raw.name),
     gifUrl: pickMediaUrl(raw),
     bodyParts: normalizeList(raw.bodyParts),
     equipments: normalizeList(raw.equipments),
@@ -207,40 +224,81 @@ export function toCatalogItem(record: ExerciseDbRecord): {
   return toExerciseFields(record);
 }
 
+function isRapidApiExerciseId(exerciseId: string): boolean {
+  return exerciseId.startsWith("exr_") || exerciseId.startsWith("edb_");
+}
+
+export function preferCatalogRecord(
+  a: ExerciseDbRecord,
+  b: ExerciseDbRecord,
+): ExerciseDbRecord {
+  const aRapid = isRapidApiExerciseId(a.exerciseId);
+  const bRapid = isRapidApiExerciseId(b.exerciseId);
+  if (aRapid !== bRapid) return aRapid ? a : b;
+  if (a.instructions.length !== b.instructions.length) {
+    return a.instructions.length > b.instructions.length ? a : b;
+  }
+  if (Boolean(a.gifUrl) !== Boolean(b.gifUrl)) {
+    return a.gifUrl ? a : b;
+  }
+  return a;
+}
+
+export function dedupeCatalogItems<
+  T extends {
+    exercisedb_id: string;
+    name: string;
+    instructions: string[];
+  },
+>(items: T[]): T[] {
+  const byName = new Map<string, T>();
+  for (const item of items) {
+    const key = normalizeExerciseName(item.name);
+    const existing = byName.get(key);
+    if (!existing) {
+      byName.set(key, item);
+      continue;
+    }
+    const pick =
+      isRapidApiExerciseId(item.exercisedb_id) &&
+      !isRapidApiExerciseId(existing.exercisedb_id)
+        ? item
+        : item.instructions.length > existing.instructions.length
+          ? item
+          : existing;
+    byName.set(key, pick);
+  }
+  return [...byName.values()];
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function fetchJson<T>(
   client: ExerciseDbClient,
   path: string,
   params?: URLSearchParams,
   revalidate = 86400,
 ): Promise<T> {
-  const url = params
-    ? `${client.base}${path}?${params}`
-    : `${client.base}${path}`;
-  const res = await fetch(url, {
-    headers: client.headers,
-    next: { revalidate },
-  });
-  if (!res.ok) {
-    throw new Error(`ExerciseDB ${res.status}: ${url}`);
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const url = params
+      ? `${client.base}${path}?${params}`
+      : `${client.base}${path}`;
+    const res = await fetch(url, {
+      headers: client.headers,
+      next: { revalidate },
+    });
+    if (res.status === 429) {
+      await sleep(5000 * (attempt + 1));
+      continue;
+    }
+    if (!res.ok) {
+      throw new Error(`ExerciseDB ${res.status}: ${url}`);
+    }
+    return res.json() as Promise<T>;
   }
-  return res.json() as Promise<T>;
-}
-
-export async function fetchExerciseDbById(
-  exerciseId: string,
-): Promise<ExerciseDbRecord | null> {
-  const client = getExerciseDbClient();
-  try {
-    const json = await fetchJson<SingleResponse>(
-      client,
-      `/exercises/${encodeURIComponent(exerciseId)}`,
-      undefined,
-      0,
-    );
-    return json.data ? normalizeExerciseDbRecord(json.data) : null;
-  } catch {
-    return null;
-  }
+  throw new Error(`ExerciseDB rate limit: ${path}`);
 }
 
 async function fetchExerciseDbPage(
@@ -250,15 +308,77 @@ async function fetchExerciseDbPage(
   return fetchJson<ListResponse>(client, "/exercises", params, 0);
 }
 
-/** Paginate the RapidAPI catalog. Falls back to keyword harvest on free OSS tier. */
-export async function fetchAllExerciseDbRecords(
-  onPage?: (count: number, total?: number) => void,
+async function fetchOssTaxonomy(path: "/bodyparts" | "/equipments" | "/muscles") {
+  const json = await fetchJson<{ data: Array<string | { name: string }> }>(
+    OSS_CLIENT,
+    path,
+    undefined,
+    0,
+  );
+  return (json.data ?? []).map((entry) =>
+    typeof entry === "string" ? entry : entry.name,
+  );
+}
+
+async function harvestOssByFilter(
+  filterKey: "bodyParts" | "equipments" | "targetMuscles",
+  value: string,
+  onProgress?: (count: number) => void,
 ): Promise<ExerciseDbRecord[]> {
-  const client = getExerciseDbClient();
-  if (client.mode === "rapidapi") {
-    return fetchAllViaRapidApi(client, onPage);
+  const records: ExerciseDbRecord[] = [];
+  const seen = new Set<string>();
+  let after: string | null = null;
+
+  for (;;) {
+    const params = new URLSearchParams({
+      [filterKey]: value,
+      limit: "100",
+    });
+    if (after) params.set("after", after);
+    const json = await fetchExerciseDbPage(OSS_CLIENT, params);
+    let added = 0;
+    for (const row of json.data ?? []) {
+      if (seen.has(row.exerciseId)) continue;
+      seen.add(row.exerciseId);
+      records.push(normalizeExerciseDbRecord(row));
+      added += 1;
+    }
+    onProgress?.(records.length);
+
+    if (!json.meta?.hasNextPage || !json.meta.nextCursor || added === 0) break;
+    after = json.meta.nextCursor;
+    await sleep(400);
   }
-  return fetchAllViaOssHarvest(onPage);
+
+  return records;
+}
+
+/** Harvest the full free OSS catalog via taxonomy filters + after pagination. */
+export async function fetchAllOssRecords(
+  onProgress?: (label: string, count: number) => void,
+): Promise<ExerciseDbRecord[]> {
+  const byId = new Map<string, ExerciseDbRecord>();
+
+  const filters: Array<[ "bodyParts" | "equipments" | "targetMuscles", string[] ]> = [
+    ["bodyParts", await fetchOssTaxonomy("/bodyparts")],
+    ["equipments", await fetchOssTaxonomy("/equipments")],
+    ["targetMuscles", await fetchOssTaxonomy("/muscles")],
+  ];
+
+  for (const [filterKey, values] of filters) {
+    for (const value of values) {
+      const batch = await harvestOssByFilter(filterKey, value, (count) =>
+        onProgress?.(`${filterKey}:${value}`, count),
+      );
+      for (const record of batch) {
+        byId.set(record.exerciseId, record);
+      }
+      onProgress?.(`${filterKey}:${value}`, byId.size);
+      await sleep(600);
+    }
+  }
+
+  return [...byId.values()];
 }
 
 async function fetchAllViaRapidApi(
@@ -279,87 +399,67 @@ async function fetchAllViaRapidApi(
 
     if (!json.meta?.hasNextPage || !json.meta.nextCursor) break;
     after = json.meta.nextCursor;
+    await sleep(300);
   }
 
   return all;
 }
 
-const OSS_SEARCH_TERMS = [
-  "barbell",
-  "dumbbell",
-  "cable",
-  "machine",
-  "band",
-  "kettlebell",
-  "bodyweight",
-  "smith",
-  "press",
-  "bench",
-  "squat",
-  "deadlift",
-  "row",
-  "curl",
-  "raise",
-  "fly",
-  "extension",
-  "crunch",
-  "plank",
-  "pull",
-  "push",
-  "lunge",
-  "hip",
-  "calf",
-  "shrug",
-  "dip",
-  "pulldown",
-  "pushdown",
-  "thrust",
-  "step",
-  "run",
-  "walk",
-  "stretch",
-  "rotation",
-  "twist",
-  "hold",
-  "clean",
-  "snatch",
-  "swing",
-  "cardio",
-];
-
-async function fetchAllViaOssHarvest(
-  onPage?: (count: number, total?: number) => void,
+/** Merge OSS catalog with RapidAPI when configured. */
+export async function fetchAllExerciseDbRecords(
+  onProgress?: (label: string, count: number) => void,
 ): Promise<ExerciseDbRecord[]> {
-  const client = getExerciseDbClient();
-  const all: ExerciseDbRecord[] = [];
-  const seen = new Set<string>();
+  const byId = new Map<string, ExerciseDbRecord>();
 
-  for (const term of OSS_SEARCH_TERMS) {
-    const params = new URLSearchParams({ name: term, limit: "100" });
-    const json = await fetchExerciseDbPage(client, params);
-    for (const row of json.data ?? []) {
-      if (seen.has(row.exerciseId)) continue;
-      seen.add(row.exerciseId);
-      all.push(normalizeExerciseDbRecord(row));
+  onProgress?.("oss", 0);
+  for (const record of await fetchAllOssRecords(onProgress)) {
+    byId.set(record.exerciseId, record);
+  }
+
+  const rapidClient = getRapidApiClient();
+  if (rapidClient) {
+    for (const record of await fetchAllViaRapidApi(rapidClient, (count) =>
+      onProgress?.("rapidapi", count),
+    )) {
+      byId.set(record.exerciseId, record);
     }
-    onPage?.(all.length);
-    await new Promise((r) => setTimeout(r, 800));
   }
 
-  return all;
+  return [...byId.values()];
 }
 
-/** Search by name via ExerciseDB API (fallback when catalog table is empty). */
-export async function searchExerciseDbByName(
-  query: string,
-  limit = 20,
-): Promise<ExerciseDbRecord[]> {
-  const q = query.trim();
-  if (!q) return [];
-  const client = getExerciseDbClient();
+export async function fetchExerciseDbById(
+  exerciseId: string,
+): Promise<ExerciseDbRecord | null> {
+  const clients: ExerciseDbClient[] = isRapidApiExerciseId(exerciseId)
+    ? [getRapidApiClient(), OSS_CLIENT].filter(Boolean) as ExerciseDbClient[]
+    : [OSS_CLIENT, getRapidApiClient()].filter(Boolean) as ExerciseDbClient[];
 
+  for (const client of clients) {
+    try {
+      const json = await fetchJson<SingleResponse>(
+        client,
+        `/exercises/${encodeURIComponent(exerciseId)}`,
+        undefined,
+        0,
+      );
+      if (json.data) return normalizeExerciseDbRecord(json.data);
+    } catch {
+      // try next source
+    }
+  }
+  return null;
+}
+
+async function searchOssByName(query: string, limit: number) {
+  const params = new URLSearchParams({ name: query, limit: String(limit) });
+  const json = await fetchExerciseDbPage(OSS_CLIENT, params);
+  return (json.data ?? []).map(normalizeExerciseDbRecord);
+}
+
+async function searchRapidByName(client: ExerciseDbClient, query: string, limit: number) {
   if (client.apiVersion === "v2") {
-    const params = new URLSearchParams({ search: q });
+    const params = new URLSearchParams({ search: query });
     const json = await fetchJson<ListResponse>(
       client,
       "/exercises/search",
@@ -369,9 +469,41 @@ export async function searchExerciseDbByName(
     return (json.data ?? []).map(normalizeExerciseDbRecord).slice(0, limit);
   }
 
-  const params = new URLSearchParams({ name: q, limit: String(limit) });
+  const params = new URLSearchParams({ name: query, limit: String(limit) });
   const json = await fetchExerciseDbPage(client, params);
   return (json.data ?? []).map(normalizeExerciseDbRecord);
+}
+
+/** Search live APIs (OSS + RapidAPI when configured), deduped by name. */
+export async function searchExerciseDbByName(
+  query: string,
+  limit = 20,
+): Promise<ExerciseDbRecord[]> {
+  const q = query.trim();
+  if (!q) return [];
+
+  const byName = new Map<string, ExerciseDbRecord>();
+  const ossHits = await searchOssByName(q, limit);
+  for (const record of ossHits) {
+    byName.set(normalizeExerciseName(record.name), record);
+  }
+
+  const rapidClient = getRapidApiClient();
+  if (rapidClient) {
+    const rapidHits = await searchRapidByName(rapidClient, q, limit);
+    for (const record of rapidHits) {
+      const key = normalizeExerciseName(record.name);
+      const existing = byName.get(key);
+      byName.set(
+        key,
+        existing ? preferCatalogRecord(existing, record) : record,
+      );
+    }
+  }
+
+  return [...byName.values()]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, limit);
 }
 
 export function isExerciseDbRapidApiConfigured(): boolean {

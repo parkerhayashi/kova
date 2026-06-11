@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import {
+  dedupeCatalogItems,
   fetchExerciseDbById,
   searchExerciseDbByName,
   toCatalogItem,
@@ -641,12 +642,14 @@ export async function searchExerciseLibrary(
       .select("*")
       .ilike("name", `%${q}%`)
       .order("name", { ascending: true })
-      .limit(25);
+      .limit(60);
 
     if (catalogRows && catalogRows.length > 0) {
-      catalog = catalogRows
-        .map((r) => mapCatalogRow(r as Record<string, unknown>))
-        .filter((c) => !importedIds.has(c.exercisedb_id));
+      catalog = dedupeCatalogItems(
+        catalogRows
+          .map((r) => mapCatalogRow(r as Record<string, unknown>))
+          .filter((c) => !importedIds.has(c.exercisedb_id)),
+      ).slice(0, 25);
     } else {
       const remote = await searchExerciseDbByName(q, 25);
       catalog = remote
