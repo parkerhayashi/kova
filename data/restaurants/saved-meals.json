@@ -1,0 +1,15 @@
+[
+  {
+    "name": "Chipotle — Usual Bowl",
+    "components": [
+      { "id": "chipotle:cilantro-lime-white-rice", "servings": 1 },
+      { "id": "chipotle:black-beans", "servings": 1 },
+      { "id": "chipotle:chicken", "servings": 2 },
+      { "id": "chipotle:roasted-chili-corn-salsa", "servings": 1 },
+      { "id": "chipotle:fresh-tomato-salsa", "servings": 1 },
+      { "id": "chipotle:cheese", "servings": 1 },
+      { "id": "chipotle:romaine-lettuce-tacos", "servings": 1 },
+      { "id": "chipotle:guacamole-topping-side", "servings": 1 }
+    ]
+  }
+]
