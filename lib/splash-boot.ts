@@ -38,8 +38,24 @@ export const SPLASH_BOOT_SCRIPT = `
 (function () {
   var MIN_MS = 1500;
   var FADE_MS = 350;
+  var SEEN_KEY = "kova:splash-seen";
+
+  function seenThisSession() {
+    try {
+      return sessionStorage.getItem(SEEN_KEY) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function markSeen() {
+    try {
+      sessionStorage.setItem(SEEN_KEY, "1");
+    } catch (e) {}
+  }
 
   function dismiss(el) {
+    markSeen();
     el.classList.add("kova-splash--hide");
     window.setTimeout(function () { el.remove(); }, FADE_MS + 50);
   }
@@ -55,9 +71,7 @@ export const SPLASH_BOOT_SCRIPT = `
   }
 
   function showSplash() {
-    // Remove any existing splash before creating a new one (bfcache revisit).
-    var prev = document.getElementById("kova-splash");
-    if (prev) prev.remove();
+    if (document.getElementById("kova-splash")) return;
 
     var el = document.createElement("div");
     el.id = "kova-splash";
@@ -66,7 +80,6 @@ export const SPLASH_BOOT_SCRIPT = `
     document.body.prepend(el);
     var shownAt = Date.now();
 
-    // Dismiss once the page is fully loaded AND MIN_MS has elapsed.
     if (document.readyState === "complete") {
       holdThenDismiss(el, shownAt);
     } else {
@@ -76,16 +89,23 @@ export const SPLASH_BOOT_SCRIPT = `
     }
   }
 
-  // Fresh page load.
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", showSplash, { once: true });
-  } else {
+  function maybeShowSplash(fromBfcache) {
+    // In-app page changes reuse the same tab session — skip after first show.
+    // Bfcache restore (PWA resume from home screen) always replays the splash.
+    if (!fromBfcache && seenThisSession()) return;
     showSplash();
   }
 
-  // PWA home-screen tap or bfcache restore — always show splash again.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      maybeShowSplash(false);
+    }, { once: true });
+  } else {
+    maybeShowSplash(false);
+  }
+
   window.addEventListener("pageshow", function (e) {
-    if (e.persisted) showSplash();
+    if (e.persisted) maybeShowSplash(true);
   });
 })();
 `.trim();
