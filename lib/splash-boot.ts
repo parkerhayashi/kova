@@ -15,7 +15,7 @@ export const SPLASH_STYLES = `
   align-items: center;
   justify-content: center;
   background: #000000;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.35s ease;
 }
 #kova-splash.kova-splash--hide {
   opacity: 0;
@@ -36,67 +36,56 @@ const splashMarkup = `<div class="kova-splash-wordmark">${WORDMARK_SVG}</div>`;
 /** Injected once via inline script — outside React to avoid hydration/nav issues. */
 export const SPLASH_BOOT_SCRIPT = `
 (function () {
-  try {
-    if (sessionStorage.getItem("kova:splash-dismissed") === "1") return;
-  } catch (e) {
-    return;
-  }
-
-  var MIN_MS = 1000;
-  var shownAt = 0;
-  var loaded = false;
+  var MIN_MS = 1500;
+  var FADE_MS = 350;
 
   function dismiss(el) {
-    try {
-      sessionStorage.setItem("kova:splash-dismissed", "1");
-    } catch (e) {}
     el.classList.add("kova-splash--hide");
-    window.setTimeout(function () {
-      el.remove();
-    }, 280);
+    window.setTimeout(function () { el.remove(); }, FADE_MS + 50);
   }
 
-  function tryDismiss(el) {
-    if (!loaded) return;
-    var remaining = MIN_MS - (Date.now() - shownAt);
+  function holdThenDismiss(el, shownAt) {
+    var elapsed = Date.now() - shownAt;
+    var remaining = MIN_MS - elapsed;
     if (remaining > 0) {
-      window.setTimeout(function () {
-        dismiss(el);
-      }, remaining);
+      window.setTimeout(function () { dismiss(el); }, remaining);
     } else {
       dismiss(el);
     }
   }
 
-  function start() {
-    if (!document.body) return;
+  function showSplash() {
+    // Remove any existing splash before creating a new one (bfcache revisit).
+    var prev = document.getElementById("kova-splash");
+    if (prev) prev.remove();
 
     var el = document.createElement("div");
     el.id = "kova-splash";
     el.setAttribute("aria-hidden", "true");
     el.innerHTML = ${JSON.stringify(splashMarkup)};
     document.body.prepend(el);
-    shownAt = Date.now();
+    var shownAt = Date.now();
 
+    // Dismiss once the page is fully loaded AND MIN_MS has elapsed.
     if (document.readyState === "complete") {
-      loaded = true;
-      tryDismiss(el);
+      holdThenDismiss(el, shownAt);
     } else {
-      window.addEventListener(
-        "load",
-        function () {
-          loaded = true;
-          tryDismiss(el);
-        },
-        { once: true },
-      );
+      window.addEventListener("load", function () {
+        holdThenDismiss(el, shownAt);
+      }, { once: true });
     }
   }
 
+  // Fresh page load.
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
+    document.addEventListener("DOMContentLoaded", showSplash, { once: true });
   } else {
-    start();
+    showSplash();
   }
+
+  // PWA home-screen tap or bfcache restore — always show splash again.
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) showSplash();
+  });
 })();
 `.trim();
