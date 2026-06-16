@@ -87,12 +87,15 @@ export async function getHabits(activeOnly = true): Promise<Habit[]> {
   }));
 }
 
-export async function getHabitLogs(sinceDays: number): Promise<HabitLog[]> {
+export async function getHabitLogs(
+  sinceDays: number,
+  timezone?: string,
+): Promise<HabitLog[]> {
   const db = createServiceClient();
   const { data } = await db
     .from("habit_logs")
     .select("*")
-    .gte("date", addDays(todayInTimezone(), -sinceDays));
+    .gte("date", addDays(todayInTimezone(timezone), -sinceDays));
   return (data as HabitLog[]) ?? [];
 }
 
@@ -173,12 +176,15 @@ export async function getSupplements(activeOnly = true): Promise<Supplement[]> {
   return supplements;
 }
 
-export async function getSupplementLogs(sinceDays: number): Promise<SupplementLog[]> {
+export async function getSupplementLogs(
+  sinceDays: number,
+  timezone?: string,
+): Promise<SupplementLog[]> {
   const db = createServiceClient();
   const { data } = await db
     .from("supplement_logs")
     .select("*")
-    .gte("date", addDays(todayInTimezone(), -sinceDays));
+    .gte("date", addDays(todayInTimezone(timezone), -sinceDays));
   return (data as SupplementLog[]) ?? [];
 }
 

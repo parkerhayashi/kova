@@ -6,11 +6,11 @@ import { todayInTimezone } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [supplements, logs, tz] = await Promise.all([
-    getSupplements(true),
-    getSupplementLogs(1),
+  const [tz, supplements] = await Promise.all([
     getTimezone(),
+    getSupplements(true),
   ]);
+  const logs = await getSupplementLogs(1, tz);
   const today = todayInTimezone(tz);
   const taken = new Set(
     logs.filter((l) => l.date === today && l.taken).map((l) => l.supplement_id),

@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { hydrateClientSync } from "@/lib/client-sync";
 import { GOALS_CHANGED_EVENT, runRollover, runStreakCheck } from "@/lib/goals";
 import { GoalTicker } from "./GoalTicker";
+import { HomeSnapshotRefresh } from "./HomeSnapshotRefresh";
 import { TodoList } from "./TodoList";
 
 /**
@@ -27,6 +28,7 @@ export function DashboardHome({ snapshot }: { snapshot: ReactNode }) {
 
   return (
     <div className="home-dash">
+      <HomeSnapshotRefresh />
       <h1 className="dash-title">My Dashboard</h1>
       <GoalTicker />
       {snapshot}

@@ -20,8 +20,20 @@ import { getTrendsPayload } from "@/lib/data/trends";
 import { burnSourceLabel } from "@/lib/nutrition-goals";
 import { describeCorrelation } from "@/lib/trends/correlation";
 import { computeTargetMl, normalizeWater, unitVolMl } from "@/lib/water";
-import { latestNonNull, todayInTimezone } from "@/lib/utils";
+import { unstable_noStore } from "next/cache";
+import { todayInTimezone } from "@/lib/utils";
 import type { WeightLog, WorkoutTodaySummary } from "@/types";
+
+function valueForDate<T extends { date: string }, K extends keyof T>(
+  rows: T[],
+  date: string,
+  key: K,
+): T[K] | null {
+  const row = rows.find((r) => r.date === date);
+  if (!row) return null;
+  const value = row[key];
+  return value ?? null;
+}
 
 export type SnapshotTrend = {
   id: string;
@@ -66,12 +78,14 @@ export type HealthSnapshotData = {
 };
 
 export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
+  unstable_noStore();
+
+  const timezone = await getTimezone();
   const [
     sleepRows,
     readinessRows,
     activityRows,
     connected,
-    timezone,
     ouraLastSyncedAt,
     habits,
     habitLogs,
@@ -84,12 +98,11 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     getReadinessHistory(400),
     getActivityHistory(400),
     isOuraConnected(),
-    getTimezone(),
     getOuraLastSyncedAt(),
     getHabits(true),
-    getHabitLogs(1),
+    getHabitLogs(1, timezone),
     getSupplements(true),
-    getSupplementLogs(1),
+    getSupplementLogs(1, timezone),
     getLatestWeight(),
     getTrendsPayload(30),
   ]);
@@ -148,11 +161,11 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       connected,
       hasData: hasOuraData,
       lastSyncedAt: ouraLastSyncedAt,
-      readinessScore: latestNonNull(readinessRows, "score"),
-      sleepScore: latestNonNull(sleepRows, "score"),
-      activityScore: latestNonNull(activityRows, "activity_score"),
-      stress: latestNonNull(activityRows, "stress_score"),
-      steps: latestNonNull(activityRows, "steps"),
+      readinessScore: valueForDate(readinessRows, todayIso, "score"),
+      sleepScore: valueForDate(sleepRows, todayIso, "score"),
+      activityScore: valueForDate(activityRows, todayIso, "activity_score"),
+      stress: valueForDate(activityRows, todayIso, "stress_score"),
+      steps: valueForDate(activityRows, todayIso, "steps"),
     },
     nutrition: {
       calories: mealTotals.calories ?? null,
