@@ -7,7 +7,15 @@ import { removeMeal } from "@/app/(dashboard)/nutrition/actions";
 import { fmtNutrient } from "@/lib/nutrition";
 import type { Meal } from "@/types";
 
-export function MealLog({ meals }: { meals: Meal[] }) {
+export function MealLog({
+  meals,
+  logDate,
+  today,
+}: {
+  meals: Meal[];
+  logDate: string;
+  today: string;
+}) {
   const [pending, startTransition] = useTransition();
 
   function onDelete(id: string) {
@@ -19,7 +27,9 @@ export function MealLog({ meals }: { meals: Meal[] }) {
   return (
     <Card className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <span className="metric-label">Today&apos;s log</span>
+        <span className="metric-label">
+          {logDate === today ? "Today's log" : "Meal log"}
+        </span>
         <span className="timestamp">{meals.length} items</span>
       </div>
 

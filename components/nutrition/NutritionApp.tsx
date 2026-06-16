@@ -13,6 +13,7 @@ import type { DailyTotals } from "@/lib/nutrition";
 import type { Meal, SavedMeal } from "@/types";
 
 export function NutritionApp({
+  logDate,
   today,
   meals,
   savedMeals,
@@ -20,6 +21,7 @@ export function NutritionApp({
   goals,
   calorieTrend,
 }: {
+  logDate: string;
   today: string;
   meals: Meal[];
   savedMeals: SavedMeal[];
@@ -33,17 +35,17 @@ export function NutritionApp({
       <MacroSummary totals={totals} goals={goals} meta={goals.meta} />
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <FoodSearch date={today} />
-        <BarcodeEntry date={today} />
+        <FoodSearch date={logDate} />
+        <BarcodeEntry date={logDate} />
       </section>
 
-      <DukeDiningSearch date={today} />
+      <DukeDiningSearch date={logDate} />
 
-      <RestaurantSearch date={today} />
+      <RestaurantSearch date={logDate} />
 
-      <SavedMeals date={today} meals={savedMeals} />
+      <SavedMeals date={logDate} meals={savedMeals} />
 
-      <MealLog meals={meals} />
+      <MealLog meals={meals} logDate={logDate} today={today} />
 
       <section className="grid gap-4 lg:grid-cols-2">
         <CalorieTrend trend={calorieTrend} />

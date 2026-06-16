@@ -81,12 +81,12 @@ function ChecklistSection({
   title,
   caption,
   habits,
-  today,
+  logDate,
 }: {
   title: string;
   caption: string;
   habits: HabitRow[];
-  today: string;
+  logDate: string;
 }) {
   const [done, setDone] = useState<Record<string, boolean>>(
     Object.fromEntries(habits.map((h) => [h.id, h.completed])),
@@ -97,7 +97,7 @@ function ChecklistSection({
     const next = !done[id];
     setDone((d) => ({ ...d, [id]: next }));
     startTransition(async () => {
-      await toggleHabit(id, today, next);
+      await toggleHabit(id, logDate, next);
     });
   }
 
@@ -126,10 +126,10 @@ function ChecklistSection({
 /** Daily habits (do this) + day tags (log if it happened). */
 export function HabitChecklist({
   habits,
-  today,
+  logDate,
 }: {
   habits: HabitRow[];
-  today: string;
+  logDate: string;
 }) {
   const positive = habits.filter((h) => h.kind === "positive");
   const track = habits.filter((h) => h.kind === "track");
@@ -151,13 +151,13 @@ export function HabitChecklist({
         title="Habits"
         caption="Tap when you did it — streaks count consecutive days."
         habits={positive}
-        today={today}
+        logDate={logDate}
       />
       <ChecklistSection
         title="Day tags"
-        caption="Tap if it happened today — streaks count clear days without it."
+        caption="Tap if it happened that day — streaks count clear days without it."
         habits={track}
-        today={today}
+        logDate={logDate}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { addDays } from "@/lib/utils";
 
 interface HeatmapProps {
@@ -7,6 +8,8 @@ interface HeatmapProps {
   weeks?: number;
   accent?: string;
   label?: string;
+  /** When set, cells link to this path with `?date=`. */
+  linkPath?: string;
 }
 
 /**
@@ -20,6 +23,7 @@ export function Heatmap({
   weeks = 18,
   accent = "var(--color-recovery)",
   label = "Completion",
+  linkPath,
 }: HeatmapProps) {
   // Anchor the last column to the week containing today (week starts Sunday).
   const todayDow = new Date(`${today}T00:00:00Z`).getUTCDay();
@@ -54,14 +58,29 @@ export function Heatmap({
       <div className="flex gap-[3px] overflow-x-auto pb-1">
         {columns.map((col, i) => (
           <div key={i} className="flex flex-col gap-[3px]">
-            {col.map((date) => (
-              <div
-                key={date}
-                title={`${date}`}
-                className="size-[11px] rounded-[2px]"
-                style={cellStyle(date)}
-              />
-            ))}
+            {col.map((date) => {
+              const style = cellStyle(date);
+              const cell = (
+                <div
+                  title={`${date}`}
+                  className="size-[11px] rounded-[2px]"
+                  style={style}
+                />
+              );
+              if (linkPath && date <= today) {
+                return (
+                  <Link
+                    key={date}
+                    href={`${linkPath}?date=${date}`}
+                    aria-label={`Edit habits for ${date}`}
+                    className="block rounded-[2px] outline-none focus-visible:ring-1 focus-visible:ring-white/40"
+                  >
+                    {cell}
+                  </Link>
+                );
+              }
+              return <div key={date}>{cell}</div>;
+            })}
           </div>
         ))}
       </div>

@@ -29,7 +29,7 @@ function doseLabel(dose: number | null, unit: string | null): string | null {
   return unit ? `${dose} ${unit}` : `${dose}`;
 }
 
-function DetailPanel({ row, today }: { row: SupplementRow; today: string }) {
+function DetailPanel({ row, logDate }: { row: SupplementRow; logDate: string }) {
   const [dose, setDose] = useState(
     (row.doseTaken ?? row.defaultDose)?.toString() ?? "",
   );
@@ -41,7 +41,7 @@ function DetailPanel({ row, today }: { row: SupplementRow; today: string }) {
     startTransition(async () => {
       await logSupplementDetail({
         supplementId: row.id,
-        date: today,
+        date: logDate,
         dose_taken: dose ? Number(dose) : null,
         time_taken: time || null,
         notes: notes.trim() || null,
@@ -85,10 +85,10 @@ function DetailPanel({ row, today }: { row: SupplementRow; today: string }) {
 /** Daily supplement checklist — tap to mark taken; expand for dose/time/notes. */
 export function SupplementChecklist({
   supplements,
-  today,
+  logDate,
 }: {
   supplements: SupplementRow[];
-  today: string;
+  logDate: string;
 }) {
   const [taken, setTaken] = useState<Record<string, boolean>>(
     Object.fromEntries(supplements.map((s) => [s.id, s.taken])),
@@ -100,7 +100,7 @@ export function SupplementChecklist({
     const next = !taken[id];
     setTaken((t) => ({ ...t, [id]: next }));
     startTransition(async () => {
-      await toggleSupplement(id, today, next);
+      await toggleSupplement(id, logDate, next);
     });
   }
 
@@ -174,7 +174,7 @@ export function SupplementChecklist({
                 />
               </button>
             </div>
-            {expanded === s.id ? <DetailPanel row={s} today={today} /> : null}
+            {expanded === s.id ? <DetailPanel row={s} logDate={logDate} /> : null}
           </div>
         );
       })}

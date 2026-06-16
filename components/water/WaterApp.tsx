@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { ChevronDown, Minus, Plus, Settings } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/PageHeader";
@@ -14,7 +15,6 @@ import {
   targetUnits,
   unitLabel,
   unitVolMl,
-  waterDateKey,
   normalizeWater,
   WATER_CHANGED_EVENT,
   type WaterState,
@@ -24,11 +24,23 @@ import {
   hydrateWaterState,
   refreshWaterFromServer,
 } from "@/lib/water-sync";
+import { logDateHeading } from "@/lib/log-date";
+import { addDays } from "@/lib/utils";
 
 const SLEEP = "var(--color-sleep)";
 const GOOD = "var(--color-recovery)";
 
-export function WaterApp() {
+export function WaterApp({
+  logDate,
+  today,
+  timezone,
+  datePicker,
+}: {
+  logDate: string;
+  today: string;
+  timezone: string;
+  datePicker: ReactNode;
+}) {
   const [mounted, setMounted] = useState(false);
   const [state, setState] = useState<WaterState>(() => normalizeWater(null));
   const [showWhy, setShowWhy] = useState(false);
@@ -70,18 +82,18 @@ export function WaterApp() {
     commitWaterState(next);
   }
 
-  function setToday(n: number) {
-    const k = waterDateKey(new Date());
+  function setLogDay(n: number) {
     const logs = { ...state.logs };
-    if (n <= 0) delete logs[k];
-    else logs[k] = n;
+    if (n <= 0) delete logs[logDate];
+    else logs[logDate] = n;
     commit({ ...state, logs });
   }
 
   const target = useMemo(() => targetUnits(state), [state]);
   const breakdown = useMemo(() => computeTargetMl(state), [state]);
-  const todayKey = waterDateKey(new Date());
-  const count = mounted ? state.logs[todayKey] ?? 0 : 0;
+  const count = mounted ? state.logs[logDate] ?? 0 : 0;
+  const dayLabel = logDateHeading(logDate, today, timezone);
+  const editingToday = logDate === today;
 
   const pctRaw = (count / target) * 100;
   const fillPct = Math.min(150, pctRaw) / 1.5;
@@ -101,41 +113,42 @@ export function WaterApp() {
     helperGood = true;
   }
 
-  // Last 7 days (oldest → newest), excluding today for the list.
+  // Recent days (excluding the day being edited).
   const history = useMemo(() => {
-    const days: { label: string; count: number }[] = [];
+    const days: { iso: string; label: string; count: number }[] = [];
     const dows = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    for (let i = 6; i >= 1; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const k = waterDateKey(d);
+    for (let i = 14; i >= 1; i--) {
+      const iso = addDays(today, -i);
+      if (iso === logDate) continue;
+      const d = new Date(`${iso}T12:00:00`);
       days.push({
+        iso,
         label: `${dows[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`,
-        count: state.logs[k] ?? 0,
+        count: state.logs[iso] ?? 0,
       });
     }
-    return days;
-  }, [state.logs]);
+    return days.slice(-7);
+  }, [state.logs, today, logDate]);
 
   // 14-day sparkline data including today.
   const spark = useMemo(() => {
     const data: number[] = [];
     for (let i = 13; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      data.push(state.logs[waterDateKey(d)] ?? 0);
+      data.push(state.logs[addDays(today, -i)] ?? 0);
     }
     return data;
-  }, [state.logs]);
+  }, [state.logs, today]);
 
   const unitName = unitLabel(state, true);
   const unitSingular = unitLabel(state, false);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader title="Water" subtitle="Hydration target tuned to your body and stack." />
-        <button
+        <div className="flex items-center gap-2">
+          {datePicker}
+          <button
           type="button"
           onClick={() => setShowSettings((s) => !s)}
           aria-label="Water settings"
@@ -143,6 +156,7 @@ export function WaterApp() {
         >
           <Settings className="size-[18px]" strokeWidth={1.5} />
         </button>
+        </div>
       </div>
 
       {showSettings ? (
@@ -151,7 +165,9 @@ export function WaterApp() {
 
       {/* Hero */}
       <Card className="space-y-1">
-        <span className="metric-label">{unitName.toUpperCase()} DRANK TODAY</span>
+        <span className="metric-label">
+          {editingToday ? `${unitName.toUpperCase()} DRANK TODAY` : `${unitName.toUpperCase()} · ${dayLabel.toUpperCase()}`}
+        </span>
         <div className="flex items-baseline gap-2">
           <span
             className="metric-value"
@@ -191,7 +207,7 @@ export function WaterApp() {
         <div className="grid grid-cols-[56px_1fr] gap-2.5 pt-2">
           <button
             type="button"
-            onClick={() => setToday(Math.max(0, count - 1))}
+            onClick={() => setLogDay(Math.max(0, count - 1))}
             disabled={count <= 0}
             aria-label="Undo last"
             className="flex items-center justify-center rounded-2xl bg-[rgba(255,255,255,0.06)] text-text-primary transition-colors hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-30"
@@ -200,7 +216,7 @@ export function WaterApp() {
           </button>
           <button
             type="button"
-            onClick={() => setToday(count + 1)}
+            onClick={() => setLogDay(count + 1)}
             className="flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-[#06080b] transition-transform active:scale-[0.98]"
             style={{
               background: "linear-gradient(180deg,#ffffff 0%,#e8e5dd 100%)",
@@ -278,9 +294,10 @@ export function WaterApp() {
             const pct = Math.min(100, (h.count / target) * 100);
             const miss = h.count < target;
             return (
-              <div
-                key={h.label}
-                className="grid grid-cols-[70px_1fr_auto] items-center gap-3 py-2.5 text-[13px]"
+              <Link
+                key={h.iso}
+                href={`/water?date=${h.iso}`}
+                className="grid grid-cols-[70px_1fr_auto] items-center gap-3 py-2.5 text-[13px] transition-colors hover:bg-[rgba(255,255,255,0.03)]"
               >
                 <span className="timestamp">{h.label}</span>
                 <span className="h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.05)]">
@@ -297,7 +314,7 @@ export function WaterApp() {
                 <span className="font-mono text-xs tabular-nums text-text-secondary">
                   {h.count}/{target}
                 </span>
-              </div>
+              </Link>
             );
           })}
         </div>

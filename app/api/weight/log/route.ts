@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { upsertWeight } from "@/lib/data/tracking";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,9 @@ export async function POST(request: NextRequest) {
     body_fat_pct: null,
     notes: null,
   });
+
+  revalidatePath("/");
+  revalidatePath("/habits");
 
   return NextResponse.json({ ok: true });
 }

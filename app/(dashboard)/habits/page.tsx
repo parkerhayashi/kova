@@ -1,22 +1,35 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { LogDatePicker } from "@/components/LogDatePicker";
 import { MetricCard } from "@/components/MetricCard";
 import { Card } from "@/components/ui/Card";
 import { HabitChecklist, type HabitRow } from "@/components/habits/HabitChecklist";
 import { HabitManager } from "@/components/habits/HabitManager";
 import { Heatmap } from "@/components/habits/Heatmap";
+import { WeightDayLog } from "@/components/weight/WeightDayLog";
 import { getTimezone } from "@/lib/data/oura";
-import { getHabitLogs, getHabits } from "@/lib/data/tracking";
+import { getHabitLogs, getHabits, getWeightForDate } from "@/lib/data/tracking";
+import { logDateHeading, parseLogDate } from "@/lib/log-date";
 import { addDays, clearStreak, currentStreak, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function HabitsPage() {
-  const [habits, logs, timezone] = await Promise.all([
-    getHabits(true),
-    getHabitLogs(180),
-    getTimezone(),
-  ]);
+export default async function HabitsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date: dateParam } = await searchParams;
+  const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
+  const logDate = parseLogDate(dateParam, today);
+  const dayLabel = logDateHeading(logDate, today, timezone);
+
+  const [habits, logs, weight] = await Promise.all([
+    getHabits(true),
+    getHabitLogs(180, timezone),
+    getWeightForDate(logDate),
+  ]);
 
   const positiveHabits = habits.filter((h) => h.kind === "positive");
   const trackHabits = habits.filter((h) => h.kind === "track");
@@ -39,7 +52,7 @@ export default async function HabitsPage() {
       id: h.id,
       name: h.name,
       kind: h.kind ?? "positive",
-      completed: done.has(today),
+      completed: done.has(logDate),
       streak,
       weekRate: weekHits / 7,
     };
@@ -47,8 +60,8 @@ export default async function HabitsPage() {
 
   const positiveRows = rows.filter((r) => r.kind === "positive");
   const trackRows = rows.filter((r) => r.kind === "track");
-  const habitsDoneToday = positiveRows.filter((r) => r.completed).length;
-  const tagsLoggedToday = trackRows.filter((r) => r.completed).length;
+  const habitsDone = positiveRows.filter((r) => r.completed).length;
+  const tagsLogged = trackRows.filter((r) => r.completed).length;
   const bestStreak = rows.reduce((m, r) => Math.max(m, r.streak), 0);
 
   const completedByDate = new Map<string, number>();
@@ -65,31 +78,39 @@ export default async function HabitsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Habits"
-        subtitle="Build habits and log day tags — alcohol, late meals, or anything worth noting."
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeader
+          title="Habits"
+          subtitle="Build habits and log day tags — alcohol, late meals, or anything worth noting."
+        />
+        <Suspense fallback={null}>
+          <LogDatePicker selected={logDate} today={today} timezone={timezone} />
+        </Suspense>
+      </div>
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricCard
-          label="Habits today"
+          label={logDate === today ? "Habits today" : "Habits"}
           value={
             positiveHabits.length
-              ? `${habitsDoneToday}/${positiveHabits.length}`
+              ? `${habitsDone}/${positiveHabits.length}`
               : null
           }
+          caption={logDate === today ? undefined : dayLabel}
           accent="recovery"
         />
         <MetricCard
           label="Tags logged"
-          value={
-            trackHabits.length
-              ? tagsLoggedToday || null
-              : null
-          }
+          value={trackHabits.length ? tagsLogged || null : null}
           unit={trackHabits.length ? `/${trackHabits.length}` : undefined}
           accent="stress"
-          caption={trackHabits.length ? "happened today" : "add day tags"}
+          caption={
+            trackHabits.length
+              ? logDate === today
+                ? "happened today"
+                : dayLabel
+              : "add day tags"
+          }
         />
         <MetricCard label="Best streak" value={bestStreak || null} unit="d" accent="recovery" />
         <MetricCard
@@ -104,13 +125,26 @@ export default async function HabitsPage() {
         />
       </section>
 
-      <HabitChecklist habits={rows} today={today} />
+      <HabitChecklist key={logDate} habits={rows} logDate={logDate} />
 
       {positiveHabits.length > 0 ? (
         <Card>
-          <Heatmap ratios={ratios} today={today} label="Habit completion · 18 weeks" />
+          <Heatmap
+            ratios={ratios}
+            today={today}
+            linkPath="/habits"
+            label="Habit completion · 18 weeks (tap a day to edit)"
+          />
         </Card>
       ) : null}
+
+      <WeightDayLog
+        key={logDate}
+        logDate={logDate}
+        today={today}
+        timezone={timezone}
+        initialWeightLbs={weight?.weight_lbs ?? null}
+      />
 
       <HabitManager habits={habits} />
     </div>

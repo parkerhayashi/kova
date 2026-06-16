@@ -45,6 +45,16 @@ export async function getLatestWeight(): Promise<WeightLog | null> {
   return (data as WeightLog) ?? null;
 }
 
+export async function getWeightForDate(date: string): Promise<WeightLog | null> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("weight_log")
+    .select("*")
+    .eq("date", date)
+    .maybeSingle();
+  return (data as WeightLog) ?? null;
+}
+
 export async function upsertWeight(input: {
   date: string;
   weight_lbs: number;
