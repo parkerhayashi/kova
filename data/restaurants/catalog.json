@@ -1,6 +1,6 @@
 {
-  "syncedAt": "2026-06-10T18:43:19.108Z",
-  "source": "bojanglesrdu.com/wp-content/uploads/2017/04/bojangles-nutrition.pdf + assets.ctfassets.net/kugm9fp9ib18/7KrOGNUFZjBddOWezWLWwm/a20b10d71b9b0496f96b8e38bd8e0211/CAVA-REC-GID-0326-AllergReg.pdf + chick-fil-a.com/nutrition-allergens + chipotle.com/content/dam/chipotle/menu/nutrition/US-Nutrition-Facts-Paper-Menu-3-2025.pdf + https://assets.choptsalad.com/pdfs/web/chopt_nutrition_allergen_guide.pdf + cookout.com/wp-content/uploads/Cook-Out-Nutrition1.pdf + fiveguys.com/wp-content/uploads/2025/07/five-guys-us-nutrition-allergen-guide-english-1-final.pdf + jerseymikes.ca/nutrition?type=nutrition + pandaexpress.com/nutritioninformation + shahshalalfood.com/nutritional-breakdown + sweetgreenmenus.com/sweetgreen-nutrition/",
+  "syncedAt": "2026-06-16T13:17:05.271Z",
+  "source": "bojanglesrdu.com/wp-content/uploads/2017/04/bojangles-nutrition.pdf + assets.ctfassets.net/kugm9fp9ib18/7KrOGNUFZjBddOWezWLWwm/a20b10d71b9b0496f96b8e38bd8e0211/CAVA-REC-GID-0326-AllergReg.pdf + chick-fil-a.com/nutrition-allergens + chipotle.com/content/dam/chipotle/menu/nutrition/US-Nutrition-Facts-Paper-Menu-3-2025.pdf + https://assets.choptsalad.com/pdfs/web/chopt_nutrition_allergen_guide.pdf + cookout.com/wp-content/uploads/Cook-Out-Nutrition1.pdf + fiveguys.com/wp-content/uploads/2025/07/five-guys-us-nutrition-allergen-guide-english-1-final.pdf + jerseymikes.ca/nutrition?type=nutrition + images.getbento.com/accounts/68d11e9348e2111e15250c0329f33fdc/media/G6DquJC1S8WtsQJIGg18_NAYA_MA_MENU_NUTRITIONAL_GUIDE_26_0407_DF.pdf + pandaexpress.com/nutritioninformation + shahshalalfood.com/nutritional-breakdown + sweetgreenmenus.com/sweetgreen-nutrition/",
   "restaurants": [
     {
       "id": "bojangles",
@@ -41,6 +41,11 @@
       "id": "jersey-mikes",
       "name": "Jersey Mike's",
       "itemCount": 361
+    },
+    {
+      "id": "naya",
+      "name": "Naya",
+      "itemCount": 52
     },
     {
       "id": "panda-express",
@@ -26309,6 +26314,1335 @@
       },
       "restaurant": "Jersey Mike's",
       "restaurantId": "jersey-mikes"
+    },
+    {
+      "id": "naya:baba-ghannouj",
+      "name": "Baba Ghannouj",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "2 oz",
+      "serving_size_g": 57,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 70,
+        "protein_g": 2,
+        "carbs_g": 5,
+        "fat_g": 4.5,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 270,
+        "fiber_g": 2,
+        "sugar_g": 2
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:baba-ghannouj-large",
+      "name": "Baba Ghannouj (Large)",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "7 oz",
+      "serving_size_g": 198,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 230,
+        "protein_g": 5,
+        "carbs_g": 17,
+        "fat_g": 16,
+        "saturated_fat_g": 2.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 5,
+        "sodium_mg": 950,
+        "fiber_g": 7,
+        "sugar_g": 6
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:beef-kibbe",
+      "name": "Beef Kibbe",
+      "category": "Hot Appetizers",
+      "menu": "Hot Appetizers & Sides",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [],
+      "nutrients": {
+        "calories": 80,
+        "protein_g": 4,
+        "carbs_g": 3,
+        "fat_g": 6,
+        "saturated_fat_g": 2,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 15,
+        "sodium_mg": 80,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:braised-beef-shawarma",
+      "name": "Braised Beef Shawarma",
+      "category": "Proteins",
+      "menu": null,
+      "servingSize": "4 oz",
+      "serving_size_g": 113,
+      "tags": [
+        "gluten-free",
+        "halal"
+      ],
+      "nutrients": {
+        "calories": 180,
+        "protein_g": 13,
+        "carbs_g": 4,
+        "fat_g": 12,
+        "saturated_fat_g": 6,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 75,
+        "sodium_mg": 1220,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:cabbage-slaw",
+      "name": "Cabbage Slaw (Malfouf)",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1.5 oz",
+      "serving_size_g": 43,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 60,
+        "protein_g": 0,
+        "carbs_g": 2,
+        "fat_g": 6,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 140,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:cabbage-slaw-large",
+      "name": "Cabbage Slaw / Malfouf (Large)",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "8.8 oz",
+      "serving_size_g": 249,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 390,
+        "protein_g": 2,
+        "carbs_g": 12,
+        "fat_g": 39,
+        "saturated_fat_g": 5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 930,
+        "fiber_g": 4,
+        "sugar_g": 5
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:cauliflower",
+      "name": "Cauliflower",
+      "category": "Proteins",
+      "menu": null,
+      "servingSize": "4 oz",
+      "serving_size_g": 113,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 120,
+        "protein_g": 2,
+        "carbs_g": 5,
+        "fat_g": 11,
+        "saturated_fat_g": 1.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 40,
+        "fiber_g": 2,
+        "sugar_g": 3
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:cheese-rekakat",
+      "name": "Cheese Rekakat",
+      "category": "Hot Appetizers",
+      "menu": "Hot Appetizers & Sides",
+      "servingSize": "3 pcs",
+      "serving_size_g": null,
+      "tags": [
+        "vegetarian"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "protein_g": 6,
+        "carbs_g": 21,
+        "fat_g": 4.2,
+        "saturated_fat_g": 1.2,
+        "trans_fat_g": 0.6,
+        "cholesterol_mg": 3,
+        "sodium_mg": 690,
+        "fiber_g": 1.2,
+        "sugar_g": 0.4
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:chicken-kebab",
+      "name": "Chicken Kebab",
+      "category": "Proteins",
+      "menu": null,
+      "servingSize": "4 oz",
+      "serving_size_g": 113,
+      "tags": [
+        "gluten-free",
+        "halal"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "protein_g": 20,
+        "carbs_g": 2,
+        "fat_g": 7,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 60,
+        "sodium_mg": 640,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:chicken-shawarma",
+      "name": "Chicken Shawarma",
+      "category": "Proteins",
+      "menu": null,
+      "servingSize": "4 oz",
+      "serving_size_g": 113,
+      "tags": [
+        "gluten-free",
+        "halal"
+      ],
+      "nutrients": {
+        "calories": 200,
+        "protein_g": 23,
+        "carbs_g": 1,
+        "fat_g": 11,
+        "saturated_fat_g": 2.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 115,
+        "sodium_mg": 640,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:cucumber-yogurt",
+      "name": "Cucumber Yogurt",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "gluten-free",
+        "vegetarian"
+      ],
+      "nutrients": {
+        "calories": 35,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 2.5,
+        "saturated_fat_g": 1.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 10,
+        "sodium_mg": 35,
+        "fiber_g": 0,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:cucumber-yogurt-large",
+      "name": "Cucumber Yogurt (Large)",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "7 oz",
+      "serving_size_g": 198,
+      "tags": [
+        "gluten-free",
+        "vegetarian"
+      ],
+      "nutrients": {
+        "calories": 230,
+        "protein_g": 9,
+        "carbs_g": 9,
+        "fat_g": 19,
+        "saturated_fat_g": 11,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 60,
+        "sodium_mg": 240,
+        "fiber_g": 0,
+        "sugar_g": 8
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:cucumbers",
+      "name": "Cucumbers",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 5,
+        "protein_g": 0,
+        "carbs_g": 1,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:falafel",
+      "name": "Falafel",
+      "category": "Proteins",
+      "menu": null,
+      "servingSize": "6 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 300,
+        "protein_g": 13,
+        "carbs_g": 41,
+        "fat_g": 20,
+        "saturated_fat_g": 1.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 620,
+        "fiber_g": 22,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:falafel-single",
+      "name": "Falafel (Single)",
+      "category": "Hot Appetizers",
+      "menu": "Hot Appetizers & Sides",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 45,
+        "protein_g": 2,
+        "carbs_g": 8,
+        "fat_g": 2,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 110,
+        "fiber_g": 4,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:feta-cheese",
+      "name": "Feta Cheese",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "gluten-free",
+        "vegetarian"
+      ],
+      "nutrients": {
+        "calories": 70,
+        "protein_g": 4,
+        "carbs_g": 1,
+        "fat_g": 6,
+        "saturated_fat_g": 4,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 25,
+        "sodium_mg": 260,
+        "fiber_g": 0,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:grape-leaves",
+      "name": "Grape Leaves",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "5.7 oz",
+      "serving_size_g": 162,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 130,
+        "protein_g": 3,
+        "carbs_g": 26,
+        "fat_g": 10,
+        "saturated_fat_g": 2.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 680,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:greek-dressing",
+      "name": "Greek Dressing",
+      "category": "Sauces",
+      "menu": null,
+      "servingSize": "2 oz",
+      "serving_size_g": 57,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 270,
+        "protein_g": 0,
+        "carbs_g": 2,
+        "fat_g": 29,
+        "saturated_fat_g": 3.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 1030,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:green-bell-pepper",
+      "name": "Green Bell Pepper",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 10,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:hummus",
+      "name": "Hummus",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "2 oz",
+      "serving_size_g": 57,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "protein_g": 3,
+        "carbs_g": 5,
+        "fat_g": 13,
+        "saturated_fat_g": 1.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 125,
+        "fiber_g": 2,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:hummus-large",
+      "name": "Hummus (Large)",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "7 oz",
+      "serving_size_g": 198,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 650,
+        "protein_g": 14,
+        "carbs_g": 21,
+        "fat_g": 57,
+        "saturated_fat_g": 7,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 550,
+        "fiber_g": 7,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:kafta-lamb-kebab",
+      "name": "Kafta Lamb Kebab",
+      "category": "Proteins",
+      "menu": null,
+      "servingSize": "4 oz",
+      "serving_size_g": 113,
+      "tags": [
+        "gluten-free",
+        "halal"
+      ],
+      "nutrients": {
+        "calories": 270,
+        "protein_g": 18,
+        "carbs_g": 2,
+        "fat_g": 20,
+        "saturated_fat_g": 8,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 75,
+        "sodium_mg": 530,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:kalamata-olives",
+      "name": "Kalamata Olives",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "0.5 oz",
+      "serving_size_g": 14,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 30,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 3,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 90,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:labne",
+      "name": "Labne",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "7 oz",
+      "serving_size_g": 198,
+      "tags": [
+        "gluten-free",
+        "vegetarian"
+      ],
+      "nutrients": {
+        "calories": 400,
+        "protein_g": 13,
+        "carbs_g": 7,
+        "fat_g": 37,
+        "saturated_fat_g": 22,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 110,
+        "sodium_mg": 65,
+        "fiber_g": 0,
+        "sugar_g": 7
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:lebanese-pickles",
+      "name": "Lebanese Pickles",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 5,
+        "protein_g": 0,
+        "carbs_g": 2,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 610,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:lemon-tahini",
+      "name": "Lemon Tahini",
+      "category": "Sauces",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 70,
+        "protein_g": 2,
+        "carbs_g": 3,
+        "fat_g": 6,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 70,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:pickled-turnips",
+      "name": "Pickled Turnips",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 5,
+        "protein_g": 0,
+        "carbs_g": 1,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 470,
+        "fiber_g": 0,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:pistachio-baklava",
+      "name": "Pistachio Baklava",
+      "category": "Sweets",
+      "menu": "Sweets",
+      "servingSize": "6 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegetarian"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "protein_g": 6,
+        "carbs_g": 13,
+        "fat_g": 10,
+        "saturated_fat_g": 3.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 70,
+        "fiber_g": 1,
+        "sugar_g": 6
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:pita-chips",
+      "name": "Pita Chips",
+      "category": "Hot Appetizers",
+      "menu": "Hot Appetizers & Sides",
+      "servingSize": "5 oz",
+      "serving_size_g": 142,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 530,
+        "protein_g": 11,
+        "carbs_g": 67,
+        "fat_g": 25,
+        "saturated_fat_g": 6,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 800,
+        "fiber_g": 3,
+        "sugar_g": 4
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:pita-crunch",
+      "name": "Pita Crunch",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "0.5 oz",
+      "serving_size_g": 14,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 70,
+        "protein_g": 1,
+        "carbs_g": 8,
+        "fat_g": 3,
+        "saturated_fat_g": 0.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 100,
+        "fiber_g": 0,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:pomegranate-vinaigrette",
+      "name": "Pomegranate Vinaigrette",
+      "category": "Sauces",
+      "menu": "Bowl & Salad",
+      "servingSize": "2 oz",
+      "serving_size_g": 57,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 270,
+        "protein_g": 0,
+        "carbs_g": 3,
+        "fat_g": 29,
+        "saturated_fat_g": 4,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 50,
+        "fiber_g": 0,
+        "sugar_g": 2
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:pomegranate-vinaigrette-roll",
+      "name": "Pomegranate Vinaigrette (Roll)",
+      "category": "Sauces",
+      "menu": "Rolls",
+      "servingSize": "2 oz",
+      "serving_size_g": 57,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 80,
+        "protein_g": 0,
+        "carbs_g": 13,
+        "fat_g": 3,
+        "saturated_fat_g": 2,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 290,
+        "fiber_g": 0,
+        "sugar_g": 6
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:romaine-lettuce",
+      "name": "Romaine Lettuce",
+      "category": "Bases",
+      "menu": "Bowl & Salad",
+      "servingSize": "3.5 oz",
+      "serving_size_g": 99,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 15,
+        "protein_g": 1,
+        "carbs_g": 3,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 10,
+        "fiber_g": 1,
+        "sugar_g": 2
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:seasonal-greens",
+      "name": "Seasonal Greens (Arcadian)",
+      "category": "Bases",
+      "menu": "Bowl & Salad",
+      "servingSize": "3.5 oz",
+      "serving_size_g": 99,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 30,
+        "protein_g": 2,
+        "carbs_g": 5,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 45,
+        "fiber_g": 2,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:side-pita-bread",
+      "name": "Side of Pita Bread",
+      "category": "Hot Appetizers",
+      "menu": "Hot Appetizers & Sides",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 120,
+        "protein_g": 4,
+        "carbs_g": 26,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 190,
+        "fiber_g": 1,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:spicy-hummus-large",
+      "name": "Spicy Hummus (Large)",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "7 oz",
+      "serving_size_g": 198,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 520,
+        "protein_g": 12,
+        "carbs_g": 19,
+        "fat_g": 45,
+        "saturated_fat_g": 6,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 430,
+        "fiber_g": 7,
+        "sugar_g": 2
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:spicy-red-pepper",
+      "name": "Spicy Red Pepper Sauce",
+      "category": "Sauces",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 45,
+        "protein_g": 0,
+        "carbs_g": 2,
+        "fat_g": 4,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 260,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:spinach-fatayer",
+      "name": "Spinach Fatayer",
+      "category": "Hot Appetizers",
+      "menu": "Hot Appetizers & Sides",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 87,
+        "protein_g": 2,
+        "carbs_g": 16,
+        "fat_g": 1.8,
+        "saturated_fat_g": 0.36,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 174,
+        "fiber_g": 1.8,
+        "sugar_g": 0.9
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:sumac-onions",
+      "name": "Sumac Onions",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 15,
+        "protein_g": 0,
+        "carbs_g": 3,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 20,
+        "fiber_g": 0,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:tabboule",
+      "name": "Tabboule",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "8.8 oz",
+      "serving_size_g": 249,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 280,
+        "protein_g": 4,
+        "carbs_g": 14,
+        "fat_g": 25,
+        "saturated_fat_g": 3.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 520,
+        "fiber_g": 5,
+        "sugar_g": 5
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:the-classic-braised-beef-bowl",
+      "name": "The Classic Braised Beef Bowl",
+      "category": "Chef's Creations",
+      "menu": "Chef's Creations",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [],
+      "nutrients": {
+        "calories": 940,
+        "protein_g": 30,
+        "carbs_g": 79,
+        "fat_g": 58,
+        "saturated_fat_g": 15,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 85,
+        "sodium_mg": 2470,
+        "fiber_g": 8,
+        "sugar_g": 5
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:the-classic-chicken-bowl",
+      "name": "The Classic Chicken Bowl",
+      "category": "Chef's Creations",
+      "menu": "Chef's Creations",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [],
+      "nutrients": {
+        "calories": 690,
+        "protein_g": 34,
+        "carbs_g": 66,
+        "fat_g": 34,
+        "saturated_fat_g": 8,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 135,
+        "sodium_mg": 1400,
+        "fiber_g": 5,
+        "sugar_g": 5
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:the-falafel-tahini-roll",
+      "name": "The Falafel and Tahini Roll",
+      "category": "Chef's Creations",
+      "menu": "Chef's Creations",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 820,
+        "protein_g": 25,
+        "carbs_g": 101,
+        "fat_g": 43,
+        "saturated_fat_g": 7,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 1750,
+        "fiber_g": 19,
+        "sugar_g": 8
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:the-greek-salad",
+      "name": "The Greek Salad",
+      "category": "Chef's Creations",
+      "menu": "Chef's Creations",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegetarian"
+      ],
+      "nutrients": {
+        "calories": 570,
+        "protein_g": 13,
+        "carbs_g": 25,
+        "fat_g": 49,
+        "saturated_fat_g": 13,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 50,
+        "sodium_mg": 1780,
+        "fiber_g": 11,
+        "sugar_g": 8
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:tomatoes",
+      "name": "Tomatoes",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "1.5 oz",
+      "serving_size_g": 43,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 10,
+        "protein_g": 0,
+        "carbs_g": 2,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 0,
+        "sugar_g": 1
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:toum-large",
+      "name": "Toum (Garlic Whip, Large)",
+      "category": "Cold Appetizers",
+      "menu": "Grab & Go",
+      "servingSize": "7 oz",
+      "serving_size_g": 198,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 1130,
+        "protein_g": 1,
+        "carbs_g": 12,
+        "fat_g": 122,
+        "saturated_fat_g": 9,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 5,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:toum",
+      "name": "Toum (Garlic Whip)",
+      "category": "Toppings",
+      "menu": null,
+      "servingSize": "0.5 oz",
+      "serving_size_g": 14,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 80,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 9,
+        "saturated_fat_g": 0.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:tri-color-quinoa",
+      "name": "Tri-Color Quinoa",
+      "category": "Bases",
+      "menu": "Bowl & Salad",
+      "servingSize": "5 oz",
+      "serving_size_g": 142,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 200,
+        "protein_g": 6,
+        "carbs_g": 31,
+        "fat_g": 4.5,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 450,
+        "fiber_g": 3,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:vermicelli-rice",
+      "name": "Vermicelli Rice",
+      "category": "Bases",
+      "menu": "Bowl & Salad",
+      "servingSize": "5 oz",
+      "serving_size_g": 142,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "protein_g": 3,
+        "carbs_g": 26,
+        "fat_g": 3.5,
+        "saturated_fat_g": 1.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 5,
+        "sodium_mg": 135,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:white-pita",
+      "name": "White Pita",
+      "category": "Bases",
+      "menu": "Rolls",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 300,
+        "protein_g": 10,
+        "carbs_g": 60,
+        "fat_g": 2.5,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 530,
+        "fiber_g": 2,
+        "sugar_g": 4
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:whole-wheat-pita",
+      "name": "Whole Wheat Pita",
+      "category": "Bases",
+      "menu": "Rolls",
+      "servingSize": "1 ea",
+      "serving_size_g": null,
+      "tags": [
+        "vegan"
+      ],
+      "nutrients": {
+        "calories": 230,
+        "protein_g": 13,
+        "carbs_g": 40,
+        "fat_g": 4,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 370,
+        "fiber_g": 7,
+        "sugar_g": 3
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
+    },
+    {
+      "id": "naya:zesty-jalapeno",
+      "name": "Zesty Jalapeño Sauce",
+      "category": "Sauces",
+      "menu": null,
+      "servingSize": "1 oz",
+      "serving_size_g": 28,
+      "tags": [
+        "vegan",
+        "gluten-free"
+      ],
+      "nutrients": {
+        "calories": 110,
+        "protein_g": 0,
+        "carbs_g": 1,
+        "fat_g": 11,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 95,
+        "fiber_g": 0,
+        "sugar_g": 0
+      },
+      "restaurant": "Naya",
+      "restaurantId": "naya"
     },
     {
       "id": "panda-express:apple-pie-roll",
