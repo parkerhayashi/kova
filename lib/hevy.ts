@@ -153,6 +153,26 @@ export function normalizeHevyWorkout(
 }
 
 /**
+ * Fetch every workout on the account (newest-first pagination).
+ */
+export async function fetchAllWorkouts(key?: string): Promise<HevyWorkout[]> {
+  const api = key ?? apiKey();
+  const total = await getWorkoutCount(api);
+  if (total === 0) return [];
+
+  const pageCount = Math.max(1, Math.ceil(total / MAX_PAGE_SIZE));
+  const collected: HevyWorkout[] = [];
+
+  for (let page = 1; page <= pageCount; page++) {
+    const batch = await getWorkoutsPage(page, MAX_PAGE_SIZE, api);
+    collected.push(...batch.workouts);
+    if (batch.workouts.length === 0) break;
+  }
+
+  return collected;
+}
+
+/**
  * Fetch workouts newest-first, stopping when older than `sinceIso` or pages
  * are exhausted. Caps page count to avoid runaway cron invocations.
  */

@@ -14,7 +14,8 @@
     "restaurants:scrape": "node scripts/scrapers/run-all.mjs",
     "restaurants:sync": "node scripts/sync-restaurants.mjs",
     "nutrition:import": "node scripts/import-nutrition.mjs",
-    "branding:apply": "node scripts/apply-branding.mjs"
+    "branding:apply": "node scripts/apply-branding.mjs",
+    "hevy:backfill": "node --env-file=.env.local scripts/hevy-backfill.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.85",

@@ -25,7 +25,7 @@ export async function GET() {
       listRecentSessions(5),
       getLiftingDashboard(28),
       getTodayWorkoutSummary(),
-      listHevyWorkouts(10),
+      listHevyWorkouts(50),
       getHevyLastSyncedAt(),
       getTimezone(),
       Promise.resolve(isHevyConnected()),
