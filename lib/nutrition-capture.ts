@@ -14,7 +14,7 @@ import type {
   NutrientProfile,
 } from "@/types";
 
-export const CAPTURE_MODEL = "claude-sonnet-4-20250514";
+export const CAPTURE_MODEL = "claude-sonnet-4-6";
 
 const modelNutrientsSchema = z.object({
   calories: z.number(),
@@ -96,8 +96,8 @@ function formatCaptureError(err: unknown): string {
   if (/api-key|authentication|401|403|x-api-key/i.test(message)) {
     return "Anthropic API key rejected — update ANTHROPIC_API_KEY in Vercel (Production) and redeploy.";
   }
-  if (/model.*not found|404/i.test(message)) {
-    return "Vision model unavailable — try again or contact support.";
+  if (/model.*not found|404|retired|deprecated|does not exist/i.test(message)) {
+    return "Vision model unavailable — the server model ID may need updating.";
   }
   return message;
 }
