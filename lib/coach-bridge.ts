@@ -2,8 +2,9 @@
  * Client bridge between Train (Supabase sessions) and Coach (localStorage).
  */
 
-import { scheduleClientSyncPush } from "@/lib/client-sync";
+import { scheduleClientSyncPush, CLIENT_SYNC_CHANGED_EVENT } from "@/lib/client-sync";
 import type { HevyCoachWorkoutLog } from "@/lib/lifting-unified";
+import type { LiftingCompositionSnapshot } from "@/lib/coach-composition";
 import {
   coachEstimate1RM,
   getCoachPrescription,
@@ -17,6 +18,7 @@ import type { ActiveWorkoutView, SessionExerciseView } from "@/types";
 const LS_KEY = "po_coach_v1";
 const WORKOUT_DONE_KEY = "po_coach_workout_done";
 const HEVY_SYNCED_KEY = "po_coach_hevy_synced";
+export const LIFTING_SNAPSHOT_KEY = "po_coach_lifting_snapshot";
 
 export type CoachState = {
   units: string;
@@ -296,6 +298,42 @@ export function syncHevyWorkoutsToCoach(workouts: HevyCoachWorkoutLog[]): number
   }
 
   return imported;
+}
+
+export function loadLiftingSnapshot(): LiftingCompositionSnapshot | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(LIFTING_SNAPSHOT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as LiftingCompositionSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLiftingSnapshot(snapshot: LiftingCompositionSnapshot): void {
+  localStorage.setItem(LIFTING_SNAPSHOT_KEY, JSON.stringify(snapshot));
+  window.dispatchEvent(
+    new CustomEvent(CLIENT_SYNC_CHANGED_EVENT, {
+      detail: { namespace: "lifting" },
+    }),
+  );
+}
+
+/** Pull unified lifting stats from the server for Coach composition. */
+export async function refreshLiftingSnapshot(windowDays = 30): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    const res = await fetch(
+      `/api/workouts/lifting-snapshot?days=${windowDays}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return;
+    const snapshot = (await res.json()) as LiftingCompositionSnapshot;
+    saveLiftingSnapshot(snapshot);
+  } catch {
+    /* best-effort */
+  }
 }
 
 export function readTodaySplit(): ReturnType<typeof getTodaySplit> | null {

@@ -7,6 +7,7 @@ import {
   CLIENT_SYNC_CHANGED_EVENT,
   hydrateClientSync,
 } from "@/lib/client-sync";
+import { refreshLiftingSnapshot } from "@/lib/coach-bridge";
 
 export type CoachPanelMode = "weight-only" | "body-only";
 
@@ -29,13 +30,14 @@ export function CoachPanel({ mode }: { mode: CoachPanelMode }) {
 
     renderApp();
 
+    void refreshLiftingSnapshot(30);
     void hydrateClientSync(["coach"]).then((result) => {
       if (result.coach) renderApp();
     });
 
     const onSync = (e: Event) => {
       const ns = (e as CustomEvent<{ namespace?: string }>).detail?.namespace;
-      if (ns === "coach") renderApp();
+      if (ns === "coach" || ns === "lifting") renderApp();
     };
     window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onSync);
 

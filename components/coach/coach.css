@@ -1290,6 +1290,13 @@
     color: var(--text-2);
     font-variant-numeric: tabular-nums;
   }
+  .wt-lifting {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
 
   .wt-locked {
     display: flex;

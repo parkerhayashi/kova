@@ -23,6 +23,11 @@ import {
   flattenHevyWorkouts,
   normalizeExerciseName,
 } from "@/lib/lifting-unified";
+import {
+  computeStrengthDeltaFromSets,
+  sumVolumeInWindow,
+  type LiftingCompositionSnapshot,
+} from "@/lib/coach-composition";
 import type {
   ActiveWorkoutView,
   Exercise,
@@ -1128,6 +1133,52 @@ export async function getLiftingDashboard(
     current_streak_days: streak,
     volume_by_day,
     muscle_split,
+  };
+}
+
+/** Unified lifting signals for Coach weight composition estimates. */
+export async function getLiftingCompositionSnapshot(
+  windowDays = 30,
+): Promise<LiftingCompositionSnapshot> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const periodStart = addDays(today, -(windowDays - 1));
+  const historyStart = addDays(periodStart, -365);
+
+  const catalog = await loadExerciseCategoryMap();
+  const nativeHistory = await fetchCompletedSets({ sinceDate: historyStart });
+  const hevyHistory = await fetchHevySetsSince(historyStart, catalog);
+  const allSets = [...nativeSetsToUnified(nativeHistory), ...hevyHistory];
+
+  const inWindow = allSets.filter(
+    (set) => set.date >= periodStart && set.date <= today,
+  );
+  const workoutDates = [...new Set(inWindow.map((set) => set.date))].sort();
+  const sessionIds = new Set(inWindow.map((set) => set.session_id));
+
+  const { strengthDelta, exerciseCount } = computeStrengthDeltaFromSets(
+    allSets,
+    periodStart,
+  );
+
+  const totalVolumeLbs = sumVolumeInWindow(allSets, periodStart);
+  const totalSets = inWindow.filter((set) => !set.is_warmup).length;
+  const actualDays = Math.max(1, windowDays);
+  const sessionsPerWeek = (workoutDates.length / actualDays) * 7;
+
+  return {
+    updatedAt: new Date().toISOString(),
+    windowDays,
+    periodStart,
+    periodEnd: today,
+    workoutDates,
+    totalVolumeLbs,
+    totalSessions: sessionIds.size,
+    totalSets,
+    sessionsPerWeek,
+    strengthDelta,
+    strengthExerciseCount: exerciseCount,
+    source: "hevy+kova",
   };
 }
 

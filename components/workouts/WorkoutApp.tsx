@@ -15,7 +15,7 @@ import { SessionDetailPanel } from "@/components/workouts/SessionDetailPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { CLIENT_SYNC_CHANGED_EVENT } from "@/lib/client-sync";
-import { readTodaySplit, syncHevyWorkoutsToCoach } from "@/lib/coach-bridge";
+import { readTodaySplit, refreshLiftingSnapshot, syncHevyWorkoutsToCoach } from "@/lib/coach-bridge";
 import type {
   ActiveWorkoutView,
   LiftingDashboard,
@@ -85,6 +85,16 @@ export function WorkoutApp({ hevyConnected = false }: { hevyConnected?: boolean 
     window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onCoachChange);
     return () => window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, onCoachChange);
   }, [refresh]);
+
+  useEffect(() => {
+    if (!data?.hevy?.connected && !data?.dashboard?.total_sessions) return;
+    void refreshLiftingSnapshot(30);
+  }, [
+    data?.hevy?.connected,
+    data?.hevy?.lastSyncedAt,
+    data?.dashboard?.total_sessions,
+    data?.dashboard?.total_volume_lbs,
+  ]);
 
   useEffect(() => {
     if (!data?.hevy?.connected) return;

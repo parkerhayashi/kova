@@ -9,6 +9,12 @@
  */
 
 import { scheduleClientSyncPush, CLIENT_SYNC_CHANGED_EVENT } from "@/lib/client-sync";
+import { loadLiftingSnapshot } from "@/lib/coach-bridge";
+import {
+  buildLiftSignalsFromCoachLogs,
+  computeCompositionEstimate,
+  mergeLiftSignals,
+} from "@/lib/coach-composition";
 import { localDateKey, parseLocalDateKey } from "@/lib/coach-rx";
 
 export const COACH_CONFIG = {
@@ -94,6 +100,7 @@ export const COACH_HTML = `
         </div>
         <div class="wt-comp-headline" id="wtCompHeadline">—</div>
         <div class="wt-comp-bars" id="wtCompBars"></div>
+        <div class="wt-lifting hidden" id="wtLifting"></div>
         <div class="wt-comp-foot" id="wtCompFoot">—</div>
       </div>
 
@@ -1687,13 +1694,16 @@ export function mountCoach(): () => void {
 
   function wtRenderComposition() {
     const compEl = $("wtComp");
+    const liftingEl = $("wtLifting");
     if (!CONFIG.composition || !CONFIG.composition.enabled) {
       compEl.classList.add("hidden");
+      liftingEl.classList.add("hidden");
       return;
     }
     const window = CONFIG.composition.windowDays || 30;
     if (wtEntries.length < 2) {
       compEl.classList.add("hidden");
+      liftingEl.classList.add("hidden");
       return;
     }
 
@@ -1705,111 +1715,58 @@ export function mountCoach(): () => void {
     const endEntry = wtEntries[wtEntries.length - 1];
     if (!startEntry || startEntry === endEntry) {
       compEl.classList.add("hidden");
+      liftingEl.classList.add("hidden");
       return;
     }
     const weightDelta = endEntry.weight - startEntry.weight;
-    const actualDays = Math.max(1, Math.round((wtParseKey(endEntry.dateKey) - wtParseKey(startEntry.dateKey)) / 86400000));
-    const weeks = actualDays / 7;
+    const actualDays = Math.max(
+      1,
+      Math.round(
+        (wtParseKey(endEntry.dateKey) - wtParseKey(startEntry.dateKey)) /
+          86400000,
+      ),
+    );
 
-    let strengthRatios = [];
-    let workoutDays = new Set();
-    let totalVolumeInWindow = 0;
-    state.exercises.forEach((ex) => {
-      const logs = (state.logs[ex.id] || []).slice();
-      if (logs.length < 2 || ex.bw) {
-        logs.forEach((l) => {
-          if (new Date(l.date) >= start) {
-            workoutDays.add(l.date.slice(0, 10));
-            totalVolumeInWindow += (l.weight || 0) * (l.reps || 0);
-          }
-        });
-        return;
-      }
-      const inWin = logs.filter((l) => new Date(l.date) >= start);
-      const before = logs.filter((l) => new Date(l.date) < start);
-      inWin.forEach((l) => {
-        workoutDays.add(l.date.slice(0, 10));
-        totalVolumeInWindow += (l.weight || 0) * (l.reps || 0);
-      });
-      if (!inWin.length || !before.length) return;
-      const avg = (arr) => arr.reduce((s, l) => s + estimate1RM(l.weight, l.reps), 0) / arr.length;
-      const a = avg(before),
-        b = avg(inWin);
-      if (a <= 0) return;
-      strengthRatios.push(b / a);
+    const coachSignals = buildLiftSignalsFromCoachLogs(
+      state.logs,
+      state.exercises,
+      start,
+    );
+    const snapshot = loadLiftingSnapshot();
+    const alignedSnapshot =
+      snapshot && snapshot.windowDays === window ? snapshot : null;
+    const lift = mergeLiftSignals(alignedSnapshot, coachSignals, actualDays);
+
+    const result = computeCompositionEstimate({
+      weightDelta,
+      actualDays,
+      units: state.units,
+      yearsTraining: CONFIG.composition.yearsTraining || 1,
+      lift,
     });
-    const strengthDelta = strengthRatios.length ? strengthRatios.reduce((s, r) => s + r, 0) / strengthRatios.length - 1 : 0;
-    const sessionsPerWeek = (workoutDays.size / actualDays) * 7;
-    const frequencyFactor = Math.max(0.4, Math.min(1.2, sessionsPerWeek / 4));
-
-    const yt = CONFIG.composition.yearsTraining || 1;
-    let maxMuscleKgPerWeek;
-    if (yt <= 1) maxMuscleKgPerWeek = 0.45;
-    else if (yt === 2) maxMuscleKgPerWeek = 0.23;
-    else maxMuscleKgPerWeek = 0.11;
-    const unitConv = state.units === "lb" ? 2.20462 : 1;
-    const maxMusclePerWeek = maxMuscleKgPerWeek * unitConv;
-
-    const strengthBoost = Math.max(0.5, Math.min(1.5, 1 + strengthDelta * 4));
-    let estMuscle = maxMusclePerWeek * weeks * strengthBoost * frequencyFactor;
-
-    let estFat;
-    let headlineCls = "";
-    let headline = "";
-    if (weightDelta > 0) {
-      estMuscle = Math.min(estMuscle, weightDelta);
-      estFat = Math.max(0, weightDelta - estMuscle);
-      const musclePct = estMuscle / weightDelta;
-      if (musclePct >= 0.6 && strengthDelta > 0) {
-        headlineCls = "good";
-        headline = "+" + weightDelta.toFixed(1) + " " + state.units + " — mostly muscle, strength up.";
-      } else if (musclePct >= 0.35) {
-        headlineCls = "warn";
-        headline = "+" + weightDelta.toFixed(1) + " " + state.units + " — mixed. Tighten kcal or push lifts harder.";
-      } else {
-        headlineCls = "bad";
-        headline = "+" + weightDelta.toFixed(1) + " " + state.units + " — mostly fat. Strength flat. Cut kcal.";
-      }
-    } else {
-      const wDown = Math.abs(weightDelta);
-      if (strengthDelta >= 0) {
-        estMuscle = Math.min(maxMusclePerWeek * weeks * 0.3, 0.5);
-        estFat = wDown + estMuscle;
-        headlineCls = "good";
-        headline = "−" + wDown.toFixed(1) + " " + state.units + " — strength holding, fat dropping.";
-      } else {
-        const lossPct = Math.min(0.4, Math.abs(strengthDelta) * 2);
-        estMuscle = -wDown * lossPct;
-        estFat = -(wDown + estMuscle);
-        headlineCls = "warn";
-        headline = "−" + wDown.toFixed(1) + " " + state.units + " — strength slipping. You may be losing muscle.";
-      }
-    }
 
     compEl.classList.remove("hidden");
     $("wtCompWindow").textContent = "last " + actualDays + "d";
     const headlineEl = $("wtCompHeadline");
-    headlineEl.textContent = headline;
-    headlineEl.className = "wt-comp-headline " + headlineCls;
+    headlineEl.textContent = result.headline;
+    headlineEl.className = "wt-comp-headline " + result.headlineCls;
 
-    const totalAbs = Math.abs(estMuscle) + Math.abs(estFat) || 1;
-    const musclePct = (Math.abs(estMuscle) / totalAbs) * 100;
-    const fatPct = (Math.abs(estFat) / totalAbs) * 100;
     $("wtCompBars").innerHTML =
-      '<div class="wt-comp-bar muscle" style="width:' + musclePct.toFixed(1) + '%"></div>' +
-      '<div class="wt-comp-bar fat" style="width:' + fatPct.toFixed(1) + '%"></div>';
+      '<div class="wt-comp-bar muscle" style="width:' +
+      result.musclePct.toFixed(1) +
+      '%"></div>' +
+      '<div class="wt-comp-bar fat" style="width:' +
+      result.fatPct.toFixed(1) +
+      '%"></div>';
 
-    const sd = strengthDelta * 100;
-    const sdStr = (sd >= 0 ? "+" : "") + sd.toFixed(1) + "%";
-    const muscleSign = estMuscle >= 0 ? "+" : "";
-    const fatSign = estFat >= 0 ? "+" : "";
-    const freqStr = sessionsPerWeek.toFixed(1) + " sessions/wk";
-    $("wtCompFoot").textContent =
-      "~" + muscleSign + estMuscle.toFixed(1) + " " + state.units + " muscle · " +
-      "~" + fatSign + estFat.toFixed(1) + " " + state.units + " fat · " +
-      "strength " + sdStr +
-      " · " + freqStr +
-      (strengthRatios.length ? "" : " (no lift data)");
+    if (result.hasLiftData) {
+      liftingEl.textContent = result.liftingMeta;
+      liftingEl.classList.remove("hidden");
+    } else {
+      liftingEl.classList.add("hidden");
+    }
+
+    $("wtCompFoot").textContent = result.footLine;
   }
 
   $("wtSaveBtn").addEventListener("click", () => {
