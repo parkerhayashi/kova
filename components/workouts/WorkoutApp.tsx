@@ -7,6 +7,8 @@ import { CoachDayBanner } from "@/components/workouts/CoachDayBanner";
 import { CoachWeight } from "@/components/coach/CoachPanel";
 import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
 import { LiftingStats } from "@/components/workouts/LiftingStats";
+import { HevyHistory } from "@/components/workouts/HevyHistory";
+import { HevyRefreshControl } from "@/components/workouts/HevyRefreshControl";
 import { RoutineEditor } from "@/components/workouts/RoutineEditor";
 import { RoutineList } from "@/components/workouts/RoutineList";
 import { SessionDetailPanel } from "@/components/workouts/SessionDetailPanel";
@@ -19,13 +21,22 @@ import type {
   LiftingDashboard,
   RoutineDetail,
   WorkoutSession,
+  Workout,
 } from "@/types";
+
+type HevyPayload = {
+  connected: boolean;
+  lastSyncedAt: string | null;
+  timezone: string;
+  workouts: Workout[];
+};
 
 type WorkoutsPayload = {
   routines: RoutineDetail[];
   activeWorkout: ActiveWorkoutView | null;
   recentSessions: WorkoutSession[];
   dashboard: LiftingDashboard;
+  hevy?: HevyPayload;
 };
 
 const EMPTY_DASHBOARD: LiftingDashboard = {
@@ -38,7 +49,7 @@ const EMPTY_DASHBOARD: LiftingDashboard = {
   muscle_split: [],
 };
 
-export function WorkoutApp() {
+export function WorkoutApp({ hevyConnected = false }: { hevyConnected?: boolean }) {
   const [data, setData] = useState<WorkoutsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,14 +147,22 @@ export function WorkoutApp() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={inSession ? "Live workout" : "Workouts"}
-        subtitle={
-          inSession
-            ? "Log every set here. Coach targets update as you finish."
-            : "Start a live session to log sets, reps, and rest. Import past workouts coming later."
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeader
+          title={inSession ? "Live workout" : "Workouts"}
+          subtitle={
+            inSession
+              ? "Log every set here. Coach targets update as you finish."
+              : "Live sessions in Kova, plus Hevy history synced from your account."
+          }
+        />
+        {!inSession && (data?.hevy?.connected || hevyConnected) ? (
+          <HevyRefreshControl
+            lastSyncedAt={data?.hevy?.lastSyncedAt ?? null}
+            timeZone={data?.hevy?.timezone ?? "America/New_York"}
+          />
+        ) : null}
+      </div>
 
       {error ? (
         <p className="text-sm text-[color:var(--color-stress)]">{error}</p>
@@ -187,6 +206,12 @@ export function WorkoutApp() {
               onViewExercise={setViewExerciseId}
               highlightRoutineName={todaySplit}
             />
+            {data?.hevy?.connected ? (
+              <HevyHistory
+                workouts={data.hevy.workouts}
+                timezone={data.hevy.timezone}
+              />
+            ) : null}
             {data?.dashboard ? <LiftingStats dashboard={data.dashboard} /> : null}
             <Card className="border-dashed p-4">
               <p className="metric-label">Exercise library</p>

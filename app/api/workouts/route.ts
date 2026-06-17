@@ -8,17 +8,28 @@ import {
   listRecentSessions,
   listRoutines,
 } from "@/lib/data/workouts";
+import {
+  getHevyLastSyncedAt,
+  isHevyConnected,
+  listHevyWorkouts,
+} from "@/lib/data/hevy";
+import { getTimezone } from "@/lib/data/oura";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [routines, active, recent, dashboard, todaySummary] = await Promise.all([
-    listRoutines(),
-    getActiveSession(),
-    listRecentSessions(5),
-    getLiftingDashboard(28),
-    getTodayWorkoutSummary(),
-  ]);
+  const [routines, active, recent, dashboard, todaySummary, hevyWorkouts, hevyLastSynced, timezone, hevyConnected] =
+    await Promise.all([
+      listRoutines(),
+      getActiveSession(),
+      listRecentSessions(5),
+      getLiftingDashboard(28),
+      getTodayWorkoutSummary(),
+      listHevyWorkouts(10),
+      getHevyLastSyncedAt(),
+      getTimezone(),
+      Promise.resolve(isHevyConnected()),
+    ]);
 
   let activeWorkout = null;
   if (active) {
@@ -35,5 +46,11 @@ export async function GET() {
     recentSessions: recent,
     dashboard,
     todaySummary,
+    hevy: {
+      connected: hevyConnected,
+      lastSyncedAt: hevyLastSynced,
+      timezone,
+      workouts: hevyWorkouts,
+    },
   });
 }

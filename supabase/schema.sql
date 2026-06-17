@@ -509,6 +509,9 @@ alter table user_settings
   add column if not exists oura_last_synced_at timestamptz;
 
 alter table user_settings
+  add column if not exists hevy_last_synced_at timestamptz;
+
+alter table user_settings
   add column if not exists body_fat_goal_pct float;
 
 alter table user_settings

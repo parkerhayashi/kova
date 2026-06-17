@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/server";
+import { hevyVolumeLbs } from "@/lib/hevy";
 import {
   dedupeCatalogItems,
   fetchExerciseDbById,
@@ -1046,6 +1047,25 @@ export async function getTodayWorkoutSummary(): Promise<WorkoutTodaySummary> {
       volume_lbs: workout?.total_volume_lbs ?? null,
       duration_seconds: session.duration,
       started_at: session.started_at,
+    };
+  }
+
+  const { data: hevyRow } = await db
+    .from("workouts")
+    .select("title, volume_kg, duration")
+    .eq("date", today)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (hevyRow) {
+    return {
+      status: "completed_today",
+      title: hevyRow.title,
+      session_id: null,
+      volume_lbs: hevyVolumeLbs(hevyRow.volume_kg),
+      duration_seconds: hevyRow.duration,
+      started_at: null,
     };
   }
 

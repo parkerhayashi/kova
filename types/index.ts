@@ -630,6 +630,7 @@ export interface UserSettings {
   water_state: Record<string, unknown> | null;
   client_sync: ClientSyncPayload | null;
   oura_last_synced_at: string | null;
+  hevy_last_synced_at: string | null;
   updated_at: string;
 }
 
