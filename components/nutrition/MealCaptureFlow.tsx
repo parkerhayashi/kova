@@ -79,9 +79,11 @@ export function MealCaptureFlow({
           description,
         }),
       });
-      const json = (await res.json()) as CaptureAnalysisResult & { error?: string };
+      const json = (await res.json().catch(() => ({}))) as CaptureAnalysisResult & {
+        error?: string;
+      };
       if (!res.ok) {
-        throw new Error(json.error ?? "Analysis failed");
+        throw new Error(json.error ?? `Analysis failed (${res.status})`);
       }
       setMealName(json.meal_name ?? "");
       setItems(json.items);
@@ -102,9 +104,11 @@ export function MealCaptureFlow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items, fixDescription }),
       });
-      const json = (await res.json()) as CaptureAnalysisResult & { error?: string };
+      const json = (await res.json().catch(() => ({}))) as CaptureAnalysisResult & {
+        error?: string;
+      };
       if (!res.ok) {
-        throw new Error(json.error ?? "Could not apply fix");
+        throw new Error(json.error ?? `Could not apply fix (${res.status})`);
       }
       if (json.meal_name) setMealName(json.meal_name);
       setItems(json.items);
