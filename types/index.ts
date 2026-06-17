@@ -442,7 +442,29 @@ export type MealSource =
   | "duke_dining"
   | "restaurant"
   | "saved_meal"
-  | "manual";
+  | "manual"
+  | "photo_estimate";
+
+/** How a photo-capture line item was nutrition-sourced. */
+export type CaptureMatchSource = "estimated" | "usda" | "restaurant";
+
+/** One editable food line from AI meal capture before logging. */
+export interface CaptureItem {
+  id: string;
+  name: string;
+  portion_g: number;
+  confidence: number;
+  matchSource: CaptureMatchSource;
+  food_id?: string;
+  nutrients: NutrientProfile["nutrients"];
+  notes?: string;
+}
+
+/** Result returned by capture / refine APIs. */
+export interface CaptureAnalysisResult {
+  meal_name: string | null;
+  items: CaptureItem[];
+}
 
 /** One line item inside a saved meal template. */
 export interface SavedMealComponent {

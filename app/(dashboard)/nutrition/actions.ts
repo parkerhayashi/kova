@@ -28,6 +28,21 @@ export async function logMeal(
   refresh();
 }
 
+export async function logMealItems(input: {
+  date: string;
+  mealName?: string;
+  items: NutrientProfile[];
+}): Promise<void> {
+  const { date, mealName, items } = input;
+  if (!date || items.length === 0) return;
+
+  for (const profile of items) {
+    const row = buildMealRow(profile, date, 1, mealName?.trim() || profile.name);
+    await addMeal(row);
+  }
+  refresh();
+}
+
 export async function removeMeal(id: string): Promise<void> {
   if (!id) return;
   await deleteMeal(id);
