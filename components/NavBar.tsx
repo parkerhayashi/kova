@@ -47,9 +47,9 @@ const NAV = FINANCES_NAV_ENABLED
 
 const MOBILE_PRIMARY = [
   { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/recovery", label: "Readiness", icon: HeartPulse },
   { href: "/workouts", label: "Workouts", icon: Dumbbell },
   { href: "/nutrition", label: "Nutrition", icon: Apple },
+  { href: "/habits", label: "Habits", icon: CalendarCheck },
 ] as const;
 
 const MOBILE_MORE = NAV.filter(
