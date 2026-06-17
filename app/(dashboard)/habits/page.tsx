@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { LogDatePicker } from "@/components/LogDatePicker";
 import { MetricCard } from "@/components/MetricCard";
@@ -125,26 +125,27 @@ export default async function HabitsPage({
         />
       </section>
 
-      <HabitChecklist key={logDate} habits={rows} logDate={logDate} />
+      <Fragment key={logDate}>
+        <HabitChecklist habits={rows} logDate={logDate} />
 
-      {positiveHabits.length > 0 ? (
-        <Card>
-          <Heatmap
-            ratios={ratios}
-            today={today}
-            linkPath="/habits"
-            label="Habit completion · 18 weeks (tap a day to edit)"
-          />
-        </Card>
-      ) : null}
+        {positiveHabits.length > 0 ? (
+          <Card>
+            <Heatmap
+              ratios={ratios}
+              today={today}
+              linkPath="/habits"
+              label="Habit completion · 18 weeks (tap a day to edit)"
+            />
+          </Card>
+        ) : null}
 
-      <WeightDayLog
-        key={logDate}
-        logDate={logDate}
-        today={today}
-        timezone={timezone}
-        initialWeightLbs={weight?.weight_lbs ?? null}
-      />
+        <WeightDayLog
+          logDate={logDate}
+          today={today}
+          timezone={timezone}
+          initialWeightLbs={weight?.weight_lbs ?? null}
+        />
+      </Fragment>
 
       <HabitManager habits={habits} />
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Check, Flame, Shield } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,10 @@ export interface HabitRow {
   completed: boolean;
   streak: number;
   weekRate: number;
+}
+
+function completionKey(habits: HabitRow[]): string {
+  return habits.map((h) => `${h.id}:${h.completed ? 1 : 0}`).join("|");
 }
 
 function HabitRowButton({
@@ -81,26 +85,15 @@ function ChecklistSection({
   title,
   caption,
   habits,
-  logDate,
+  done,
+  onToggle,
 }: {
   title: string;
   caption: string;
   habits: HabitRow[];
-  logDate: string;
+  done: Record<string, boolean>;
+  onToggle: (id: string) => void;
 }) {
-  const [done, setDone] = useState<Record<string, boolean>>(
-    Object.fromEntries(habits.map((h) => [h.id, h.completed])),
-  );
-  const [, startTransition] = useTransition();
-
-  function toggle(id: string) {
-    const next = !done[id];
-    setDone((d) => ({ ...d, [id]: next }));
-    startTransition(async () => {
-      await toggleHabit(id, logDate, next);
-    });
-  }
-
   if (habits.length === 0) return null;
 
   return (
@@ -115,7 +108,7 @@ function ChecklistSection({
             key={h.id}
             habit={h}
             checked={done[h.id]}
-            onToggle={() => toggle(h.id)}
+            onToggle={() => onToggle(h.id)}
           />
         ))}
       </Card>
@@ -134,6 +127,24 @@ export function HabitChecklist({
   const positive = habits.filter((h) => h.kind === "positive");
   const track = habits.filter((h) => h.kind === "track");
 
+  const [done, setDone] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(habits.map((h) => [h.id, h.completed])),
+  );
+  const [, startTransition] = useTransition();
+
+  const habitKey = completionKey(habits);
+  useEffect(() => {
+    setDone(Object.fromEntries(habits.map((h) => [h.id, h.completed])));
+  }, [logDate, habitKey, habits]);
+
+  function toggle(id: string) {
+    const next = !done[id];
+    setDone((d) => ({ ...d, [id]: next }));
+    startTransition(async () => {
+      await toggleHabit(id, logDate, next);
+    });
+  }
+
   if (habits.length === 0) {
     return (
       <Card>
@@ -146,18 +157,20 @@ export function HabitChecklist({
   }
 
   return (
-    <div className="space-y-6">
+    <div key={logDate} className="space-y-6">
       <ChecklistSection
         title="Habits"
         caption="Tap when you did it — streaks count consecutive days."
         habits={positive}
-        logDate={logDate}
+        done={done}
+        onToggle={toggle}
       />
       <ChecklistSection
         title="Day tags"
         caption="Tap if it happened that day — streaks count clear days without it."
         habits={track}
-        logDate={logDate}
+        done={done}
+        onToggle={toggle}
       />
     </div>
   );

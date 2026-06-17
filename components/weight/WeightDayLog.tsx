@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
@@ -20,10 +20,15 @@ export function WeightDayLog({
 }) {
   const router = useRouter();
   const [weight, setWeight] = useState(
-    initialWeightLbs != null ? String(initialWeightLbs) : "",
+    () => (initialWeightLbs != null ? String(initialWeightLbs) : ""),
   );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setWeight(initialWeightLbs != null ? String(initialWeightLbs) : "");
+    setError(null);
+  }, [logDate, initialWeightLbs]);
 
   const heading = logDateHeading(logDate, today, timezone);
 
