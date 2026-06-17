@@ -95,6 +95,46 @@ export async function getMealsSince(days: number): Promise<Meal[]> {
   return (data as Meal[]) ?? [];
 }
 
+/** Daily protein totals keyed by date (meals + supplements). */
+export async function getProteinByDay(days: number): Promise<Map<string, number>> {
+  const timezone = await getTimezone();
+  const since = addDays(todayInTimezone(timezone), -(days - 1));
+  const [meals, supplements, supplementLogs] = await Promise.all([
+    getMealsSince(days),
+    getSupplements(true),
+    getSupplementLogsSince(since),
+  ]);
+
+  const map = new Map<string, number>();
+  const mealsByDate = new Map<string, Meal[]>();
+  for (const meal of meals) {
+    const list = mealsByDate.get(meal.date) ?? [];
+    list.push(meal);
+    mealsByDate.set(meal.date, list);
+  }
+
+  const logsByDate = new Map<string, typeof supplementLogs>();
+  for (const log of supplementLogs) {
+    const list = logsByDate.get(log.date) ?? [];
+    list.push(log);
+    logsByDate.set(log.date, list);
+  }
+
+  for (const [date, dayMeals] of mealsByDate) {
+    const mealTotals = sumMeals(dayMeals);
+    const supTotals = sumTakenSupplements(
+      supplements,
+      logsByDate.get(date) ?? [],
+    );
+    const merged = mergeDailyTotals(mealTotals, supTotals);
+    if (merged.protein_g != null && merged.protein_g > 0) {
+      map.set(date, Math.round(merged.protein_g));
+    }
+  }
+
+  return map;
+}
+
 export async function getDailyTotals(date: string): Promise<DailyTotals> {
   const [meals, supplements, logs] = await Promise.all([
     getMealsForDate(date),

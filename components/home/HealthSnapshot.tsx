@@ -44,13 +44,14 @@ export async function HealthSnapshot() {
     data.workout.status === "in_progress" ||
     data.workout.status === "completed_today"
       ? data.workout.title
-      : null;
+      : data.workout.last_session?.title ?? null;
   const workoutCaption =
-    data.workout.status === "in_progress"
-      ? `${formatDuration(data.workout.duration_seconds)} in progress`
+    data.workout.insight ??
+    (data.workout.status === "in_progress"
+      ? `${formatDuration(data.workout.duration_seconds ?? 0)} in progress`
       : data.workout.status === "completed_today"
-        ? `${data.workout.volume_lbs?.toLocaleString() ?? "—"} lb · ${formatDuration(data.workout.duration_seconds)}`
-        : "log a session";
+        ? `${data.workout.volume_lbs?.toLocaleString() ?? "—"} lb · ${formatDuration(data.workout.duration_seconds ?? 0)}`
+        : "log a session");
 
   const weightCaption = data.weight
     ? new Date(`${data.weight.date}T12:00:00`).toLocaleDateString("en-US", {

@@ -1182,24 +1182,36 @@ export async function getLiftingCompositionSnapshot(
   };
 }
 
-export async function getTodayWorkoutSummary(): Promise<WorkoutTodaySummary> {
+export async function getTodayWorkoutSummary(
+  readinessScore: number | null = null,
+): Promise<WorkoutTodaySummary> {
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
   const active = await getActiveSession();
+
+  const base = {
+    insight: null as string | null,
+    last_session: null as WorkoutTodaySummary["last_session"],
+    volume_vs_avg_pct: null as number | null,
+    training_streak_days: null as number | null,
+  };
 
   if (active) {
     const workout = await getActiveWorkout(active.id);
     const startedMs = active.started_at
       ? new Date(active.started_at).getTime()
       : Date.now();
-    return {
-      status: "in_progress",
+    const duration = Math.max(0, Math.floor((Date.now() - startedMs) / 1000));
+    const summary = {
+      status: "in_progress" as const,
       title: active.title,
       session_id: active.id,
       volume_lbs: workout?.total_volume_lbs ?? null,
-      duration_seconds: Math.max(0, Math.floor((Date.now() - startedMs) / 1000)),
+      duration_seconds: duration,
       started_at: active.started_at,
+      ...base,
     };
+    return enrichWorkoutSummary(summary, today, readinessScore);
   }
 
   const db = createServiceClient();
@@ -1214,14 +1226,16 @@ export async function getTodayWorkoutSummary(): Promise<WorkoutTodaySummary> {
 
   if (session) {
     const workout = await getActiveWorkout(session.id);
-    return {
-      status: "completed_today",
+    const summary = {
+      status: "completed_today" as const,
       title: session.title,
       session_id: session.id,
       volume_lbs: workout?.total_volume_lbs ?? null,
       duration_seconds: session.duration,
       started_at: session.started_at,
+      ...base,
     };
+    return enrichWorkoutSummary(summary, today, readinessScore);
   }
 
   const { data: hevyRow } = await db
@@ -1233,22 +1247,145 @@ export async function getTodayWorkoutSummary(): Promise<WorkoutTodaySummary> {
     .maybeSingle();
 
   if (hevyRow) {
-    return {
-      status: "completed_today",
+    const summary = {
+      status: "completed_today" as const,
       title: hevyRow.title,
       session_id: null,
       volume_lbs: hevyVolumeLbs(hevyRow.volume_kg),
       duration_seconds: hevyRow.duration,
       started_at: null,
+      ...base,
     };
+    return enrichWorkoutSummary(summary, today, readinessScore);
   }
 
-  return {
-    status: "none",
+  const summary = {
+    status: "none" as const,
     title: null,
     session_id: null,
     volume_lbs: null,
     duration_seconds: null,
     started_at: null,
+    ...base,
+  };
+  return enrichWorkoutSummary(summary, today, readinessScore);
+}
+
+function daysBetween(from: string, to: string): number {
+  const a = new Date(`${from}T12:00:00`).getTime();
+  const b = new Date(`${to}T12:00:00`).getTime();
+  return Math.max(0, Math.round((b - a) / 86400000));
+}
+
+function formatDaysAgo(days: number): string {
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  return `${days}d ago`;
+}
+
+async function enrichWorkoutSummary(
+  summary: Omit<WorkoutTodaySummary, "insight" | "last_session" | "volume_vs_avg_pct" | "training_streak_days">,
+  today: string,
+  readinessScore: number | null,
+): Promise<WorkoutTodaySummary> {
+  const dashboard = await getLiftingDashboard(28);
+  const db = createServiceClient();
+
+  const [{ data: lastHevy }, { data: lastNative }] = await Promise.all([
+    db
+      .from("workouts")
+      .select("date, title")
+      .order("date", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    db
+      .from("workout_sessions")
+      .select("date, title")
+      .eq("status", "completed")
+      .order("date", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  let last_session: WorkoutTodaySummary["last_session"] = null;
+  const hevyDate = (lastHevy as { date?: string } | null)?.date;
+  const nativeDate = (lastNative as { date?: string } | null)?.date;
+  if (hevyDate || nativeDate) {
+    const useHevy = hevyDate && (!nativeDate || hevyDate >= nativeDate);
+    const date = (useHevy ? hevyDate : nativeDate)!;
+    const title = (
+      useHevy ? lastHevy : lastNative
+    ) as { title: string | null };
+    if (date !== today || summary.status === "none") {
+      last_session = {
+        date,
+        title: title.title,
+        days_ago: daysBetween(date, today),
+      };
+    }
+  }
+
+  let volume_vs_avg_pct: number | null = null;
+  if (
+    summary.status === "completed_today" &&
+    summary.volume_lbs != null &&
+    summary.volume_lbs > 0
+  ) {
+    const daysWithVol = dashboard.volume_by_day.filter((d) => d.volume_lbs > 0);
+    const avg =
+      daysWithVol.reduce((sum, d) => sum + d.volume_lbs, 0) /
+      Math.max(1, daysWithVol.length);
+    if (avg > 0) {
+      volume_vs_avg_pct = Math.round(
+        ((summary.volume_lbs - avg) / avg) * 100,
+      );
+    }
+  }
+
+  const streak = dashboard.current_streak_days;
+  let insight: string | null = null;
+
+  if (summary.status === "in_progress") {
+    insight = `${summary.volume_lbs != null ? `${summary.volume_lbs.toLocaleString()} lb · ` : ""}session in progress`;
+  } else if (summary.status === "completed_today") {
+    const parts: string[] = [];
+    if (summary.volume_lbs != null) {
+      parts.push(`${summary.volume_lbs.toLocaleString()} lb logged`);
+    }
+    if (volume_vs_avg_pct != null && Math.abs(volume_vs_avg_pct) >= 5) {
+      parts.push(
+        `${volume_vs_avg_pct >= 0 ? "+" : ""}${volume_vs_avg_pct}% vs 4-wk avg`,
+      );
+    }
+    insight = parts.join(" · ") || "Session complete";
+  } else {
+    const parts: string[] = [];
+    if (last_session) {
+      const name = last_session.title ?? "Workout";
+      parts.push(
+        `Last: ${name} · ${formatDaysAgo(last_session.days_ago)}`,
+      );
+    }
+    if (readinessScore != null) {
+      if (readinessScore >= 75) {
+        parts.push(`Readiness ${readinessScore} — good to train`);
+      } else if (readinessScore < 60) {
+        parts.push(`Readiness ${readinessScore} — consider recovery`);
+      } else {
+        parts.push(`Readiness ${readinessScore}`);
+      }
+    }
+    if (streak >= 2) {
+      parts.push(`${streak}-day streak`);
+    }
+    insight = parts.length > 0 ? parts.join(" · ") : "No session today";
+  }
+
+  return {
+    ...summary,
+    insight,
+    last_session,
+    volume_vs_avg_pct,
+    training_streak_days: streak > 0 ? streak : null,
   };
 }

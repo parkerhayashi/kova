@@ -43,6 +43,8 @@ export type NormalizedHevyWorkout = {
   duration: number | null;
   volume_kg: number | null;
   exercises: WorkoutExercise[] | null;
+  start_time: string | null;
+  end_time: string | null;
 };
 
 function apiKey(): string {
@@ -150,7 +152,92 @@ export function normalizeHevyWorkout(
     duration,
     volume_kg: hevyWorkoutVolumeKg(workout.exercises ?? []),
     exercises,
+    start_time: Number.isFinite(start.getTime()) ? start.toISOString() : null,
+    end_time: Number.isFinite(end.getTime()) ? end.toISOString() : null,
   };
+}
+
+export type HevyWorkoutEvent =
+  | { type: "updated"; workout: HevyWorkout }
+  | { type: "deleted"; id: string; deleted_at?: string | null };
+
+export interface HevyWorkoutEventsPage {
+  page: number;
+  page_count: number;
+  events: Array<
+    | { type: string; workout: HevyWorkout }
+    | { type: string; id: string; deleted_at?: string | null }
+  >;
+}
+
+function parseWorkoutEvent(
+  raw: HevyWorkoutEventsPage["events"][number],
+): HevyWorkoutEvent | null {
+  if (raw.type === "updated" && "workout" in raw && raw.workout?.id) {
+    return { type: "updated", workout: raw.workout as HevyWorkout };
+  }
+  if (raw.type === "deleted" && "id" in raw && raw.id) {
+    return {
+      type: "deleted",
+      id: raw.id,
+      deleted_at: raw.deleted_at ?? null,
+    };
+  }
+  return null;
+}
+
+/** Fetch a single workout (fallback when event payload is incomplete). */
+export async function getWorkoutById(
+  workoutId: string,
+  key?: string,
+): Promise<HevyWorkout> {
+  return hevyFetch<HevyWorkout>(`/workouts/${workoutId}`, key ?? apiKey());
+}
+
+async function getWorkoutEventsPage(
+  sinceIso: string,
+  page = 1,
+  pageSize = MAX_PAGE_SIZE,
+  key?: string,
+): Promise<HevyWorkoutEventsPage> {
+  const size = Math.min(MAX_PAGE_SIZE, Math.max(1, pageSize));
+  const params = new URLSearchParams({
+    since: sinceIso,
+    page: String(page),
+    pageSize: String(size),
+  });
+  return hevyFetch<HevyWorkoutEventsPage>(
+    `/workouts/events?${params}`,
+    key ?? apiKey(),
+  );
+}
+
+/**
+ * Delta sync: updated + deleted workouts since an ISO timestamp.
+ * Returns events oldest-first for safe application order.
+ */
+export async function fetchWorkoutEventsSince(
+  sinceIso: string,
+  maxPages = 100,
+  key?: string,
+): Promise<HevyWorkoutEvent[]> {
+  const api = key ?? apiKey();
+  const collected: HevyWorkoutEvent[] = [];
+  let page = 1;
+  let pageCount = 1;
+
+  while (page <= pageCount && page <= maxPages) {
+    const batch = await getWorkoutEventsPage(sinceIso, page, MAX_PAGE_SIZE, api);
+    pageCount = batch.page_count;
+    for (const raw of batch.events ?? []) {
+      const event = parseWorkoutEvent(raw);
+      if (event) collected.push(event);
+    }
+    if ((batch.events ?? []).length === 0) break;
+    page += 1;
+  }
+
+  return collected.reverse();
 }
 
 /**

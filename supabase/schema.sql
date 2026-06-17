@@ -109,8 +109,13 @@ create table if not exists workouts (
   duration              int,          -- seconds
   volume_kg             float,
   exercises             jsonb,
+  start_time            timestamptz,
+  end_time              timestamptz,
   created_at            timestamptz default now()
 );
+
+alter table workouts add column if not exists start_time timestamptz;
+alter table workouts add column if not exists end_time timestamptz;
 
 -- ---------------------------------------------------------------------------
 -- Native strength tracker (Phase 4 — self-logged in Kova). Weights in lbs.

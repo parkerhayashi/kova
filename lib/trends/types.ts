@@ -29,6 +29,8 @@ export interface TrendsInput {
   workouts: OuraWorkout[];
   /** Unified Hevy + native lifting volume by day (lb). */
   liftingVolumeByDay: Map<string, number>;
+  /** Daily protein totals (meals + supplements), keyed by date. */
+  proteinByDay: Map<string, number>;
 }
 
 export interface CorrelationView {

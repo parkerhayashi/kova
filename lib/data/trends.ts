@@ -13,6 +13,7 @@ import {
   getWeightLogs,
 } from "@/lib/data/tracking";
 import { getLiftingDashboard } from "@/lib/data/workouts";
+import { getProteinByDay } from "@/lib/data/nutrition";
 import { buildTrendsPayload } from "@/lib/trends/build";
 import type { TrendsInput, TrendsPayload, TrendRange } from "@/lib/trends/types";
 
@@ -34,6 +35,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     supplementLogs,
     workouts,
     liftingDashboard,
+    proteinByDay,
     ouraConnected,
   ] = await Promise.all([
     getSleepHistory(range),
@@ -46,6 +48,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     getSupplementLogs(range),
     getOuraWorkouts(range),
     getLiftingDashboard(range),
+    getProteinByDay(range),
     isOuraConnected(),
   ]);
 
@@ -72,6 +75,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     supplementCount: supplements.length,
     workouts,
     liftingVolumeByDay,
+    proteinByDay,
   };
 
   return buildTrendsPayload(input, range, ouraConnected);

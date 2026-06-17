@@ -128,6 +128,7 @@ function alcoholCorrelations(
   logs: HabitLog[],
   sleep: Sleep[],
   readiness: Readiness[],
+  liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
 ): CorrelationView[] {
   const tagLogs = tagLogByDate(logs, alcohol.id);
   const tagName = alcohol.name;
@@ -163,6 +164,16 @@ function alcoholCorrelations(
       readiness.map((r) => ({ date: r.date, value: r.hrv_balance })),
       "HRV balance",
       "recovery",
+    ),
+    tagVsNextDay(
+      "alcohol-lifting",
+      `${tagName} → Next-Day Lifting`,
+      `Drinks logged vs. lifting volume the following day`,
+      xLabel,
+      tagLogs,
+      liftingVolumeRows(liftingVolumeByDay),
+      "Volume (lb)",
+      "activity",
     ),
   ];
 }
@@ -264,6 +275,115 @@ function sleepVsActivity(
       xAccent: "sleep",
       yAccent: "activity",
       minPairs: 3,
+    },
+    pairs,
+  );
+}
+
+function liftingVolumeRows(
+  liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
+): { date: string; value: number }[] {
+  return [...liftingVolumeByDay.entries()]
+    .filter(([, volume]) => volume > 0)
+    .map(([date, value]) => ({ date, value }));
+}
+
+/** Protein intake vs same-day lifting volume. */
+function proteinVsLifting(
+  proteinByDay: TrendsInput["proteinByDay"],
+  liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
+): CorrelationView {
+  const pairs: { label: string; x: number; y: number }[] = [];
+
+  for (const [date, protein] of proteinByDay) {
+    const volume = liftingVolumeByDay.get(date);
+    if (volume == null || volume <= 0) continue;
+    pairs.push({
+      label: shortDate(date),
+      x: protein,
+      y: volume,
+    });
+  }
+
+  return buildCorrelation(
+    {
+      id: "protein-lifting",
+      title: "Protein vs. Lifting Volume",
+      subtitle: "Daily protein intake vs. training volume on the same day",
+      xLabel: "Protein (g)",
+      yLabel: "Volume (lb)",
+      xAccent: "nutrition",
+      yAccent: "activity",
+      minPairs: 5,
+    },
+    pairs,
+  );
+}
+
+/** Readiness vs same-day lifting volume. */
+function readinessVsLifting(
+  readiness: Readiness[],
+  liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
+): CorrelationView {
+  const readinessByDate = indexByDate(readiness);
+  const pairs: { label: string; x: number; y: number }[] = [];
+
+  for (const [date, volume] of liftingVolumeByDay) {
+    if (volume <= 0) continue;
+    const r = readinessByDate.get(date);
+    if (r?.score == null) continue;
+    pairs.push({
+      label: shortDate(date),
+      x: r.score,
+      y: volume,
+    });
+  }
+
+  return buildCorrelation(
+    {
+      id: "readiness-lifting",
+      title: "Readiness vs. Training Volume",
+      subtitle: "Morning readiness score vs. lifting volume the same day",
+      xLabel: "Readiness",
+      yLabel: "Volume (lb)",
+      xAccent: "recovery",
+      yAccent: "activity",
+      minPairs: 5,
+    },
+    pairs,
+  );
+}
+
+/** Prior-night sleep vs next-day lifting volume. */
+function sleepVsNextLifting(
+  sleep: Sleep[],
+  liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
+): CorrelationView {
+  const sleepByDate = indexByDate(sleep);
+  const pairs: { label: string; x: number; y: number }[] = [];
+
+  for (const [date, volume] of liftingVolumeByDay) {
+    if (volume <= 0) continue;
+    const sleepDate = addDays(date, -1);
+    const s = sleepByDate.get(sleepDate);
+    if (s?.score == null) continue;
+    pairs.push({
+      label: shortDate(sleepDate),
+      x: s.score,
+      y: volume,
+    });
+  }
+
+  return buildCorrelation(
+    {
+      id: "sleep-lifting",
+      title: "Sleep → Next-Day Lifting",
+      subtitle: "Sleep score vs. lifting volume the following day",
+      xLabel: "Sleep score",
+      yLabel: "Volume (lb)",
+      xAccent: "sleep",
+      yAccent: "activity",
+      minPairs: 5,
     },
     pairs,
   );
@@ -395,6 +515,9 @@ export function buildTrendsPayload(
       stressVsHrv(input.activity, input.readiness),
       sleepVsActivity(input.sleep, input.activity),
       trainingVsHrv(input.liftingVolumeByDay, input.readiness),
+      proteinVsLifting(input.proteinByDay, input.liftingVolumeByDay),
+      readinessVsLifting(input.readiness, input.liftingVolumeByDay),
+      sleepVsNextLifting(input.sleep, input.liftingVolumeByDay),
       rateVsReadiness(
         "habits-readiness",
         "Habits vs. Readiness",
@@ -419,6 +542,7 @@ export function buildTrendsPayload(
             input.allHabitLogs,
             input.sleep,
             input.readiness,
+            input.liftingVolumeByDay,
           )
         : []),
     ],
@@ -427,10 +551,6 @@ export function buildTrendsPayload(
       {
         title: "Run pace vs. prior-night sleep",
         reason: "Connect Strava to compare run pace with sleep scores.",
-      },
-      {
-        title: "Protein intake vs. strength volume",
-        reason: "Log nutrition consistently to compare protein with lifting volume.",
       },
     ],
   };

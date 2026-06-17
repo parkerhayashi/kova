@@ -8,6 +8,7 @@ import {
 } from "@/lib/data/oura";
 import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
 import { getTodayWorkoutSummary } from "@/lib/data/workouts";
+import { maybeSyncHevyOnOpen } from "@/lib/data/hevy";
 import { getWaterState } from "@/lib/data/water";
 import {
   getHabitLogs,
@@ -100,6 +101,7 @@ export type HealthSnapshotData = {
 
 export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
   unstable_noStore();
+  void maybeSyncHevyOnOpen();
 
   const timezone = await getTimezone();
   const [
@@ -129,11 +131,13 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
   ]);
 
   const todayIso = todayInTimezone(timezone);
+  const readinessScore = valueForDate(readinessRows, todayIso, "score");
+
   const [mealTotals, nutritionGoals, waterState, workout] = await Promise.all([
     getDailyTotals(todayIso),
     getNutritionGoals(todayIso),
     getWaterState(),
-    getTodayWorkoutSummary(),
+    getTodayWorkoutSummary(readinessScore),
   ]);
 
   const water = normalizeWater(waterState);

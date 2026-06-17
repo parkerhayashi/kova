@@ -245,6 +245,8 @@ export interface Workout {
   duration: number | null; // seconds
   volume_kg: number | null;
   exercises: WorkoutExercise[] | null;
+  start_time: string | null;
+  end_time: string | null;
   created_at: string;
 }
 
@@ -389,6 +391,15 @@ export interface WorkoutTodaySummary {
   volume_lbs: number | null;
   duration_seconds: number | null;
   started_at: string | null;
+  /** Smart caption for home / today tiles. */
+  insight: string | null;
+  last_session: {
+    date: string;
+    title: string | null;
+    days_ago: number;
+  } | null;
+  volume_vs_avg_pct: number | null;
+  training_streak_days: number | null;
 }
 
 export interface WorkoutSession {
