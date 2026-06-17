@@ -113,11 +113,18 @@ export async function setHabitCompletion(
   habitId: string,
   date: string,
   completed: boolean,
+  amountTier?: string | null,
 ): Promise<void> {
   const db = createServiceClient();
+  const row: Record<string, unknown> = {
+    habit_id: habitId,
+    date,
+    completed,
+    amount_tier: completed && amountTier ? amountTier : null,
+  };
   await db
     .from("habit_logs")
-    .upsert({ habit_id: habitId, date, completed }, { onConflict: "habit_id,date" });
+    .upsert(row, { onConflict: "habit_id,date" });
 }
 
 async function nextSortOrder(table: "habits" | "supplements"): Promise<number> {

@@ -7,11 +7,13 @@ import {
   setHabitCompletion,
   updateHabit,
 } from "@/lib/data/tracking";
-import type { HabitKind } from "@/types";
+import type { DrinkTier, HabitKind } from "@/types";
+import { isDrinkTier } from "@/lib/habit-drinks";
 
 function refresh() {
   revalidatePath("/habits");
   revalidatePath("/");
+  revalidatePath("/trends");
 }
 
 export async function toggleHabit(
@@ -20,6 +22,16 @@ export async function toggleHabit(
   completed: boolean,
 ): Promise<void> {
   await setHabitCompletion(habitId, date, completed);
+  refresh();
+}
+
+export async function setHabitDrinkTier(
+  habitId: string,
+  date: string,
+  tier: DrinkTier | null,
+): Promise<void> {
+  if (tier && !isDrinkTier(tier)) return;
+  await setHabitCompletion(habitId, date, tier != null, tier);
   refresh();
 }
 

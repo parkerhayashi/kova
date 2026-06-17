@@ -433,6 +433,8 @@ create table if not exists habit_logs (
   unique (habit_id, date)
 );
 
+alter table habit_logs add column if not exists amount_tier text;
+
 -- ---------------------------------------------------------------------------
 -- Supplements
 -- ---------------------------------------------------------------------------

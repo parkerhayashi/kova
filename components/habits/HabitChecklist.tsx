@@ -4,20 +4,31 @@ import { useEffect, useState, useTransition } from "react";
 import { Check, Flame, Shield } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
-import { toggleHabit } from "@/app/(dashboard)/habits/actions";
-import type { HabitKind } from "@/types";
+import {
+  setHabitDrinkTier,
+  toggleHabit,
+} from "@/app/(dashboard)/habits/actions";
+import {
+  DRINK_TIERS,
+  formatDrinkTier,
+  isDrinkQuantityHabit,
+} from "@/lib/habit-drinks";
+import type { DrinkTier, HabitKind } from "@/types";
 
 export interface HabitRow {
   id: string;
   name: string;
   kind: HabitKind;
   completed: boolean;
+  amountTier: DrinkTier | null;
   streak: number;
   weekRate: number;
 }
 
-function completionKey(habits: HabitRow[]): string {
-  return habits.map((h) => `${h.id}:${h.completed ? 1 : 0}`).join("|");
+function rowStateKey(habits: HabitRow[]): string {
+  return habits
+    .map((h) => `${h.id}:${h.completed ? 1 : 0}:${h.amountTier ?? ""}`)
+    .join("|");
 }
 
 function HabitRowButton({
@@ -81,18 +92,101 @@ function HabitRowButton({
   );
 }
 
+function DrinkTagRow({
+  habit,
+  tier,
+  logged,
+  onSelect,
+}: {
+  habit: HabitRow;
+  tier: DrinkTier | null;
+  logged: boolean;
+  onSelect: (tier: DrinkTier | null) => void;
+}) {
+  const label = formatDrinkTier(tier);
+  const active = tier != null || logged;
+
+  return (
+    <div className="space-y-3 px-5 py-3.5">
+      <div className="flex items-center gap-3">
+        <span
+          className={cn(
+            "flex size-6 shrink-0 items-center justify-center rounded-full border",
+            active
+              ? "border-transparent bg-[color:var(--color-stress)]"
+              : "border-border-strong",
+          )}
+          aria-hidden
+        >
+          {active ? (
+            <Check className="size-4 text-[#0e0e0e]" strokeWidth={3} />
+          ) : null}
+        </span>
+        <span
+          className={cn(
+            "flex-1 text-sm",
+            active ? "text-text-primary" : "text-text-secondary",
+          )}
+        >
+          {habit.name}
+        </span>
+        {label ? (
+          <span className="timestamp">{label}</span>
+        ) : logged ? (
+          <span className="timestamp">pick amount</span>
+        ) : null}
+        {habit.streak > 0 ? (
+          <span className="text-text-muted inline-flex items-center gap-1 text-xs">
+            <Shield className="size-3.5" strokeWidth={1.5} />
+            {habit.streak}d clear
+          </span>
+        ) : null}
+      </div>
+      <div
+        className="flex flex-wrap gap-2 pl-9"
+        role="group"
+        aria-label={`${habit.name} drink amount`}
+      >
+        {DRINK_TIERS.map((option) => {
+          const selected = tier === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onSelect(selected ? null : option.id)}
+              className={cn(
+                "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                selected
+                  ? "border-[color:var(--color-stress)] bg-[color:var(--color-stress)] text-[#0e0e0e]"
+                  : "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ChecklistSection({
   title,
   caption,
   habits,
   done,
+  drinkTiers,
   onToggle,
+  onDrinkTier,
 }: {
   title: string;
   caption: string;
   habits: HabitRow[];
   done: Record<string, boolean>;
+  drinkTiers: Record<string, DrinkTier | null>;
   onToggle: (id: string) => void;
+  onDrinkTier: (id: string, tier: DrinkTier | null) => void;
 }) {
   if (habits.length === 0) return null;
 
@@ -103,14 +197,24 @@ function ChecklistSection({
         <p className="snapshot-caption mt-0.5">{caption}</p>
       </div>
       <Card className="divide-border divide-y p-0">
-        {habits.map((h) => (
-          <HabitRowButton
-            key={h.id}
-            habit={h}
-            checked={done[h.id]}
-            onToggle={() => onToggle(h.id)}
-          />
-        ))}
+        {habits.map((h) =>
+          isDrinkQuantityHabit(h) ? (
+            <DrinkTagRow
+              key={h.id}
+              habit={h}
+              tier={drinkTiers[h.id] ?? null}
+              logged={done[h.id]}
+              onSelect={(tier) => onDrinkTier(h.id, tier)}
+            />
+          ) : (
+            <HabitRowButton
+              key={h.id}
+              habit={h}
+              checked={done[h.id]}
+              onToggle={() => onToggle(h.id)}
+            />
+          ),
+        )}
       </Card>
     </div>
   );
@@ -130,18 +234,30 @@ export function HabitChecklist({
   const [done, setDone] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(habits.map((h) => [h.id, h.completed])),
   );
+  const [drinkTiers, setDrinkTiers] = useState<Record<string, DrinkTier | null>>(
+    () => Object.fromEntries(habits.map((h) => [h.id, h.amountTier])),
+  );
   const [, startTransition] = useTransition();
 
-  const habitKey = completionKey(habits);
+  const stateKey = rowStateKey(habits);
   useEffect(() => {
     setDone(Object.fromEntries(habits.map((h) => [h.id, h.completed])));
-  }, [logDate, habitKey, habits]);
+    setDrinkTiers(Object.fromEntries(habits.map((h) => [h.id, h.amountTier])));
+  }, [logDate, stateKey, habits]);
 
   function toggle(id: string) {
     const next = !done[id];
     setDone((d) => ({ ...d, [id]: next }));
     startTransition(async () => {
       await toggleHabit(id, logDate, next);
+    });
+  }
+
+  function setDrinkTier(id: string, tier: DrinkTier | null) {
+    setDrinkTiers((t) => ({ ...t, [id]: tier }));
+    setDone((d) => ({ ...d, [id]: tier != null }));
+    startTransition(async () => {
+      await setHabitDrinkTier(id, logDate, tier);
     });
   }
 
@@ -163,14 +279,18 @@ export function HabitChecklist({
         caption="Tap when you did it — streaks count consecutive days."
         habits={positive}
         done={done}
+        drinkTiers={drinkTiers}
         onToggle={toggle}
+        onDrinkTier={setDrinkTier}
       />
       <ChecklistSection
         title="Day tags"
-        caption="Tap if it happened that day — streaks count clear days without it."
+        caption="Tap a bucket for alcohol, or tap other tags if they happened."
         habits={track}
         done={done}
+        drinkTiers={drinkTiers}
         onToggle={toggle}
+        onDrinkTier={setDrinkTier}
       />
     </div>
   );

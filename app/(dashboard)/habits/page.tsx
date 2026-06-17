@@ -11,6 +11,8 @@ import { getTimezone } from "@/lib/data/oura";
 import { getHabitLogs, getHabits, getWeightForDate } from "@/lib/data/tracking";
 import { logDateHeading, parseLogDate } from "@/lib/log-date";
 import { addDays, clearStreak, currentStreak, todayInTimezone } from "@/lib/utils";
+import { isDrinkTier } from "@/lib/habit-drinks";
+import type { DrinkTier } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -35,14 +37,21 @@ export default async function HabitsPage({
   const trackHabits = habits.filter((h) => h.kind === "track");
 
   const doneByHabit = new Map<string, Set<string>>();
+  const logByHabitDate = new Map<string, { completed: boolean; amount_tier: DrinkTier | null }>();
   for (const h of habits) doneByHabit.set(h.id, new Set());
   for (const log of logs) {
     if (log.completed) doneByHabit.get(log.habit_id)?.add(log.date);
+    const tier = isDrinkTier(log.amount_tier) ? log.amount_tier : null;
+    logByHabitDate.set(`${log.habit_id}:${log.date}`, {
+      completed: log.completed,
+      amount_tier: tier,
+    });
   }
 
   const last7 = Array.from({ length: 7 }, (_, i) => addDays(today, -i));
   const rows: HabitRow[] = habits.map((h) => {
     const done = doneByHabit.get(h.id) ?? new Set<string>();
+    const dayLog = logByHabitDate.get(`${h.id}:${logDate}`);
     const weekHits = last7.filter((d) => done.has(d)).length;
     const streak =
       h.kind === "track"
@@ -52,7 +61,8 @@ export default async function HabitsPage({
       id: h.id,
       name: h.name,
       kind: h.kind ?? "positive",
-      completed: done.has(logDate),
+      completed: dayLog?.completed ?? false,
+      amountTier: dayLog?.amount_tier ?? null,
       streak,
       weekRate: weekHits / 7,
     };

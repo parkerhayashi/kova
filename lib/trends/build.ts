@@ -7,7 +7,8 @@ import type {
   TrendsPayload,
   TrendRange,
 } from "@/lib/trends/types";
-import type { Activity, Readiness, Sleep } from "@/types";
+import { drinkTierNumeric } from "@/lib/habit-drinks";
+import type { Activity, Habit, HabitLog, Readiness, Sleep } from "@/types";
 
 function indexByDate<T extends { date: string }>(rows: T[]): Map<string, T> {
   return new Map(rows.map((r) => [r.date, r]));
@@ -65,6 +66,105 @@ function buildCorrelation(
 ): CorrelationView {
   const { points, r } = scatterFromPairs(pairs);
   return { ...base, points, r };
+}
+
+function findTrackTag(habits: Habit[], pattern: RegExp): Habit | null {
+  return habits.find((h) => h.kind === "track" && pattern.test(h.name)) ?? null;
+}
+
+function tagLogByDate(logs: HabitLog[], habitId: string): Map<string, HabitLog> {
+  const map = new Map<string, HabitLog>();
+  for (const log of logs) {
+    if (log.habit_id === habitId) map.set(log.date, log);
+  }
+  return map;
+}
+
+function drinkAmountOnDate(log: HabitLog | undefined): number {
+  if (!log?.completed) return 0;
+  return drinkTierNumeric(log.amount_tier) ?? 1;
+}
+
+/** Day tag on D vs a metric on D+1. X uses drink estimate when tier is set. */
+function tagVsNextDay(
+  id: string,
+  title: string,
+  subtitle: string,
+  xLabel: string,
+  tagLogs: Map<string, HabitLog>,
+  rows: { date: string; value: number | null }[],
+  yLabel: string,
+  yAccent: CorrelationView["yAccent"],
+): CorrelationView {
+  const pairs: { label: string; x: number; y: number }[] = [];
+
+  for (const row of rows) {
+    if (row.value == null) continue;
+    const tagDate = addDays(row.date, -1);
+    pairs.push({
+      label: shortDate(tagDate),
+      x: drinkAmountOnDate(tagLogs.get(tagDate)),
+      y: row.value,
+    });
+  }
+
+  return buildCorrelation(
+    {
+      id,
+      title,
+      subtitle,
+      xLabel,
+      yLabel,
+      xAccent: "stress",
+      yAccent,
+      minPairs: 3,
+    },
+    pairs,
+  );
+}
+
+function alcoholCorrelations(
+  alcohol: Habit,
+  logs: HabitLog[],
+  sleep: Sleep[],
+  readiness: Readiness[],
+): CorrelationView[] {
+  const tagLogs = tagLogByDate(logs, alcohol.id);
+  const tagName = alcohol.name;
+  const xLabel = "Drinks (est.)";
+
+  return [
+    tagVsNextDay(
+      "alcohol-readiness",
+      `${tagName} → Next-Day Readiness`,
+      `Evening drinks logged vs. readiness the following morning`,
+      xLabel,
+      tagLogs,
+      readiness.map((r) => ({ date: r.date, value: r.score })),
+      "Readiness",
+      "recovery",
+    ),
+    tagVsNextDay(
+      "alcohol-sleep",
+      `${tagName} → Next-Night Sleep`,
+      `Drinks logged vs. sleep score the following night`,
+      xLabel,
+      tagLogs,
+      sleep.map((s) => ({ date: s.date, value: s.score })),
+      "Sleep score",
+      "sleep",
+    ),
+    tagVsNextDay(
+      "alcohol-hrv",
+      `${tagName} → Next-Day HRV`,
+      `Drinks logged vs. HRV balance the following morning`,
+      xLabel,
+      tagLogs,
+      readiness.map((r) => ({ date: r.date, value: r.hrv_balance })),
+      "HRV balance",
+      "recovery",
+    ),
+  ];
 }
 
 /** Sleep score on day D vs readiness on D+1 (morning after that sleep). */
@@ -286,6 +386,8 @@ export function buildTrendsPayload(
     input.supplementCount,
   );
 
+  const alcohol = findTrackTag(input.habits, /alcohol/i);
+
   return {
     range,
     ouraConnected,
@@ -312,6 +414,14 @@ export function buildTrendsPayload(
         input.readiness,
         "nutrition",
       ),
+      ...(alcohol
+        ? alcoholCorrelations(
+            alcohol,
+            input.allHabitLogs,
+            input.sleep,
+            input.readiness,
+          )
+        : []),
     ],
     dualTrends: [caloriesVsWeight(input.activity, input.weight)],
     comingSoon: [

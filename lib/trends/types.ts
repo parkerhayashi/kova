@@ -2,6 +2,7 @@ import type { Accent } from "@/lib/utils";
 import type { ScatterPoint } from "@/lib/trends/correlation";
 import type {
   Activity,
+  Habit,
   HabitLog,
   OuraWorkout,
   Readiness,
@@ -17,8 +18,12 @@ export interface TrendsInput {
   readiness: Readiness[];
   activity: Activity[];
   weight: WeightLog[];
+  habits: Habit[];
+  /** Positive-habit logs only — used for completion-rate correlations. */
   habitLogs: HabitLog[];
   habitCount: number;
+  /** All habit logs (incl. day tags like alcohol). */
+  allHabitLogs: HabitLog[];
   supplementLogs: SupplementLog[];
   supplementCount: number;
   workouts: OuraWorkout[];
