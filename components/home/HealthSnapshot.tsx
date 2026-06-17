@@ -64,6 +64,17 @@ export async function HealthSnapshot() {
       ? `${data.water.ml} / ${data.water.goalMl} ml`
       : "tap to log";
 
+  const activityIsStale =
+    data.oura.activityAsOf != null && data.oura.activityAsOf !== data.todayIso;
+
+  const activityAsOfLabel = activityIsStale
+    ? new Date(`${data.oura.activityAsOf}T12:00:00`).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: data.timezone,
+      })
+    : null;
+
   return (
     <section className="snapshot-section section">
       <div className="snapshot-header">
@@ -118,7 +129,12 @@ export async function HealthSnapshot() {
             {data.oura.steps != null ? (
               <span className="snapshot-caption">
                 {data.oura.steps.toLocaleString()} steps
+                {activityIsStale && activityAsOfLabel
+                  ? ` · ${activityAsOfLabel} score`
+                  : ""}
               </span>
+            ) : activityIsStale && activityAsOfLabel ? (
+              <span className="snapshot-caption">{activityAsOfLabel} reading</span>
             ) : null}
           </div>
         </Link>

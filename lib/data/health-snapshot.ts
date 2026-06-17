@@ -21,7 +21,7 @@ import { burnSourceLabel } from "@/lib/nutrition-goals";
 import { describeCorrelation } from "@/lib/trends/correlation";
 import { computeTargetMl, normalizeWater, unitVolMl } from "@/lib/water";
 import { unstable_noStore } from "next/cache";
-import { todayInTimezone } from "@/lib/utils";
+import { latestRowWith, todayInTimezone } from "@/lib/utils";
 import type { WeightLog, WorkoutTodaySummary } from "@/types";
 
 function valueForDate<T extends { date: string }, K extends keyof T>(
@@ -35,6 +35,25 @@ function valueForDate<T extends { date: string }, K extends keyof T>(
   return value ?? null;
 }
 
+/** Prefer today's value; fall back to the latest non-null reading (Oura activity page pattern). */
+function valueForTodayOrLatest<T extends { date: string }, K extends keyof T>(
+  rows: T[],
+  todayIso: string,
+  key: K,
+): { value: T[K] | null; asOf: string | null } {
+  const todayVal = valueForDate(rows, todayIso, key);
+  if (todayVal !== null && todayVal !== undefined) {
+    return { value: todayVal, asOf: todayIso };
+  }
+  const row = latestRowWith(rows, key);
+  if (!row) return { value: null, asOf: null };
+  const value = row[key];
+  return {
+    value: value ?? null,
+    asOf: value != null ? row.date : null,
+  };
+}
+
 export type SnapshotTrend = {
   id: string;
   title: string;
@@ -44,6 +63,7 @@ export type SnapshotTrend = {
 
 export type HealthSnapshotData = {
   todayLabel: string;
+  todayIso: string;
   timezone: string;
   oura: {
     connected: boolean;
@@ -52,6 +72,7 @@ export type HealthSnapshotData = {
     readinessScore: number | null;
     sleepScore: number | null;
     activityScore: number | null;
+    activityAsOf: string | null;
     stress: number | null;
     steps: number | null;
   };
@@ -154,8 +175,17 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       strength: describeCorrelation(c.r),
     }));
 
+  const activityScore = valueForTodayOrLatest(
+    activityRows,
+    todayIso,
+    "activity_score",
+  );
+  const steps = valueForTodayOrLatest(activityRows, todayIso, "steps");
+  const stress = valueForTodayOrLatest(activityRows, todayIso, "stress_score");
+
   return {
     todayLabel,
+    todayIso,
     timezone,
     oura: {
       connected,
@@ -163,9 +193,10 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       lastSyncedAt: ouraLastSyncedAt,
       readinessScore: valueForDate(readinessRows, todayIso, "score"),
       sleepScore: valueForDate(sleepRows, todayIso, "score"),
-      activityScore: valueForDate(activityRows, todayIso, "activity_score"),
-      stress: valueForDate(activityRows, todayIso, "stress_score"),
-      steps: valueForDate(activityRows, todayIso, "steps"),
+      activityScore: activityScore.value,
+      activityAsOf: activityScore.asOf,
+      stress: stress.value,
+      steps: steps.value,
     },
     nutrition: {
       calories: mealTotals.calories ?? null,
