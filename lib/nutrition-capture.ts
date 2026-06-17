@@ -16,52 +16,77 @@ import type {
 
 export const CAPTURE_MODEL = "claude-sonnet-4-6";
 
-const modelNutrientsSchema = z.object({
-  calories: z.number(),
-  protein_g: z.number(),
-  carbs_g: z.number(),
-  fat_g: z.number(),
-  fiber_g: z.number().optional(),
-  sugar_g: z.number().optional(),
-  sodium_mg: z.number().optional(),
-  potassium_mg: z.number().optional(),
-  calcium_mg: z.number().optional(),
-  iron_mg: z.number().optional(),
-  magnesium_mg: z.number().optional(),
-  zinc_mg: z.number().optional(),
-  vitamin_d_mcg: z.number().optional(),
-  vitamin_c_mg: z.number().optional(),
-  folate_mcg: z.number().optional(),
-  vitamin_b12_mcg: z.number().optional(),
-  omega3_g: z.number().optional(),
-  cholesterol_mg: z.number().optional(),
-  saturated_fat_g: z.number().optional(),
-});
+const optionalNutrient = z.coerce.number().optional();
+
+const modelNutrientsSchema = z
+  .object({
+    calories: z.coerce.number(),
+    protein_g: z.coerce.number(),
+    carbs_g: z.coerce.number(),
+    fat_g: z.coerce.number(),
+    fiber_g: optionalNutrient,
+    sugar_g: optionalNutrient,
+    sodium_mg: optionalNutrient,
+    potassium_mg: optionalNutrient,
+    calcium_mg: optionalNutrient,
+    iron_mg: optionalNutrient,
+    magnesium_mg: optionalNutrient,
+    zinc_mg: optionalNutrient,
+    vitamin_d_mcg: optionalNutrient,
+    vitamin_c_mg: optionalNutrient,
+    folate_mcg: optionalNutrient,
+    vitamin_b12_mcg: optionalNutrient,
+    omega3_g: optionalNutrient,
+    cholesterol_mg: optionalNutrient,
+    saturated_fat_g: optionalNutrient,
+  })
+  .passthrough();
+
+function normalizeConfidence(val: unknown): number {
+  const n =
+    typeof val === "string"
+      ? parseFloat(val)
+      : typeof val === "number"
+        ? val
+        : 0.5;
+  if (!Number.isFinite(n)) return 0.5;
+  if (n > 1 && n <= 100) return n / 100;
+  return Math.max(0, Math.min(1, n));
+}
+
+function normalizeMealName(val: unknown): string | null | undefined {
+  if (val == null || val === "") return null;
+  return String(val);
+}
+
+function normalizeNotes(val: unknown): string | undefined {
+  if (val == null || val === "") return undefined;
+  return String(val);
+}
 
 const modelItemSchema = z.object({
-  name: z.string(),
-  portion_g: z.number().min(1),
-  confidence: z.number().min(0).max(1),
-  notes: z.string().optional(),
+  name: z.coerce.string().min(1),
+  portion_g: z.coerce.number().positive(),
+  confidence: z.preprocess(normalizeConfidence, z.number().min(0).max(1)),
+  notes: z.preprocess(normalizeNotes, z.string().optional()),
   nutrients: modelNutrientsSchema,
 });
 
 export const captureResultSchema = z.object({
-  meal_name: z.string().nullable().optional(),
+  meal_name: z.preprocess(normalizeMealName, z.string().nullable().optional()),
   items: z.array(modelItemSchema).min(1).max(20),
 });
 
-const refineResultSchema = z.object({
-  meal_name: z.string().nullable().optional(),
-  items: z.array(modelItemSchema).min(1).max(20),
-});
+const refineResultSchema = captureResultSchema;
+
+export type NormalizedCaptureItem = z.infer<typeof modelItemSchema>;
 
 const SYSTEM_PROMPT = `You are a nutrition analyst for a personal health app. Given a meal photo and optional user description, identify distinct food items on the plate.
 
 Rules:
 - List each visually distinct food separately (e.g. chicken, rice, broccoli — not one combined entry unless truly inseparable like a smoothie).
 - portion_g is your best estimate of the edible portion weight in grams for that item on the plate.
-- confidence is 0–1 for how sure you are about identity and portion.
+- confidence is 0–1 (or 0–100) for how sure you are about identity and portion.
 - nutrients are totals for that item at the listed portion_g (not per 100g).
 - Include reasonable micronutrient estimates when the foods are identifiable (fiber, sodium, iron, etc.).
 - Generic names are fine ("grilled chicken", "white rice") — do not invent brand names.
@@ -93,13 +118,27 @@ export function captureConfigError(): string | null {
 
 function formatCaptureError(err: unknown): string {
   const message = err instanceof Error ? err.message : "Capture failed";
-  if (/api-key|authentication|401|403|x-api-key/i.test(message)) {
+  const cause =
+    err instanceof Error && err.cause instanceof Error ? err.cause.message : "";
+  const combined = `${message} ${cause}`.trim();
+
+  if (/api-key|authentication|401|403|x-api-key/i.test(combined)) {
     return "Anthropic API key rejected — update ANTHROPIC_API_KEY in Vercel (Production) and redeploy.";
   }
-  if (/model.*not found|404|retired|deprecated|does not exist/i.test(message)) {
+  if (/model.*not found|404|retired|deprecated|does not exist/i.test(combined)) {
     return "Vision model unavailable — the server model ID may need updating.";
   }
-  return message;
+  if (
+    /did not match schema|type validation|no object generated|invalid input|expected number|expected string/i.test(
+      combined,
+    )
+  ) {
+    return "Could not parse the meal analysis — try again with a clearer photo or a short description.";
+  }
+  if (/timeout|timed out|504/i.test(combined)) {
+    return "Analysis timed out — try a smaller photo or add a text description of the meal.";
+  }
+  return message.length > 160 ? "Meal analysis failed — please try again." : message;
 }
 
 function newItemId(): string {
@@ -190,7 +229,7 @@ async function tryUsdaMatch(
 }
 
 async function enrichItem(
-  raw: z.infer<typeof modelItemSchema>,
+  raw: NormalizedCaptureItem,
 ): Promise<CaptureItem> {
   const estimate = raw.nutrients as NutrientProfile["nutrients"];
 
@@ -231,6 +270,33 @@ async function enrichItem(
     nutrients: estimate,
     notes: raw.notes,
   };
+}
+
+function rawToCaptureItem(raw: NormalizedCaptureItem): CaptureItem {
+  return {
+    id: newItemId(),
+    name: raw.name,
+    portion_g: raw.portion_g,
+    confidence: raw.confidence,
+    matchSource: "estimated",
+    nutrients: raw.nutrients as NutrientProfile["nutrients"],
+    notes: raw.notes,
+  };
+}
+
+/** Best-effort catalog match; returns the estimate if lookup is slow. */
+async function enrichItemQuick(raw: NormalizedCaptureItem): Promise<CaptureItem> {
+  const fallback = rawToCaptureItem(raw);
+  try {
+    return await Promise.race([
+      enrichItem(raw),
+      new Promise<CaptureItem>((resolve) => {
+        setTimeout(() => resolve(fallback), 1500);
+      }),
+    ]);
+  } catch {
+    return fallback;
+  }
 }
 
 function preserveIds(
@@ -283,7 +349,7 @@ export async function analyzeMealCapture(input: {
     throw new Error(formatCaptureError(err));
   });
 
-  const items = await Promise.all(object.items.map(enrichItem));
+  const items = await Promise.all(object.items.map(enrichItemQuick));
   return {
     meal_name: object.meal_name ?? null,
     items,
@@ -322,7 +388,7 @@ ${input.fixDescription.trim()}`,
     throw new Error(formatCaptureError(err));
   });
 
-  const enriched = await Promise.all(object.items.map(enrichItem));
+  const enriched = await Promise.all(object.items.map(enrichItemQuick));
   return {
     meal_name: object.meal_name ?? null,
     items: preserveIds(input.items, enriched),
