@@ -55,9 +55,9 @@ export function ScoreRing({
           />
         )}
       </svg>
-      <div className="absolute flex flex-col items-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className={`font-bold tracking-tight tabular-nums ${
+          className={`snapshot-ring-value tabular-nums ${
             value !== null ? "text-text-primary" : "text-text-muted"
           }`}
           style={{ fontSize: size * 0.3 }}

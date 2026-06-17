@@ -62,7 +62,7 @@ export function ProgressRing({
             />
           ) : null}
         </svg>
-        <div className="absolute flex flex-col items-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
             className={`snapshot-ring-value tabular-nums ${
               hasValue ? "text-text-primary" : "text-text-muted"

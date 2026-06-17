@@ -115,6 +115,11 @@ export async function HealthSnapshot() {
               accent="activity"
               size={80}
             />
+            {data.oura.steps != null ? (
+              <span className="snapshot-caption">
+                {data.oura.steps.toLocaleString()} steps
+              </span>
+            ) : null}
           </div>
         </Link>
       </div>
@@ -225,25 +230,30 @@ export async function HealthSnapshot() {
         </Link>
       </div>
 
-      {(data.oura.steps != null || data.oura.stress != null) && (
+      {(data.oura.stress != null ||
+        (data.oura.steps != null && data.oura.activityScore == null)) && (
         <div className="snapshot-grid snapshot-grid-2">
-          <Link href="/activity" className="snapshot-link-card">
-            <SnapshotMetric
-              label="Steps"
-              value={data.oura.steps?.toLocaleString() ?? null}
-              caption="from Oura"
-              accent="var(--color-activity)"
-            />
-          </Link>
-          <Link href="/recovery" className="snapshot-link-card">
-            <SnapshotMetric
-              label="Stress"
-              value={data.oura.stress}
-              unit="min"
-              caption="high-stress time"
-              accent="var(--color-stress)"
-            />
-          </Link>
+          {data.oura.steps != null && data.oura.activityScore == null ? (
+            <Link href="/activity" className="snapshot-link-card">
+              <SnapshotMetric
+                label="Steps"
+                value={data.oura.steps.toLocaleString()}
+                caption="from Oura"
+                accent="var(--color-activity)"
+              />
+            </Link>
+          ) : null}
+          {data.oura.stress != null ? (
+            <Link href="/recovery" className="snapshot-link-card">
+              <SnapshotMetric
+                label="Stress"
+                value={data.oura.stress}
+                unit="min"
+                caption="high-stress time"
+                accent="var(--color-stress)"
+              />
+            </Link>
+          ) : null}
         </div>
       )}
 
