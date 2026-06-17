@@ -230,7 +230,11 @@ export interface OuraProfile {
 
 export interface WorkoutExercise {
   name: string;
-  sets: { reps: number | null; weight_kg: number | null }[];
+  sets: {
+    reps: number | null;
+    weight_kg: number | null;
+    is_warmup?: boolean;
+  }[];
 }
 
 export interface Workout {

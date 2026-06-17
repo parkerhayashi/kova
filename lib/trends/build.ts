@@ -269,16 +269,15 @@ function sleepVsActivity(
   );
 }
 
-/** Training volume (Oura workout calories) vs HRV. */
+/** Training volume (Hevy + native, lb) vs HRV. */
 function trainingVsHrv(
-  workouts: TrendsInput["workouts"],
+  liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
   readiness: Readiness[],
 ): CorrelationView {
-  const volumeByDay = workoutVolumeByDay(workouts);
   const readinessByDate = indexByDate(readiness);
   const pairs: { label: string; x: number; y: number }[] = [];
 
-  for (const [date, volume] of volumeByDay) {
+  for (const [date, volume] of liftingVolumeByDay) {
     if (volume <= 0) continue;
     const r = readinessByDate.get(date);
     if (r?.hrv_balance == null) continue;
@@ -293,8 +292,8 @@ function trainingVsHrv(
     {
       id: "training-hrv",
       title: "Training Volume vs. HRV",
-      subtitle: "Oura workout calories vs. HRV balance",
-      xLabel: "Workout cal",
+      subtitle: "Lifting volume (Hevy + Kova) vs. HRV balance",
+      xLabel: "Volume (lb)",
       yLabel: "HRV balance",
       xAccent: "activity",
       yAccent: "recovery",
@@ -395,7 +394,7 @@ export function buildTrendsPayload(
       sleepVsNextReadiness(input.sleep, input.readiness),
       stressVsHrv(input.activity, input.readiness),
       sleepVsActivity(input.sleep, input.activity),
-      trainingVsHrv(input.workouts, input.readiness),
+      trainingVsHrv(input.liftingVolumeByDay, input.readiness),
       rateVsReadiness(
         "habits-readiness",
         "Habits vs. Readiness",
@@ -431,7 +430,7 @@ export function buildTrendsPayload(
       },
       {
         title: "Protein intake vs. strength volume",
-        reason: "Nutrition logging (Phase 6) and Hevy import unlock this view.",
+        reason: "Log nutrition consistently to compare protein with lifting volume.",
       },
     ],
   };

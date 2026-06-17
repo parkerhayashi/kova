@@ -15,6 +15,14 @@ import {
 } from "@/lib/workouts";
 import { addDays, todayInTimezone } from "@/lib/utils";
 import { getTimezone } from "@/lib/data/oura";
+import { listHevyWorkoutsSince } from "@/lib/data/hevy";
+import {
+  aggregateMuscleSplit,
+  aggregateVolumeByDay,
+  exerciseNamesMatch,
+  flattenHevyWorkouts,
+  normalizeExerciseName,
+} from "@/lib/lifting-unified";
 import type {
   ActiveWorkoutView,
   Exercise,
@@ -31,6 +39,7 @@ import type {
   WorkoutSet,
   WorkoutTodaySummary,
 } from "@/types";
+import type { Workout } from "@/types";
 
 type DbExercise = Exercise;
 
@@ -749,6 +758,56 @@ type SetWithMeta = WorkoutSet & {
   exercise_category: string | null;
 };
 
+async function loadExerciseCategoryMap(): Promise<Map<string, string>> {
+  const db = createServiceClient();
+  const { data } = await db.from("exercises").select("name, category");
+  const map = new Map<string, string>();
+  for (const row of data ?? []) {
+    const name = (row as { name: string }).name;
+    const category = (row as { category: string | null }).category ?? "other";
+    map.set(normalizeExerciseName(name), category);
+  }
+  return map;
+}
+
+function nativeSetsToUnified(
+  sets: SetWithMeta[],
+): import("@/lib/lifting-unified").UnifiedWorkingSet[] {
+  return sets
+    .filter((set) => set.completed && !set.is_warmup)
+    .map((set) => ({
+      weight_lbs: set.weight_lbs,
+      reps: set.reps,
+      is_warmup: set.is_warmup,
+      completed: set.completed,
+      session_id: set.session_id,
+      date: set.session_date,
+      exercise_name: "",
+      exercise_category: set.exercise_category ?? "other",
+      source: "native" as const,
+    }));
+}
+
+async function fetchHevySetsSince(
+  sinceDate: string,
+  catalog: Map<string, string>,
+): Promise<import("@/lib/lifting-unified").UnifiedWorkingSet[]> {
+  const workouts = await listHevyWorkoutsSince(sinceDate);
+  return flattenHevyWorkouts(workouts, catalog);
+}
+
+async function fetchHevySetsForExercise(
+  exerciseName: string,
+  catalog: Map<string, string>,
+): Promise<import("@/lib/lifting-unified").UnifiedWorkingSet[]> {
+  const db = createServiceClient();
+  const { data } = await db.from("workouts").select("*").order("date", { ascending: false });
+  const workouts = (data as Workout[]) ?? [];
+  return flattenHevyWorkouts(workouts, catalog).filter((set) =>
+    exerciseNamesMatch(set.exercise_name, exerciseName),
+  );
+}
+
 async function fetchCompletedSets(options?: {
   exerciseId?: string;
   sinceDate?: string;
@@ -800,9 +859,14 @@ export async function getExerciseStats(
     .maybeSingle();
   if (!exercise) return null;
 
+  const catalog = await loadExerciseCategoryMap();
   const sets = await fetchCompletedSets({ exerciseId });
-  const computed = computeExerciseStats(
-    sets.map((s) => ({
+  const hevySets = await fetchHevySetsForExercise(
+    (exercise as Exercise).name,
+    catalog,
+  );
+  const computed = computeExerciseStats([
+    ...sets.map((s) => ({
       weight_lbs: s.weight_lbs,
       reps: s.reps,
       is_warmup: s.is_warmup,
@@ -810,7 +874,15 @@ export async function getExerciseStats(
       session_id: s.session_id,
       date: s.session_date,
     })),
-  );
+    ...hevySets.map((s) => ({
+      weight_lbs: s.weight_lbs,
+      reps: s.reps,
+      is_warmup: s.is_warmup,
+      completed: s.completed,
+      session_id: s.session_id,
+      date: s.date,
+    })),
+  ]);
 
   return { exercise: exercise as Exercise, ...computed };
 }
@@ -819,7 +891,20 @@ export async function getExerciseHistory(
   exerciseId: string,
   limit = 50,
 ): Promise<ExerciseHistorySession[]> {
+  const db = createServiceClient();
+  const { data: exercise } = await db
+    .from("exercises")
+    .select("name")
+    .eq("id", exerciseId)
+    .maybeSingle();
+  if (!exercise) return [];
+
+  const catalog = await loadExerciseCategoryMap();
   const sets = await fetchCompletedSets({ exerciseId });
+  const hevySets = await fetchHevySetsForExercise(
+    (exercise as { name: string }).name,
+    catalog,
+  );
   const bySession = new Map<string, ExerciseHistorySession>();
 
   for (const set of sets) {
@@ -843,6 +928,63 @@ export async function getExerciseHistory(
         entry.best_est_1rm_lbs = est;
       }
     }
+  }
+
+  const hevyBySession = new Map<string, typeof hevySets>();
+  for (const set of hevySets) {
+    const bucket = hevyBySession.get(set.session_id) ?? [];
+    bucket.push(set);
+    hevyBySession.set(set.session_id, bucket);
+  }
+
+  const hevyTitleById = new Map<string, string | null>();
+  const { data: hevyWorkouts } = await db.from("workouts").select("hevy_id, title");
+  for (const row of hevyWorkouts ?? []) {
+    hevyTitleById.set(
+      (row as { hevy_id: string }).hevy_id,
+      (row as { title: string | null }).title,
+    );
+  }
+
+  for (const [sessionId, sessionSets] of hevyBySession) {
+    const first = sessionSets[0]!;
+    const hevyId = sessionId.startsWith("hevy:") ? sessionId.slice(5) : null;
+    const hevyTitle = hevyId ? (hevyTitleById.get(hevyId) ?? null) : null;
+    let entry = bySession.get(sessionId);
+    if (!entry) {
+      entry = {
+        session_id: sessionId,
+        date: first.date,
+        title: hevyTitle,
+        sets: [],
+        session_volume_lbs: 0,
+        best_est_1rm_lbs: null,
+      };
+      bySession.set(sessionId, entry);
+    }
+
+    sessionSets.forEach((set, index) => {
+      entry!.sets.push({
+        id: `${sessionId}:${index}`,
+        session_id: sessionId,
+        exercise_id: exerciseId,
+        position: 0,
+        set_index: index,
+        weight_lbs: set.weight_lbs,
+        reps: set.reps,
+        rpe: null,
+        is_warmup: false,
+        completed: true,
+        created_at: `${first.date}T12:00:00.000Z`,
+      });
+      if (set.weight_lbs != null && set.reps != null) {
+        entry!.session_volume_lbs += setVolume(set.weight_lbs, set.reps);
+        const est = estimate1RM(set.weight_lbs, set.reps);
+        if (entry!.best_est_1rm_lbs == null || est > entry!.best_est_1rm_lbs) {
+          entry!.best_est_1rm_lbs = est;
+        }
+      }
+    });
   }
 
   return [...bySession.values()]
@@ -933,30 +1075,25 @@ export async function getLiftingDashboard(
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
   const since = addDays(today, -(periodDays - 1));
-  const sets = await fetchCompletedSets({ sinceDate: since });
+  const catalog = await loadExerciseCategoryMap();
 
-  const sessionDates = new Set<string>();
+  const nativeSets = await fetchCompletedSets({ sinceDate: since });
+  const hevySets = await fetchHevySetsSince(since, catalog);
+  const unified = [...nativeSetsToUnified(nativeSets), ...hevySets];
+
+  const sessionIds = new Set<string>();
   let totalSets = 0;
-  let totalVolume = 0;
-  const volumeByDate = new Map<string, number>();
-  const muscleSets = new Map<string, number>();
-  const muscleVolume = new Map<string, number>();
+  const volumeByDate = aggregateVolumeByDay(unified);
 
-  for (const set of sets) {
+  for (const set of unified) {
     if (set.is_warmup) continue;
     totalSets += 1;
-    sessionDates.add(set.session_id);
-    const vol = setVolume(set.weight_lbs, set.reps);
+    sessionIds.add(set.session_id);
+  }
+
+  let totalVolume = 0;
+  for (const vol of volumeByDate.values()) {
     totalVolume += vol;
-
-    volumeByDate.set(
-      set.session_date,
-      (volumeByDate.get(set.session_date) ?? 0) + vol,
-    );
-
-    const cat = set.exercise_category ?? "other";
-    muscleSets.set(cat, (muscleSets.get(cat) ?? 0) + 1);
-    muscleVolume.set(cat, (muscleVolume.get(cat) ?? 0) + vol);
   }
 
   const volume_by_day: LiftingDashboard["volume_by_day"] = [];
@@ -970,23 +1107,9 @@ export async function getLiftingDashboard(
     });
   }
 
-  const muscle_split = [...muscleSets.entries()]
-    .map(([category, setCount]) => ({
-      category,
-      sets: setCount,
-      volume_lbs: Math.round(muscleVolume.get(category) ?? 0),
-    }))
-    .sort((a, b) => b.sets - a.sets);
+  const muscle_split = aggregateMuscleSplit(unified);
 
-  const db = createServiceClient();
-  const { data: sessions } = await db
-    .from("workout_sessions")
-    .select("date")
-    .eq("status", "completed")
-    .gte("date", since)
-    .order("date", { ascending: false });
-
-  const workoutDays = new Set((sessions ?? []).map((s) => s.date as string));
+  const workoutDays = new Set(unified.map((set) => set.date));
   let streak = 0;
   for (let i = 0; i < 365; i++) {
     const date = addDays(today, -i);
@@ -999,7 +1122,7 @@ export async function getLiftingDashboard(
 
   return {
     period_days: periodDays,
-    total_sessions: sessionDates.size,
+    total_sessions: sessionIds.size,
     total_sets: totalSets,
     total_volume_lbs: Math.round(totalVolume),
     current_streak_days: streak,

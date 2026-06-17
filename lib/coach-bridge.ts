@@ -3,6 +3,7 @@
  */
 
 import { scheduleClientSyncPush } from "@/lib/client-sync";
+import type { HevyCoachWorkoutLog } from "@/lib/lifting-unified";
 import {
   coachEstimate1RM,
   getCoachPrescription,
@@ -15,6 +16,7 @@ import type { ActiveWorkoutView, SessionExerciseView } from "@/types";
 
 const LS_KEY = "po_coach_v1";
 const WORKOUT_DONE_KEY = "po_coach_workout_done";
+const HEVY_SYNCED_KEY = "po_coach_hevy_synced";
 
 export type CoachState = {
   units: string;
@@ -203,6 +205,97 @@ export function syncSessionToCoach(workout: ActiveWorkoutView): number {
   }
 
   return synced;
+}
+
+function loadSyncedHevyIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(HEVY_SYNCED_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSyncedHevyIds(ids: Set<string>): void {
+  localStorage.setItem(HEVY_SYNCED_KEY, JSON.stringify([...ids]));
+}
+
+function coachLogExists(
+  logs: CoachLog[],
+  date: string,
+  weight: number,
+  reps: number,
+): boolean {
+  return logs.some(
+    (log) =>
+      log.date.slice(0, 10) === date &&
+      log.weight === weight &&
+      log.reps === reps,
+  );
+}
+
+/** Import Hevy top sets into Coach logs (incremental by hevy_id). */
+export function syncHevyWorkoutsToCoach(workouts: HevyCoachWorkoutLog[]): number {
+  const state = loadCoachState();
+  if (!state || workouts.length === 0) return 0;
+
+  const syncedIds = loadSyncedHevyIds();
+  let imported = 0;
+
+  for (const workout of workouts) {
+    if (syncedIds.has(workout.hevy_id)) continue;
+
+    const dayId = dayIdFromRoutineTitle(workout.title ?? "", state);
+    const logDate = `${workout.date}T12:00:00.000Z`;
+    let addedForWorkout = 0;
+
+    for (const exercise of workout.exercises) {
+      const coachEx = ensureCoachExercise(
+        state,
+        exercise.name,
+        dayId,
+        exercise.reps,
+        exercise.reps,
+      );
+
+      const arr = state.logs[coachEx.id] ?? [];
+      if (
+        coachLogExists(arr, workout.date, exercise.weight_lbs, exercise.reps)
+      ) {
+        continue;
+      }
+
+      arr.push({
+        date: logDate,
+        weight: exercise.weight_lbs,
+        reps: exercise.reps,
+      });
+      state.logs[coachEx.id] = arr;
+      addedForWorkout += 1;
+      imported += 1;
+    }
+
+    if (addedForWorkout > 0) {
+      syncedIds.add(workout.hevy_id);
+      try {
+        const raw = localStorage.getItem(WORKOUT_DONE_KEY);
+        const done = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+        done[workout.date] = logDate;
+        localStorage.setItem(WORKOUT_DONE_KEY, JSON.stringify(done));
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  if (imported > 0) {
+    saveSyncedHevyIds(syncedIds);
+    saveCoachState(state);
+  }
+
+  return imported;
 }
 
 export function readTodaySplit(): ReturnType<typeof getTodaySplit> | null {

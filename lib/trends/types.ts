@@ -27,6 +27,8 @@ export interface TrendsInput {
   supplementLogs: SupplementLog[];
   supplementCount: number;
   workouts: OuraWorkout[];
+  /** Unified Hevy + native lifting volume by day (lb). */
+  liftingVolumeByDay: Map<string, number>;
 }
 
 export interface CorrelationView {

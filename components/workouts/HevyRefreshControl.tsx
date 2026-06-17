@@ -8,9 +8,11 @@ import { formatSyncStatus } from "@/lib/utils";
 export function HevyRefreshControl({
   lastSyncedAt,
   timeZone,
+  onSynced,
 }: {
   lastSyncedAt: string | null;
   timeZone: string;
+  onSynced?: () => void;
 }) {
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
@@ -25,6 +27,7 @@ export function HevyRefreshControl({
       const res = await fetch("/api/hevy/sync", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Sync failed.");
+      onSynced?.();
       router.refresh();
     } catch (err) {
       setError((err as Error).message);

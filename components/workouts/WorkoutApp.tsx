@@ -15,7 +15,7 @@ import { SessionDetailPanel } from "@/components/workouts/SessionDetailPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { CLIENT_SYNC_CHANGED_EVENT } from "@/lib/client-sync";
-import { readTodaySplit } from "@/lib/coach-bridge";
+import { readTodaySplit, syncHevyWorkoutsToCoach } from "@/lib/coach-bridge";
 import type {
   ActiveWorkoutView,
   LiftingDashboard,
@@ -85,6 +85,22 @@ export function WorkoutApp({ hevyConnected = false }: { hevyConnected?: boolean 
     window.addEventListener(CLIENT_SYNC_CHANGED_EVENT, onCoachChange);
     return () => window.removeEventListener(CLIENT_SYNC_CHANGED_EVENT, onCoachChange);
   }, [refresh]);
+
+  useEffect(() => {
+    if (!data?.hevy?.connected) return;
+    void (async () => {
+      try {
+        const res = await fetch("/api/workouts/hevy-coach");
+        if (!res.ok) return;
+        const body = (await res.json()) as {
+          workouts: import("@/lib/lifting-unified").HevyCoachWorkoutLog[];
+        };
+        syncHevyWorkoutsToCoach(body.workouts ?? []);
+      } catch {
+        /* best-effort */
+      }
+    })();
+  }, [data?.hevy?.connected, data?.hevy?.lastSyncedAt]);
 
   async function startRoutine(routineId: string) {
     setError(null);
@@ -160,6 +176,7 @@ export function WorkoutApp({ hevyConnected = false }: { hevyConnected?: boolean 
           <HevyRefreshControl
             lastSyncedAt={data?.hevy?.lastSyncedAt ?? null}
             timeZone={data?.hevy?.timezone ?? "America/New_York"}
+            onSynced={() => void refresh()}
           />
         ) : null}
       </div>

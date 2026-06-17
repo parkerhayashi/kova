@@ -58,7 +58,7 @@ export function LiftingStats({ dashboard }: { dashboard: LiftingDashboard }) {
             ? `${dashboard.total_volume_lbs.toLocaleString()} lb`
             : null
         }
-        caption="Daily working-set volume"
+        caption="Daily working-set volume (Hevy + Kova)"
         height={140}
       />
 

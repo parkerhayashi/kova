@@ -139,6 +139,7 @@ export function normalizeHevyWorkout(
     sets: (ex.sets ?? []).map((set) => ({
       reps: set.reps ?? null,
       weight_kg: set.weight_kg ?? null,
+      is_warmup: set.type === "warmup",
     })),
   }));
 
