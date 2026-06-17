@@ -69,7 +69,37 @@ Rules:
 - meal_name is an optional short label for the whole meal (e.g. "Lunch", "Post-workout bowl").`;
 
 export function isCaptureConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
+  return getAnthropicApiKey() !== null;
+}
+
+function getAnthropicApiKey(): string | null {
+  const key = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!key) return null;
+  // Anthropic keys start with sk-ant-; reject placeholders / truncated values.
+  if (!key.startsWith("sk-ant-") || key.length < 30) return null;
+  return key;
+}
+
+export function captureConfigError(): string | null {
+  const key = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!key) {
+    return "Meal capture is not configured — add ANTHROPIC_API_KEY to Vercel and .env.local.";
+  }
+  if (!key.startsWith("sk-ant-") || key.length < 30) {
+    return "ANTHROPIC_API_KEY looks invalid — paste a full sk-ant-… key from console.anthropic.com.";
+  }
+  return null;
+}
+
+function formatCaptureError(err: unknown): string {
+  const message = err instanceof Error ? err.message : "Capture failed";
+  if (/api-key|authentication|401|403|x-api-key/i.test(message)) {
+    return "Anthropic API key rejected — update ANTHROPIC_API_KEY in Vercel (Production) and redeploy.";
+  }
+  if (/model.*not found|404/i.test(message)) {
+    return "Vision model unavailable — try again or contact support.";
+  }
+  return message;
 }
 
 function newItemId(): string {
@@ -218,8 +248,9 @@ export async function analyzeMealCapture(input: {
   mediaType?: string;
   description?: string;
 }): Promise<CaptureAnalysisResult> {
-  if (!isCaptureConfigured()) {
-    throw new Error("ANTHROPIC_API_KEY is not configured");
+  const configError = captureConfigError();
+  if (configError) {
+    throw new Error(configError);
   }
 
   const userText = [
@@ -248,6 +279,8 @@ export async function analyzeMealCapture(input: {
         ],
       },
     ],
+  }).catch((err) => {
+    throw new Error(formatCaptureError(err));
   });
 
   const items = await Promise.all(object.items.map(enrichItem));
@@ -261,8 +294,9 @@ export async function refineMealCapture(input: {
   items: CaptureItem[];
   fixDescription: string;
 }): Promise<CaptureAnalysisResult> {
-  if (!isCaptureConfigured()) {
-    throw new Error("ANTHROPIC_API_KEY is not configured");
+  const configError = captureConfigError();
+  if (configError) {
+    throw new Error(configError);
   }
 
   const current = input.items.map((item) => ({
@@ -284,6 +318,8 @@ ${JSON.stringify(current, null, 2)}
 
 User correction:
 ${input.fixDescription.trim()}`,
+  }).catch((err) => {
+    throw new Error(formatCaptureError(err));
   });
 
   const enriched = await Promise.all(object.items.map(enrichItem));

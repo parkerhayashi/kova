@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
-import { analyzeMealCapture, isCaptureConfigured } from "@/lib/nutrition-capture";
+import { analyzeMealCapture, captureConfigError } from "@/lib/nutrition-capture";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+export async function GET() {
+  const configError = captureConfigError();
+  return NextResponse.json({
+    configured: configError === null,
+    error: configError,
+  });
+}
+
 export async function POST(request: Request) {
-  if (!isCaptureConfigured()) {
-    return NextResponse.json(
-      { error: "Meal capture is not configured (ANTHROPIC_API_KEY missing)" },
-      { status: 503 },
-    );
+  const configError = captureConfigError();
+  if (configError) {
+    return NextResponse.json({ error: configError }, { status: 503 });
   }
 
   let body: { image?: string; mediaType?: string; description?: string };
@@ -35,6 +41,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Capture failed";
-    return NextResponse.json({ error: message }, { status: 502 });
+    const status = /not configured|invalid|rejected/i.test(message) ? 503 : 502;
+    return NextResponse.json({ error: message }, { status });
   }
 }

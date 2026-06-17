@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -30,6 +30,22 @@ export function MealCaptureFlow({
 
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/nutrition/capture")
+      .then((res) => res.json())
+      .then((json: { configured?: boolean; error?: string }) => {
+        if (cancelled || json.configured) return;
+        setError(json.error ?? "Meal capture is not configured on the server.");
+      })
+      .catch(() => {
+        /* ignore — analyze will surface errors */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleFile(file: File | null) {
     if (!file) return;
