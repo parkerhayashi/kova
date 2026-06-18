@@ -1,11 +1,13 @@
 import { Card } from "@/components/ui/Card";
 import { ChartCard } from "@/components/charts/ChartCard";
+import { DualTrendCard } from "@/components/trends/DualTrendCard";
 import {
   MICRONUTRIENT_RDA,
   progressPct,
   type DailyTotals,
 } from "@/lib/nutrition";
 import { shortDate } from "@/lib/utils";
+import type { DualTrendView } from "@/lib/trends/types";
 
 export function CalorieTrend({
   trend,
@@ -28,6 +30,18 @@ export function CalorieTrend({
       current={todayGoal ? `${todayGoal} today` : null}
       caption="Dashed line = daily goal (Oura burn + weight/body fat targets)"
     />
+  );
+}
+
+export function NutritionWeightTrends({ views }: { views: DualTrendView[] }) {
+  if (views.length === 0) return null;
+
+  return (
+    <section className="grid gap-4 lg:grid-cols-2">
+      {views.map((view) => (
+        <DualTrendCard key={view.id} view={view} />
+      ))}
+    </section>
   );
 }
 

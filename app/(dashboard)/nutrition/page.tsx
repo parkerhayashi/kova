@@ -7,6 +7,7 @@ import {
   getDailyTotals,
   getMealsForDate,
   getNutritionGoals,
+  getNutritionWeightTrends,
 } from "@/lib/data/nutrition";
 import { getSavedMeals } from "@/lib/data/saved-meals";
 import { getTimezone } from "@/lib/data/oura";
@@ -25,12 +26,14 @@ export default async function NutritionPage({
   const today = todayInTimezone(timezone);
   const logDate = parseLogDate(dateParam, today);
 
-  const [meals, savedMeals, totals, goals, calorieTrend] = await Promise.all([
+  const [meals, savedMeals, totals, goals, calorieTrend, nutritionWeightTrends] =
+    await Promise.all([
     getMealsForDate(logDate),
     getSavedMeals(),
     getDailyTotals(logDate),
     getNutritionGoals(logDate),
     getCalorieTrend(7),
+    getNutritionWeightTrends(30),
   ]);
 
   return (
@@ -53,6 +56,7 @@ export default async function NutritionPage({
         totals={totals}
         goals={goals}
         calorieTrend={calorieTrend}
+        nutritionWeightTrends={nutritionWeightTrends}
       />
     </div>
   );

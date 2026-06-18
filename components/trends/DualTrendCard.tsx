@@ -1,11 +1,15 @@
 import { Card } from "@/components/ui/Card";
 import { LazyDualTrendChart as DualTrendChart } from "@/components/charts/lazyCharts";
+import { accentColor } from "@/lib/utils";
 import type { DualTrendView } from "@/lib/trends/types";
 
 export function DualTrendCard({ view }: { view: DualTrendView }) {
   const hasPrimary = view.primary.some((v) => v !== null);
   const hasSecondary = view.secondary.some((v) => v !== null);
   const hasData = hasPrimary || hasSecondary;
+  const emptyHint =
+    view.emptyHint ??
+    "Log weight and sync Oura activity to see this trend.";
 
   return (
     <Card className="space-y-3">
@@ -25,9 +29,7 @@ export function DualTrendCard({ view }: { view: DualTrendView }) {
           secondaryAccent={view.secondaryAccent}
         />
       ) : (
-        <p className="body-copy text-sm">
-          Log weight and sync Oura activity to see this trend.
-        </p>
+        <p className="body-copy text-sm">{emptyHint}</p>
       )}
 
       {hasData ? (
@@ -35,14 +37,14 @@ export function DualTrendCard({ view }: { view: DualTrendView }) {
           <span className="timestamp flex items-center gap-1.5">
             <span
               className="inline-block size-2 rounded-full"
-              style={{ background: "var(--color-activity)" }}
+              style={{ background: accentColor[view.primaryAccent] }}
             />
             {view.primaryLabel}
           </span>
           <span className="timestamp flex items-center gap-1.5">
             <span
               className="inline-block size-2 rounded-full"
-              style={{ background: "var(--color-nutrition)" }}
+              style={{ background: accentColor[view.secondaryAccent] }}
             />
             {view.secondaryLabel}
           </span>

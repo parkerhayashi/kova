@@ -31,6 +31,8 @@ export interface TrendsInput {
   liftingVolumeByDay: Map<string, number>;
   /** Daily protein totals (meals + supplements), keyed by date. */
   proteinByDay: Map<string, number>;
+  /** Daily calorie totals (meals + supplements), keyed by date. */
+  caloriesByDay: Map<string, number>;
 }
 
 export interface CorrelationView {
@@ -57,6 +59,7 @@ export interface DualTrendView {
   secondaryLabel: string;
   primaryAccent: Accent;
   secondaryAccent: Accent;
+  emptyHint?: string;
 }
 
 export interface TrendsPayload {

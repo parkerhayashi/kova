@@ -1,5 +1,9 @@
 import { addDays, shortDate } from "@/lib/utils";
 import { scatterFromPairs } from "@/lib/trends/correlation";
+import {
+  buildNutritionCaloriesVsWeight,
+  buildNutritionProteinVsWeight,
+} from "@/lib/trends/nutrition-weight";
 import type {
   CorrelationView,
   DualTrendView,
@@ -482,8 +486,8 @@ function caloriesVsWeight(
 
   return {
     id: "calories-weight",
-    title: "Calories vs. Weight",
-    subtitle: "Active calorie burn overlaid with body weight trend",
+    title: "Active Calories vs. Weight",
+    subtitle: "Oura active calorie burn overlaid with body weight trend",
     labels,
     primary: calories,
     secondary: weights,
@@ -546,7 +550,11 @@ export function buildTrendsPayload(
           )
         : []),
     ],
-    dualTrends: [caloriesVsWeight(input.activity, input.weight)],
+    dualTrends: [
+      buildNutritionCaloriesVsWeight(input.caloriesByDay, input.weight),
+      buildNutritionProteinVsWeight(input.proteinByDay, input.weight),
+      caloriesVsWeight(input.activity, input.weight),
+    ],
     comingSoon: [
       {
         title: "Run pace vs. prior-night sleep",

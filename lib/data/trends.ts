@@ -13,7 +13,7 @@ import {
   getWeightLogs,
 } from "@/lib/data/tracking";
 import { getLiftingDashboard } from "@/lib/data/workouts";
-import { getProteinByDay } from "@/lib/data/nutrition";
+import { getNutritionByDay } from "@/lib/data/nutrition";
 import { buildTrendsPayload } from "@/lib/trends/build";
 import type { TrendsInput, TrendsPayload, TrendRange } from "@/lib/trends/types";
 
@@ -35,7 +35,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     supplementLogs,
     workouts,
     liftingDashboard,
-    proteinByDay,
+    nutritionByDay,
     ouraConnected,
   ] = await Promise.all([
     getSleepHistory(range),
@@ -48,9 +48,11 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     getSupplementLogs(range),
     getOuraWorkouts(range),
     getLiftingDashboard(range),
-    getProteinByDay(range),
+    getNutritionByDay(range),
     isOuraConnected(),
   ]);
+
+  const { proteinByDay, caloriesByDay } = nutritionByDay;
 
   const liftingVolumeByDay = new Map(
     liftingDashboard.volume_by_day.map((row) => [row.date, row.volume_lbs]),
@@ -76,6 +78,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     workouts,
     liftingVolumeByDay,
     proteinByDay,
+    caloriesByDay,
   };
 
   return buildTrendsPayload(input, range, ouraConnected);

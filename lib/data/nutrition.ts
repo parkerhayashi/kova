@@ -6,7 +6,6 @@ import {
   getUserSettings,
 } from "@/lib/data/oura";
 import { getUserProfile } from "@/lib/data/profile";
-import { getLatestWeight } from "@/lib/data/tracking";
 import {
   computeNutritionGoals,
   type ComputedNutritionGoals,
@@ -15,11 +14,19 @@ import {
 import { sumMeals, mergeDailyTotals, type DailyTotals } from "@/lib/nutrition";
 import { sumTakenSupplements } from "@/lib/supplement-nutrition";
 import {
+  getLatestWeight,
   getSupplementLogsForDate,
   getSupplementLogsSince,
   getSupplements,
+  getWeightLogs,
 } from "@/lib/data/tracking";
 import { addDays, todayInTimezone } from "@/lib/utils";
+import {
+  buildNutritionCaloriesVsWeight,
+  buildNutritionProteinVsWeight,
+  dateRangeFromToday,
+} from "@/lib/trends/nutrition-weight";
+import type { DualTrendView } from "@/lib/trends/types";
 import type { Activity, Meal } from "@/types";
 
 async function gatherGoalInputs(date: string): Promise<GoalInputs> {
@@ -95,8 +102,11 @@ export async function getMealsSince(days: number): Promise<Meal[]> {
   return (data as Meal[]) ?? [];
 }
 
-/** Daily protein totals keyed by date (meals + supplements). */
-export async function getProteinByDay(days: number): Promise<Map<string, number>> {
+/** Daily nutrition totals keyed by date (meals + supplements). */
+export async function getNutritionByDay(days: number): Promise<{
+  caloriesByDay: Map<string, number>;
+  proteinByDay: Map<string, number>;
+}> {
   const timezone = await getTimezone();
   const since = addDays(todayInTimezone(timezone), -(days - 1));
   const [meals, supplements, supplementLogs] = await Promise.all([
@@ -105,7 +115,8 @@ export async function getProteinByDay(days: number): Promise<Map<string, number>
     getSupplementLogsSince(since),
   ]);
 
-  const map = new Map<string, number>();
+  const caloriesByDay = new Map<string, number>();
+  const proteinByDay = new Map<string, number>();
   const mealsByDate = new Map<string, Meal[]>();
   for (const meal of meals) {
     const list = mealsByDate.get(meal.date) ?? [];
@@ -127,12 +138,31 @@ export async function getProteinByDay(days: number): Promise<Map<string, number>
       logsByDate.get(date) ?? [],
     );
     const merged = mergeDailyTotals(mealTotals, supTotals);
-    if (merged.protein_g != null && merged.protein_g > 0) {
-      map.set(date, Math.round(merged.protein_g));
-    }
+    const calories = Math.round(merged.calories ?? 0);
+    const protein = Math.round(merged.protein_g ?? 0);
+    if (calories > 0) caloriesByDay.set(date, calories);
+    if (protein > 0) proteinByDay.set(date, protein);
   }
 
-  return map;
+  for (const [date, logs] of logsByDate) {
+    if (mealsByDate.has(date)) continue;
+    const merged = mergeDailyTotals(
+      {},
+      sumTakenSupplements(supplements, logs),
+    );
+    const calories = Math.round(merged.calories ?? 0);
+    const protein = Math.round(merged.protein_g ?? 0);
+    if (calories > 0) caloriesByDay.set(date, calories);
+    if (protein > 0) proteinByDay.set(date, protein);
+  }
+
+  return { caloriesByDay, proteinByDay };
+}
+
+/** Daily protein totals keyed by date (meals + supplements). */
+export async function getProteinByDay(days: number): Promise<Map<string, number>> {
+  const { proteinByDay } = await getNutritionByDay(days);
+  return proteinByDay;
 }
 
 export async function getDailyTotals(date: string): Promise<DailyTotals> {
@@ -228,4 +258,23 @@ export async function getCalorieTrend(
   }
 
   return out;
+}
+
+/** Dual-axis charts relating logged nutrition to body weight. */
+export async function getNutritionWeightTrends(
+  days: number,
+): Promise<DualTrendView[]> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const rangeDates = dateRangeFromToday(today, days);
+
+  const [{ caloriesByDay, proteinByDay }, weight] = await Promise.all([
+    getNutritionByDay(days),
+    getWeightLogs(days),
+  ]);
+
+  return [
+    buildNutritionCaloriesVsWeight(caloriesByDay, weight, rangeDates),
+    buildNutritionProteinVsWeight(proteinByDay, weight, rangeDates),
+  ];
 }

@@ -79,7 +79,7 @@ export default async function TrendsPage({
       </section>
 
       {payload.dualTrends.length > 0 && (
-        <section className="grid gap-4">
+        <section className="grid gap-4 lg:grid-cols-2">
           {payload.dualTrends.map((view) => (
             <DualTrendCard key={view.id} view={view} />
           ))}

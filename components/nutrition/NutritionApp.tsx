@@ -6,7 +6,8 @@ import { GoalSettings } from "@/components/nutrition/GoalSettings";
 import { MacroSummary } from "@/components/nutrition/MacroSummary";
 import { MealCaptureFlow } from "@/components/nutrition/MealCaptureFlow";
 import { MealLog } from "@/components/nutrition/MealLog";
-import { CalorieTrend, MicroProgress } from "@/components/nutrition/NutritionCharts";
+import { CalorieTrend, MicroProgress, NutritionWeightTrends } from "@/components/nutrition/NutritionCharts";
+import type { DualTrendView } from "@/lib/trends/types";
 import { SavedMeals } from "@/components/nutrition/SavedMeals";
 import { DukeDiningSearch } from "@/components/nutrition/DukeDiningSearch";
 import { RestaurantSearch } from "@/components/nutrition/RestaurantSearch";
@@ -25,6 +26,7 @@ export function NutritionApp({
   totals,
   goals,
   calorieTrend,
+  nutritionWeightTrends,
 }: {
   logDate: string;
   today: string;
@@ -33,6 +35,7 @@ export function NutritionApp({
   totals: DailyTotals;
   goals: ComputedNutritionGoals;
   calorieTrend: { date: string; calories: number; goal: number }[];
+  nutritionWeightTrends: DualTrendView[];
 }) {
   const [captureOpen, setCaptureOpen] = useState(false);
 
@@ -75,6 +78,8 @@ export function NutritionApp({
         <CalorieTrend trend={calorieTrend} />
         <MicroProgress totals={totals} />
       </section>
+
+      <NutritionWeightTrends views={nutritionWeightTrends} />
     </div>
   );
 }
