@@ -1104,6 +1104,29 @@
     font-size: 16px;
     color: var(--text-3);
   }
+  .wt-avg-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .wt-avg-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .wt-avg-val {
+    font-size: 20px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-2);
+  }
+  .wt-avg-unit {
+    font-size: 13px;
+    color: var(--text-3);
+  }
   .wt-delta {
     font-size: 13px;
     font-weight: 500;
@@ -1334,6 +1357,12 @@
   .wt-locked-value {
     font-size: 16px;
     font-weight: 600;
+  }
+  .wt-locked-avg {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
   }
   .wt-edit-btn {
     background: transparent;

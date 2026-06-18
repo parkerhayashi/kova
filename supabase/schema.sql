@@ -312,24 +312,6 @@ where not exists (
 );
 
 -- ---------------------------------------------------------------------------
--- Strava: runs / cardio
--- ---------------------------------------------------------------------------
-create table if not exists runs (
-  id                    uuid primary key default gen_random_uuid(),
-  strava_id             bigint unique not null,
-  date                  date,
-  name                  text,
-  distance_m            float,
-  duration              int,          -- seconds
-  avg_pace              float,
-  avg_hr                int,
-  elevation_gain        float,
-  suffer_score          int,
-  source                text default 'strava',
-  created_at            timestamptz default now()
-);
-
--- ---------------------------------------------------------------------------
 -- Nutrition: meals (USDA / Open Food Facts / manual)
 -- ---------------------------------------------------------------------------
 create table if not exists meals (
@@ -488,8 +470,6 @@ create table if not exists user_settings (
   timezone                text default 'America/New_York', -- IANA tz; auto-detected from the browser
   oura_access_token       text,   -- encrypted
   oura_refresh_token      text,   -- encrypted
-  strava_access_token     text,   -- encrypted
-  strava_refresh_token    text,   -- encrypted
   hevy_api_key            text,   -- encrypted
   totp_secret             text,   -- encrypted; TOTP MFA seed (null = disabled)
   water_state             jsonb,  -- synced water tracker state (lib/water.ts shape)
@@ -749,7 +729,6 @@ alter table workout_sets      enable row level security;
 alter table workout_routines  enable row level security;
 alter table workout_routine_exercises enable row level security;
 alter table workout_session_exercises enable row level security;
-alter table runs              enable row level security;
 alter table meals             enable row level security;
 alter table saved_meals       enable row level security;
 alter table water_logs        enable row level security;

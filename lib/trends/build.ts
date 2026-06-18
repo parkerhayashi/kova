@@ -555,11 +555,6 @@ export function buildTrendsPayload(
       buildNutritionProteinVsWeight(input.proteinByDay, input.weight),
       caloriesVsWeight(input.activity, input.weight),
     ],
-    comingSoon: [
-      {
-        title: "Run pace vs. prior-night sleep",
-        reason: "Connect Strava to compare run pace with sleep scores.",
-      },
-    ],
+    comingSoon: [],
   };
 }

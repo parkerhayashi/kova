@@ -24,6 +24,7 @@ export function proxy(request: NextRequest) {
   // Vercel Cron + server-to-server sync routes authenticate with CRON_SECRET,
   // not the session cookie, so let them reach their own guard.
   if (pathname.startsWith("/api/sync")) return NextResponse.next();
+  if (pathname === "/api/hevy/webhook") return NextResponse.next();
   if (isPublic(pathname)) return NextResponse.next();
 
   const token = request.cookies.get(AUTH_COOKIE)?.value;

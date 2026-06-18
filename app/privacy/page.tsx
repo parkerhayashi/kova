@@ -104,7 +104,7 @@ export default function PrivacyPage() {
               When you connect an integration, Kova calls that provider&apos;s
               API from the server, caches the results in your database, and
               displays them in the app. Current or planned integrations include
-              Oura, Hevy, Strava, USDA FoodData Central, Open Food Facts, and
+              Oura, Hevy, USDA FoodData Central, Open Food Facts, and
               optionally Plaid for bank data. Each provider has its own privacy
               policy governing the data they hold.
             </p>

@@ -293,6 +293,34 @@ export async function syncHevy(
   };
 }
 
+/** Import or refresh a single workout (Hevy webhook / manual by id). */
+export async function syncHevyWorkoutById(hevyId: string): Promise<{
+  hevy_id: string;
+  title: string | null;
+  date: string;
+}> {
+  if (!isHevyConfigured()) {
+    throw new Error("Hevy is not connected — set HEVY_API_KEY.");
+  }
+
+  const timezone = await getTimezone();
+  const workout = await getWorkoutById(hevyId);
+  const row = normalizeHevyWorkout(workout, timezone);
+  await upsertHevyRows([row]);
+
+  const db = createServiceClient();
+  const { data: settings } = await db
+    .from("user_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (settings) {
+    await markHevySynced((settings as { id: string }).id);
+  }
+
+  return { hevy_id: hevyId, title: row.title, date: row.date };
+}
+
 /** Best-effort sync when the workouts or home page is opened. */
 export async function maybeSyncHevyOnOpen(): Promise<void> {
   if (!isHevyConfigured()) return;

@@ -49,7 +49,163 @@ export type CompositionEstimate = {
   liftSource: string;
   liftingMeta: string;
   footLine: string;
+  /** True when weight change uses 7-day rolling averages. */
+  usedRollingWeight: boolean;
 };
+
+function parseDateKey(dateKey: string): Date {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function dateKeyFromDate(d: Date): string {
+  return (
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(d.getDate()).padStart(2, "0")
+  );
+}
+
+/** Mean weight over the trailing `days` ending on `endDateKey` (inclusive). */
+export function rollingAverageWeight(
+  entries: WeightEntry[],
+  endDateKey: string,
+  days = 7,
+): number | null {
+  if (!entries.length) return null;
+
+  const end = parseDateKey(endDateKey);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+  const startKey = dateKeyFromDate(start);
+
+  const slice = entries.filter(
+    (e) => e.dateKey >= startKey && e.dateKey <= endDateKey,
+  );
+  if (!slice.length) return null;
+
+  return slice.reduce((sum, e) => sum + e.weight, 0) / slice.length;
+}
+
+/** Weight trend over a window using 7-day rolling averages when possible. */
+export function computeWeightTrendFromEntries(
+  entries: WeightEntry[],
+  windowDays: number,
+): {
+  weightDelta: number;
+  actualDays: number;
+  endAvg7: number | null;
+  startAvg7: number | null;
+  usedRollingWeight: boolean;
+} | null {
+  if (entries.length < 2) return null;
+
+  const sorted = [...entries].sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+  const endEntry = sorted[sorted.length - 1];
+  const endDate = parseDateKey(endEntry.dateKey);
+  const windowStart = new Date(endDate);
+  windowStart.setDate(windowStart.getDate() - windowDays);
+  const windowStartKey = dateKeyFromDate(windowStart);
+
+  const startEntry =
+    sorted.find((e) => e.dateKey >= windowStartKey) ?? sorted[0];
+  const actualDays = Math.max(
+    1,
+    Math.round(
+      (parseDateKey(endEntry.dateKey).getTime() -
+        parseDateKey(startEntry.dateKey).getTime()) /
+        86400000,
+    ),
+  );
+
+  const endAvg7 = rollingAverageWeight(sorted, endEntry.dateKey, 7);
+
+  const startAnchor = new Date(parseDateKey(startEntry.dateKey));
+  startAnchor.setDate(
+    startAnchor.getDate() + Math.min(6, Math.max(0, Math.floor(actualDays / 3))),
+  );
+  const startAvg7 =
+    rollingAverageWeight(sorted, dateKeyFromDate(startAnchor), 7) ??
+    rollingAverageWeight(sorted, startEntry.dateKey, 7);
+
+  if (endAvg7 == null) return null;
+
+  const usedRollingWeight = startAvg7 != null;
+  const weightDelta = usedRollingWeight
+    ? endAvg7 - startAvg7
+    : endEntry.weight - startEntry.weight;
+
+  return {
+    weightDelta,
+    actualDays,
+    endAvg7,
+    startAvg7,
+    usedRollingWeight,
+  };
+}
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
+}
+
+/** Split scale change into muscle vs fat using lift strength as the main signal. */
+function partitionWeightChange(
+  weightDelta: number,
+  strengthDelta: number,
+  hasLiftData: boolean,
+  weeks: number,
+  maxMusclePerWeek: number,
+): { estMuscle: number; estFat: number } {
+  if (Math.abs(weightDelta) < 0.05) {
+    return { estMuscle: 0, estFat: 0 };
+  }
+
+  if (!hasLiftData) {
+    if (weightDelta > 0) {
+      const estMuscle = Math.min(maxMusclePerWeek * weeks * 0.5, weightDelta * 0.4);
+      return { estMuscle, estFat: weightDelta - estMuscle };
+    }
+    const loss = Math.abs(weightDelta);
+    return { estMuscle: -loss * 0.15, estFat: -(loss * 0.85) };
+  }
+
+  const sd = strengthDelta;
+
+  if (weightDelta > 0) {
+    let muscleShare: number;
+    if (sd >= 0.03) {
+      muscleShare = 0.55 + Math.min(0.35, sd * 4);
+    } else if (sd >= -0.015) {
+      muscleShare = 0.28 + (sd + 0.015) * 6;
+    } else {
+      muscleShare = Math.max(0.06, 0.18 + sd * 2.5);
+    }
+    muscleShare = clamp(muscleShare, 0.05, 0.9);
+    const estMuscle = weightDelta * muscleShare;
+    return { estMuscle, estFat: weightDelta - estMuscle };
+  }
+
+  const loss = Math.abs(weightDelta);
+  if (sd >= 0.02) {
+    const estMuscle = Math.min(0.35, loss * (0.04 + sd * 0.5));
+    return { estMuscle, estFat: -loss };
+  }
+  if (sd >= -0.02) {
+    const muscleLoss = loss * 0.14;
+    return { estMuscle: -muscleLoss, estFat: -(loss - muscleLoss) };
+  }
+  const muscleLossShare = clamp(0.15 + Math.abs(sd) * 2.2, 0.15, 0.5);
+  const estMuscle = -loss * muscleLossShare;
+  return { estMuscle, estFat: -(loss + estMuscle) };
+}
+
+function formatWeightDelta(units: string, delta: number, rolling: boolean): string {
+  const prefix = rolling ? "7d avg " : "";
+  if (delta > 0) return `+${delta.toFixed(1)} ${units} (${prefix}trend)`;
+  return `−${Math.abs(delta).toFixed(1)} ${units} (${prefix}trend)`;
+}
 
 export function computeStrengthDeltaFromSets(
   sets: UnifiedWorkingSet[],
@@ -199,8 +355,10 @@ export function computeCompositionEstimate(input: {
   units: string;
   yearsTraining: number;
   lift: CompositionLiftSignals;
+  usedRollingWeight?: boolean;
 }): CompositionEstimate {
   const { weightDelta, actualDays, units, yearsTraining, lift } = input;
+  const usedRollingWeight = input.usedRollingWeight ?? false;
   const weeks = actualDays / 7;
 
   const frequencyFactor = Math.max(
@@ -214,43 +372,52 @@ export function computeCompositionEstimate(input: {
   else maxMuscleKgPerWeek = 0.11;
 
   const unitConv = units === "lb" ? 2.20462 : 1;
-  const maxMusclePerWeek = maxMuscleKgPerWeek * unitConv;
+  const maxMusclePerWeek = maxMuscleKgPerWeek * unitConv * frequencyFactor;
 
   const strengthDelta = lift.strengthDelta;
-  const strengthBoost = Math.max(0.5, Math.min(1.5, 1 + strengthDelta * 4));
-  let estMuscle = maxMusclePerWeek * weeks * strengthBoost * frequencyFactor;
+  const { estMuscle, estFat } = partitionWeightChange(
+    weightDelta,
+    strengthDelta,
+    lift.hasLiftData,
+    weeks,
+    maxMusclePerWeek,
+  );
 
-  let estFat: number;
   let headlineCls: "good" | "warn" | "bad" | "" = "";
   let headline = "";
+  const trendLabel = formatWeightDelta(units, weightDelta, usedRollingWeight);
 
-  if (weightDelta > 0) {
-    estMuscle = Math.min(estMuscle, weightDelta);
-    estFat = Math.max(0, weightDelta - estMuscle);
-    const musclePct = estMuscle / weightDelta;
-    if (musclePct >= 0.6 && strengthDelta > 0) {
+  if (Math.abs(weightDelta) < 0.05) {
+    headline = "Weight stable — keep logging and training.";
+    headlineCls = "";
+  } else if (weightDelta > 0) {
+    if (strengthDelta >= 0.03) {
       headlineCls = "good";
-      headline = `+${weightDelta.toFixed(1)} ${units} — mostly muscle, strength up.`;
-    } else if (musclePct >= 0.35) {
+      headline = `${trendLabel} — lifts up, likely lean gain.`;
+    } else if (strengthDelta >= -0.015) {
       headlineCls = "warn";
-      headline = `+${weightDelta.toFixed(1)} ${units} — mixed. Tighten kcal or push lifts harder.`;
-    } else {
+      headline = `${trendLabel} — mixed gain. Push strength or trim kcal.`;
+    } else if (lift.hasLiftData) {
       headlineCls = "bad";
-      headline = `+${weightDelta.toFixed(1)} ${units} — mostly fat. Strength flat. Cut kcal.`;
+      headline = `${trendLabel} — lifts down, likely mostly fat.`;
+    } else {
+      headlineCls = "warn";
+      headline = `${trendLabel} — log workouts to refine this.`;
     }
   } else {
     const wDown = Math.abs(weightDelta);
-    if (strengthDelta >= 0) {
-      estMuscle = Math.min(maxMusclePerWeek * weeks * 0.3, 0.5);
-      estFat = wDown + estMuscle;
+    if (strengthDelta >= 0.02) {
       headlineCls = "good";
-      headline = `−${wDown.toFixed(1)} ${units} — strength holding, fat dropping.`;
-    } else {
-      const lossPct = Math.min(0.4, Math.abs(strengthDelta) * 2);
-      estMuscle = -wDown * lossPct;
-      estFat = -(wDown + estMuscle);
+      headline = `${trendLabel} — strength holding/up, likely fat loss.`;
+    } else if (strengthDelta >= -0.02) {
       headlineCls = "warn";
-      headline = `−${wDown.toFixed(1)} ${units} — strength slipping. You may be losing muscle.`;
+      headline = `−${wDown.toFixed(1)} ${units} — strength flat, mixed loss.`;
+    } else if (lift.hasLiftData) {
+      headlineCls = "warn";
+      headline = `−${wDown.toFixed(1)} ${units} — lifts slipping, may be losing muscle.`;
+    } else {
+      headlineCls = "warn";
+      headline = `−${wDown.toFixed(1)} ${units} — log workouts to see if muscle is at risk.`;
     }
   }
 
@@ -265,14 +432,15 @@ export function computeCompositionEstimate(input: {
   const freqStr = `${lift.sessionsPerWeek.toFixed(1)} sessions/wk`;
 
   const liftingMeta = lift.hasLiftData
-    ? `${lift.workoutDayCount} training days · ${lift.totalVolumeLbs.toLocaleString()} lb volume · strength ${sdStr} · ${lift.liftSource}`
+    ? `${lift.workoutDayCount} training days · ${lift.totalVolumeLbs.toLocaleString()} lb volume · est. 1RM ${sdStr} · ${lift.liftSource}`
     : "No lifting data in this window — log workouts in Hevy or Kova.";
 
   const footLine =
     `~${muscleSign}${estMuscle.toFixed(1)} ${units} muscle · ` +
     `~${fatSign}${estFat.toFixed(1)} ${units} fat · ` +
     `strength ${sdStr} · ${freqStr}` +
-    (lift.hasLiftData ? "" : " (no lift data)");
+    (lift.hasLiftData ? "" : " (no lift data)") +
+    (usedRollingWeight ? " · 7d avg weight trend" : "");
 
   return {
     headline,
@@ -289,6 +457,7 @@ export function computeCompositionEstimate(input: {
     liftSource: lift.liftSource,
     liftingMeta,
     footLine,
+    usedRollingWeight,
   };
 }
 

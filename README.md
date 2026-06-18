@@ -1,7 +1,7 @@
 # Kova — Personal Health OS
 
 A personal, full-stack health dashboard that unifies data from **Oura Ring,
-Hevy, Strava, USDA FoodData Central, and Open Food Facts** into a single
+Hevy, USDA FoodData Central, and Open Food Facts** into a single
 interface — surfacing cross-source correlations no individual app can show.
 
 Built for personal use, hosted on Vercel, installable on iPhone as a PWA.
@@ -53,24 +53,23 @@ app/
   api/                sync/*, auth/*, food/*, and native CRUD routes (later phases)
 components/           UI primitives, MetricCard, charts, NavBar
 lib/                  supabase clients + source-agnostic integrations
-                      (oura, hevy, strava, usda, openfoodfacts)
+                      (oura, hevy, usda, openfoodfacts)
 types/                domain types mirroring the DB schema
 supabase/schema.sql   full Postgres schema
 ```
 
-## Build status — Phase 1 complete
+## Build status
 
-- [x] **Phase 1** — Setup & infrastructure: Next.js + Tailwind design system,
-      full Supabase schema, PWA shell, dashboard navigation + all 9 views,
-      integration lib scaffolding, env + cron config.
-- [ ] **Phase 2** — Oura integration + Daily Summary data
-- [ ] **Phase 3** — Habits, supplements, weight
-- [ ] **Phase 4** — Hevy integration
-- [ ] **Phase 5** — Strava integration
-- [ ] **Phase 6** — Nutrition logging
-- [ ] **Phase 7** — Trends & correlation views
+- [x] **Phase 1** — Setup & infrastructure
+- [x] **Phase 2** — Oura integration + daily summary (home snapshot)
+- [x] **Phase 3** — Habits, supplements, weight
+- [x] **Phase 4** — Hevy integration
+- [x] **Phase 5** — Nutrition logging (USDA, Open Food Facts, capture, restaurants)
+- [x] **Phase 6** — Trends & correlations
 
-See the project blueprint for full phase detail.
+Cardio comes from Oura activity and Oura workouts — no separate running app integration.
+
+See the project blueprint for original phase detail.
 
 ## Design system
 

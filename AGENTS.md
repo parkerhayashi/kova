@@ -6,21 +6,20 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Kova — project context
 
-**What this is:** Parker's personal health OS. A Next.js + Supabase dashboard that unifies data from Oura Ring, Hevy, Strava, USDA FoodData Central, and Open Food Facts into one interface. Deployed on Vercel, installable on iPhone as a PWA. Single-user, personal use.
+**What this is:** Parker's personal health OS. A Next.js + Supabase dashboard that unifies data from Oura Ring, Hevy, USDA FoodData Central, and Open Food Facts into one interface. Deployed on Vercel, installable on iPhone as a PWA. Single-user, personal use.
 
-**Source of truth:** the full blueprint lives at `~/Downloads/kova_blueprint.pdf` (Personal Health OS — Project Blueprint v2, June 2026). Refer to it whenever a feature, schema field, or design rule is ambiguous.
+**Source of truth:** the full blueprint lives at `~/Downloads/kova_blueprint.pdf` (Personal Health OS — Project Blueprint v2, June 2026). Refer to it whenever a feature, schema field, or design rule is ambiguous. Strava was dropped from scope — cardio uses Oura.
 
-## Build plan (7 phases)
+## Build plan (6 phases)
 
-1. **Setup & infrastructure** — ✅ done (Next.js + Tailwind, Supabase schema, PWA shell, dashboard nav, lib stubs)
-2. **Oura integration + Daily Summary** — next up
-3. Habits, supplements, weight CRUD
-4. Hevy integration
-5. Strava integration
-6. Nutrition logging (USDA + Open Food Facts)
-7. Trends & correlations
+1. **Setup & infrastructure** — ✅ done
+2. **Oura integration + Daily Summary** — ✅ done
+3. **Habits, supplements, weight CRUD** — ✅ done
+4. **Hevy integration** — ✅ done
+5. **Nutrition logging** (USDA + Open Food Facts) — ✅ done
+6. **Trends & correlations** — ✅ done
 
-When picking up work, default to the next un-checked phase unless the user says otherwise. Each phase's feature list is in blueprint §8.
+When picking up work, focus on polish and new features outside the original blueprint (Hevy routines, Oura sessions UI, integrations settings, etc.) unless the user says otherwise.
 
 ## Toolchain deviations from the blueprint (intentional)
 

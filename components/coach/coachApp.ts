@@ -13,7 +13,9 @@ import { loadLiftingSnapshot } from "@/lib/coach-bridge";
 import {
   buildLiftSignalsFromCoachLogs,
   computeCompositionEstimate,
+  computeWeightTrendFromEntries,
   mergeLiftSignals,
+  rollingAverageWeight,
 } from "@/lib/coach-composition";
 import { localDateKey, parseLocalDateKey } from "@/lib/coach-rx";
 
@@ -61,6 +63,11 @@ export const COACH_HTML = `
       <div class="wt-row">
         <span class="wt-num" id="wtNum">—</span>
         <span class="wt-unit" id="wtUnit">kg</span>
+      </div>
+      <div class="wt-avg-row hidden" id="wtAvgRow">
+        <span class="wt-avg-label">7-day avg</span>
+        <span class="wt-avg-val" id="wtAvgNum">—</span>
+        <span class="wt-avg-unit" id="wtAvgUnit">kg</span>
       </div>
       <div class="wt-delta hidden" id="wtDelta"></div>
       <div class="wt-streak hidden" id="wtStreak">🔥<span id="wtStreakNum">0 day streak</span></div>
@@ -110,6 +117,7 @@ export const COACH_HTML = `
           <div>
             <div class="wt-locked-label">LOGGED TODAY</div>
             <div class="wt-locked-value" id="wtLockedValue">— kg</div>
+            <div class="wt-locked-avg hidden" id="wtLockedAvg">—</div>
           </div>
         </div>
         <button class="wt-edit-btn" id="wtEditBtn">Edit</button>
@@ -1579,14 +1587,41 @@ export function mountCoach(): () => void {
     const todayKey = wtDateKey(new Date());
     const todayEntry = wtEntries.find((e) => e.dateKey === todayKey);
     const u = state.units;
+    const displayKey = todayEntry?.dateKey ?? last?.dateKey ?? null;
+    const avg7 = displayKey
+      ? rollingAverageWeight(
+          wtEntries.map((e) => ({ dateKey: e.dateKey, weight: e.weight })),
+          displayKey,
+          7,
+        )
+      : null;
 
     $("wtUnit").textContent = u;
     $("wtUnitStatic").textContent = u;
-    $("wtNum").textContent = last ? last.weight.toFixed(1) : "—";
+    $("wtNum").textContent = todayEntry
+      ? todayEntry.weight.toFixed(1)
+      : last
+        ? last.weight.toFixed(1)
+        : "—";
+
+    if (avg7 != null) {
+      $("wtAvgNum").textContent = avg7.toFixed(1);
+      $("wtAvgUnit").textContent = u;
+      $("wtAvgRow").classList.remove("hidden");
+    } else {
+      $("wtAvgRow").classList.add("hidden");
+    }
 
     if (todayEntry) {
       $("wtEmpty").classList.add("hidden");
       $("wtLockedValue").textContent = todayEntry.weight.toFixed(1) + " " + u;
+      if (avg7 != null) {
+        $("wtLockedAvg").textContent =
+          "7-day avg " + avg7.toFixed(1) + " " + u;
+        $("wtLockedAvg").classList.remove("hidden");
+      } else {
+        $("wtLockedAvg").classList.add("hidden");
+      }
       $("wtLocked").classList.remove("hidden");
       $("wtInputRow").classList.add("hidden");
     } else {
@@ -1674,19 +1709,27 @@ export function mountCoach(): () => void {
 
   function wtRenderDelta() {
     const last = wtEntries[wtEntries.length - 1];
-    const lastDate = wtParseKey(last.dateKey);
-    const cutoff = new Date(lastDate);
-    cutoff.setDate(cutoff.getDate() - 7);
-    const baseline = wtEntries.find((e) => wtParseKey(e.dateKey) >= cutoff) || wtEntries[0];
-    const diff = last.weight - baseline.weight;
+    const avg7 = rollingAverageWeight(
+      wtEntries.map((e) => ({ dateKey: e.dateKey, weight: e.weight })),
+      last.dateKey,
+      7,
+    );
     const el = $("wtDelta");
-    if (Math.abs(diff) < 0.05) {
+    if (avg7 == null) {
       el.classList.add("hidden");
+      return;
+    }
+    const diff = last.weight - avg7;
+    if (Math.abs(diff) < 0.05) {
+      el.textContent = "On your 7-day avg";
+      el.classList.remove("up", "down");
+      el.classList.remove("hidden");
       return;
     }
     const arrow = diff > 0 ? "↑" : "↓";
     const sign = diff > 0 ? "+" : "−";
-    el.textContent = arrow + " " + sign + Math.abs(diff).toFixed(1) + " " + state.units + " · last 7d";
+    el.textContent =
+      arrow + " " + sign + Math.abs(diff).toFixed(1) + " " + state.units + " vs 7-day avg";
     el.classList.toggle("up", diff > 0);
     el.classList.toggle("down", diff < 0);
     el.classList.remove("hidden");
@@ -1707,25 +1750,19 @@ export function mountCoach(): () => void {
       return;
     }
 
-    const now = wtParseKey(wtEntries[wtEntries.length - 1].dateKey);
-    const start = new Date(now);
-    start.setDate(start.getDate() - window);
-
-    const startEntry = wtEntries.find((e) => wtParseKey(e.dateKey) >= start);
-    const endEntry = wtEntries[wtEntries.length - 1];
-    if (!startEntry || startEntry === endEntry) {
+    const weightTrend = computeWeightTrendFromEntries(
+      wtEntries.map((e) => ({ dateKey: e.dateKey, weight: e.weight })),
+      window,
+    );
+    if (!weightTrend) {
       compEl.classList.add("hidden");
       liftingEl.classList.add("hidden");
       return;
     }
-    const weightDelta = endEntry.weight - startEntry.weight;
-    const actualDays = Math.max(
-      1,
-      Math.round(
-        (wtParseKey(endEntry.dateKey) - wtParseKey(startEntry.dateKey)) /
-          86400000,
-      ),
-    );
+
+    const now = wtParseKey(wtEntries[wtEntries.length - 1].dateKey);
+    const start = new Date(now);
+    start.setDate(start.getDate() - window);
 
     const coachSignals = buildLiftSignalsFromCoachLogs(
       state.logs,
@@ -1735,18 +1772,23 @@ export function mountCoach(): () => void {
     const snapshot = loadLiftingSnapshot();
     const alignedSnapshot =
       snapshot && snapshot.windowDays === window ? snapshot : null;
-    const lift = mergeLiftSignals(alignedSnapshot, coachSignals, actualDays);
+    const lift = mergeLiftSignals(
+      alignedSnapshot,
+      coachSignals,
+      weightTrend.actualDays,
+    );
 
     const result = computeCompositionEstimate({
-      weightDelta,
-      actualDays,
+      weightDelta: weightTrend.weightDelta,
+      actualDays: weightTrend.actualDays,
       units: state.units,
       yearsTraining: CONFIG.composition.yearsTraining || 1,
       lift,
+      usedRollingWeight: weightTrend.usedRollingWeight,
     });
 
     compEl.classList.remove("hidden");
-    $("wtCompWindow").textContent = "last " + actualDays + "d";
+    $("wtCompWindow").textContent = "last " + weightTrend.actualDays + "d";
     const headlineEl = $("wtCompHeadline");
     headlineEl.textContent = result.headline;
     headlineEl.className = "wt-comp-headline " + result.headlineCls;

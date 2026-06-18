@@ -436,21 +436,6 @@ export interface SessionExerciseGroup {
   sets: WorkoutSet[];
 }
 
-export interface Run {
-  id: string;
-  strava_id: number;
-  date: string | null;
-  name: string | null;
-  distance_m: number | null;
-  duration: number | null; // seconds
-  avg_pace: number | null;
-  avg_hr: number | null;
-  elevation_gain: number | null;
-  suffer_score: number | null;
-  source: string;
-  created_at: string;
-}
-
 export type MealSource =
   | "usda"
   | "open_food_facts"
@@ -638,8 +623,6 @@ export interface UserSettings {
   timezone: string | null;
   oura_access_token: string | null;
   oura_refresh_token: string | null;
-  strava_access_token: string | null;
-  strava_refresh_token: string | null;
   hevy_api_key: string | null;
   totp_secret: string | null;
   water_state: Record<string, unknown> | null;

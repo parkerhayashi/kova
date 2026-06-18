@@ -21,7 +21,7 @@ Kova aggregates personal health and lifestyle data (Oura Ring, habits, weight, w
 - **Application gate:** The entire app is protected by a password (`KOVA_PASSWORD`). A successful login sets an HttpOnly, `SameSite=Lax` session cookie signed with HMAC-SHA256 (`AUTH_SECRET`). Without a valid session, pages redirect to `/login` and API routes return `401`.
 - **Two-factor authentication (TOTP):** Optional MFA via authenticator apps (1Password, Google Authenticator, etc.). When enabled at `/settings/security`, login requires password plus a 6-digit TOTP code. The seed is encrypted at rest in `user_settings.totp_secret`.
 - **Login rate limiting:** Failed password or TOTP attempts are capped at 10 per IP per 15-minute window (`lib/rate-limit.ts`).
-- **Least privilege:** Integration secrets (Oura, Hevy, Strava, Plaid, Supabase service role, cron secret, encryption key) exist only in server-side environment variables. They are never exposed to client components or `NEXT_PUBLIC_*` variables.
+- **Least privilege:** Integration secrets (Oura, Hevy, Plaid, Supabase service role, cron secret, encryption key) exist only in server-side environment variables. They are never exposed to client components or `NEXT_PUBLIC_*` variables.
 - **Database:** All tables have Row Level Security enabled with no permissive policies, so the public anon key cannot read or write rows. The application uses the Supabase service role exclusively in server-side code.
 - **Cron routes:** `/api/sync/*` endpoints authenticate with a `Bearer` token (`CRON_SECRET`), not the session cookie.
 - **OAuth:** Third-party OAuth flows use a random `state` value stored in an HttpOnly cookie to prevent CSRF.
@@ -45,7 +45,7 @@ The operator maintains multi-factor authentication on accounts that hold product
 - GitHub (source + secrets)
 - Vercel (environment variables)
 - Supabase (database + service role key)
-- Third-party developer portals (Oura, Strava, Plaid when enabled)
+- Third-party developer portals (Oura, Plaid when enabled)
 
 ## Vulnerability management
 
