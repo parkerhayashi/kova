@@ -13,6 +13,7 @@ import { isDrinkTier } from "@/lib/habit-drinks";
 function refresh() {
   revalidatePath("/habits");
   revalidatePath("/");
+  revalidatePath("/nutrition");
   revalidatePath("/trends");
 }
 

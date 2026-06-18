@@ -28,6 +28,10 @@ import {
 } from "@/lib/trends/nutrition-weight";
 import type { DualTrendView } from "@/lib/trends/types";
 import type { Activity, Meal } from "@/types";
+import {
+  getAlcoholCaloriesByDay,
+  getAlcoholCaloriesForDate,
+} from "@/lib/alcohol-nutrition";
 
 async function gatherGoalInputs(date: string): Promise<GoalInputs> {
   const [settings, profile, activity] = await Promise.all([
@@ -109,10 +113,11 @@ export async function getNutritionByDay(days: number): Promise<{
 }> {
   const timezone = await getTimezone();
   const since = addDays(todayInTimezone(timezone), -(days - 1));
-  const [meals, supplements, supplementLogs] = await Promise.all([
+  const [meals, supplements, supplementLogs, alcoholByDay] = await Promise.all([
     getMealsSince(days),
     getSupplements(true),
     getSupplementLogsSince(since),
+    getAlcoholCaloriesByDay(days, timezone),
   ]);
 
   const caloriesByDay = new Map<string, number>();
@@ -138,7 +143,8 @@ export async function getNutritionByDay(days: number): Promise<{
       logsByDate.get(date) ?? [],
     );
     const merged = mergeDailyTotals(mealTotals, supTotals);
-    const calories = Math.round(merged.calories ?? 0);
+    const alcohol = alcoholByDay.get(date) ?? 0;
+    const calories = Math.round((merged.calories ?? 0) + alcohol);
     const protein = Math.round(merged.protein_g ?? 0);
     if (calories > 0) caloriesByDay.set(date, calories);
     if (protein > 0) proteinByDay.set(date, protein);
@@ -150,10 +156,16 @@ export async function getNutritionByDay(days: number): Promise<{
       {},
       sumTakenSupplements(supplements, logs),
     );
-    const calories = Math.round(merged.calories ?? 0);
+    const alcohol = alcoholByDay.get(date) ?? 0;
+    const calories = Math.round((merged.calories ?? 0) + alcohol);
     const protein = Math.round(merged.protein_g ?? 0);
     if (calories > 0) caloriesByDay.set(date, calories);
     if (protein > 0) proteinByDay.set(date, protein);
+  }
+
+  for (const [date, alcohol] of alcoholByDay) {
+    if (caloriesByDay.has(date)) continue;
+    if (alcohol > 0) caloriesByDay.set(date, alcohol);
   }
 
   return { caloriesByDay, proteinByDay };
@@ -166,14 +178,17 @@ export async function getProteinByDay(days: number): Promise<Map<string, number>
 }
 
 export async function getDailyTotals(date: string): Promise<DailyTotals> {
-  const [meals, supplements, logs] = await Promise.all([
+  const [meals, supplements, logs, alcoholCalories] = await Promise.all([
     getMealsForDate(date),
     getSupplements(true),
     getSupplementLogsForDate(date),
+    getAlcoholCaloriesForDate(date),
   ]);
   const mealTotals = sumMeals(meals);
   const supplementTotals = sumTakenSupplements(supplements, logs);
-  return mergeDailyTotals(mealTotals, supplementTotals);
+  const base = mergeDailyTotals(mealTotals, supplementTotals);
+  if (alcoholCalories <= 0) return base;
+  return mergeDailyTotals(base, { calories: alcoholCalories });
 }
 
 export async function addMeal(
@@ -194,7 +209,7 @@ export async function getCalorieTrend(
   days: number,
 ): Promise<{ date: string; calories: number; goal: number }[]> {
   const timezone = await getTimezone();
-  const [meals, activityRows, settings, profile, supplements, supplementLogs] =
+  const [meals, activityRows, settings, profile, supplements, supplementLogs, alcoholByDay] =
     await Promise.all([
     getMealsSince(days),
     getActivityHistory(days),
@@ -202,6 +217,7 @@ export async function getCalorieTrend(
     getUserProfile(),
     getSupplements(true),
     getSupplementLogsSince(addDays(todayInTimezone(timezone), -(days - 1))),
+    getAlcoholCaloriesByDay(days, timezone),
   ]);
 
   const activityByDate = new Map<string, Activity>(
@@ -252,7 +268,7 @@ export async function getCalorieTrend(
     );
     out.push({
       date,
-      calories: Math.round(dayTotals.calories ?? 0),
+      calories: Math.round((dayTotals.calories ?? 0) + (alcoholByDay.get(date) ?? 0)),
       goal: goals.calories,
     });
   }

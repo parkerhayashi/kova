@@ -11,7 +11,7 @@ import { getTimezone } from "@/lib/data/oura";
 import { getHabitLogs, getHabits, getWeightForDate } from "@/lib/data/tracking";
 import { logDateHeading, parseLogDate } from "@/lib/log-date";
 import { addDays, clearStreak, currentStreak, todayInTimezone } from "@/lib/utils";
-import { isDrinkTier } from "@/lib/habit-drinks";
+import { normalizeDrinkTier } from "@/lib/habit-drinks";
 import type { DrinkTier } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +41,7 @@ export default async function HabitsPage({
   for (const h of habits) doneByHabit.set(h.id, new Set());
   for (const log of logs) {
     if (log.completed) doneByHabit.get(log.habit_id)?.add(log.date);
-    const tier = isDrinkTier(log.amount_tier) ? log.amount_tier : null;
+    const tier = normalizeDrinkTier(log.amount_tier);
     logByHabitDate.set(`${log.habit_id}:${log.date}`, {
       completed: log.completed,
       amount_tier: tier,

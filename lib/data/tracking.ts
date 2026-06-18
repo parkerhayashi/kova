@@ -109,6 +109,12 @@ export async function getHabitLogs(
   return (data as HabitLog[]) ?? [];
 }
 
+export async function getHabitLogsForDate(date: string): Promise<HabitLog[]> {
+  const db = createServiceClient();
+  const { data } = await db.from("habit_logs").select("*").eq("date", date);
+  return (data as HabitLog[]) ?? [];
+}
+
 export async function setHabitCompletion(
   habitId: string,
   date: string,

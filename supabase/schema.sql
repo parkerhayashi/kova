@@ -439,6 +439,7 @@ create table if not exists habit_logs (
 );
 
 alter table habit_logs add column if not exists amount_tier text;
+update habit_logs set amount_tier = '4-6' where amount_tier = '3-6';
 
 -- ---------------------------------------------------------------------------
 -- Supplements

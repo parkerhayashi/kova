@@ -579,7 +579,7 @@ export interface WeightLog {
 export type HabitKind = "positive" | "track";
 
 /** Rough drink buckets for alcohol day tags. */
-export type DrinkTier = "1-3" | "3-6" | "6+";
+export type DrinkTier = "1-3" | "4-6" | "6+";
 
 export interface Habit {
   id: string;
@@ -595,7 +595,7 @@ export interface HabitLog {
   habit_id: string;
   date: string;
   completed: boolean;
-  /** Drink bucket when logging alcohol (1–3, 3–6, 6+). */
+  /** Drink bucket when logging alcohol (1–3, 4–6, 6+). */
   amount_tier: DrinkTier | null;
 }
 
