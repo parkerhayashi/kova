@@ -90,6 +90,12 @@ function normalizeCategory(category, dressingPortion, dressingStyle) {
   return titleCaseName(category);
 }
 
+function macroCalDiff(nums) {
+  const [cal, , fat, , , , , carbs, , , protein] = nums;
+  const macroCal = protein * 4 + carbs * 4 + fat * 9;
+  return Math.abs(macroCal - cal);
+}
+
 function scoreChoptRow(nums, context = {}) {
   const [cal, calFat, fat, sat, trans, chol, sodium, carbs, fiber, sugar, protein] =
     nums;
@@ -105,6 +111,11 @@ function scoreChoptRow(nums, context = {}) {
   if (sodium >= 0 && sodium <= 5000) score += 4;
   if (protein >= 0 && protein <= 100) score += 4;
 
+  const macroDiff = macroCalDiff(nums);
+  if (macroDiff <= Math.max(25, cal * 0.12)) score += 28;
+  else if (macroDiff <= cal * 0.2) score += 12;
+  else score -= Math.min(45, macroDiff / 8);
+
   if (context.dressing) {
     if (cal >= 20 && cal <= 350) score += 18;
     if (cal > 500) score -= 40;
@@ -116,12 +127,48 @@ function scoreChoptRow(nums, context = {}) {
     if (carbs >= sugar) score += 4;
   }
 
+  if (context.proteinPortion) {
+    if (cal >= 60 && cal <= 250) score += 16;
+    if (cal > 350) score -= 50;
+    if (protein >= 8 && protein <= 45) score += 10;
+  }
+
+  if (context.savory) {
+    if (sugar <= 15) score += 10;
+    if (sugar > 20) score -= 45;
+    if (sugar > carbs) score -= 30;
+    if (fiber <= 15) score += 4;
+    if (fiber > 20) score -= 25;
+    if (cal >= 400 && protein >= 12 && protein <= 50) score += 12;
+    if (cal >= 400 && protein > 55) score -= 40;
+    if (cal >= 400 && protein < 8) score -= 35;
+    if (cal >= 400 && sodium >= 200) score += 6;
+    if (cal >= 400 && sodium < 80) score -= 25;
+  }
+
   if (cal <= 700 && chol > 120) score -= 18;
   if (cal <= 500 && protein > 45) score -= 20;
   if (cal >= 200 && carbs > 120) score -= 15;
   if (protein > 80) score -= 35;
 
   return score;
+}
+
+function compareChoptSolutions(a, b, context = {}) {
+  const scoreDiff = scoreChoptRow(b, context) - scoreChoptRow(a, context);
+  if (scoreDiff !== 0) return scoreDiff;
+
+  const macroDiff = macroCalDiff(a) - macroCalDiff(b);
+  if (macroDiff !== 0) return macroDiff;
+
+  if (context.savory) {
+    const sugarDiff = a[9] - b[9];
+    if (sugarDiff !== 0) return sugarDiff;
+    const fiberDiff = a[8] - b[8];
+    if (fiberDiff !== 0) return fiberDiff;
+  }
+
+  return 0;
 }
 
 function parseChoptDigits(digits, context = {}) {
@@ -133,6 +180,7 @@ function parseChoptDigits(digits, context = {}) {
   function validField(index, value, acc) {
     if (value < 0) return false;
     if (index === 0 && value > 2500) return false;
+    if (context.proteinPortion && index === 0 && value > 350) return false;
     if (index === 1 && acc[0] !== undefined && value > acc[0] + 5) return false;
     if (index === 2 && value > 70) return false;
     if (index === 3 && acc[2] !== undefined && value > acc[2] + 0.01) return false;
@@ -141,8 +189,11 @@ function parseChoptDigits(digits, context = {}) {
     if (index === 6 && value > 8000) return false;
     if (index === 7 && value > 600) return false;
     if (index === 8 && value > 100) return false;
+    if (context.savory && index === 8 && value > 25) return false;
     if (index === 9 && value > 300) return false;
+    if (context.savory && index === 9 && value > 25) return false;
     if (index === 10 && value > 100) return false;
+    if (context.savory && index === 10 && value > 60) return false;
     if (context.dressing && index === 0 && value > 350) return false;
     return true;
   }
@@ -183,9 +234,7 @@ function parseChoptDigits(digits, context = {}) {
     return fallback.length >= 11 ? nutrientsFromStandardRow(fallback) : null;
   }
 
-  solutions.sort(
-    (a, b) => scoreChoptRow(b, context) - scoreChoptRow(a, context),
-  );
+  solutions.sort((a, b) => compareChoptSolutions(a, b, context));
   return nutrientsFromStandardRow(solutions[0]);
 }
 
@@ -287,10 +336,18 @@ function accumulateDigits(lines, startIdx, initialDigits = "", category = "") {
 }
 
 function nutritionContext(category, servingLabel) {
+  const cat = category.toLowerCase();
+  const savoryCategory =
+    /salad|bowl|wrap|sandwich|soup|protein|crunch|greens|grains|cheese|core chop|warm bowl/i.test(
+      cat,
+    ) && !/sweet|cookie|brownie|chiller|beverage|fountain/i.test(cat);
   return {
     dressing: /dressing|pantry/i.test(category) || /^\d+g$/i.test(servingLabel),
     beverage:
       /beverage|fountain/i.test(category) || /^\d+oz$/i.test(servingLabel),
+    savory: savoryCategory || /^1 (salad|bowl|wrap|sandwich|portion|soup)/i.test(servingLabel),
+    proteinPortion:
+      /protein/i.test(cat) && /^1 portion$/i.test(String(servingLabel).trim()),
   };
 }
 

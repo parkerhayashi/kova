@@ -1,5 +1,5 @@
 {
-  "syncedAt": "2026-06-16T13:17:05.271Z",
+  "syncedAt": "2026-06-19T19:53:42.736Z",
   "source": "bojanglesrdu.com/wp-content/uploads/2017/04/bojangles-nutrition.pdf + assets.ctfassets.net/kugm9fp9ib18/7KrOGNUFZjBddOWezWLWwm/a20b10d71b9b0496f96b8e38bd8e0211/CAVA-REC-GID-0326-AllergReg.pdf + chick-fil-a.com/nutrition-allergens + chipotle.com/content/dam/chipotle/menu/nutrition/US-Nutrition-Facts-Paper-Menu-3-2025.pdf + https://assets.choptsalad.com/pdfs/web/chopt_nutrition_allergen_guide.pdf + cookout.com/wp-content/uploads/Cook-Out-Nutrition1.pdf + fiveguys.com/wp-content/uploads/2025/07/five-guys-us-nutrition-allergen-guide-english-1-final.pdf + jerseymikes.ca/nutrition?type=nutrition + images.getbento.com/accounts/68d11e9348e2111e15250c0329f33fdc/media/G6DquJC1S8WtsQJIGg18_NAYA_MA_MENU_NUTRITIONAL_GUIDE_26_0407_DF.pdf + pandaexpress.com/nutritioninformation + shahshalalfood.com/nutritional-breakdown + sweetgreenmenus.com/sweetgreen-nutrition/",
   "restaurants": [
     {
@@ -25,7 +25,7 @@
     {
       "id": "chopt",
       "name": "Chopt",
-      "itemCount": 144
+      "itemCount": 147
     },
     {
       "id": "cook-out",
@@ -9895,15 +9895,15 @@
       "tags": [],
       "nutrients": {
         "calories": 120,
-        "protein_g": 0,
-        "carbs_g": 86,
+        "protein_g": 8,
+        "carbs_g": 4,
         "fat_g": 8,
         "saturated_fat_g": 5,
         "trans_fat_g": 2,
         "cholesterol_mg": 55,
-        "sodium_mg": 1040,
-        "fiber_g": 2,
-        "sugar_g": 5
+        "sodium_mg": 10,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -9918,13 +9918,13 @@
       "tags": [],
       "nutrients": {
         "calories": 125,
-        "protein_g": 0,
-        "carbs_g": 15,
+        "protein_g": 15,
+        "carbs_g": 0,
         "fat_g": 8,
         "saturated_fat_g": 3,
         "trans_fat_g": 2,
         "cholesterol_mg": 51,
-        "sodium_mg": 1000,
+        "sodium_mg": 100,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -9942,14 +9942,14 @@
       "nutrients": {
         "calories": 110,
         "protein_g": 4,
-        "carbs_g": 102,
+        "carbs_g": 13,
         "fat_g": 5,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 13,
-        "sodium_mg": 513,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "sodium_mg": 5,
+        "fiber_g": 1,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -9964,15 +9964,15 @@
       "tags": [],
       "nutrients": {
         "calories": 300,
-        "protein_g": 12,
-        "carbs_g": 69,
+        "protein_g": 8,
+        "carbs_g": 66,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 60,
-        "sodium_mg": 606,
-        "fiber_g": 48,
-        "sugar_g": 24
+        "sodium_mg": 60,
+        "fiber_g": 9,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -9987,15 +9987,15 @@
       "tags": [],
       "nutrients": {
         "calories": 100,
-        "protein_g": 0,
-        "carbs_g": 30,
+        "protein_g": 1,
+        "carbs_g": 9,
         "fat_g": 7,
         "saturated_fat_g": 1,
         "trans_fat_g": 1,
-        "cholesterol_mg": 39,
-        "sodium_mg": 513,
+        "cholesterol_mg": 0,
+        "sodium_mg": 3,
         "fiber_g": 0,
-        "sugar_g": 0
+        "sugar_g": 5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10011,12 +10011,12 @@
       "nutrients": {
         "calories": 140,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 3,
         "fat_g": 14,
         "saturated_fat_g": 10,
         "trans_fat_g": 1,
         "cholesterol_mg": 60,
-        "sodium_mg": 3030,
+        "sodium_mg": 30,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -10034,12 +10034,12 @@
       "nutrients": {
         "calories": 105,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 2,
         "fat_g": 11,
         "saturated_fat_g": 10,
         "trans_fat_g": 1,
         "cholesterol_mg": 20,
-        "sodium_mg": 2020,
+        "sodium_mg": 20,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -10055,15 +10055,15 @@
       "serving_size_g": 30,
       "tags": [],
       "nutrients": {
-        "calories": 250,
+        "calories": 25,
         "protein_g": 1,
-        "carbs_g": 0,
+        "carbs_g": 5,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 55,
-        "sodium_mg": 40,
-        "fiber_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 5,
+        "fiber_g": 4,
         "sugar_g": 1
       },
       "restaurant": "Chopt",
@@ -10079,15 +10079,15 @@
       "tags": [],
       "nutrients": {
         "calories": 740,
-        "protein_g": 61,
-        "carbs_g": 61,
+        "protein_g": 32,
+        "carbs_g": 96,
         "fat_g": 27,
         "saturated_fat_g": 9,
         "trans_fat_g": 1,
-        "cholesterol_mg": 98,
-        "sodium_mg": 569,
-        "fiber_g": 43,
-        "sugar_g": 29
+        "cholesterol_mg": 9,
+        "sodium_mg": 856,
+        "fiber_g": 1,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10102,15 +10102,15 @@
       "tags": [],
       "nutrients": {
         "calories": 575,
-        "protein_g": 29,
-        "carbs_g": 41,
+        "protein_g": 14,
+        "carbs_g": 76,
         "fat_g": 24,
         "saturated_fat_g": 9,
         "trans_fat_g": 1,
-        "cholesterol_mg": 94,
-        "sodium_mg": 676,
-        "fiber_g": 14,
-        "sugar_g": 6
+        "cholesterol_mg": 0,
+        "sodium_mg": 946,
+        "fiber_g": 4,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10124,16 +10124,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 700,
-        "protein_g": 8,
-        "carbs_g": 50,
+        "calories": 70,
+        "protein_g": 4,
+        "carbs_g": 14,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 14,
-        "sodium_mg": 50,
-        "fiber_g": 0,
-        "sugar_g": 4
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 5,
+        "sugar_g": 5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10148,15 +10148,15 @@
       "tags": [],
       "nutrients": {
         "calories": 100,
-        "protein_g": 0,
-        "carbs_g": 64,
+        "protein_g": 6,
+        "carbs_g": 1,
         "fat_g": 8,
         "saturated_fat_g": 5,
         "trans_fat_g": 2,
         "cholesterol_mg": 32,
-        "sodium_mg": 100,
-        "fiber_g": 1,
-        "sugar_g": 5
+        "sodium_mg": 0,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10171,15 +10171,15 @@
       "tags": [],
       "nutrients": {
         "calories": 70,
-        "protein_g": 0,
-        "carbs_g": 90,
+        "protein_g": 9,
+        "carbs_g": 9,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 51,
-        "sodium_mg": 901,
+        "cholesterol_mg": 5,
+        "sodium_mg": 1,
         "fiber_g": 0,
-        "sugar_g": 0
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10193,14 +10193,14 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1002,
-        "protein_g": 6,
-        "carbs_g": 50,
-        "fat_g": 70,
-        "saturated_fat_g": 31,
-        "trans_fat_g": 3,
-        "cholesterol_mg": 2,
-        "sodium_mg": 1,
+        "calories": 100,
+        "protein_g": 15,
+        "carbs_g": 3,
+        "fat_g": 3,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 70,
+        "sodium_mg": 310,
         "fiber_g": 0,
         "sugar_g": 2
       },
@@ -10216,16 +10216,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 2401,
-        "protein_g": 6,
-        "carbs_g": 0,
-        "fat_g": 9,
+        "calories": 240,
+        "protein_g": 5,
+        "carbs_g": 48,
+        "fat_g": 2,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 483,
-        "sodium_mg": 25,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "cholesterol_mg": 90,
+        "sodium_mg": 0,
+        "fiber_g": 3,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10240,14 +10240,14 @@
       "tags": [],
       "nutrients": {
         "calories": 160,
-        "protein_g": 6,
-        "carbs_g": 116,
+        "protein_g": 8,
+        "carbs_g": 11,
         "fat_g": 9,
         "saturated_fat_g": 5,
         "trans_fat_g": 5,
         "cholesterol_mg": 54,
         "sodium_mg": 521,
-        "fiber_g": 28,
+        "fiber_g": 6,
         "sugar_g": 2
       },
       "restaurant": "Chopt",
@@ -10263,15 +10263,15 @@
       "tags": [],
       "nutrients": {
         "calories": 140,
-        "protein_g": 0,
-        "carbs_g": 110,
+        "protein_g": 2,
+        "carbs_g": 1,
         "fat_g": 14,
         "saturated_fat_g": 10,
         "trans_fat_g": 1,
         "cholesterol_mg": 51,
         "sodium_mg": 802,
-        "fiber_g": 0,
-        "sugar_g": 2
+        "fiber_g": 1,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10287,14 +10287,14 @@
       "nutrients": {
         "calories": 105,
         "protein_g": 0,
-        "carbs_g": 110,
+        "carbs_g": 1,
         "fat_g": 11,
         "saturated_fat_g": 10,
         "trans_fat_g": 1,
         "cholesterol_mg": 113,
         "sodium_mg": 520,
-        "fiber_g": 0,
-        "sugar_g": 2
+        "fiber_g": 1,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10308,16 +10308,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 700,
-        "protein_g": 8,
-        "carbs_g": 46,
+        "calories": 70,
+        "protein_g": 4,
+        "carbs_g": 17,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 70,
-        "sodium_mg": 1778,
-        "fiber_g": 19,
-        "sugar_g": 10
+        "cholesterol_mg": 7,
+        "sodium_mg": 0,
+        "fiber_g": 7,
+        "sugar_g": 8
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10332,15 +10332,15 @@
       "tags": [],
       "nutrients": {
         "calories": 110,
-        "protein_g": 4,
-        "carbs_g": 198,
+        "protein_g": 1,
+        "carbs_g": 9,
         "fat_g": 8,
         "saturated_fat_g": 2.5,
         "trans_fat_g": 2,
-        "cholesterol_mg": 65,
-        "sodium_mg": 901,
-        "fiber_g": 0,
-        "sugar_g": 4
+        "cholesterol_mg": 6,
+        "sodium_mg": 5,
+        "fiber_g": 1,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10354,14 +10354,14 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 300,
+        "calories": 30,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 7,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 105,
-        "sodium_mg": 1007,
+        "sodium_mg": 100,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -10379,14 +10379,14 @@
       "nutrients": {
         "calories": 52,
         "protein_g": 1,
-        "carbs_g": 0,
+        "carbs_g": 3,
         "fat_g": 4,
-        "saturated_fat_g": 2,
-        "trans_fat_g": 1,
-        "cholesterol_mg": 33,
-        "sodium_mg": 21,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 21,
+        "sodium_mg": 3,
+        "fiber_g": 2,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10400,16 +10400,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 200,
+        "calories": 20,
         "protein_g": 0,
-        "carbs_g": 17,
+        "carbs_g": 5,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 35,
-        "sodium_mg": 512,
-        "fiber_g": 4,
-        "sugar_g": 0
+        "cholesterol_mg": 3,
+        "sodium_mg": 5,
+        "fiber_g": 1,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10423,16 +10423,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 405,
-        "protein_g": 4,
-        "carbs_g": 30,
-        "fat_g": 0,
+        "calories": 40,
+        "protein_g": 3,
+        "carbs_g": 3,
+        "fat_g": 1,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 25,
         "sodium_mg": 743,
-        "fiber_g": 13,
-        "sugar_g": 2
+        "fiber_g": 0,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10446,16 +10446,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 50,
+        "calories": 5,
         "protein_g": 0,
-        "carbs_g": 4,
+        "carbs_g": 1,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 35,
-        "sodium_mg": 1110,
-        "fiber_g": 2,
-        "sugar_g": 2
+        "cholesterol_mg": 3,
+        "sodium_mg": 5,
+        "fiber_g": 1,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10470,7 +10470,7 @@
       "tags": [],
       "nutrients": {
         "calories": 550,
-        "protein_g": 11,
+        "protein_g": 21,
         "carbs_g": 62,
         "fat_g": 24,
         "saturated_fat_g": 3,
@@ -10478,7 +10478,7 @@
         "cholesterol_mg": 78,
         "sodium_mg": 1003,
         "fiber_g": 8,
-        "sugar_g": 62
+        "sugar_g": 6
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10507,6 +10507,29 @@
       "restaurantId": "chopt"
     },
     {
+      "id": "chopt:chicken-avocado-wrap",
+      "name": "Chicken Avocado Wrap*",
+      "category": "Wraps",
+      "menu": null,
+      "servingSize": "1 wrap",
+      "serving_size_g": 280,
+      "tags": [],
+      "nutrients": {
+        "calories": 740,
+        "protein_g": 29,
+        "carbs_g": 94,
+        "fat_g": 28,
+        "saturated_fat_g": 5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 78,
+        "sodium_mg": 1308,
+        "fiber_g": 12,
+        "sugar_g": 9
+      },
+      "restaurant": "Chopt",
+      "restaurantId": "chopt"
+    },
+    {
       "id": "chopt:chicken-caprese",
       "name": "Chicken Caprese",
       "category": "Sandwiches",
@@ -10516,15 +10539,15 @@
       "tags": [],
       "nutrients": {
         "calories": 795,
-        "protein_g": 62,
-        "carbs_g": 56,
-        "fat_g": 4,
-        "saturated_fat_g": 1,
-        "trans_fat_g": 4,
-        "cholesterol_mg": 110,
-        "sodium_mg": 1454,
-        "fiber_g": 55,
-        "sugar_g": 52
+        "protein_g": 45,
+        "carbs_g": 101,
+        "fat_g": 30,
+        "saturated_fat_g": 4,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 1,
+        "sodium_mg": 401,
+        "fiber_g": 4,
+        "sugar_g": 5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10585,15 +10608,15 @@
       "tags": [],
       "nutrients": {
         "calories": 680,
-        "protein_g": 67,
+        "protein_g": 33,
         "carbs_g": 71,
         "fat_g": 28,
         "saturated_fat_g": 8,
         "trans_fat_g": 1,
         "cholesterol_mg": 11,
         "sodium_mg": 887,
-        "fiber_g": 44,
-        "sugar_g": 33
+        "fiber_g": 4,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10608,15 +10631,15 @@
       "tags": [],
       "nutrients": {
         "calories": 515,
-        "protein_g": 36,
-        "carbs_g": 15,
+        "protein_g": 33,
+        "carbs_g": 45,
         "fat_g": 25,
         "saturated_fat_g": 8,
         "trans_fat_g": 1,
-        "cholesterol_mg": 79,
-        "sodium_mg": 845,
-        "fiber_g": 6,
-        "sugar_g": 3
+        "cholesterol_mg": 0,
+        "sodium_mg": 798,
+        "fiber_g": 15,
+        "sugar_g": 6
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10630,16 +10653,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1404,
+        "calories": 14,
         "protein_g": 0,
-        "carbs_g": 60,
-        "fat_g": 0,
+        "carbs_g": 5,
+        "fat_g": 4,
         "saturated_fat_g": 0,
-        "trans_fat_g": 5,
-        "cholesterol_mg": 102,
-        "sodium_mg": 53,
-        "fiber_g": 6,
-        "sugar_g": 1
+        "trans_fat_g": 4.5,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 1,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10653,15 +10676,15 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 405,
-        "protein_g": 4,
-        "carbs_g": 0,
-        "fat_g": 60,
-        "saturated_fat_g": 7,
-        "trans_fat_g": 2,
-        "cholesterol_mg": 1,
-        "sodium_mg": 2,
-        "fiber_g": 0,
+        "calories": 4,
+        "protein_g": 0,
+        "carbs_g": 1,
+        "fat_g": 5,
+        "saturated_fat_g": 0.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 60,
+        "sodium_mg": 72,
+        "fiber_g": 2,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -10677,7 +10700,7 @@
       "tags": [],
       "nutrients": {
         "calories": 805,
-        "protein_g": 24,
+        "protein_g": 52,
         "carbs_g": 55,
         "fat_g": 42,
         "saturated_fat_g": 16,
@@ -10685,7 +10708,7 @@
         "cholesterol_mg": 361,
         "sodium_mg": 573,
         "fiber_g": 7,
-        "sugar_g": 35
+        "sugar_g": 3
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10700,15 +10723,15 @@
       "tags": [],
       "nutrients": {
         "calories": 135,
-        "protein_g": 0,
-        "carbs_g": 2,
+        "protein_g": 1,
+        "carbs_g": 3,
         "fat_g": 13,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
         "cholesterol_mg": 7.52,
-        "sodium_mg": 30,
-        "fiber_g": 0.5,
-        "sugar_g": 1
+        "sodium_mg": 0,
+        "fiber_g": 2,
+        "sugar_g": 0.5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10723,15 +10746,15 @@
       "tags": [],
       "nutrients": {
         "calories": 100,
-        "protein_g": 0,
-        "carbs_g": 200,
+        "protein_g": 1,
+        "carbs_g": 2,
         "fat_g": 10,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
         "cholesterol_mg": 61,
         "sodium_mg": 502,
         "fiber_g": 0,
-        "sugar_g": 1
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10746,7 +10769,7 @@
       "tags": [],
       "nutrients": {
         "calories": 785,
-        "protein_g": 44,
+        "protein_g": 50,
         "carbs_g": 55,
         "fat_g": 41,
         "saturated_fat_g": 15,
@@ -10754,7 +10777,7 @@
         "cholesterol_mg": 281,
         "sodium_mg": 648,
         "fiber_g": 7,
-        "sugar_g": 35
+        "sugar_g": 3
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10769,15 +10792,15 @@
       "tags": [],
       "nutrients": {
         "calories": 180,
-        "protein_g": 4,
-        "carbs_g": 152,
+        "protein_g": 2,
+        "carbs_g": 25,
         "fat_g": 8,
         "saturated_fat_g": 5,
         "trans_fat_g": 3,
         "cholesterol_mg": 14,
-        "sodium_mg": 251,
-        "fiber_g": 60,
-        "sugar_g": 2
+        "sodium_mg": 0,
+        "fiber_g": 11,
+        "sugar_g": 5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10792,15 +10815,15 @@
       "tags": [],
       "nutrients": {
         "calories": 7,
-        "protein_g": 25,
-        "carbs_g": 63,
+        "protein_g": 0,
+        "carbs_g": 6,
         "fat_g": 1,
         "saturated_fat_g": 0,
         "trans_fat_g": 1.5,
         "cholesterol_mg": 95,
         "sodium_mg": 1365,
-        "fiber_g": 40,
-        "sugar_g": 19
+        "fiber_g": 3,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10861,14 +10884,14 @@
       "tags": [],
       "nutrients": {
         "calories": 600,
-        "protein_g": 60,
-        "carbs_g": 17,
+        "protein_g": 10,
+        "carbs_g": 38,
         "fat_g": 35,
         "saturated_fat_g": 12,
         "trans_fat_g": 3,
-        "cholesterol_mg": 73,
-        "sodium_mg": 1838,
-        "fiber_g": 10,
+        "cholesterol_mg": 7,
+        "sodium_mg": 318,
+        "fiber_g": 1,
         "sugar_g": 7
       },
       "restaurant": "Chopt",
@@ -10883,15 +10906,15 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 450,
-        "protein_g": 0,
-        "carbs_g": 10,
+        "calories": 4,
+        "protein_g": 1,
+        "carbs_g": 0,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 101,
-        "sodium_mg": 1,
-        "fiber_g": 6,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 1,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -10907,15 +10930,15 @@
       "tags": [],
       "nutrients": {
         "calories": 100,
-        "protein_g": 0,
-        "carbs_g": 64,
+        "protein_g": 1,
+        "carbs_g": 4,
         "fat_g": 9,
         "saturated_fat_g": 5,
-        "trans_fat_g": 3,
-        "cholesterol_mg": 40,
-        "sodium_mg": 100,
-        "fiber_g": 2,
-        "sugar_g": 5
+        "trans_fat_g": 0,
+        "cholesterol_mg": 3,
+        "sodium_mg": 0,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10930,15 +10953,15 @@
       "tags": [],
       "nutrients": {
         "calories": 150,
-        "protein_g": 0,
-        "carbs_g": 12,
+        "protein_g": 2,
+        "carbs_g": 1,
         "fat_g": 15,
         "saturated_fat_g": 1.5,
         "trans_fat_g": 2,
         "cholesterol_mg": 21,
-        "sodium_mg": 101,
-        "fiber_g": 2,
-        "sugar_g": 2
+        "sodium_mg": 0,
+        "fiber_g": 1,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10953,15 +10976,15 @@
       "tags": [],
       "nutrients": {
         "calories": 113,
-        "protein_g": 0,
-        "carbs_g": 112,
-        "fat_g": 11,
-        "saturated_fat_g": 10,
+        "protein_g": 11,
+        "carbs_g": 15,
+        "fat_g": 1,
+        "saturated_fat_g": 1,
         "trans_fat_g": 1,
-        "cholesterol_mg": 51,
-        "sodium_mg": 581,
-        "fiber_g": 2,
-        "sugar_g": 2
+        "cholesterol_mg": 101,
+        "sodium_mg": 5,
+        "fiber_g": 8,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -10977,12 +11000,12 @@
       "nutrients": {
         "calories": 120,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 3,
         "fat_g": 12,
         "saturated_fat_g": 10,
         "trans_fat_g": 1,
         "cholesterol_mg": 32,
-        "sodium_mg": 303,
+        "sodium_mg": 30,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -11000,7 +11023,7 @@
       "nutrients": {
         "calories": 90,
         "protein_g": 0,
-        "carbs_g": 200,
+        "carbs_g": 2,
         "fat_g": 9,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
@@ -11023,7 +11046,7 @@
       "nutrients": {
         "calories": 90,
         "protein_g": 0,
-        "carbs_g": 200,
+        "carbs_g": 2,
         "fat_g": 9,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
@@ -11045,15 +11068,15 @@
       "tags": [],
       "nutrients": {
         "calories": 270,
-        "protein_g": 8,
-        "carbs_g": 44,
+        "protein_g": 16,
+        "carbs_g": 8,
         "fat_g": 19,
         "saturated_fat_g": 5,
-        "trans_fat_g": 2,
-        "cholesterol_mg": 87,
-        "sodium_mg": 160,
-        "fiber_g": 10,
-        "sugar_g": 20
+        "trans_fat_g": 0,
+        "cholesterol_mg": 2,
+        "sodium_mg": 0,
+        "fiber_g": 7,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11076,7 +11099,7 @@
         "cholesterol_mg": 40,
         "sodium_mg": 915,
         "fiber_g": 8,
-        "sugar_g": 10
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11090,15 +11113,15 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 201,
+        "calories": 20,
         "protein_g": 2,
-        "carbs_g": 100,
+        "carbs_g": 1,
         "fat_g": 1,
         "saturated_fat_g": 0.5,
         "trans_fat_g": 0,
         "cholesterol_mg": 3,
         "sodium_mg": 1,
-        "fiber_g": 2,
+        "fiber_g": 0,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11115,13 +11138,13 @@
       "nutrients": {
         "calories": 70,
         "protein_g": 0,
-        "carbs_g": 2,
+        "carbs_g": 8,
         "fat_g": 4,
-        "saturated_fat_g": 1,
+        "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 80,
+        "cholesterol_mg": 1,
         "sodium_mg": 0,
-        "fiber_g": 0,
+        "fiber_g": 2,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11136,14 +11159,14 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1300,
+        "calories": 1,
         "protein_g": 0,
         "carbs_g": 0,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 352,
-        "sodium_mg": 310,
+        "cholesterol_mg": 35,
+        "sodium_mg": 2310,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -11159,16 +11182,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 602,
+        "calories": 60,
         "protein_g": 6,
-        "carbs_g": 62,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
+        "carbs_g": 4,
+        "fat_g": 5,
+        "saturated_fat_g": 2.5,
         "trans_fat_g": 0,
-        "cholesterol_mg": 43,
-        "sodium_mg": 1,
-        "fiber_g": 6,
-        "sugar_g": 4
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 3,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11182,15 +11205,15 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1000,
+        "calories": 1,
         "protein_g": 0,
-        "carbs_g": 100,
+        "carbs_g": 0,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 2,
-        "sodium_mg": 0,
-        "fiber_g": 2,
+        "cholesterol_mg": 0,
+        "sodium_mg": 2,
+        "fiber_g": 1,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11230,12 +11253,12 @@
       "nutrients": {
         "calories": 265,
         "protein_g": 1,
-        "carbs_g": 0,
+        "carbs_g": 4,
         "fat_g": 27,
         "saturated_fat_g": 4,
         "trans_fat_g": 0,
         "cholesterol_mg": 55,
-        "sodium_mg": 40,
+        "sodium_mg": 0,
         "fiber_g": 0,
         "sugar_g": 1
       },
@@ -11252,15 +11275,15 @@
       "tags": [],
       "nutrients": {
         "calories": 245,
-        "protein_g": 9,
+        "protein_g": 1,
         "carbs_g": 0,
         "fat_g": 27,
         "saturated_fat_g": 4,
-        "trans_fat_g": 2,
+        "trans_fat_g": 0,
         "cholesterol_mg": 0,
-        "sodium_mg": 1,
-        "fiber_g": 0,
-        "sugar_g": 1
+        "sodium_mg": 2,
+        "fiber_g": 1,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11298,15 +11321,15 @@
       "tags": [],
       "nutrients": {
         "calories": 70,
-        "protein_g": 0,
-        "carbs_g": 142,
+        "protein_g": 4,
+        "carbs_g": 1,
         "fat_g": 6,
         "saturated_fat_g": 4,
         "trans_fat_g": 2,
         "cholesterol_mg": 52,
-        "sodium_mg": 601,
-        "fiber_g": 1,
-        "sugar_g": 5
+        "sodium_mg": 60,
+        "fiber_g": 0,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11322,14 +11345,14 @@
       "nutrients": {
         "calories": 140,
         "protein_g": 0,
-        "carbs_g": 10,
+        "carbs_g": 1,
         "fat_g": 15,
         "saturated_fat_g": 3,
         "trans_fat_g": 1,
         "cholesterol_mg": 22,
-        "sodium_mg": 100,
-        "fiber_g": 0,
-        "sugar_g": 2
+        "sodium_mg": 0,
+        "fiber_g": 1,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11344,15 +11367,15 @@
       "tags": [],
       "nutrients": {
         "calories": 105,
-        "protein_g": 0,
-        "carbs_g": 10,
+        "protein_g": 1,
+        "carbs_g": 1,
         "fat_g": 11,
         "saturated_fat_g": 2,
         "trans_fat_g": 0,
         "cholesterol_mg": 81,
-        "sodium_mg": 651,
+        "sodium_mg": 65,
         "fiber_g": 0,
-        "sugar_g": 2
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11367,15 +11390,15 @@
       "tags": [],
       "nutrients": {
         "calories": 50,
-        "protein_g": 9,
-        "carbs_g": 0,
+        "protein_g": 0,
+        "carbs_g": 10,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 20,
-        "sodium_mg": 1,
-        "fiber_g": 0,
-        "sugar_g": 1
+        "cholesterol_mg": 2,
+        "sodium_mg": 0,
+        "fiber_g": 1,
+        "sugar_g": 9
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11390,15 +11413,15 @@
       "tags": [],
       "nutrients": {
         "calories": 115,
-        "protein_g": 0,
-        "carbs_g": 60,
+        "protein_g": 6,
+        "carbs_g": 4,
         "fat_g": 8,
         "saturated_fat_g": 6,
         "trans_fat_g": 3,
         "cholesterol_mg": 110,
-        "sodium_mg": 640,
+        "sodium_mg": 6,
         "fiber_g": 0,
-        "sugar_g": 3
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11412,15 +11435,15 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1000,
-        "protein_g": 0,
-        "carbs_g": 101,
+        "calories": 10,
+        "protein_g": 1,
+        "carbs_g": 1,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 212,
-        "sodium_mg": 1,
-        "fiber_g": 5,
+        "cholesterol_mg": 21,
+        "sodium_mg": 2,
+        "fiber_g": 1,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11436,15 +11459,15 @@
       "tags": [],
       "nutrients": {
         "calories": 130,
-        "protein_g": 2,
-        "carbs_g": 25,
+        "protein_g": 25,
+        "carbs_g": 0,
         "fat_g": 3,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
         "cholesterol_mg": 63,
-        "sodium_mg": 3050,
+        "sodium_mg": 305,
         "fiber_g": 0,
-        "sugar_g": 3
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11459,15 +11482,15 @@
       "tags": [],
       "nutrients": {
         "calories": 840,
-        "protein_g": 42,
+        "protein_g": 43,
         "carbs_g": 91,
         "fat_g": 32,
         "saturated_fat_g": 9,
         "trans_fat_g": 1,
         "cholesterol_mg": 91,
         "sodium_mg": 1011,
-        "fiber_g": 14,
-        "sugar_g": 43
+        "fiber_g": 1,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11482,15 +11505,15 @@
       "tags": [],
       "nutrients": {
         "calories": 675,
-        "protein_g": 30,
-        "carbs_g": 12,
+        "protein_g": 47,
+        "carbs_g": 77,
         "fat_g": 29,
         "saturated_fat_g": 9,
         "trans_fat_g": 1,
-        "cholesterol_mg": 97,
-        "sodium_mg": 1277,
-        "fiber_g": 4,
-        "sugar_g": 7
+        "cholesterol_mg": 9,
+        "sodium_mg": 712,
+        "fiber_g": 1,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11505,15 +11528,15 @@
       "tags": [],
       "nutrients": {
         "calories": 40,
-        "protein_g": 0,
-        "carbs_g": 310,
+        "protein_g": 1,
+        "carbs_g": 4,
         "fat_g": 2,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
         "cholesterol_mg": 52,
-        "sodium_mg": 1040,
+        "sodium_mg": 10,
         "fiber_g": 0,
-        "sugar_g": 0
+        "sugar_g": 3
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11527,16 +11550,16 @@
       "serving_size_g": 22,
       "tags": [],
       "nutrients": {
-        "calories": 301,
+        "calories": 30,
         "protein_g": 0,
-        "carbs_g": 21,
+        "carbs_g": 3,
         "fat_g": 2,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
         "cholesterol_mg": 41,
-        "sodium_mg": 583,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "sodium_mg": 58,
+        "fiber_g": 2,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11551,15 +11574,38 @@
       "tags": [],
       "nutrients": {
         "calories": 150,
-        "protein_g": 7,
-        "carbs_g": 30,
+        "protein_g": 3,
+        "carbs_g": 8,
         "fat_g": 12,
         "saturated_fat_g": 2,
         "trans_fat_g": 2,
-        "cholesterol_mg": 88,
-        "sodium_mg": 20,
-        "fiber_g": 0,
-        "sugar_g": 3
+        "cholesterol_mg": 0,
+        "sodium_mg": 8,
+        "fiber_g": 2,
+        "sugar_g": 0
+      },
+      "restaurant": "Chopt",
+      "restaurantId": "chopt"
+    },
+    {
+      "id": "chopt:hummus-crunch-wrap",
+      "name": "Hummus Crunch Wrap",
+      "category": "Wraps",
+      "menu": null,
+      "servingSize": "1 wrap",
+      "serving_size_g": 280,
+      "tags": [],
+      "nutrients": {
+        "calories": 735,
+        "protein_g": 13,
+        "carbs_g": 108,
+        "fat_g": 25,
+        "saturated_fat_g": 5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 1,
+        "sodium_mg": 501,
+        "fiber_g": 1,
+        "sugar_g": 7
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11575,13 +11621,13 @@
       "nutrients": {
         "calories": 80,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 20,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 102,
-        "sodium_mg": 19,
-        "fiber_g": 0,
+        "cholesterol_mg": 1,
+        "sodium_mg": 0,
+        "fiber_g": 19,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11596,16 +11642,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1000,
+        "calories": 10,
         "protein_g": 0,
-        "carbs_g": 6,
-        "fat_g": 2,
-        "saturated_fat_g": 1,
-        "trans_fat_g": 1,
+        "carbs_g": 2,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
         "cholesterol_mg": 0,
-        "sodium_mg": 6,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "sodium_mg": 0,
+        "fiber_g": 1,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11619,16 +11665,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 900,
-        "protein_g": 24,
-        "carbs_g": 63,
+        "calories": 9,
+        "protein_g": 0,
+        "carbs_g": 6,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 60,
         "sodium_mg": 1266,
-        "fiber_g": 60,
-        "sugar_g": 36
+        "fiber_g": 3,
+        "sugar_g": 6
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11643,15 +11689,15 @@
       "tags": [],
       "nutrients": {
         "calories": 300,
-        "protein_g": 6,
-        "carbs_g": 77,
+        "protein_g": 15,
+        "carbs_g": 27,
         "fat_g": 14,
         "saturated_fat_g": 5,
         "trans_fat_g": 2,
         "cholesterol_mg": 56,
-        "sodium_mg": 852,
-        "fiber_g": 51,
-        "sugar_g": 54
+        "sodium_mg": 85,
+        "fiber_g": 7,
+        "sugar_g": 5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11690,14 +11736,14 @@
       "nutrients": {
         "calories": 40,
         "protein_g": 1,
-        "carbs_g": 354,
+        "carbs_g": 2,
         "fat_g": 3,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 69,
-        "sodium_mg": 2111,
-        "fiber_g": 3,
-        "sugar_g": 2
+        "cholesterol_mg": 6,
+        "sodium_mg": 9,
+        "fiber_g": 1,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11713,14 +11759,14 @@
       "nutrients": {
         "calories": 170,
         "protein_g": 0,
-        "carbs_g": 100,
+        "carbs_g": 5,
         "fat_g": 17,
         "saturated_fat_g": 2,
         "trans_fat_g": 1,
         "cholesterol_mg": 62,
-        "sodium_mg": 752,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "sodium_mg": 7,
+        "fiber_g": 2,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11735,14 +11781,14 @@
       "tags": [],
       "nutrients": {
         "calories": 90,
-        "protein_g": 4,
-        "carbs_g": 20,
+        "protein_g": 2,
+        "carbs_g": 3,
         "fat_g": 8,
         "saturated_fat_g": 1,
         "trans_fat_g": 1,
-        "cholesterol_mg": 90,
-        "sodium_mg": 300,
-        "fiber_g": 2,
+        "cholesterol_mg": 9,
+        "sodium_mg": 0,
+        "fiber_g": 0,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11758,14 +11804,14 @@
       "tags": [],
       "nutrients": {
         "calories": 68,
-        "protein_g": 3,
-        "carbs_g": 20,
+        "protein_g": 2,
+        "carbs_g": 2,
         "fat_g": 6,
         "saturated_fat_g": 1,
         "trans_fat_g": 1,
-        "cholesterol_mg": 43,
-        "sodium_mg": 200,
-        "fiber_g": 2,
+        "cholesterol_mg": 4,
+        "sodium_mg": 3,
+        "fiber_g": 0,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11781,15 +11827,15 @@
       "tags": [],
       "nutrients": {
         "calories": 503,
-        "protein_g": 24,
-        "carbs_g": 14,
+        "protein_g": 40,
+        "carbs_g": 61,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 1,
-        "cholesterol_mg": 90,
-        "sodium_mg": 613,
-        "fiber_g": 1,
-        "sugar_g": 9
+        "cholesterol_mg": 9,
+        "sodium_mg": 0,
+        "fiber_g": 3,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11804,7 +11850,7 @@
       "tags": [],
       "nutrients": {
         "calories": 700,
-        "protein_g": 9,
+        "protein_g": 29,
         "carbs_g": 72,
         "fat_g": 32,
         "saturated_fat_g": 8,
@@ -11812,7 +11858,7 @@
         "cholesterol_mg": 31,
         "sodium_mg": 646,
         "fiber_g": 7,
-        "sugar_g": 62
+        "sugar_g": 6
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11827,15 +11873,15 @@
       "tags": [],
       "nutrients": {
         "calories": 535,
-        "protein_g": 13,
-        "carbs_g": 89,
+        "protein_g": 29,
+        "carbs_g": 40,
         "fat_g": 29,
         "saturated_fat_g": 8,
         "trans_fat_g": 1,
         "cholesterol_mg": 31,
-        "sodium_mg": 2574,
-        "fiber_g": 29,
-        "sugar_g": 37
+        "sodium_mg": 257,
+        "fiber_g": 8,
+        "sugar_g": 9
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11850,15 +11896,15 @@
       "tags": [],
       "nutrients": {
         "calories": 265,
-        "protein_g": 7,
-        "carbs_g": 84,
+        "protein_g": 11,
+        "carbs_g": 25,
         "fat_g": 15,
         "saturated_fat_g": 6,
         "trans_fat_g": 3,
         "cholesterol_mg": 47,
-        "sodium_mg": 525,
-        "fiber_g": 11,
-        "sugar_g": 45
+        "sodium_mg": 5,
+        "fiber_g": 8,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11873,15 +11919,15 @@
       "tags": [],
       "nutrients": {
         "calories": 128,
-        "protein_g": 0,
-        "carbs_g": 12,
+        "protein_g": 1,
+        "carbs_g": 0,
         "fat_g": 14,
         "saturated_fat_g": 2,
         "trans_fat_g": 1,
-        "cholesterol_mg": 115,
-        "sodium_mg": 100,
-        "fiber_g": 0,
-        "sugar_g": 2
+        "cholesterol_mg": 11,
+        "sodium_mg": 5,
+        "fiber_g": 1,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11896,15 +11942,15 @@
       "tags": [],
       "nutrients": {
         "calories": 170,
-        "protein_g": 0,
-        "carbs_g": 12,
+        "protein_g": 1,
+        "carbs_g": 1,
         "fat_g": 18,
         "saturated_fat_g": 2,
         "trans_fat_g": 1,
         "cholesterol_mg": 52,
-        "sodium_mg": 10,
+        "sodium_mg": 0,
         "fiber_g": 0,
-        "sugar_g": 2
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -11942,14 +11988,14 @@
       "tags": [],
       "nutrients": {
         "calories": 90,
-        "protein_g": 2,
-        "carbs_g": 100,
+        "protein_g": 0,
+        "carbs_g": 2,
         "fat_g": 9,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
-        "cholesterol_mg": 30,
-        "sodium_mg": 2,
-        "fiber_g": 28,
+        "cholesterol_mg": 3,
+        "sodium_mg": 0,
+        "fiber_g": 1,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11965,14 +12011,14 @@
       "tags": [],
       "nutrients": {
         "calories": 68,
-        "protein_g": 2,
-        "carbs_g": 100,
+        "protein_g": 0,
+        "carbs_g": 2,
         "fat_g": 7,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
-        "cholesterol_mg": 23,
-        "sodium_mg": 2,
-        "fiber_g": 26,
+        "cholesterol_mg": 2,
+        "sodium_mg": 3,
+        "fiber_g": 1,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -11988,15 +12034,15 @@
       "tags": [],
       "nutrients": {
         "calories": 70,
-        "protein_g": 2,
-        "carbs_g": 0,
+        "protein_g": 0,
+        "carbs_g": 4,
         "fat_g": 6,
-        "saturated_fat_g": 3,
-        "trans_fat_g": 2,
-        "cholesterol_mg": 40,
-        "sodium_mg": 31,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 32,
+        "sodium_mg": 0,
+        "fiber_g": 3,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12011,15 +12057,15 @@
       "tags": [],
       "nutrients": {
         "calories": 290,
-        "protein_g": 5,
-        "carbs_g": 39,
+        "protein_g": 9,
+        "carbs_g": 50,
         "fat_g": 6,
         "saturated_fat_g": 2,
         "trans_fat_g": 0,
         "cholesterol_mg": 51,
-        "sodium_mg": 505,
-        "fiber_g": 25,
-        "sugar_g": 1
+        "sodium_mg": 0,
+        "fiber_g": 5,
+        "sugar_g": 3
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12033,14 +12079,14 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 2201,
-        "protein_g": 2,
-        "carbs_g": 10,
-        "fat_g": 43,
-        "saturated_fat_g": 6,
-        "trans_fat_g": 4,
-        "cholesterol_mg": 70,
-        "sodium_mg": 2,
+        "calories": 220,
+        "protein_g": 21,
+        "carbs_g": 0,
+        "fat_g": 14,
+        "saturated_fat_g": 3,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 60,
+        "sodium_mg": 470,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -12057,15 +12103,15 @@
       "tags": [],
       "nutrients": {
         "calories": 160,
-        "protein_g": 6,
-        "carbs_g": 112,
+        "protein_g": 2,
+        "carbs_g": 25,
         "fat_g": 6,
         "saturated_fat_g": 3.5,
         "trans_fat_g": 2,
         "cholesterol_mg": 51,
-        "sodium_mg": 2525,
-        "fiber_g": 34,
-        "sugar_g": 2
+        "sodium_mg": 25,
+        "fiber_g": 1,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12081,14 +12127,14 @@
       "nutrients": {
         "calories": 260,
         "protein_g": 0,
-        "carbs_g": 0.51,
+        "carbs_g": 47,
         "fat_g": 4,
         "saturated_fat_g": 0.5,
         "trans_fat_g": 0,
         "cholesterol_mg": 68,
-        "sodium_mg": 474,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "sodium_mg": 0,
+        "fiber_g": 4,
+        "sugar_g": 0.51
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12103,15 +12149,15 @@
       "tags": [],
       "nutrients": {
         "calories": 90,
-        "protein_g": 0,
-        "carbs_g": 64,
+        "protein_g": 6,
+        "carbs_g": 5,
         "fat_g": 5,
         "saturated_fat_g": 3.5,
         "trans_fat_g": 2,
-        "cholesterol_mg": 15,
-        "sodium_mg": 410,
-        "fiber_g": 2,
-        "sugar_g": 0
+        "cholesterol_mg": 0,
+        "sodium_mg": 1,
+        "fiber_g": 4,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12126,15 +12172,15 @@
       "tags": [],
       "nutrients": {
         "calories": 250,
-        "protein_g": 0,
-        "carbs_g": 16,
+        "protein_g": 16,
+        "carbs_g": 2,
         "fat_g": 20,
         "saturated_fat_g": 13,
         "trans_fat_g": 0,
         "cholesterol_mg": 65,
-        "sodium_mg": 3802,
-        "fiber_g": 8,
-        "sugar_g": 6
+        "sodium_mg": 380,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12149,15 +12195,15 @@
       "tags": [],
       "nutrients": {
         "calories": 652,
-        "protein_g": 0,
-        "carbs_g": 10,
-        "fat_g": 7,
-        "saturated_fat_g": 1,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 25,
+        "protein_g": 40,
+        "carbs_g": 1,
+        "fat_g": 47,
+        "saturated_fat_g": 10,
+        "trans_fat_g": 2,
+        "cholesterol_mg": 5,
         "sodium_mg": 3100,
         "fiber_g": 0,
-        "sugar_g": 4
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12171,15 +12217,15 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 150,
-        "protein_g": 0,
-        "carbs_g": 100,
+        "calories": 15,
+        "protein_g": 4,
+        "carbs_g": 0,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 23,
-        "sodium_mg": 30,
-        "fiber_g": 4,
+        "sodium_mg": 3,
+        "fiber_g": 1,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -12195,15 +12241,15 @@
       "tags": [],
       "nutrients": {
         "calories": 130,
-        "protein_g": 4,
-        "carbs_g": 130,
+        "protein_g": 3,
+        "carbs_g": 19,
         "fat_g": 5,
         "saturated_fat_g": 0.5,
         "trans_fat_g": 0,
         "cholesterol_mg": 27,
-        "sodium_mg": 191,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "sodium_mg": 0,
+        "fiber_g": 1,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12218,15 +12264,15 @@
       "tags": [],
       "nutrients": {
         "calories": 1709,
-        "protein_g": 6,
-        "carbs_g": 0,
-        "fat_g": 11,
-        "saturated_fat_g": 6,
-        "trans_fat_g": 4,
-        "cholesterol_mg": 363,
-        "sodium_mg": 3015,
-        "fiber_g": 1,
-        "sugar_g": 0
+        "protein_g": 50,
+        "carbs_g": 363,
+        "fat_g": 1,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 0,
+        "sodium_mg": 640,
+        "fiber_g": 3,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12240,16 +12286,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 300,
-        "protein_g": 6,
-        "carbs_g": 10,
+        "calories": 30,
+        "protein_g": 2,
+        "carbs_g": 5,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 25,
-        "sodium_mg": 725,
-        "fiber_g": 4,
-        "sugar_g": 2
+        "sodium_mg": 72,
+        "fiber_g": 1,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12263,16 +12309,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 100,
-        "protein_g": 1,
-        "carbs_g": 9,
+        "calories": 10,
+        "protein_g": 0,
+        "carbs_g": 3,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 13,
-        "sodium_mg": 1208,
-        "fiber_g": 7,
-        "sugar_g": 0
+        "cholesterol_mg": 0,
+        "sodium_mg": 1,
+        "fiber_g": 1,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12286,7 +12332,7 @@
       "serving_size_g": 30,
       "tags": [],
       "nutrients": {
-        "calories": 50,
+        "calories": 5,
         "protein_g": 1,
         "carbs_g": 0,
         "fat_g": 0,
@@ -12311,14 +12357,14 @@
       "nutrients": {
         "calories": 80,
         "protein_g": 3,
-        "carbs_g": 30,
+        "carbs_g": 3,
         "fat_g": 7,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
         "cholesterol_mg": 32,
         "sodium_mg": 1,
         "fiber_g": 0,
-        "sugar_g": 3
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12333,15 +12379,15 @@
       "tags": [],
       "nutrients": {
         "calories": 703,
-        "protein_g": 4,
-        "carbs_g": 11,
+        "protein_g": 44,
+        "carbs_g": 1,
         "fat_g": 53,
         "saturated_fat_g": 7,
         "trans_fat_g": 3,
-        "cholesterol_mg": 123,
-        "sodium_mg": 0,
-        "fiber_g": 0,
-        "sugar_g": 4
+        "cholesterol_mg": 1,
+        "sodium_mg": 230,
+        "fiber_g": 1,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12356,15 +12402,15 @@
       "tags": [],
       "nutrients": {
         "calories": 130,
-        "protein_g": 44,
-        "carbs_g": 62,
+        "protein_g": 2,
+        "carbs_g": 20,
         "fat_g": 5,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 27,
-        "sodium_mg": 203,
-        "fiber_g": 36,
-        "sugar_g": 30
+        "sodium_mg": 0,
+        "fiber_g": 3,
+        "sugar_g": 6
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12379,15 +12425,15 @@
       "tags": [],
       "nutrients": {
         "calories": 60,
-        "protein_g": 25,
-        "carbs_g": 0,
+        "protein_g": 1,
+        "carbs_g": 5,
         "fat_g": 5,
         "saturated_fat_g": 1,
         "trans_fat_g": 1,
         "cholesterol_mg": 0,
-        "sodium_mg": 5,
+        "sodium_mg": 0,
         "fiber_g": 0,
-        "sugar_g": 1
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12401,14 +12447,14 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1101,
-        "protein_g": 4,
-        "carbs_g": 30,
-        "fat_g": 5,
-        "saturated_fat_g": 5,
-        "trans_fat_g": 3,
-        "cholesterol_mg": 80,
-        "sodium_mg": 2,
+        "calories": 110,
+        "protein_g": 23,
+        "carbs_g": 0,
+        "fat_g": 4,
+        "saturated_fat_g": 1.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 55,
+        "sodium_mg": 380,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -12424,16 +12470,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 455,
-        "protein_g": 8,
-        "carbs_g": 34,
-        "fat_g": 0,
+        "calories": 45,
+        "protein_g": 4,
+        "carbs_g": 5,
+        "fat_g": 1,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 20,
-        "sodium_mg": 853,
-        "fiber_g": 4,
-        "sugar_g": 15
+        "sodium_mg": 8,
+        "fiber_g": 3,
+        "sugar_g": 3
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12448,7 +12494,7 @@
       "tags": [],
       "nutrients": {
         "calories": 625,
-        "protein_g": 71,
+        "protein_g": 27,
         "carbs_g": 62,
         "fat_g": 29,
         "saturated_fat_g": 4,
@@ -12456,7 +12502,7 @@
         "cholesterol_mg": 60,
         "sodium_mg": 1168,
         "fiber_g": 8,
-        "sugar_g": 62
+        "sugar_g": 6
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12485,6 +12531,29 @@
       "restaurantId": "chopt"
     },
     {
+      "id": "chopt:salmon-avocado-wrap",
+      "name": "Salmon Avocado Wrap",
+      "category": "Wraps",
+      "menu": null,
+      "servingSize": "1 wrap",
+      "serving_size_g": 280,
+      "tags": [],
+      "nutrients": {
+        "calories": 815,
+        "protein_g": 35,
+        "carbs_g": 93,
+        "fat_g": 33,
+        "saturated_fat_g": 6,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 60,
+        "sodium_mg": 1473,
+        "fiber_g": 12,
+        "sugar_g": 9
+      },
+      "restaurant": "Chopt",
+      "restaurantId": "chopt"
+    },
+    {
       "id": "chopt:santa-fe",
       "name": "Santa Fe",
       "category": "Salads",
@@ -12494,15 +12563,15 @@
       "tags": [],
       "nutrients": {
         "calories": 450,
-        "protein_g": 24,
-        "carbs_g": 12,
+        "protein_g": 22,
+        "carbs_g": 30,
         "fat_g": 30,
         "saturated_fat_g": 15,
         "trans_fat_g": 0,
         "cholesterol_mg": 65,
-        "sodium_mg": 4033,
-        "fiber_g": 8,
-        "sugar_g": 2
+        "sodium_mg": 403,
+        "fiber_g": 12,
+        "sugar_g": 8
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12516,14 +12585,14 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 50,
-        "protein_g": 24,
-        "carbs_g": 0,
+        "calories": 5,
+        "protein_g": 0,
+        "carbs_g": 1,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 0,
-        "sodium_mg": 1,
+        "sodium_mg": 0,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -12540,15 +12609,15 @@
       "tags": [],
       "nutrients": {
         "calories": 65,
-        "protein_g": 0,
-        "carbs_g": 2,
+        "protein_g": 2,
+        "carbs_g": 7,
         "fat_g": 3,
         "saturated_fat_g": 3,
         "trans_fat_g": 1,
         "cholesterol_mg": 36,
-        "sodium_mg": 2706,
-        "fiber_g": 0,
-        "sugar_g": 1
+        "sodium_mg": 2,
+        "fiber_g": 6,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12563,15 +12632,15 @@
       "tags": [],
       "nutrients": {
         "calories": 140,
-        "protein_g": 0,
-        "carbs_g": 190,
+        "protein_g": 19,
+        "carbs_g": 1,
         "fat_g": 6,
-        "saturated_fat_g": 3,
+        "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 41,
-        "sodium_mg": 0,
-        "fiber_g": 2,
-        "sugar_g": 5
+        "cholesterol_mg": 30,
+        "sodium_mg": 4,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12585,16 +12654,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 2500,
+        "calories": 25,
         "protein_g": 0,
-        "carbs_g": 50,
+        "carbs_g": 7,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 7,
-        "sodium_mg": 1,
-        "fiber_g": 4,
-        "sugar_g": 0
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "fiber_g": 1,
+        "sugar_g": 5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12608,16 +12677,16 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 801,
-        "protein_g": 0,
-        "carbs_g": 100,
+        "calories": 80,
+        "protein_g": 15,
+        "carbs_g": 1,
         "fat_g": 1,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 135,
-        "sodium_mg": 610,
-        "fiber_g": 15,
-        "sugar_g": 6
+        "cholesterol_mg": 13,
+        "sodium_mg": 561,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12632,15 +12701,15 @@
       "tags": [],
       "nutrients": {
         "calories": 260,
-        "protein_g": 6,
-        "carbs_g": 51,
+        "protein_g": 1,
+        "carbs_g": 56,
         "fat_g": 2,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 13,
-        "sodium_mg": 567,
-        "fiber_g": 6,
-        "sugar_g": 7
+        "cholesterol_mg": 1,
+        "sodium_mg": 3,
+        "fiber_g": 7,
+        "sugar_g": 5
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12654,14 +12723,14 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 908,
+        "calories": 90,
         "protein_g": 0,
-        "carbs_g": 0,
-        "fat_g": 1,
-        "saturated_fat_g": 0,
+        "carbs_g": 2,
+        "fat_g": 9,
+        "saturated_fat_g": 1,
         "trans_fat_g": 0,
-        "cholesterol_mg": 480,
-        "sodium_mg": 2200,
+        "cholesterol_mg": 48,
+        "sodium_mg": 2,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -12678,15 +12747,15 @@
       "tags": [],
       "nutrients": {
         "calories": 210,
-        "protein_g": 4,
-        "carbs_g": 22,
-        "fat_g": 11,
-        "saturated_fat_g": 10,
+        "protein_g": 20,
+        "carbs_g": 30,
+        "fat_g": 1,
+        "saturated_fat_g": 1,
         "trans_fat_g": 1,
-        "cholesterol_mg": 54,
-        "sodium_mg": 503,
-        "fiber_g": 20,
-        "sugar_g": 0
+        "cholesterol_mg": 15,
+        "sodium_mg": 450,
+        "fiber_g": 2,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12701,14 +12770,14 @@
       "tags": [],
       "nutrients": {
         "calories": 158,
-        "protein_g": 3,
-        "carbs_g": 222,
+        "protein_g": 0,
+        "carbs_g": 22,
         "fat_g": 8,
         "saturated_fat_g": 1,
         "trans_fat_g": 1,
         "cholesterol_mg": 13,
         "sodium_mg": 3820,
-        "fiber_g": 0,
+        "fiber_g": 2,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -12747,15 +12816,15 @@
       "tags": [],
       "nutrients": {
         "calories": 990,
-        "protein_g": 64,
-        "carbs_g": 57,
+        "protein_g": 25,
+        "carbs_g": 65,
         "fat_g": 60,
         "saturated_fat_g": 16,
         "trans_fat_g": 1,
         "cholesterol_mg": 55,
-        "sodium_mg": 2376,
-        "fiber_g": 6,
-        "sugar_g": 25
+        "sodium_mg": 237,
+        "fiber_g": 7,
+        "sugar_g": 6
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12770,15 +12839,15 @@
       "tags": [],
       "nutrients": {
         "calories": 130,
-        "protein_g": 5,
-        "carbs_g": 123,
+        "protein_g": 9,
+        "carbs_g": 12,
         "fat_g": 6,
         "saturated_fat_g": 1,
         "trans_fat_g": 0,
         "cholesterol_mg": 25,
         "sodium_mg": 1030,
-        "fiber_g": 49,
-        "sugar_g": 15
+        "fiber_g": 3,
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12792,7 +12861,7 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 150,
+        "calories": 1,
         "protein_g": 0,
         "carbs_g": 0,
         "fat_g": 0,
@@ -12816,15 +12885,15 @@
       "tags": [],
       "nutrients": {
         "calories": 253,
-        "protein_g": 16,
-        "carbs_g": 20,
+        "protein_g": 20,
+        "carbs_g": 43,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 84,
-        "sodium_mg": 4313,
-        "fiber_g": 5,
-        "sugar_g": 9
+        "cholesterol_mg": 8,
+        "sodium_mg": 4,
+        "fiber_g": 1,
+        "sugar_g": 3
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12840,12 +12909,12 @@
       "nutrients": {
         "calories": 70,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 17,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 18,
-        "sodium_mg": 1170,
+        "sodium_mg": 1,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -12863,13 +12932,13 @@
       "nutrients": {
         "calories": 130,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 4,
         "fat_g": 12,
         "saturated_fat_g": 10,
         "trans_fat_g": 2,
-        "cholesterol_mg": 20,
-        "sodium_mg": 4030,
-        "fiber_g": 0,
+        "cholesterol_mg": 2,
+        "sodium_mg": 0,
+        "fiber_g": 3,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -12886,14 +12955,14 @@
       "nutrients": {
         "calories": 98,
         "protein_g": 0,
-        "carbs_g": 0,
+        "carbs_g": 5,
         "fat_g": 9,
         "saturated_fat_g": 1,
-        "trans_fat_g": 1,
-        "cholesterol_mg": 65,
-        "sodium_mg": 3020,
-        "fiber_g": 0,
-        "sugar_g": 0
+        "trans_fat_g": 0,
+        "cholesterol_mg": 1,
+        "sodium_mg": 6,
+        "fiber_g": 3,
+        "sugar_g": 2
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12908,15 +12977,15 @@
       "tags": [],
       "nutrients": {
         "calories": 410,
-        "protein_g": 7,
-        "carbs_g": 114,
+        "protein_g": 11,
+        "carbs_g": 58,
         "fat_g": 16,
         "saturated_fat_g": 7,
-        "trans_fat_g": 3,
-        "cholesterol_mg": 113,
-        "sodium_mg": 658,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 3,
+        "sodium_mg": 1136,
         "fiber_g": 11,
-        "sugar_g": 34
+        "sugar_g": 4
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12939,7 +13008,7 @@
         "cholesterol_mg": 51,
         "sodium_mg": 703,
         "fiber_g": 6,
-        "sugar_g": 10
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -12953,15 +13022,15 @@
       "serving_size_g": 350,
       "tags": [],
       "nutrients": {
-        "calories": 1105,
-        "protein_g": 0,
-        "carbs_g": 2,
+        "calories": 110,
+        "protein_g": 2,
+        "carbs_g": 14,
         "fat_g": 5,
-        "saturated_fat_g": 5,
-        "trans_fat_g": 1,
-        "cholesterol_mg": 42,
-        "sodium_mg": 0,
-        "fiber_g": 0,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 5,
+        "sodium_mg": 5,
+        "fiber_g": 2,
         "sugar_g": 0
       },
       "restaurant": "Chopt",
@@ -12977,15 +13046,15 @@
       "tags": [],
       "nutrients": {
         "calories": 450,
-        "protein_g": 1,
-        "carbs_g": 20,
+        "protein_g": 31,
+        "carbs_g": 2,
         "fat_g": 34,
         "saturated_fat_g": 5,
         "trans_fat_g": 0,
         "cholesterol_mg": 95,
         "sodium_mg": 870,
-        "fiber_g": 13,
-        "sugar_g": 10
+        "fiber_g": 0,
+        "sugar_g": 1
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -13030,7 +13099,7 @@
         "trans_fat_g": 0,
         "cholesterol_mg": 80,
         "sodium_mg": 2000,
-        "fiber_g": 10,
+        "fiber_g": 1,
         "sugar_g": 7
       },
       "restaurant": "Chopt",
@@ -13092,15 +13161,15 @@
       "tags": [],
       "nutrients": {
         "calories": 145,
-        "protein_g": 1,
-        "carbs_g": 15,
+        "protein_g": 15,
+        "carbs_g": 1,
         "fat_g": 9,
         "saturated_fat_g": 2,
         "trans_fat_g": 0,
         "cholesterol_mg": 78,
-        "sodium_mg": 3051,
-        "fiber_g": 10,
-        "sugar_g": 3
+        "sodium_mg": 305,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -13115,15 +13184,15 @@
       "tags": [],
       "nutrients": {
         "calories": 140,
-        "protein_g": 0,
-        "carbs_g": 0,
+        "protein_g": 1,
+        "carbs_g": 2,
         "fat_g": 14,
         "saturated_fat_g": 10,
         "trans_fat_g": 2,
-        "cholesterol_mg": 20,
-        "sodium_mg": 200,
+        "cholesterol_mg": 2,
+        "sodium_mg": 0,
         "fiber_g": 0,
-        "sugar_g": 1
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
@@ -13138,13 +13207,13 @@
       "tags": [],
       "nutrients": {
         "calories": 105,
-        "protein_g": 8,
-        "carbs_g": 0,
+        "protein_g": 0,
+        "carbs_g": 2,
         "fat_g": 11,
         "saturated_fat_g": 10,
         "trans_fat_g": 1,
         "cholesterol_mg": 50,
-        "sodium_mg": 2020,
+        "sodium_mg": 20,
         "fiber_g": 0,
         "sugar_g": 0
       },
@@ -13160,14 +13229,14 @@
       "serving_size_g": 30,
       "tags": [],
       "nutrients": {
-        "calories": 209,
-        "protein_g": 22,
-        "carbs_g": 0,
-        "fat_g": 0,
+        "calories": 20,
+        "protein_g": 2,
+        "carbs_g": 1,
+        "fat_g": 1,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
         "cholesterol_mg": 63,
-        "sodium_mg": 1,
+        "sodium_mg": 0,
         "fiber_g": 0.52,
         "sugar_g": 0
       },
@@ -13184,15 +13253,15 @@
       "tags": [],
       "nutrients": {
         "calories": 157,
-        "protein_g": 0,
-        "carbs_g": 20,
+        "protein_g": 2,
+        "carbs_g": 31,
         "fat_g": 0,
         "saturated_fat_g": 0,
         "trans_fat_g": 0,
-        "cholesterol_mg": 47,
-        "sodium_mg": 3100,
-        "fiber_g": 2,
-        "sugar_g": 2
+        "cholesterol_mg": 4,
+        "sodium_mg": 7,
+        "fiber_g": 0,
+        "sugar_g": 0
       },
       "restaurant": "Chopt",
       "restaurantId": "chopt"
