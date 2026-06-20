@@ -11,5 +11,15 @@
       { "id": "chipotle:romaine-lettuce-tacos", "servings": 1 },
       { "id": "chipotle:guacamole-topping-side", "servings": 1 }
     ]
+  },
+  {
+    "name": "Chipotle — Bowl When Cutting",
+    "components": [
+      { "id": "chipotle:cilantro-lime-white-rice", "servings": 1 },
+      { "id": "chipotle:chicken", "servings": 2 },
+      { "id": "chipotle:fresh-tomato-salsa", "servings": 1 },
+      { "id": "chipotle:romaine-lettuce-tacos", "servings": 1 },
+      { "id": "chipotle:guacamole-topping-side", "servings": 1 }
+    ]
   }
 ]
