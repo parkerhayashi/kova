@@ -16,7 +16,7 @@ export async function CutStatusCoachLoader() {
 export function CutStatusCoachFallback() {
   return (
     <section className="cut-coach-section section">
-      <h2 className="section-title">Cut coach</h2>
+      <h2 className="section-title">Coach</h2>
       <div className="dash-card cut-coach-loading">Loading coach…</div>
     </section>
   );

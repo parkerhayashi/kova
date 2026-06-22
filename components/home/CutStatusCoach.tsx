@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { CutCoachMode, CutCoachResult } from "@/lib/cut-coach";
+import type { CutCoachMode, CutCoachResult, CutPhase } from "@/lib/cut-coach";
+import { coachPhaseLabel, coachSectionTitle } from "@/lib/cut-coach";
 import { cn } from "@/lib/utils";
 
 const STATUS_LABEL: Record<CutCoachResult["status"], string> = {
@@ -10,15 +11,8 @@ const STATUS_LABEL: Record<CutCoachResult["status"], string> = {
   insufficient_data: "Need data",
 };
 
-function phaseLabel(phase: CutCoachResult["phase"]): string {
-  switch (phase) {
-    case "cut":
-      return "Cut";
-    case "bulk":
-      return "Bulk";
-    case "maintain":
-      return "Maintain";
-  }
+function resolvePhase(daily: CutCoachResult, weekly: CutCoachResult): CutPhase {
+  return daily.phase;
 }
 
 export function CutStatusCoach({
@@ -32,15 +26,15 @@ export function CutStatusCoach({
 }) {
   const [mode, setMode] = useState<CutCoachMode>("daily");
   const result = mode === "daily" ? daily : weekly;
-  const phase = result.phase;
+  const phase = resolvePhase(daily, weekly);
 
   return (
     <section className="cut-coach-section section">
       <div className="cut-coach-header">
         <div>
-          <h2 className="section-title">Cut coach</h2>
+          <h2 className="section-title">{coachSectionTitle(phase)}</h2>
           <span className="cut-coach-meta">
-            {phaseLabel(phase)}
+            {coachPhaseLabel(phase)}
             {aiConfigured ? " · AI" : " · rules"}
           </span>
         </div>

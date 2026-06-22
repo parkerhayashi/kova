@@ -191,8 +191,13 @@ export async function getCutCoachBundle(): Promise<{
   const cache = await readCache(today);
   const aiConfigured = isCutCoachAiConfigured();
 
-  const needsDaily = cache.daily?.date !== today;
-  const needsWeekly = cache.weekly?.date !== today;
+  const phaseCtx = await gatherContext("daily");
+  const currentPhase = phaseCtx.phase;
+
+  const needsDaily =
+    cache.daily?.date !== today || cache.daily.result.phase !== currentPhase;
+  const needsWeekly =
+    cache.weekly?.date !== today || cache.weekly.result.phase !== currentPhase;
 
   if (!needsDaily && !needsWeekly) {
     return {

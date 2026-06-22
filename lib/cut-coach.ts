@@ -67,6 +67,53 @@ const resultSchema = z.object({
   action: z.string().min(1).max(200),
 });
 
+export function coachSectionTitle(phase: CutPhase): string {
+  switch (phase) {
+    case "cut":
+      return "Cut coach";
+    case "bulk":
+      return "Lean bulk coach";
+    case "maintain":
+      return "Maintain coach";
+  }
+}
+
+export function coachPhaseLabel(phase: CutPhase): string {
+  switch (phase) {
+    case "cut":
+      return "Cut";
+    case "bulk":
+      return "Lean bulk";
+    case "maintain":
+      return "Maintain";
+  }
+}
+
+function insufficientDataCopy(phase: CutPhase): {
+  headline: string;
+  summary: string;
+} {
+  switch (phase) {
+    case "bulk":
+      return {
+        headline: "Need more logs to coach your lean bulk",
+        summary:
+          "Log weight most days and track calories on at least 5 of the last 7 days. Strength data from Hevy or Kova confirms you are gaining muscle, not just scale weight.",
+      };
+    case "maintain":
+      return {
+        headline: "Need more logs for maintain coaching",
+        summary:
+          "Log weight and calories on most days so the coach can see if you are holding steady.",
+      };
+    default:
+      return {
+        headline: "Need more logs to coach your cut",
+        summary:
+          "Log weight most days and track calories on at least 5 of the last 7 days. Strength data from Hevy or Kova helps refine the read.",
+      };
+  }
+}
 export function detectCutPhase(input: {
   weight_lbs: number | null;
   weight_goal_lbs: number | null;
@@ -77,7 +124,8 @@ export function detectCutPhase(input: {
   const goal = input.weight_goal_lbs;
   if (weight != null && goal != null) {
     if (weight > goal + 0.5) return "cut";
-    if (weight < goal - 0.5) return "bulk";
+    if (weight < goal) return "bulk";
+    if (Math.abs(weight - goal) <= 0.5) return "maintain";
   }
   if (
     input.body_fat_pct != null &&
@@ -85,9 +133,6 @@ export function detectCutPhase(input: {
     input.body_fat_pct > input.body_fat_goal_pct + 0.5
   ) {
     return "cut";
-  }
-  if (weight != null && goal != null && Math.abs(weight - goal) <= 0.5) {
-    return "maintain";
   }
   return "cut";
 }
@@ -173,11 +218,11 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
   const isWeekly = ctx.mode === "weekly";
 
   if (!hasEnoughData(ctx)) {
+    const copy = insufficientDataCopy(phase);
     return {
       status: "insufficient_data",
-      headline: "Need more logs to coach your cut",
-      summary:
-        "Log weight most days and track calories on at least 5 of the last 7 days. Strength data from Hevy or Kova helps refine the read.",
+      headline: copy.headline,
+      summary: copy.summary,
       action: "Log today's meals and weight, then check back tomorrow.",
       mode: ctx.mode,
       phase,
@@ -287,16 +332,122 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
   }
 
   if (phase === "bulk") {
-    const gaining = rate != null && rate > 0.1;
+    const leanGain = rate != null && rate >= 0.15 && rate <= 0.85;
+    const tooFast = rate != null && rate > 1.0;
+    const flat = rate != null && Math.abs(rate) < 0.15;
+    const losing = rate != null && rate < -0.15;
     const strengthUp =
       strengthPct != null && strengthPct >= 0 && ctx.lifting.has_data;
+    const strengthDown =
+      strengthPct != null && strengthPct < -2 && ctx.lifting.has_data;
+    const lowProtein = proteinHit <= 4;
+    const goalGap =
+      ctx.weight.current_lbs != null && ctx.weight.goal_lbs != null
+        ? ctx.weight.goal_lbs - ctx.weight.current_lbs
+        : null;
 
-    if (gaining && strengthUp) {
+    if (leanGain && !strengthDown && !lowProtein) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Good bulk week" : "Bulk on track",
-        summary: `Weight ${formatRate(rate)}/wk · strength ${strengthPct != null && strengthPct >= 0 ? "+" : ""}${strengthPct!.toFixed(0)}%.`,
-        action: "Keep surplus steady and protein high.",
+        headline: isWeekly ? "Solid lean bulk week" : "Lean bulk on track",
+        summary: `Weight ${formatRate(rate)}/wk (target ~0.25–0.75). Protein ${proteinHit}/7 days${strengthPct != null ? ` · strength ${strengthPct >= 0 ? "+" : ""}${strengthPct.toFixed(0)}%` : ""}.`,
+        action: isWeekly
+          ? "Keep the modest surplus — small bumps only if weight stalls next week."
+          : "Stay the course — hit protein and log weight tomorrow.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (tooFast) {
+      return {
+        status: "adjust",
+        headline: "Gaining faster than a lean bulk",
+        summary: `Up ${formatRate(rate)}/wk — aim for ~0.25–0.75 lb/wk. Avg ~${avgCal ?? "—"} kcal vs ${goalCal} goal.`,
+        action: "Trim ~100–150 kcal for two weeks; keep protein high and watch strength, not the scale alone.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (flat && avgCal != null && avgCal <= goalCal + 150) {
+      return {
+        status: "adjust",
+        headline: "Weight flat — surplus may be too small",
+        summary: `7-day change ${formatRate(rate)} at ~${avgCal} kcal/day (goal ${goalCal})${goalGap != null ? ` · ${goalGap.toFixed(1)} lb to weight goal` : ""}.`,
+        action: "Add ~100–150 kcal (carbs or fat around training), not a large jump — reassess in 7 days.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (losing) {
+      return {
+        status: "adjust",
+        headline: "Weight drifting down on a bulk",
+        summary: `${formatRate(rate)}/wk while trying to lean bulk. Avg ~${avgCal ?? "—"} kcal vs ${goalCal} goal.`,
+        action: "Add ~150 kcal and confirm you are logging full portions — lean bulk still needs a consistent small surplus.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (lowProtein) {
+      return {
+        status: "adjust",
+        headline: "Protein first on the bulk",
+        summary: `Only ${proteinHit}/7 days hit ${ctx.nutrition.goal_protein_g}g protein. Weight ${formatRate(rate)}/wk.`,
+        action: "Lean bulk means muscle gain — close protein before adding more calories.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (strengthDown && (leanGain || tooFast)) {
+      return {
+        status: "adjust",
+        headline: "Strength lagging while weight climbs",
+        summary: `Lifts ${strengthPct!.toFixed(0)}% · weight ${formatRate(rate)}/wk. May be gaining too fast or under-recovering.`,
+        action: "Hold or slightly reduce surplus, prioritize sleep, and keep protein high before pushing calories up.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (leanGain && strengthUp) {
+      return {
+        status: "on_track",
+        headline: isWeekly ? "Strong lean bulk week" : "Lean bulk on track",
+        summary: `Weight ${formatRate(rate)}/wk · strength +${strengthPct!.toFixed(0)}%.`,
+        action: "Keep the same modest surplus — this is the pace you want.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+  }
+
+  if (phase === "maintain") {
+    const flat = rate != null && Math.abs(rate) < 0.2;
+    if (flat && proteinHit >= 5) {
+      return {
+        status: "on_track",
+        headline: isWeekly ? "Weight holding steady" : "Maintain on track",
+        summary: `Weight ${formatRate(rate)}/wk · ~${avgCal ?? "—"} kcal avg · protein ${proteinHit}/7 days.`,
+        action: "Hold current intake unless your goal changes.",
         mode: ctx.mode,
         phase,
         generated_at: now,
@@ -317,13 +468,15 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
   };
 }
 
-const SYSTEM_PROMPT = `You are a concise cut/bulk coach for a single user's personal health app (Kova).
+const SYSTEM_PROMPT = `You are a concise body-composition coach for a single user's personal health app (Kova).
 
-You receive structured JSON metrics only — never invent numbers. Phase is cut, bulk, or maintain.
+You receive structured JSON metrics only — never invent numbers. Phase is cut, bulk, or maintain (from weight vs weight_goal_lbs).
 
 Rules:
-- Cut: target ~0.5–1.5 lb/week loss while preserving strength. Flag: flat weight 2+ weeks at deficit, gaining weight, strength down >2%, protein hit <5/7 days, losing >2.5 lb/week with strength drop.
-- Bulk (future): slow gain with strength up.
+- Cut: target ~0.5–1.5 lb/week loss while preserving strength. Flag: flat weight at deficit, gaining weight, strength down >2%, protein hit <5/7 days, losing >2.5 lb/week with strength drop.
+- Bulk: always treat as LEAN bulk — target ~0.25–0.75 lb/week gain, not aggressive surges. Flag: gaining >1 lb/week, flat weight at surplus, losing weight, strength down >2% while gaining, protein hit <5/7 days. Prefer small calorie nudges (+/−100–150 kcal), never "eat big" advice.
+- Maintain: weight stable within ~0.2 lb/week at goal.
+- Match tone and headline to phase (cut coach vs lean bulk coach).
 - Be direct, no medical advice, no hype. 1 headline (≤12 words), 2 short summary sentences, 1 concrete action.
 - status: on_track | adjust | insufficient_data (use insufficient_data only if logged_days_7d < 5 or no weight).
 
