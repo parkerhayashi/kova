@@ -507,6 +507,9 @@ alter table user_settings
   add column if not exists height_m float;
 
 alter table user_settings
+  add column if not exists cut_coach_cache jsonb;
+
+alter table user_settings
   add column if not exists biological_sex text;
 
 -- Single-user app: seed one settings row.

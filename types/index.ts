@@ -627,6 +627,7 @@ export interface UserSettings {
   totp_secret: string | null;
   water_state: Record<string, unknown> | null;
   client_sync: ClientSyncPayload | null;
+  cut_coach_cache: Record<string, unknown> | null;
   oura_last_synced_at: string | null;
   hevy_last_synced_at: string | null;
   updated_at: string;

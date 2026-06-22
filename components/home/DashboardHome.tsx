@@ -10,7 +10,13 @@ import { TodoList } from "./TodoList";
  * Home dashboard — title, goal ticker, health snapshot slot, and to-do list.
  * Goal state syncs via Supabase (localStorage cache).
  */
-export function DashboardHome({ snapshot }: { snapshot: ReactNode }) {
+export function DashboardHome({
+  coach,
+  snapshot,
+}: {
+  coach: ReactNode;
+  snapshot: ReactNode;
+}) {
   useEffect(() => {
     function settle() {
       // Streak must be tallied before rollover deletes the historical day records.
@@ -29,6 +35,7 @@ export function DashboardHome({ snapshot }: { snapshot: ReactNode }) {
     <div className="home-dash">
       <h1 className="dash-title">My Dashboard</h1>
       <GoalTicker />
+      {coach}
       {snapshot}
       <TodoList />
     </div>
