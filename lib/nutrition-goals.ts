@@ -1,8 +1,25 @@
+import { rollingAverageWeight, type WeightEntry } from "@/lib/coach-composition";
 import { DEFAULT_GOALS, type NutritionGoals } from "@/lib/nutrition";
+import { addDays } from "@/lib/utils";
 
 const LB_PER_KG = 2.204_622_621_8;
+const KCAL_PER_LB = 3500;
+const ADAPTIVE_WINDOW_DAYS = 14;
+const MIN_LOGGED_DAYS = 10;
+const MIN_DAILY_CALORIES = 400;
+const TDEE_ACTIVITY_MULTIPLIER = 1.55;
+const MAX_ADAPTIVE_DELTA = 250;
 
-export type BurnSource = "oura_total" | "oura_active_bmr" | "estimated";
+export type MaintenanceSource = "tdee" | "tdee_adjusted";
+
+export type AdaptiveEnergySnapshot = {
+  windowDays: number;
+  loggedDays: number;
+  avgDailyIntake: number;
+  weightChangeLbs: number;
+  impliedMaintenance: number;
+  adjustment: number;
+};
 
 export type NutritionGoalMeta = {
   current_weight_lbs: number | null;
@@ -10,8 +27,12 @@ export type NutritionGoalMeta = {
   weight_goal_lbs: number | null;
   body_fat_goal_pct: number | null;
   bmr: number;
-  oura_burn: number;
-  burn_source: BurnSource;
+  tdee_calories: number;
+  maintenance_calories: number;
+  maintenance_source: MaintenanceSource;
+  /** Small nudge applied on top of TDEE from intake/weight trend. */
+  adaptive_adjustment: number;
+  adaptive_reason: string | null;
   calorie_adjustment: number;
   adjustment_reason: string | null;
 };
@@ -26,8 +47,7 @@ export type GoalInputs = {
   height_m: number | null;
   age: number | null;
   biological_sex: string | null;
-  oura_total_calories: number | null;
-  oura_active_calories: number | null;
+  adaptive?: AdaptiveEnergySnapshot | null;
   water_goal_ml: number | null;
 };
 
@@ -60,21 +80,108 @@ export function mifflinStJeorBmr(params: {
   return base + 5;
 }
 
-export function estimateDailyBurn(input: {
-  bmr: number;
-  oura_total_calories: number | null;
-  oura_active_calories: number | null;
-}): { burn: number; source: BurnSource } {
-  if (input.oura_total_calories != null && input.oura_total_calories > 0) {
-    return { burn: Math.round(input.oura_total_calories), source: "oura_total" };
+/** TDEE from Mifflin–St Jeor BMR × activity factor (fixed moderate default). */
+export function estimateTdee(bmr: number): number {
+  return Math.round(bmr * TDEE_ACTIVITY_MULTIPLIER);
+}
+
+export function averageDailyIntake(
+  caloriesByDay: Map<string, number>,
+  endDate: string,
+  windowDays = ADAPTIVE_WINDOW_DAYS,
+): { avg: number; loggedDays: number } | null {
+  const values: number[] = [];
+  for (let i = 0; i < windowDays; i++) {
+    const date = addDays(endDate, -(windowDays - 1 - i));
+    const calories = caloriesByDay.get(date);
+    if (calories != null && calories >= MIN_DAILY_CALORIES) {
+      values.push(calories);
+    }
   }
-  if (input.oura_active_calories != null && input.oura_active_calories >= 0) {
+  if (values.length < MIN_LOGGED_DAYS) return null;
+  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+  return { avg, loggedDays: values.length };
+}
+
+export function weightChangeOverWindow(
+  entries: WeightEntry[],
+  endDate: string,
+  windowDays = ADAPTIVE_WINDOW_DAYS,
+): number | null {
+  const endAvg = rollingAverageWeight(entries, endDate, 7);
+  const startAvg = rollingAverageWeight(
+    entries,
+    addDays(endDate, -windowDays),
+    7,
+  );
+  if (endAvg == null || startAvg == null) return null;
+  return endAvg - startAvg;
+}
+
+export function computeAdaptiveEnergySnapshot(input: {
+  caloriesByDay: Map<string, number>;
+  weightEntries: WeightEntry[];
+  endDate: string;
+  formulaTdee: number;
+  windowDays?: number;
+}): AdaptiveEnergySnapshot | null {
+  const windowDays = input.windowDays ?? ADAPTIVE_WINDOW_DAYS;
+  const intake = averageDailyIntake(
+    input.caloriesByDay,
+    input.endDate,
+    windowDays,
+  );
+  const weightChangeLbs = weightChangeOverWindow(
+    input.weightEntries,
+    input.endDate,
+    windowDays,
+  );
+  if (!intake || weightChangeLbs == null) return null;
+
+  const impliedMaintenance = Math.round(
+    intake.avg -
+      (weightChangeLbs * KCAL_PER_LB) / windowDays,
+  );
+  const rawAdjustment = impliedMaintenance - input.formulaTdee;
+  const adjustment = Math.round(
+    Math.max(-MAX_ADAPTIVE_DELTA, Math.min(MAX_ADAPTIVE_DELTA, rawAdjustment)),
+  );
+
+  return {
+    windowDays,
+    loggedDays: intake.loggedDays,
+    avgDailyIntake: Math.round(intake.avg),
+    weightChangeLbs: Math.round(weightChangeLbs * 10) / 10,
+    impliedMaintenance,
+    adjustment,
+  };
+}
+
+export function estimateMaintenanceCalories(input: {
+  bmr: number;
+  adaptive?: AdaptiveEnergySnapshot | null;
+}): {
+  tdee: number;
+  maintenance: number;
+  source: MaintenanceSource;
+  adaptiveAdjustment: number;
+} {
+  const tdee = estimateTdee(input.bmr);
+  const adaptiveAdjustment = input.adaptive?.adjustment ?? 0;
+  if (input.adaptive && adaptiveAdjustment !== 0) {
     return {
-      burn: Math.round(input.bmr * 0.2 + input.oura_active_calories),
-      source: "oura_active_bmr",
+      tdee,
+      maintenance: Math.max(1200, tdee + adaptiveAdjustment),
+      source: "tdee_adjusted",
+      adaptiveAdjustment,
     };
   }
-  return { burn: Math.round(input.bmr * 1.375), source: "estimated" };
+  return {
+    tdee,
+    maintenance: tdee,
+    source: "tdee",
+    adaptiveAdjustment: 0,
+  };
 }
 
 export function calorieAdjustment(input: {
@@ -112,7 +219,17 @@ export function calorieAdjustment(input: {
   };
 }
 
-/** Derive daily macro targets from body composition, Oura burn, and goals. */
+function adaptiveReason(snapshot: AdaptiveEnergySnapshot): string {
+  const weight =
+    snapshot.weightChangeLbs === 0
+      ? "weight stable"
+      : snapshot.weightChangeLbs > 0
+        ? `+${snapshot.weightChangeLbs} lb`
+        : `${snapshot.weightChangeLbs} lb`;
+  return `${snapshot.loggedDays}d intake vs ${weight} over ${snapshot.windowDays}d`;
+}
+
+/** Derive daily macro targets from body composition, TDEE, and goals. */
 export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals {
   const weight_lbs = input.weight_lbs ?? 170;
   const weight_kg = lbsToKg(weight_lbs);
@@ -134,11 +251,11 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
     }),
   );
 
-  const { burn, source } = estimateDailyBurn({
-    bmr,
-    oura_total_calories: input.oura_total_calories,
-    oura_active_calories: input.oura_active_calories,
-  });
+  const { tdee, maintenance, source, adaptiveAdjustment } =
+    estimateMaintenanceCalories({
+      bmr,
+      adaptive: input.adaptive,
+    });
 
   const { adjustment, reason } = calorieAdjustment({
     current_weight_lbs: weight_lbs,
@@ -147,7 +264,7 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
     body_fat_goal_pct: input.body_fat_goal_pct,
   });
 
-  const calories = Math.max(1200, Math.round(burn + adjustment));
+  const calories = Math.max(1200, Math.round(maintenance + adjustment));
 
   const protein_cal = protein_g * 4;
   const remaining = Math.max(0, calories - protein_cal);
@@ -166,21 +283,25 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
       weight_goal_lbs: input.weight_goal_lbs,
       body_fat_goal_pct: input.body_fat_goal_pct,
       bmr,
-      oura_burn: burn,
-      burn_source: source,
+      tdee_calories: tdee,
+      maintenance_calories: maintenance,
+      maintenance_source: source,
+      adaptive_adjustment: adaptiveAdjustment,
+      adaptive_reason:
+        input.adaptive && adaptiveAdjustment !== 0
+          ? adaptiveReason(input.adaptive)
+          : null,
       calorie_adjustment: adjustment,
       adjustment_reason: reason,
     },
   };
 }
 
-export function burnSourceLabel(source: BurnSource): string {
+export function maintenanceSourceLabel(source: MaintenanceSource): string {
   switch (source) {
-    case "oura_total":
-      return "Oura total burn";
-    case "oura_active_bmr":
-      return "BMR + Oura active calories";
-    case "estimated":
-      return "Estimated maintenance";
+    case "tdee":
+      return "TDEE estimate";
+    case "tdee_adjusted":
+      return "TDEE + intake/weight nudge";
   }
 }

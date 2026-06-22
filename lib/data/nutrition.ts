@@ -1,13 +1,14 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import {
-  getActivityForDate,
-  getActivityHistory,
   getTimezone,
   getUserSettings,
 } from "@/lib/data/oura";
 import { getUserProfile } from "@/lib/data/profile";
 import {
+  computeAdaptiveEnergySnapshot,
   computeNutritionGoals,
+  estimateTdee,
+  mifflinStJeorBmr,
   type ComputedNutritionGoals,
   type GoalInputs,
 } from "@/lib/nutrition-goals";
@@ -27,18 +28,44 @@ import {
   dateRangeFromToday,
 } from "@/lib/trends/nutrition-weight";
 import type { DualTrendView } from "@/lib/trends/types";
-import type { Activity, Meal } from "@/types";
+import type { Meal } from "@/types";
 import {
   getAlcoholCaloriesByDay,
   getAlcoholCaloriesForDate,
 } from "@/lib/alcohol-nutrition";
 
 async function gatherGoalInputs(date: string): Promise<GoalInputs> {
-  const [settings, profile, activity] = await Promise.all([
+  const [settings, profile, { caloriesByDay }, weightLogs] = await Promise.all([
     getUserSettings(),
     getUserProfile(),
-    getActivityForDate(date),
+    getNutritionByDay(14),
+    getWeightLogs(21),
   ]);
+
+  const weightEntries = weightLogs.map((row) => ({
+    dateKey: row.date,
+    weight: row.weight_lbs,
+  }));
+
+  const bmrInputs = {
+    weight_lbs: profile.weight_lbs,
+    height_m: profile.height_m,
+    age: profile.age,
+    biological_sex: profile.biological_sex,
+  };
+  const weight_lbs = bmrInputs.weight_lbs ?? 170;
+  const weight_kg = weight_lbs / 2.2046226218;
+  const height_cm = (bmrInputs.height_m ?? 1.75) * 100;
+  const age = bmrInputs.age ?? 30;
+  const bmr = Math.round(
+    mifflinStJeorBmr({
+      weightKg: weight_kg,
+      heightCm: height_cm,
+      age,
+      sex: bmrInputs.biological_sex,
+    }),
+  );
+  const formulaTdee = estimateTdee(bmr);
 
   return {
     weight_lbs: profile.weight_lbs,
@@ -48,8 +75,12 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     height_m: profile.height_m,
     age: profile.age,
     biological_sex: profile.biological_sex,
-    oura_total_calories: activity?.total_calories ?? null,
-    oura_active_calories: activity?.active_calories ?? null,
+    adaptive: computeAdaptiveEnergySnapshot({
+      caloriesByDay,
+      weightEntries,
+      endDate: date,
+      formulaTdee,
+    }),
     water_goal_ml: settings?.water_goal_ml ?? null,
   };
 }
@@ -209,20 +240,17 @@ export async function getCalorieTrend(
   days: number,
 ): Promise<{ date: string; calories: number; goal: number }[]> {
   const timezone = await getTimezone();
-  const [meals, activityRows, settings, profile, supplements, supplementLogs, alcoholByDay] =
+  const [meals, settings, profile, supplements, supplementLogs, alcoholByDay, weightLogs] =
     await Promise.all([
-    getMealsSince(days),
-    getActivityHistory(days),
-    getUserSettings(),
-    getUserProfile(),
-    getSupplements(true),
-    getSupplementLogsSince(addDays(todayInTimezone(timezone), -(days - 1))),
-    getAlcoholCaloriesByDay(days, timezone),
-  ]);
+      getMealsSince(days),
+      getUserSettings(),
+      getUserProfile(),
+      getSupplements(true),
+      getSupplementLogsSince(addDays(todayInTimezone(timezone), -(days - 1))),
+      getAlcoholCaloriesByDay(days, timezone),
+      getWeightLogs(Math.max(days, 21)),
+    ]);
 
-  const activityByDate = new Map<string, Activity>(
-    activityRows.map((a) => [a.date, a]),
-  );
   const mealsByDate = new Map<string, Meal[]>();
   for (const meal of meals) {
     const list = mealsByDate.get(meal.date) ?? [];
@@ -237,38 +265,64 @@ export async function getCalorieTrend(
     supplementLogsByDate.set(log.date, list);
   }
 
-  const baseInputs: Omit<GoalInputs, "oura_total_calories" | "oura_active_calories"> =
-    {
-      weight_lbs: profile.weight_lbs,
-      body_fat_pct: profile.body_fat_pct,
-      weight_goal_lbs: settings?.weight_goal_lbs ?? null,
-      body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
-      height_m: profile.height_m,
-      age: profile.age,
-      biological_sex: profile.biological_sex,
-      water_goal_ml: settings?.water_goal_ml ?? null,
-    };
+  const weightEntries = weightLogs.map((row) => ({
+    dateKey: row.date,
+    weight: row.weight_lbs,
+  }));
+
+  const baseInputs: Omit<GoalInputs, "adaptive"> = {
+    weight_lbs: profile.weight_lbs,
+    body_fat_pct: profile.body_fat_pct,
+    weight_goal_lbs: settings?.weight_goal_lbs ?? null,
+    body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
+    height_m: profile.height_m,
+    age: profile.age,
+    biological_sex: profile.biological_sex,
+    water_goal_ml: settings?.water_goal_ml ?? null,
+  };
 
   const start = addDays(todayInTimezone(timezone), -(days - 1));
   const out: { date: string; calories: number; goal: number }[] = [];
+  const rollingCalories = new Map<string, number>();
 
   for (let i = 0; i < days; i++) {
     const date = addDays(start, i);
-    const activity = activityByDate.get(date);
-    const goals = computeNutritionGoals({
-      ...baseInputs,
-      oura_total_calories: activity?.total_calories ?? null,
-      oura_active_calories: activity?.active_calories ?? null,
-    });
     const dayMeals = mealsByDate.get(date) ?? [];
     const daySupplementLogs = supplementLogsByDate.get(date) ?? [];
     const dayTotals = mergeDailyTotals(
       sumMeals(dayMeals),
       sumTakenSupplements(supplements, daySupplementLogs),
     );
+    const dayCalories = Math.round(
+      (dayTotals.calories ?? 0) + (alcoholByDay.get(date) ?? 0),
+    );
+    if (dayCalories > 0) rollingCalories.set(date, dayCalories);
+
+    const weight_lbs = baseInputs.weight_lbs ?? 170;
+    const weight_kg = weight_lbs / 2.2046226218;
+    const height_cm = (baseInputs.height_m ?? 1.75) * 100;
+    const age = baseInputs.age ?? 30;
+    const bmr = Math.round(
+      mifflinStJeorBmr({
+        weightKg: weight_kg,
+        heightCm: height_cm,
+        age,
+        sex: baseInputs.biological_sex,
+      }),
+    );
+    const formulaTdee = estimateTdee(bmr);
+    const goals = computeNutritionGoals({
+      ...baseInputs,
+      adaptive: computeAdaptiveEnergySnapshot({
+        caloriesByDay: rollingCalories,
+        weightEntries,
+        endDate: date,
+        formulaTdee,
+      }),
+    });
     out.push({
       date,
-      calories: Math.round((dayTotals.calories ?? 0) + (alcoholByDay.get(date) ?? 0)),
+      calories: dayCalories,
       goal: goals.calories,
     });
   }

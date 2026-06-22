@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
 import {
-  burnSourceLabel,
   type ComputedNutritionGoals,
 } from "@/lib/nutrition-goals";
 
@@ -46,8 +45,8 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
       <div>
         <span className="metric-label">Daily targets</span>
         <p className="body-copy mt-1 text-sm">
-          Calories and macros derive from your weight, lean mass, Oura burn, and
-          the goals below.
+          Calories and macros derive from your weight, lean mass, TDEE estimate,
+          small intake/weight nudges, and the goals below.
         </p>
       </div>
 
@@ -80,12 +79,17 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
           {meta.current_body_fat_pct != null ? ` · ${currentBodyFat} body fat` : ` · ${currentBodyFat}`}
         </p>
         <p>
-          BMR {meta.bmr} kcal · {burnSourceLabel(meta.burn_source)}{" "}
-          {meta.oura_burn} kcal
+          BMR {meta.bmr} kcal · TDEE {meta.tdee_calories} kcal
+          {meta.adaptive_adjustment !== 0
+            ? ` · ${meta.adaptive_adjustment > 0 ? "+" : ""}${meta.adaptive_adjustment} from intake/weight`
+            : ""}
           {meta.calorie_adjustment !== 0
-            ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} adjustment`
+            ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} goal adjustment`
             : ""}
         </p>
+        {meta.adaptive_reason ? (
+          <p style={{ color: "var(--color-nutrition)" }}>{meta.adaptive_reason}</p>
+        ) : null}
         {meta.adjustment_reason ? (
           <p style={{ color: "var(--color-nutrition)" }}>{meta.adjustment_reason}</p>
         ) : null}

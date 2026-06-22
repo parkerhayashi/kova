@@ -28,7 +28,7 @@ export function CalorieTrend({
       accent="nutrition"
       showAvg
       current={todayGoal ? `${todayGoal} today` : null}
-      caption="Dashed line = daily goal (Oura burn + weight/body fat targets)"
+      caption="Dashed line = daily goal (TDEE + intake/weight nudge + weight/body fat targets)"
     />
   );
 }

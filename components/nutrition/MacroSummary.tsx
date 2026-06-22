@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
 import { Card } from "@/components/ui/Card";
 import { fmtNutrient, macroCalories, type DailyTotals, type NutritionGoals } from "@/lib/nutrition";
-import { burnSourceLabel, type NutritionGoalMeta } from "@/lib/nutrition-goals";
+import { maintenanceSourceLabel, type NutritionGoalMeta } from "@/lib/nutrition-goals";
 
 export function MacroSummary({
   totals,
@@ -55,11 +55,18 @@ export function MacroSummary({
         <Card className="space-y-1">
           <span className="metric-label">How today&apos;s goal is calculated</span>
           <p className="text-text-muted text-xs">
-            {meta.oura_burn} kcal {burnSourceLabel(meta.burn_source).toLowerCase()}
+            {meta.maintenance_calories} kcal{" "}
+            {maintenanceSourceLabel(meta.maintenance_source).toLowerCase()}
+            {meta.adaptive_adjustment !== 0
+              ? ` · ${meta.adaptive_adjustment > 0 ? "+" : ""}${meta.adaptive_adjustment} kcal from intake/weight`
+              : ""}
             {meta.calorie_adjustment !== 0
-              ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} kcal`
+              ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} kcal goal adjustment`
               : ""}
             {meta.adjustment_reason ? ` (${meta.adjustment_reason})` : ""}
+            {meta.adaptive_reason && meta.adaptive_adjustment !== 0
+              ? ` · ${meta.adaptive_reason}`
+              : ""}
             {" · "}
             protein from lean mass
           </p>

@@ -18,7 +18,7 @@ import {
   getSupplements,
 } from "@/lib/data/tracking";
 import { getTrendsPayload } from "@/lib/data/trends";
-import { burnSourceLabel } from "@/lib/nutrition-goals";
+import { maintenanceSourceLabel } from "@/lib/nutrition-goals";
 import { describeCorrelation } from "@/lib/trends/correlation";
 import { computeTargetMl, normalizeWater, unitVolMl } from "@/lib/water";
 import { unstable_noStore } from "next/cache";
@@ -209,7 +209,7 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       fat_g: mealTotals.fat_g ?? null,
       goalCalories: nutritionGoals.calories,
       goalProtein_g: nutritionGoals.protein_g,
-      burnLabel: burnSourceLabel(nutritionGoals.meta.burn_source).toLowerCase(),
+      burnLabel: maintenanceSourceLabel(nutritionGoals.meta.maintenance_source).toLowerCase(),
     },
     water: { ml: waterMl, goalMl: waterGoalMl },
     workout,
