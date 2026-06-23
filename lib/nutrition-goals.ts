@@ -9,6 +9,15 @@ const MIN_LOGGED_DAYS = 10;
 const MIN_DAILY_CALORIES = 400;
 const TDEE_ACTIVITY_MULTIPLIER = 1.55;
 const MAX_ADAPTIVE_DELTA = 250;
+/** Minimum days between applied TDEE nudge changes. */
+export const ADAPTIVE_COOLDOWN_DAYS = 14;
+/** Max kcal the nudge can move per review (after cooldown). */
+export const ADAPTIVE_MAX_STEP = 100;
+
+export type AdaptiveEnergyState = {
+  adjustment: number;
+  updated_at: string;
+};
 
 export type MaintenanceSource = "tdee" | "tdee_adjusted";
 
@@ -89,10 +98,12 @@ export function averageDailyIntake(
   caloriesByDay: Map<string, number>,
   endDate: string,
   windowDays = ADAPTIVE_WINDOW_DAYS,
+  options?: { excludeEndDate?: boolean },
 ): { avg: number; loggedDays: number } | null {
+  const lastDay = options?.excludeEndDate ? addDays(endDate, -1) : endDate;
   const values: number[] = [];
   for (let i = 0; i < windowDays; i++) {
-    const date = addDays(endDate, -(windowDays - 1 - i));
+    const date = addDays(lastDay, -(windowDays - 1 - i));
     const calories = caloriesByDay.get(date);
     if (calories != null && calories >= MIN_DAILY_CALORIES) {
       values.push(calories);
@@ -124,12 +135,14 @@ export function computeAdaptiveEnergySnapshot(input: {
   endDate: string;
   formulaTdee: number;
   windowDays?: number;
+  excludeEndDate?: boolean;
 }): AdaptiveEnergySnapshot | null {
   const windowDays = input.windowDays ?? ADAPTIVE_WINDOW_DAYS;
   const intake = averageDailyIntake(
     input.caloriesByDay,
     input.endDate,
     windowDays,
+    { excludeEndDate: input.excludeEndDate },
   );
   const weightChangeLbs = weightChangeOverWindow(
     input.weightEntries,
@@ -155,6 +168,96 @@ export function computeAdaptiveEnergySnapshot(input: {
     impliedMaintenance,
     adjustment,
   };
+}
+
+function daysBetween(startDate: string, endDate: string): number {
+  const [y1, m1, d1] = startDate.split("-").map(Number);
+  const [y2, m2, d2] = endDate.split("-").map(Number);
+  const t1 = Date.UTC(y1, m1 - 1, d1);
+  const t2 = Date.UTC(y2, m2 - 1, d2);
+  return Math.round((t2 - t1) / 86400000);
+}
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
+/** Hold or gradually apply TDEE nudges — at most once per cooldown window. */
+export function resolveAdaptiveEnergy(input: {
+  computed: AdaptiveEnergySnapshot | null;
+  stored: AdaptiveEnergyState | null;
+  today: string;
+  cooldownDays?: number;
+  maxStep?: number;
+}): {
+  snapshot: AdaptiveEnergySnapshot | null;
+  state: AdaptiveEnergyState | null;
+  persist: boolean;
+} {
+  const cooldownDays = input.cooldownDays ?? ADAPTIVE_COOLDOWN_DAYS;
+  const maxStep = input.maxStep ?? ADAPTIVE_MAX_STEP;
+  const { computed, stored, today } = input;
+
+  if (!computed) {
+    if (!stored) return { snapshot: null, state: null, persist: false };
+    return {
+      snapshot: {
+        windowDays: ADAPTIVE_WINDOW_DAYS,
+        loggedDays: 0,
+        avgDailyIntake: 0,
+        weightChangeLbs: 0,
+        impliedMaintenance: 0,
+        adjustment: stored.adjustment,
+      },
+      state: stored,
+      persist: false,
+    };
+  }
+
+  const withinCooldown =
+    stored != null &&
+    daysBetween(stored.updated_at, today) < cooldownDays;
+
+  if (withinCooldown && stored) {
+    return {
+      snapshot: { ...computed, adjustment: stored.adjustment },
+      state: stored,
+      persist: false,
+    };
+  }
+
+  const target = computed.adjustment;
+  const nextAdjustment = stored
+    ? Math.round(
+        clamp(
+          stored.adjustment + clamp(target - stored.adjustment, -maxStep, maxStep),
+          -MAX_ADAPTIVE_DELTA,
+          MAX_ADAPTIVE_DELTA,
+        ),
+      )
+    : Math.round(clamp(target, -maxStep, maxStep));
+
+  const state: AdaptiveEnergyState = {
+    adjustment: nextAdjustment,
+    updated_at: today,
+  };
+
+  return {
+    snapshot: { ...computed, adjustment: nextAdjustment },
+    state,
+    persist: !stored || nextAdjustment !== stored.adjustment || stored.updated_at !== today,
+  };
+}
+
+export function parseAdaptiveEnergyState(
+  raw: unknown,
+): AdaptiveEnergyState | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  if (typeof row.adjustment !== "number" || typeof row.updated_at !== "string") {
+    return null;
+  }
+  return { adjustment: row.adjustment, updated_at: row.updated_at };
 }
 
 export function estimateMaintenanceCalories(input: {

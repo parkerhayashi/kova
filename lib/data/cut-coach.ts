@@ -103,8 +103,12 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
     weight.current_lbs = profile.weight_lbs;
   }
 
-  const avgCal = averageMapValues(caloriesByDay, today, 7);
-  const avgProtein = averageMapValues(proteinByDay, today, 7);
+  const avgCal = averageMapValues(caloriesByDay, today, 7, {
+    excludeEndDate: true,
+  });
+  const avgProtein = averageMapValues(proteinByDay, today, 7, {
+    excludeEndDate: true,
+  });
   const loggedDays7 = avgCal?.count ?? 0;
 
   const phase = detectCutPhase({
@@ -137,6 +141,7 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
         today,
         goals.protein_g,
         7,
+        { excludeEndDate: true },
       ),
       maintenance_calories: goals.meta.maintenance_calories,
       calorie_goal_adjustment: goals.meta.calorie_adjustment,

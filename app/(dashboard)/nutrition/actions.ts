@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addMeal, deleteMeal, saveNutritionTargets as persistTargets } from "@/lib/data/nutrition";
+import { addMeal, deleteMeal, resetAdaptiveEnergyState as persistAdaptiveReset, saveNutritionTargets as persistTargets } from "@/lib/data/nutrition";
 import {
   deleteSavedMeal,
   getSavedMeals,
@@ -54,6 +54,11 @@ export async function saveNutritionTargets(input: {
   body_fat_goal_pct: number | null;
 }): Promise<void> {
   await persistTargets(input);
+  refresh();
+}
+
+export async function resetAdaptiveTdee(): Promise<void> {
+  await persistAdaptiveReset();
   refresh();
 }
 

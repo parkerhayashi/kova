@@ -510,6 +510,9 @@ alter table user_settings
   add column if not exists cut_coach_cache jsonb;
 
 alter table user_settings
+  add column if not exists adaptive_energy_state jsonb;
+
+alter table user_settings
   add column if not exists biological_sex text;
 
 -- Single-user app: seed one settings row.

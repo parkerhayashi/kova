@@ -9,6 +9,9 @@ import {
   computeNutritionGoals,
   estimateTdee,
   mifflinStJeorBmr,
+  parseAdaptiveEnergyState,
+  resolveAdaptiveEnergy,
+  type AdaptiveEnergyState,
   type ComputedNutritionGoals,
   type GoalInputs,
 } from "@/lib/nutrition-goals";
@@ -34,7 +37,28 @@ import {
   getAlcoholCaloriesForDate,
 } from "@/lib/alcohol-nutrition";
 
+async function persistAdaptiveEnergyState(
+  state: AdaptiveEnergyState,
+): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("user_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (!row) return;
+
+  await db
+    .from("user_settings")
+    .update({ adaptive_energy_state: state })
+    .eq("id", row.id);
+}
+
 async function gatherGoalInputs(date: string): Promise<GoalInputs> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const excludeTodayIntake = date === today;
+
   const [settings, profile, { caloriesByDay }, weightLogs] = await Promise.all([
     getUserSettings(),
     getUserProfile(),
@@ -67,6 +91,23 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
   );
   const formulaTdee = estimateTdee(bmr);
 
+  const computed = computeAdaptiveEnergySnapshot({
+    caloriesByDay,
+    weightEntries,
+    endDate: date,
+    formulaTdee,
+    excludeEndDate: excludeTodayIntake,
+  });
+  const stored = parseAdaptiveEnergyState(settings?.adaptive_energy_state);
+  const { snapshot, state, persist } = resolveAdaptiveEnergy({
+    computed,
+    stored,
+    today,
+  });
+  if (persist && state) {
+    await persistAdaptiveEnergyState(state);
+  }
+
   return {
     weight_lbs: profile.weight_lbs,
     body_fat_pct: profile.body_fat_pct,
@@ -75,12 +116,7 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     height_m: profile.height_m,
     age: profile.age,
     biological_sex: profile.biological_sex,
-    adaptive: computeAdaptiveEnergySnapshot({
-      caloriesByDay,
-      weightEntries,
-      endDate: date,
-      formulaTdee,
-    }),
+    adaptive: snapshot,
     water_goal_ml: settings?.water_goal_ml ?? null,
   };
 }
@@ -113,6 +149,13 @@ export async function saveNutritionTargets(input: {
       body_fat_goal_pct: input.body_fat_goal_pct,
     })
     .eq("id", row.id);
+}
+
+/** Zero the intake/weight TDEE nudge and pause re-review for 14 days. */
+export async function resetAdaptiveEnergyState(): Promise<void> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  await persistAdaptiveEnergyState({ adjustment: 0, updated_at: today });
 }
 
 export async function getMealsForDate(date: string): Promise<Meal[]> {
@@ -282,6 +325,7 @@ export async function getCalorieTrend(
   };
 
   const start = addDays(todayInTimezone(timezone), -(days - 1));
+  const today = todayInTimezone(timezone);
   const out: { date: string; calories: number; goal: number }[] = [];
   const rollingCalories = new Map<string, number>();
 
@@ -318,6 +362,7 @@ export async function getCalorieTrend(
         weightEntries,
         endDate: date,
         formulaTdee,
+        excludeEndDate: date === today,
       }),
     });
     out.push({

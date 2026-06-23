@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { saveNutritionTargets } from "@/app/(dashboard)/nutrition/actions";
+import { resetAdaptiveTdee, saveNutritionTargets } from "@/app/(dashboard)/nutrition/actions";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
@@ -18,7 +18,19 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
     meta.body_fat_goal_pct != null ? String(meta.body_fat_goal_pct) : "",
   );
   const [saved, setSaved] = useState(false);
+  const [reset, setReset] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [resetPending, startResetTransition] = useTransition();
+
+  function handleResetTdee() {
+    startResetTransition(async () => {
+      await resetAdaptiveTdee();
+      setReset(true);
+      setTimeout(() => setReset(false), 2000);
+    });
+  }
+
+  const hasAdaptiveNudge = meta.adaptive_adjustment !== 0;
 
   function handleSave() {
     startTransition(async () => {
@@ -95,11 +107,22 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
         ) : null}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="button" onClick={handleSave} disabled={pending}>
           {pending ? "Saving…" : "Save goals"}
         </Button>
+        {hasAdaptiveNudge ? (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleResetTdee}
+            disabled={resetPending}
+          >
+            {resetPending ? "Resetting…" : "Reset TDEE nudge"}
+          </Button>
+        ) : null}
         {saved ? <span className="timestamp">Saved</span> : null}
+        {reset ? <span className="timestamp">TDEE nudge reset</span> : null}
       </div>
     </Card>
   );

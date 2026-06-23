@@ -168,10 +168,12 @@ export function averageMapValues(
   values: Map<string, number>,
   endDate: string,
   days: number,
+  options?: { excludeEndDate?: boolean },
 ): { avg: number; count: number } | null {
+  const lastDay = options?.excludeEndDate ? addDays(endDate, -1) : endDate;
   const nums: number[] = [];
   for (let i = 0; i < days; i++) {
-    const date = addDays(endDate, -(days - 1 - i));
+    const date = addDays(lastDay, -(days - 1 - i));
     const value = values.get(date);
     if (value != null && value > 0) nums.push(value);
   }
@@ -187,11 +189,13 @@ export function countProteinDaysHit(
   endDate: string,
   goalProtein: number,
   days = 7,
+  options?: { excludeEndDate?: boolean },
 ): number {
+  const lastDay = options?.excludeEndDate ? addDays(endDate, -1) : endDate;
   const threshold = goalProtein * 0.9;
   let hit = 0;
   for (let i = 0; i < days; i++) {
-    const date = addDays(endDate, -(days - 1 - i));
+    const date = addDays(lastDay, -(days - 1 - i));
     const protein = proteinByDay.get(date);
     if (protein != null && protein >= threshold) hit += 1;
   }
