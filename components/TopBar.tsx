@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { getTodayGoals, GOALS_CHANGED_EVENT } from "@/lib/goals";
 import {
+  dayHydrationUnits,
+  getDayLog,
   loadWater,
+  setDayLog,
   targetUnits,
   waterDateKey,
   WATER_CHANGED_EVENT,
@@ -68,7 +71,10 @@ export function TopBar() {
     setGoals({ done: g.filter((x) => x.done).length, total: g.length });
     const w = loadWater();
     const key = waterDateKey(new Date());
-    setWater({ done: w.logs[key] ?? 0, total: targetUnits(w) });
+    setWater({
+      done: Math.round(dayHydrationUnits(w, key) * 10) / 10,
+      total: targetUnits(w, key),
+    });
   }
 
   async function pullRemote() {
@@ -119,9 +125,11 @@ export function TopBar() {
   function addWater() {
     const w = loadWater();
     const key = waterDateKey(new Date());
-    const logs = { ...w.logs, [key]: (w.logs[key] ?? 0) + 1 };
-    commitWaterState({ ...w, logs });
-    setWater({ done: logs[key], total: targetUnits(w) });
+    const day = getDayLog(w, key);
+    const next = setDayLog(w, key, { ...day, servings: day.servings + 1 });
+    commitWaterState(next);
+    const done = Math.round(dayHydrationUnits(next, key) * 10) / 10;
+    setWater({ done, total: targetUnits(next, key) });
     setFlash(true);
     window.setTimeout(() => setFlash(false), 220);
   }

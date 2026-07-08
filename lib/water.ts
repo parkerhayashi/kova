@@ -31,6 +31,23 @@ export interface WaterSubstance {
   dose: number;
 }
 
+export interface CaffeineDrink {
+  id: string;
+  name: string;
+  shortName: string;
+  fluidMl: number;
+  caffeineMg: number;
+}
+
+/** Per-day log — plain water servings plus optional caffeinated drinks. */
+export interface WaterDayLog {
+  servings: number;
+  drinks?: Record<string, number>;
+}
+
+/** Legacy logs stored a bare serving count. */
+export type WaterLogValue = number | WaterDayLog;
+
 export interface WaterState {
   unit: WaterUnit;
   weightUnit: WeightUnit;
@@ -39,7 +56,7 @@ export interface WaterState {
   profile: WaterProfile;
   caffeineMgPerDay: number;
   substances: WaterSubstance[];
-  logs: Record<string, number>; // YYYY-MM-DD -> servings
+  logs: Record<string, WaterLogValue>;
 }
 
 export interface TargetBreakdown {
@@ -89,6 +106,102 @@ export const SUBSTANCE_DB: Omit<WaterSubstance, "dose">[] = [
   { id: "wellbutrin", name: "Bupropion (Wellbutrin)", cat: "NDRI", unit: "mg", defaultDose: 300, mlPerUnit: 1.17 },
 ];
 
+/** Common caffeinated drinks — fluid counts toward hydration; caffeine bumps the target. */
+export const CAFFEINE_DRINK_DB: CaffeineDrink[] = [
+  { id: "coffee", name: "Coffee (8 oz)", shortName: "Coffee", fluidMl: 240, caffeineMg: 95 },
+  { id: "espresso", name: "Espresso", shortName: "Espresso", fluidMl: 30, caffeineMg: 75 },
+  { id: "cold_brew", name: "Cold brew", shortName: "Cold brew", fluidMl: 350, caffeineMg: 200 },
+  { id: "tea", name: "Tea (8 oz)", shortName: "Tea", fluidMl: 240, caffeineMg: 47 },
+  { id: "diet_soda", name: "Diet soda (12 oz)", shortName: "Diet soda", fluidMl: 355, caffeineMg: 46 },
+  { id: "energy", name: "Energy drink", shortName: "Energy", fluidMl: 473, caffeineMg: 160 },
+];
+
+export function drinkById(id: string): CaffeineDrink | undefined {
+  return CAFFEINE_DRINK_DB.find((d) => d.id === id);
+}
+
+export function parseDayLog(raw: WaterLogValue | undefined): WaterDayLog {
+  if (raw == null) return { servings: 0, drinks: {} };
+  if (typeof raw === "number") return { servings: raw, drinks: {} };
+  return {
+    servings: raw.servings ?? 0,
+    drinks: raw.drinks ?? {},
+  };
+}
+
+function activeDrinks(drinks: Record<string, number> | undefined): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [id, count] of Object.entries(drinks ?? {})) {
+    if (count > 0) out[id] = count;
+  }
+  return out;
+}
+
+export function serializeDayLog(day: WaterDayLog): WaterLogValue | null {
+  const drinks = activeDrinks(day.drinks);
+  const hasDrinks = Object.keys(drinks).length > 0;
+  if (day.servings <= 0 && !hasDrinks) return null;
+  if (!hasDrinks) return day.servings;
+  return { servings: day.servings, drinks };
+}
+
+export function getDayLog(state: WaterState, date: string): WaterDayLog {
+  return parseDayLog(state.logs[date]);
+}
+
+export function setDayLog(
+  state: WaterState,
+  date: string,
+  day: WaterDayLog,
+): WaterState {
+  const logs = { ...state.logs };
+  const serialized = serializeDayLog(day);
+  if (serialized == null) delete logs[date];
+  else logs[date] = serialized;
+  return { ...state, logs };
+}
+
+export function dayCaffeineMg(state: WaterState, date: string): number {
+  const day = getDayLog(state, date);
+  let mg = 0;
+  for (const [id, count] of Object.entries(day.drinks ?? {})) {
+    const drink = drinkById(id);
+    if (drink && count > 0) mg += drink.caffeineMg * count;
+  }
+  return mg;
+}
+
+export function dayHydrationMl(state: WaterState, date: string): number {
+  const day = getDayLog(state, date);
+  let ml = day.servings * unitVolMl(state);
+  for (const [id, count] of Object.entries(day.drinks ?? {})) {
+    const drink = drinkById(id);
+    if (drink && count > 0) ml += drink.fluidMl * count;
+  }
+  return ml;
+}
+
+export function dayHydrationUnits(state: WaterState, date: string): number {
+  return dayHydrationMl(state, date) / unitVolMl(state);
+}
+
+/** Logged drinks for the day, else the habitual average from settings. */
+export function effectiveCaffeineMg(state: WaterState, date?: string): number {
+  const logged = date ? dayCaffeineMg(state, date) : 0;
+  if (logged > 0) return logged;
+  return state.caffeineMgPerDay || 0;
+}
+
+export function listDayDrinks(
+  day: WaterDayLog,
+): { drink: CaffeineDrink; count: number }[] {
+  return Object.entries(day.drinks ?? {})
+    .filter(([, count]) => count > 0)
+    .map(([id, count]) => ({ drink: drinkById(id), count }))
+    .filter((row): row is { drink: CaffeineDrink; count: number } => row.drink != null)
+    .sort((a, b) => a.drink.name.localeCompare(b.drink.name));
+}
+
 export function normalizeWater(input: Partial<WaterState> | null | undefined): WaterState {
   const s = input ?? {};
   return {
@@ -134,12 +247,13 @@ export function subDoseLabel(s: WaterSubstance): string {
   return `${s.dose ?? s.defaultDose} ${s.unit || ""}`.trim();
 }
 
-export function computeTargetMl(state: WaterState): TargetBreakdown {
+export function computeTargetMl(state: WaterState, date?: string): TargetBreakdown {
   const p = state.profile;
   const wKg = state.weightUnit === "lb" ? p.weightKg / 2.20462 : p.weightKg;
   const base = wKg * 35;
   const exercise = ((p.activityHrsPerWeek || 0) / 7) * 500;
-  const caffeine = Math.max(0, (state.caffeineMgPerDay || 0) - 200) * 1.5;
+  const caffeineMg = effectiveCaffeineMg(state, date);
+  const caffeine = Math.max(0, caffeineMg - 200) * 1.5;
   const subs = (state.substances || []).reduce((sum, x) => sum + subExtraMl(x), 0);
   let adjust = 0;
   if (p.sex === "m") adjust += 200;
@@ -169,6 +283,6 @@ export function fmtMl(ml: number): string {
   return `${Math.round(ml)} ml`;
 }
 
-export function targetUnits(state: WaterState): number {
-  return Math.max(1, Math.ceil(computeTargetMl(state).total / unitVolMl(state)));
+export function targetUnits(state: WaterState, date?: string): number {
+  return Math.max(1, Math.ceil(computeTargetMl(state, date).total / unitVolMl(state)));
 }

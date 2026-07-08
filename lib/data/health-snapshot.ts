@@ -20,7 +20,7 @@ import {
 import { getTrendsPayload } from "@/lib/data/trends";
 import { maintenanceSourceLabel } from "@/lib/nutrition-goals";
 import { describeCorrelation } from "@/lib/trends/correlation";
-import { computeTargetMl, normalizeWater, unitVolMl } from "@/lib/water";
+import { computeTargetMl, dayHydrationMl, normalizeWater } from "@/lib/water";
 import { unstable_noStore } from "next/cache";
 import { latestRowWith, todayInTimezone } from "@/lib/utils";
 import type { WeightLog, WorkoutTodaySummary } from "@/types";
@@ -141,9 +141,8 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
   ]);
 
   const water = normalizeWater(waterState);
-  const waterUnits = water.logs[todayIso] ?? 0;
-  const waterMl = Math.round(waterUnits * unitVolMl(water));
-  const waterGoalMl = Math.round(computeTargetMl(water).total);
+  const waterMl = Math.round(dayHydrationMl(water, todayIso));
+  const waterGoalMl = Math.round(computeTargetMl(water, todayIso).total);
 
   const todayLabel = new Date().toLocaleDateString("en-US", {
     weekday: "long",

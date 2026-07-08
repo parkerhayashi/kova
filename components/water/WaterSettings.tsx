@@ -229,8 +229,9 @@ export function WaterSettings({
           />
         </Field>
         <p className="text-text-muted mt-1.5 text-[11px] leading-relaxed">
-          ~1 cup coffee = 95 mg · espresso = 75 mg · energy drink = 160 mg. Above 200
-          mg/day adds a small water requirement.
+          Log coffee and diet soda on the tracker for per-day caffeine. This field
+          is your habitual average when nothing is logged. Above 200 mg/day adds a
+          small water requirement.
         </p>
       </div>
 

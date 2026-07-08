@@ -7,9 +7,16 @@ import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { WaterSettings } from "./WaterSettings";
 import {
+  CAFFEINE_DRINK_DB,
   computeTargetMl,
+  dayCaffeineMg,
+  dayHydrationUnits,
+  effectiveCaffeineMg,
   fmtMl,
+  getDayLog,
+  listDayDrinks,
   loadWater,
+  setDayLog,
   subDoseLabel,
   subExtraMl,
   targetUnits,
@@ -82,16 +89,40 @@ export function WaterApp({
     commitWaterState(next);
   }
 
-  function setLogDay(n: number) {
-    const logs = { ...state.logs };
-    if (n <= 0) delete logs[logDate];
-    else logs[logDate] = n;
-    commit({ ...state, logs });
+  function setWaterServings(n: number) {
+    const day = getDayLog(state, logDate);
+    commit(setDayLog(state, logDate, { ...day, servings: Math.max(0, n) }));
   }
 
-  const target = useMemo(() => targetUnits(state), [state]);
-  const breakdown = useMemo(() => computeTargetMl(state), [state]);
-  const count = mounted ? state.logs[logDate] ?? 0 : 0;
+  function addDrink(drinkId: string) {
+    const day = getDayLog(state, logDate);
+    const drinks = { ...(day.drinks ?? {}) };
+    drinks[drinkId] = (drinks[drinkId] ?? 0) + 1;
+    commit(setDayLog(state, logDate, { ...day, drinks }));
+  }
+
+  function removeDrink(drinkId: string) {
+    const day = getDayLog(state, logDate);
+    const drinks = { ...(day.drinks ?? {}) };
+    const next = Math.max(0, (drinks[drinkId] ?? 0) - 1);
+    if (next <= 0) delete drinks[drinkId];
+    else drinks[drinkId] = next;
+    commit(setDayLog(state, logDate, { ...day, drinks }));
+  }
+
+  const dayLog = useMemo(() => getDayLog(state, logDate), [state, logDate]);
+  const target = useMemo(() => targetUnits(state, logDate), [state, logDate]);
+  const breakdown = useMemo(() => computeTargetMl(state, logDate), [state, logDate]);
+  const hydrationUnits = mounted ? dayHydrationUnits(state, logDate) : 0;
+  const waterServings = mounted ? dayLog.servings : 0;
+  const loggedDrinks = useMemo(() => listDayDrinks(dayLog), [dayLog]);
+  const caffeineToday = mounted ? dayCaffeineMg(state, logDate) : 0;
+  const count =
+    mounted && hydrationUnits % 1 === 0
+      ? hydrationUnits
+      : mounted
+        ? Math.round(hydrationUnits * 10) / 10
+        : 0;
   const dayLabel = logDateHeading(logDate, today, timezone);
   const editingToday = logDate === today;
 
@@ -124,7 +155,7 @@ export function WaterApp({
       days.push({
         iso,
         label: `${dows[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`,
-        count: state.logs[iso] ?? 0,
+        count: Math.round(dayHydrationUnits(state, iso) * 10) / 10,
       });
     }
     return days.slice(-7);
@@ -134,7 +165,7 @@ export function WaterApp({
   const spark = useMemo(() => {
     const data: number[] = [];
     for (let i = 13; i >= 0; i--) {
-      data.push(state.logs[addDays(today, -i)] ?? 0);
+      data.push(dayHydrationUnits(state, addDays(today, -i)));
     }
     return data;
   }, [state.logs, today]);
@@ -207,16 +238,16 @@ export function WaterApp({
         <div className="grid grid-cols-[56px_1fr] gap-2.5 pt-2">
           <button
             type="button"
-            onClick={() => setLogDay(Math.max(0, count - 1))}
-            disabled={count <= 0}
-            aria-label="Undo last"
+            onClick={() => setWaterServings(waterServings - 1)}
+            disabled={waterServings <= 0}
+            aria-label="Undo last water"
             className="flex items-center justify-center rounded-2xl bg-[rgba(255,255,255,0.06)] text-text-primary transition-colors hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-30"
           >
             <Minus className="size-5" />
           </button>
           <button
             type="button"
-            onClick={() => setLogDay(count + 1)}
+            onClick={() => setWaterServings(waterServings + 1)}
             className="flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-[#06080b] transition-transform active:scale-[0.98]"
             style={{
               background: "linear-gradient(180deg,#ffffff 0%,#e8e5dd 100%)",
@@ -225,6 +256,72 @@ export function WaterApp({
           >
             <Plus className="size-5" /> Drank a {unitSingular}
           </button>
+        </div>
+
+        <div className="border-border mt-4 space-y-3 border-t pt-4">
+          <div>
+            <span className="metric-label">Caffeinated drinks</span>
+            <p className="text-text-muted mt-1 text-xs">
+              Coffee, diet soda, and similar drinks count toward hydration and bump
+              your target when caffeine stacks up.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {CAFFEINE_DRINK_DB.map((drink) => (
+              <button
+                key={drink.id}
+                type="button"
+                onClick={() => addDrink(drink.id)}
+                className="border-border text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)] rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
+              >
+                + {drink.shortName}
+              </button>
+            ))}
+          </div>
+          {loggedDrinks.length > 0 ? (
+            <div className="space-y-2">
+              {loggedDrinks.map(({ drink, count: drinkCount }) => (
+                <div
+                  key={drink.id}
+                  className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-xl bg-[rgba(255,255,255,0.03)] px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">{drink.name}</p>
+                    <p className="text-text-muted text-xs">
+                      {fmtMl(drink.fluidMl * drinkCount)} · {drink.caffeineMg * drinkCount} mg caffeine
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => removeDrink(drink.id)}
+                      aria-label={`Remove ${drink.shortName}`}
+                      className="flex size-8 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.06)] text-text-primary transition-colors hover:bg-[rgba(255,255,255,0.1)]"
+                    >
+                      <Minus className="size-4" />
+                    </button>
+                    <span className="min-w-5 text-center text-sm font-semibold tabular-nums">
+                      {drinkCount}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => addDrink(drink.id)}
+                      aria-label={`Add ${drink.shortName}`}
+                      className="flex size-8 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.06)] text-text-primary transition-colors hover:bg-[rgba(255,255,255,0.1)]"
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <p className="text-text-muted text-xs">
+                {caffeineToday} mg caffeine logged today
+                {waterServings > 0
+                  ? ` · ${waterServings} ${waterServings === 1 ? unitSingular : unitName} water`
+                  : ""}
+              </p>
+            </div>
+          ) : null}
         </div>
 
         <p
@@ -259,7 +356,9 @@ export function WaterApp({
             ) : null}
             {breakdown.caffeine > 0 ? (
               <WhyRow
-                label={`+ Caffeine (${state.caffeineMgPerDay} mg/day)`}
+                label={`+ Caffeine (${effectiveCaffeineMg(state, logDate)} mg${
+                  caffeineToday > 0 ? " logged today" : "/day"
+                })`}
                 value={`+ ${fmtMl(breakdown.caffeine)}`}
               />
             ) : null}
