@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
@@ -15,16 +16,24 @@ export function OuraRefreshControl({
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsReconnect, setNeedsReconnect] = useState(false);
 
   const status = formatSyncStatus(lastSyncedAt, timeZone);
 
   async function refresh() {
     setSyncing(true);
     setError(null);
+    setNeedsReconnect(false);
     try {
       const res = await fetch("/api/oura/sync", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Sync failed.");
+      if (!res.ok) {
+        const message = data.error ?? "Sync failed.";
+        if (/reconnect|expired|not connected/i.test(message)) {
+          setNeedsReconnect(true);
+        }
+        throw new Error(message);
+      }
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -54,7 +63,19 @@ export function OuraRefreshControl({
       {status ? (
         <span className="timestamp sm:hidden">Oura {status}</span>
       ) : null}
-      {error ? <span className="text-xs text-[var(--color-stress)]">{error}</span> : null}
+      {error ? (
+        <span className="max-w-[16rem] text-right text-xs text-[var(--color-stress)]">
+          {needsReconnect ? "Oura connection expired." : error}
+          {needsReconnect ? (
+            <>
+              {" "}
+              <Link href="/api/auth/oura" className="underline">
+                Reconnect
+              </Link>
+            </>
+          ) : null}
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -31,7 +31,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?oura=invalid_state`);
   }
 
-  const redirectUri = ouraCallbackRedirectUri(origin);
+  const redirectUri = ouraCallbackRedirectUri({
+    origin,
+    headers: request.headers,
+  });
   let accessToken: string;
 
   try {

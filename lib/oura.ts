@@ -28,23 +28,34 @@ export const OURA_SCOPES = [
 
 const OURA_CALLBACK_PATH = "/api/auth/oura/callback";
 
-/** Redirect URI for the current site origin — must match an Oura app whitelist entry. */
-export function ouraCallbackRedirectUri(origin: string): string {
-  return `${origin}${OURA_CALLBACK_PATH}`;
-}
+/**
+ * Canonical Oura callback URL for this request. Must match an exact whitelist
+ * entry on the Oura developer app (register both localhost and production).
+ * Honors x-forwarded-proto/host so Vercel doesn't emit an http callback URL.
+ */
+export function ouraCallbackRedirectUri(input: {
+  origin: string;
+  headers: Headers;
+}): string {
+  const proto =
+    input.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    (input.origin.startsWith("https") ? "https" : "http");
+  const host =
+    input.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+    input.headers.get("host") ||
+    new URL(input.origin).host;
 
-function resolveRedirectUri(override: string): string {
-  if (!override) {
-    throw new Error("Oura redirect URI is required for authorization_code exchange.");
-  }
-  return override;
+  return `${proto}://${host}${OURA_CALLBACK_PATH}`;
 }
 
 /** Build the consent URL to start the OAuth flow. */
 export function getAuthUrl(state: string, redirectUri: string): string {
+  if (!redirectUri) {
+    throw new Error("Oura redirect URI is required.");
+  }
   const params = new URLSearchParams({
     client_id: process.env.OURA_CLIENT_ID!,
-    redirect_uri: resolveRedirectUri(redirectUri),
+    redirect_uri: redirectUri,
     response_type: "code",
     scope: OURA_SCOPES.join(" "),
     state,
@@ -93,7 +104,7 @@ export async function exchangeToken(
     if (!redirectUri) {
       throw new Error("Oura redirect URI is required for authorization_code exchange.");
     }
-    body.set("redirect_uri", resolveRedirectUri(redirectUri));
+    body.set("redirect_uri", redirectUri);
   }
 
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");

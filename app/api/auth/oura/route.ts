@@ -21,7 +21,10 @@ const OAUTH_COOKIE_OPTS = {
  */
 export async function GET(request: NextRequest) {
   const state = randomBytes(16).toString("hex");
-  const redirectUri = ouraCallbackRedirectUri(request.nextUrl.origin);
+  const redirectUri = ouraCallbackRedirectUri({
+    origin: request.nextUrl.origin,
+    headers: request.headers,
+  });
 
   const cookieStore = await cookies();
   cookieStore.set("oura_oauth_state", state, OAUTH_COOKIE_OPTS);

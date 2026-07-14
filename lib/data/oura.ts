@@ -88,6 +88,33 @@ export async function isOuraConnected(): Promise<boolean> {
   return Boolean(settings?.oura_refresh_token || settings?.oura_access_token);
 }
 
+/** Wipe stored Oura tokens so the UI can force a clean reconnect. */
+export async function clearOuraTokens(): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("user_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (!row) return;
+
+  await db
+    .from("user_settings")
+    .update({
+      oura_access_token: null,
+      oura_refresh_token: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", (row as { id: string }).id);
+}
+
+function isOuraRefreshRejected(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return /token exchange failed:.*(invalid_request|invalid_grant|invalid_token)/i.test(
+    err.message,
+  );
+}
+
 async function latest<T>(table: string): Promise<T | null> {
   const db = createServiceClient();
   const { data } = await db
@@ -270,21 +297,31 @@ async function refreshOuraAccessToken(
     throw new Error("Oura refresh token missing — reconnect at /api/auth/oura.");
   }
 
-  const refreshed = await exchangeToken({
-    grant_type: "refresh_token",
-    refresh_token: decryptToken(settings.oura_refresh_token),
-  });
+  try {
+    const refreshed = await exchangeToken({
+      grant_type: "refresh_token",
+      refresh_token: decryptToken(settings.oura_refresh_token),
+    });
 
-  await db
-    .from("user_settings")
-    .update({
-      oura_access_token: encryptToken(refreshed.access_token),
-      oura_refresh_token: encryptToken(refreshed.refresh_token),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", settings.id);
+    await db
+      .from("user_settings")
+      .update({
+        oura_access_token: encryptToken(refreshed.access_token),
+        oura_refresh_token: encryptToken(refreshed.refresh_token),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", settings.id);
 
-  return refreshed.access_token;
+    return refreshed.access_token;
+  } catch (err) {
+    if (isOuraRefreshRejected(err)) {
+      await clearOuraTokens();
+      throw new Error(
+        "Oura connection expired — reconnect at /api/auth/oura.",
+      );
+    }
+    throw err;
+  }
 }
 
 /**
@@ -334,7 +371,18 @@ export async function syncOura(
     if (!isOuraUnauthorized(err) || accessTokenOverride || !settings.oura_refresh_token) {
       throw err;
     }
-    accessToken = await refreshOuraAccessToken(db, settings);
+    try {
+      accessToken = await refreshOuraAccessToken(db, settings);
+    } catch (refreshErr) {
+      if (isOuraRefreshRejected(refreshErr) || /reconnect|expired/i.test(
+        refreshErr instanceof Error ? refreshErr.message : "",
+      )) {
+        throw refreshErr instanceof Error
+          ? refreshErr
+          : new Error("Oura connection expired — reconnect at /api/auth/oura.");
+      }
+      throw refreshErr;
+    }
     data = await fetchOuraData(accessToken, range);
   }
 
