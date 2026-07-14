@@ -76,6 +76,21 @@ export async function HealthSnapshot() {
       })
     : null;
 
+  const readinessIsStale =
+    data.oura.readinessAsOf != null &&
+    data.oura.readinessAsOf !== data.todayIso;
+  const sleepIsStale =
+    data.oura.sleepAsOf != null && data.oura.sleepAsOf !== data.todayIso;
+
+  const asOfLabel = (iso: string | null) =>
+    iso
+      ? new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          timeZone: data.timezone,
+        })
+      : null;
+
   return (
     <section className="snapshot-section section">
       <div className="snapshot-header">
@@ -111,12 +126,22 @@ export async function HealthSnapshot() {
               accent="recovery"
               size={80}
             />
+            {readinessIsStale && asOfLabel(data.oura.readinessAsOf) ? (
+              <span className="snapshot-caption">
+                {asOfLabel(data.oura.readinessAsOf)} reading
+              </span>
+            ) : null}
           </div>
         </Link>
         <Link href="/sleep" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Sleep</span>
             <ScoreRing value={data.oura.sleepScore} accent="sleep" size={80} />
+            {sleepIsStale && asOfLabel(data.oura.sleepAsOf) ? (
+              <span className="snapshot-caption">
+                {asOfLabel(data.oura.sleepAsOf)} reading
+              </span>
+            ) : null}
           </div>
         </Link>
         <Link href="/activity" className="snapshot-link-card">

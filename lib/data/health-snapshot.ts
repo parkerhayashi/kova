@@ -72,6 +72,8 @@ export type HealthSnapshotData = {
     lastSyncedAt: string | null;
     readinessScore: number | null;
     sleepScore: number | null;
+    readinessAsOf: string | null;
+    sleepAsOf: string | null;
     activityScore: number | null;
     activityAsOf: string | null;
     stress: number | null;
@@ -131,7 +133,10 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
   ]);
 
   const todayIso = todayInTimezone(timezone);
-  const readinessScore = valueForDate(readinessRows, todayIso, "score");
+  const readiness = valueForTodayOrLatest(readinessRows, todayIso, "score");
+  const sleep = valueForTodayOrLatest(sleepRows, todayIso, "score");
+  const readinessScore =
+    readiness.value != null ? Number(readiness.value) : null;
 
   const [mealTotals, nutritionGoals, waterState, workout] = await Promise.all([
     getDailyTotals(todayIso),
@@ -194,8 +199,10 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       connected,
       hasData: hasOuraData,
       lastSyncedAt: ouraLastSyncedAt,
-      readinessScore: valueForDate(readinessRows, todayIso, "score"),
-      sleepScore: valueForDate(sleepRows, todayIso, "score"),
+      readinessScore: readiness.value != null ? Number(readiness.value) : null,
+      sleepScore: sleep.value != null ? Number(sleep.value) : null,
+      readinessAsOf: readiness.asOf,
+      sleepAsOf: sleep.asOf,
       activityScore: activityScore.value,
       activityAsOf: activityScore.asOf,
       stress: stress.value,

@@ -730,6 +730,7 @@ alter table readiness         enable row level security;
 alter table activity          enable row level security;
 alter table workouts          enable row level security;
 alter table exercises         enable row level security;
+alter table exercise_catalog  enable row level security;
 alter table workout_sessions  enable row level security;
 alter table workout_sets      enable row level security;
 alter table workout_routines  enable row level security;

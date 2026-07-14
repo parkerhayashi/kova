@@ -4,7 +4,6 @@
  * functions must only be imported from Server Components / route handlers —
  * never a client component (they touch SUPABASE_SERVICE_ROLE_KEY).
  */
-import { after } from "next/server";
 import { seedProfileFromOuraIfEmpty } from "@/lib/data/profile";
 import { decryptToken, encryptToken } from "@/lib/crypto";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -233,9 +232,9 @@ async function markOuraSynced(settingsId: string): Promise<void> {
 }
 
 /**
- * Opportunistic Oura sync triggered when the dashboard is opened. The network
- * work is deferred with `after()` so it never blocks the page render. Uses
- * `oura_last_synced_at` for throttling so other settings writes don't block sync.
+ * Opportunistic Oura sync triggered when the dashboard is opened. Callers
+ * should schedule this via `after()` (see dashboard layout) so it never blocks
+ * render. Uses `oura_last_synced_at` for throttling.
  */
 export async function maybeSyncOuraOnOpen(): Promise<void> {
   const db = createServiceClient();
@@ -252,13 +251,11 @@ export async function maybeSyncOuraOnOpen(): Promise<void> {
   const lastSynced = settings.oura_last_synced_at;
   if (lastSynced && new Date(lastSynced).getTime() > thresholdMs) return;
 
-  after(async () => {
-    try {
-      await syncOura(SYNC_ON_OPEN_DAYS);
-    } catch (err) {
-      console.warn("[oura] sync-on-open failed:", (err as Error).message);
-    }
-  });
+  try {
+    await syncOura(SYNC_ON_OPEN_DAYS);
+  } catch (err) {
+    console.warn("[oura] sync-on-open failed:", (err as Error).message);
+  }
 }
 
 function isOuraUnauthorized(err: unknown): boolean {
