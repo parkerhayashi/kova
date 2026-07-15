@@ -169,18 +169,17 @@ export function WeightHistory({
         </p>
       ) : (
         <div className="border-border overflow-hidden rounded-xl border">
-          <div className="text-text-muted grid grid-cols-[1fr_4.5rem_4.5rem_2rem] gap-2 border-b border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider sm:grid-cols-[1fr_5rem_5rem_5rem_2rem]">
+          <div className="text-text-muted grid grid-cols-[1fr_4.5rem_4.5rem_2rem] gap-2 border-b border-border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider">
             <span>Date</span>
             <span className="text-right">Weight</span>
             <span className="text-right">Δ day</span>
-            <span className="hidden text-right sm:block">7d avg</span>
             <span className="sr-only">Delete</span>
           </div>
           <div className="divide-border max-h-[28rem] divide-y overflow-y-auto">
             {rows.map((row) => (
               <div
                 key={row.date}
-                className="grid grid-cols-[1fr_4.5rem_4.5rem_2rem] items-center gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-[rgba(255,255,255,0.03)] sm:grid-cols-[1fr_5rem_5rem_5rem_2rem]"
+                className="grid grid-cols-[1fr_4.5rem_4.5rem_2rem] items-center gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-[rgba(255,255,255,0.03)]"
               >
                 <Link
                   href={`${editPath}?date=${row.date}`}
@@ -206,11 +205,6 @@ export function WeightHistory({
                   style={{ color: deltaColor(row.delta_lbs) }}
                 >
                   {formatDeltaLbs(row.delta_lbs)}
-                </span>
-                <span className="text-text-muted hidden text-right font-mono text-xs tabular-nums sm:block">
-                  {row.avg_7d_lbs != null
-                    ? formatWeightLbs(row.avg_7d_lbs)
-                    : "—"}
                 </span>
                 <button
                   type="button"
