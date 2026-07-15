@@ -8,7 +8,7 @@ export default function WorkoutBodyPage() {
       <PageHeader
         eyebrow="Workouts"
         title="Progress photos & split"
-        subtitle="Progress photos and split rotation settings. Log daily weight on the main Workouts page."
+        subtitle="Progress photos and split rotation settings. Log daily weight on the Weight page."
       />
       <Link
         href="/workouts"

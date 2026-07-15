@@ -58,7 +58,7 @@ export async function HealthSnapshot() {
         month: "short",
         day: "numeric",
       })
-    : "log on workouts";
+    : "log on Weight";
 
   const waterCaption =
     data.water.ml > 0
@@ -227,7 +227,7 @@ export async function HealthSnapshot() {
             accent="var(--color-activity)"
           />
         </Link>
-        <Link href="/workouts" className="snapshot-link-card">
+        <Link href="/weight" className="snapshot-link-card">
           <SnapshotMetric
             label="Weight"
             value={data.weight?.weight_lbs ?? null}

@@ -39,7 +39,7 @@ function deltaColor(delta: number | null): string | undefined {
 export function WeightHistory({
   initialLogs,
   timezone = "America/New_York",
-  editPath = "/habits",
+  editPath = "/weight",
 }: {
   initialLogs?: WeightLog[];
   timezone?: string;

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { GoalSettings } from "@/components/nutrition/GoalSettings";
+import { AlcoholLog } from "@/components/nutrition/AlcoholLog";
 import { MacroSummary } from "@/components/nutrition/MacroSummary";
 import { MealCaptureFlow } from "@/components/nutrition/MealCaptureFlow";
 import { MealLog } from "@/components/nutrition/MealLog";
@@ -16,7 +17,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import type { DailyTotals } from "@/lib/nutrition";
-import type { Meal, SavedMeal } from "@/types";
+import type { DrinkTier, Meal, SavedMeal } from "@/types";
 
 export function NutritionApp({
   logDate,
@@ -27,6 +28,9 @@ export function NutritionApp({
   goals,
   calorieTrend,
   nutritionWeightTrends,
+  alcoholHabitId,
+  alcoholTier,
+  alcoholCalories,
 }: {
   logDate: string;
   today: string;
@@ -36,13 +40,26 @@ export function NutritionApp({
   goals: ComputedNutritionGoals;
   calorieTrend: { date: string; calories: number; goal: number }[];
   nutritionWeightTrends: DualTrendView[];
+  alcoholHabitId: string | null;
+  alcoholTier: DrinkTier | null;
+  alcoholCalories: number;
 }) {
   const [captureOpen, setCaptureOpen] = useState(false);
 
   return (
     <div className="space-y-6">
       <GoalSettings goals={goals} />
-      <MacroSummary totals={totals} goals={goals} meta={goals.meta} />
+      <MacroSummary
+        totals={totals}
+        goals={goals}
+        meta={goals.meta}
+        alcoholCalories={alcoholCalories}
+      />
+      <AlcoholLog
+        logDate={logDate}
+        habitId={alcoholHabitId}
+        initialTier={alcoholTier}
+      />
 
       <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

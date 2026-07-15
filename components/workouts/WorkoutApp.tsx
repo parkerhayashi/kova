@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ActiveWorkout } from "@/components/workouts/ActiveWorkout";
 import { CoachDayBanner } from "@/components/workouts/CoachDayBanner";
-import { CoachWeight } from "@/components/coach/CoachPanel";
-import { WeightHistory } from "@/components/weight/WeightHistory";
 import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
 import { LiftingStats } from "@/components/workouts/LiftingStats";
 import { HevyHistory } from "@/components/workouts/HevyHistory";
@@ -198,13 +196,17 @@ export function WorkoutApp({ hevyConnected = false }: { hevyConnected?: boolean 
 
       {!inSession && !loading ? (
         <>
-          <CoachWeight />
-          <WeightHistory />
           <CoachDayBanner
             routines={data?.routines ?? []}
             onStartRoutine={startRoutine}
           />
           <div className="flex flex-wrap gap-3 text-sm">
+            <Link
+              href="/weight"
+              className="text-text-secondary hover:text-text-primary"
+            >
+              Weight log & trend →
+            </Link>
             <Link
               href="/workouts/body"
               className="text-text-secondary hover:text-text-primary"

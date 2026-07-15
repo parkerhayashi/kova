@@ -16,6 +16,7 @@ import {
   Menu,
   Moon,
   Pill,
+  Scale,
   Shield,
   TrendingUp,
   User,
@@ -54,6 +55,22 @@ const OURA_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/activity", label: "Activity", icon: Flame },
 ];
 
+const TRAINING_CHILDREN: NavLeaf[] = [
+  { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
+  { type: "link", href: "/weight", label: "Weight", icon: Scale },
+];
+
+const NUTRITION_CHILDREN: NavLeaf[] = [
+  { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
+  { type: "link", href: "/water", label: "Water", icon: Droplet },
+  { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
+];
+
+const HABITS_CHILDREN: NavLeaf[] = [
+  { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
+  { type: "link", href: "/trends", label: "Trends", icon: TrendingUp },
+];
+
 const NAV_ALL: NavItem[] = [
   { type: "link", href: "/", label: "Home", icon: LayoutDashboard },
   {
@@ -63,13 +80,28 @@ const NAV_ALL: NavItem[] = [
     icon: Watch,
     children: OURA_CHILDREN,
   },
-  { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
-  { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
-  { type: "link", href: "/water", label: "Water", icon: Droplet },
-  { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
-  { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
+  {
+    type: "group",
+    id: "training",
+    label: "Training",
+    icon: Dumbbell,
+    children: TRAINING_CHILDREN,
+  },
+  {
+    type: "group",
+    id: "nutrition",
+    label: "Nutrition",
+    icon: Apple,
+    children: NUTRITION_CHILDREN,
+  },
+  {
+    type: "group",
+    id: "habits",
+    label: "Habits",
+    icon: CalendarCheck,
+    children: HABITS_CHILDREN,
+  },
   { type: "link", href: "/finances", label: "Finances", icon: Wallet },
-  { type: "link", href: "/trends", label: "Trends", icon: TrendingUp },
 ];
 
 const NAV = FINANCES_NAV_ENABLED
@@ -85,6 +117,7 @@ const MOBILE_PRIMARY: NavLeaf[] = [
   { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
 ];
 
+/** More sheet: groups plus any leftover top-level links (e.g. Finances). */
 const MOBILE_MORE = NAV.filter((item) => {
   if (item.type === "group") return true;
   return !MOBILE_PRIMARY.some((p) => p.href === item.href);

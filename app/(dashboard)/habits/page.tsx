@@ -6,10 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { HabitChecklist, type HabitRow } from "@/components/habits/HabitChecklist";
 import { HabitManager } from "@/components/habits/HabitManager";
 import { Heatmap } from "@/components/habits/Heatmap";
-import { WeightDayLog } from "@/components/weight/WeightDayLog";
-import { WeightHistory } from "@/components/weight/WeightHistory";
 import { getTimezone } from "@/lib/data/oura";
-import { getAllWeightLogs, getHabitLogs, getHabits, getWeightForDate } from "@/lib/data/tracking";
+import { getHabitLogs, getHabits } from "@/lib/data/tracking";
 import { logDateHeading, parseLogDate } from "@/lib/log-date";
 import { addDays, clearStreak, currentStreak, todayInTimezone } from "@/lib/utils";
 import { normalizeDrinkTier } from "@/lib/habit-drinks";
@@ -28,11 +26,9 @@ export default async function HabitsPage({
   const logDate = parseLogDate(dateParam, today);
   const dayLabel = logDateHeading(logDate, today, timezone);
 
-  const [habits, logs, weight, weightHistory] = await Promise.all([
+  const [habits, logs] = await Promise.all([
     getHabits(true),
     getHabitLogs(180, timezone),
-    getWeightForDate(logDate),
-    getAllWeightLogs(),
   ]);
 
   const positiveHabits = habits.filter((h) => h.kind === "positive");
@@ -150,19 +146,6 @@ export default async function HabitsPage({
             />
           </Card>
         ) : null}
-
-        <WeightDayLog
-          logDate={logDate}
-          today={today}
-          timezone={timezone}
-          initialWeightLbs={weight?.weight_lbs ?? null}
-        />
-
-        <WeightHistory
-          initialLogs={weightHistory}
-          timezone={timezone}
-          editPath="/habits"
-        />
       </Fragment>
 
       <HabitManager habits={habits} />

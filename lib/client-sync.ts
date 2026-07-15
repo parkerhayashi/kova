@@ -1,17 +1,11 @@
-import {
-  GOALS_CHANGED_EVENT,
-  GOALS_PREFIX,
-  storeListKeys,
-} from "@/lib/goals";
 import type { ClientSyncPayload } from "@/types";
 
-export type SyncNamespace = "goals" | "coach" | "finances";
+export type SyncNamespace = "coach" | "finances";
 
 export type HydrateResult = Record<SyncNamespace, boolean>;
 
 export const CLIENT_SYNC_CHANGED_EVENT = "client-sync-changed";
 
-const STREAK_KEY = "goal_streak_v1";
 const COACH_KEYS = ["po_coach_v1", "po_coach_workout_done", "po_coach_photos"] as const;
 const FINANCE_EXACT_KEYS = [
   "subs",
@@ -20,7 +14,7 @@ const FINANCE_EXACT_KEYS = [
   "finance_active_tab",
   "nw_currency",
 ] as const;
-const ALL_NAMESPACES: SyncNamespace[] = ["goals", "coach", "finances"];
+const ALL_NAMESPACES: SyncNamespace[] = ["coach", "finances"];
 
 const PUSH_DELAY_MS = 500;
 const SYNC_CACHE_TTL_MS = 30_000;
@@ -35,7 +29,7 @@ function isBrowser(): boolean {
 }
 
 function emptyResult(): HydrateResult {
-  return { goals: false, coach: false, finances: false };
+  return { coach: false, finances: false };
 }
 
 function readRaw(key: string): unknown {
@@ -51,17 +45,6 @@ function readRaw(key: string): unknown {
 function writeRaw(key: string, value: unknown): void {
   if (!isBrowser()) return;
   window.localStorage.setItem(key, JSON.stringify(value));
-}
-
-function collectGoals(): Record<string, unknown> {
-  const keys: Record<string, unknown> = {};
-  for (const key of storeListKeys(GOALS_PREFIX)) {
-    const v = readRaw(key);
-    if (v != null) keys[key] = v;
-  }
-  const streak = readRaw(STREAK_KEY);
-  if (streak != null) keys[STREAK_KEY] = streak;
-  return keys;
 }
 
 function collectCoach(): Record<string, unknown> {
@@ -92,8 +75,6 @@ function collectFinances(): Record<string, unknown> {
 
 function collectNamespace(ns: SyncNamespace): Record<string, unknown> {
   switch (ns) {
-    case "goals":
-      return collectGoals();
     case "coach":
       return collectCoach();
     case "finances":
@@ -116,9 +97,6 @@ function invalidateSyncCache(): void {
 
 function dispatchNamespaceChanged(ns: SyncNamespace): void {
   if (!isBrowser()) return;
-  if (ns === "goals") {
-    window.dispatchEvent(new CustomEvent(GOALS_CHANGED_EVENT));
-  }
   window.dispatchEvent(
     new CustomEvent(CLIENT_SYNC_CHANGED_EVENT, { detail: { namespace: ns } }),
   );

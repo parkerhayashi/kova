@@ -7,7 +7,7 @@ function normalizePayload(raw: unknown): ClientSyncPayload {
   if (!raw || typeof raw !== "object") return EMPTY;
   const o = raw as Record<string, unknown>;
   const out: ClientSyncPayload = {};
-  for (const ns of ["goals", "coach", "finances"] as const) {
+  for (const ns of ["coach", "finances"] as const) {
     const v = o[ns];
     if (v && typeof v === "object" && !Array.isArray(v)) {
       out[ns] = v as Record<string, unknown>;
@@ -40,7 +40,7 @@ export async function saveClientSync(partial: ClientSyncPayload): Promise<void> 
   const current = normalizePayload(data?.client_sync);
   const merged: ClientSyncPayload = { ...current };
 
-  for (const ns of ["goals", "coach", "finances"] as const) {
+  for (const ns of ["coach", "finances"] as const) {
     if (partial[ns] !== undefined) merged[ns] = partial[ns];
   }
 

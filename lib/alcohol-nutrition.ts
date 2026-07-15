@@ -6,7 +6,9 @@ import {
 import {
   drinkTierCalories,
   isDrinkQuantityHabit,
+  normalizeDrinkTier,
 } from "@/lib/habit-drinks";
+import type { DrinkTier } from "@/types";
 
 function alcoholHabitIds(habits: Awaited<ReturnType<typeof getHabits>>): Set<string> {
   return new Set(
@@ -57,4 +59,30 @@ export async function getAlcoholCaloriesForDate(date: string): Promise<number> {
     getHabitLogsForDate(date),
   ]);
   return sumAlcoholCalories(habits, logs);
+}
+
+/** Alcohol day-tag habit + tier for a date (shared by Habits + Nutrition UI). */
+export async function getAlcoholLogForDate(date: string): Promise<{
+  habitId: string | null;
+  tier: DrinkTier | null;
+  calories: number;
+}> {
+  const [habits, logs] = await Promise.all([
+    getHabits(true),
+    getHabitLogsForDate(date),
+  ]);
+  const alcoholHabit = habits.find(isDrinkQuantityHabit) ?? null;
+  if (!alcoholHabit) {
+    return { habitId: null, tier: null, calories: 0 };
+  }
+
+  const log = logs.find((row) => row.habit_id === alcoholHabit.id) ?? null;
+  const tier =
+    log?.completed ? normalizeDrinkTier(log.amount_tier) : null;
+
+  return {
+    habitId: alcoholHabit.id,
+    tier,
+    calories: drinkTierCalories(tier),
+  };
 }

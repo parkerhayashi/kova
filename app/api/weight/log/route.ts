@@ -12,8 +12,9 @@ function toLbs(weight: number, unit: "kg" | "lb"): number {
 
 function refreshWeightPaths() {
   revalidatePath("/");
-  revalidatePath("/habits");
+  revalidatePath("/weight");
   revalidatePath("/workouts");
+  revalidatePath("/habits");
 }
 
 /** Upsert one daily weight reading (coach tracker). */

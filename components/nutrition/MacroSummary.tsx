@@ -8,14 +8,22 @@ export function MacroSummary({
   totals,
   goals,
   meta,
+  alcoholCalories = 0,
 }: {
   totals: DailyTotals;
   goals: NutritionGoals;
   meta?: NutritionGoalMeta;
+  alcoholCalories?: number;
 }) {
   const calories = totals.calories ?? 0;
   const macros = macroCalories(totals);
   const macroTotal = macros.protein + macros.carbs + macros.fat || 1;
+  const calorieCaption =
+    alcoholCalories > 0
+      ? `incl. ${alcoholCalories} kcal alcohol`
+      : calories >= goals.calories * 0.9
+        ? "Near goal"
+        : `${Math.round(goals.calories - calories)} to go`;
 
   return (
     <section className="space-y-4">
@@ -25,11 +33,7 @@ export function MacroSummary({
           value={Math.round(calories)}
           unit={`/ ${goals.calories}`}
           accent="nutrition"
-          caption={
-            calories >= goals.calories * 0.9
-              ? "Near goal"
-              : `${Math.round(goals.calories - calories)} to go`
-          }
+          caption={calorieCaption}
         />
         <MetricCard
           label="Protein"

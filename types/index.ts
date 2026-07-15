@@ -653,7 +653,6 @@ export interface UserProfile {
 
 /** Cross-device localStorage snapshots stored in user_settings.client_sync. */
 export interface ClientSyncPayload {
-  goals?: Record<string, unknown>;
   coach?: Record<string, unknown>;
   finances?: Record<string, unknown>;
 }

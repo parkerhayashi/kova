@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const partial: ClientSyncPayload = {};
-  for (const ns of ["goals", "coach", "finances"] as const) {
+  for (const ns of ["coach", "finances"] as const) {
     const v = body[ns];
     if (v !== undefined) {
       if (typeof v !== "object" || v === null || Array.isArray(v)) {

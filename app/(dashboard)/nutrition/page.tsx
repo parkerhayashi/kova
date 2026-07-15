@@ -11,6 +11,7 @@ import {
 } from "@/lib/data/nutrition";
 import { getSavedMeals } from "@/lib/data/saved-meals";
 import { getTimezone } from "@/lib/data/oura";
+import { getAlcoholLogForDate } from "@/lib/alcohol-nutrition";
 import { parseLogDate } from "@/lib/log-date";
 import { todayInTimezone } from "@/lib/utils";
 
@@ -26,14 +27,22 @@ export default async function NutritionPage({
   const today = todayInTimezone(timezone);
   const logDate = parseLogDate(dateParam, today);
 
-  const [meals, savedMeals, totals, goals, calorieTrend, nutritionWeightTrends] =
-    await Promise.all([
+  const [
+    meals,
+    savedMeals,
+    totals,
+    goals,
+    calorieTrend,
+    nutritionWeightTrends,
+    alcohol,
+  ] = await Promise.all([
     getMealsForDate(logDate),
     getSavedMeals(),
     getDailyTotals(logDate),
     getNutritionGoals(logDate),
     getCalorieTrend(7),
     getNutritionWeightTrends(30),
+    getAlcoholLogForDate(logDate),
   ]);
 
   return (
@@ -41,7 +50,7 @@ export default async function NutritionPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Nutrition"
-          subtitle="Macros, micronutrients, and meal logging."
+          subtitle="Macros, micronutrients, drinks, and meal logging."
         />
         <Suspense fallback={null}>
           <LogDatePicker selected={logDate} today={today} timezone={timezone} />
@@ -57,6 +66,9 @@ export default async function NutritionPage({
         goals={goals}
         calorieTrend={calorieTrend}
         nutritionWeightTrends={nutritionWeightTrends}
+        alcoholHabitId={alcohol.habitId}
+        alcoholTier={alcohol.tier}
+        alcoholCalories={alcohol.calories}
       />
     </div>
   );

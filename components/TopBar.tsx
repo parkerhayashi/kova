@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import { getTodayGoals, GOALS_CHANGED_EVENT } from "@/lib/goals";
 import {
   dayHydrationUnits,
   getDayLog,
@@ -61,14 +60,11 @@ function Pill({
 
 export function TopBar() {
   const [mounted, setMounted] = useState(false);
-  const [goals, setGoals] = useState<Progress>({ done: 0, total: 0 });
   const [water, setWater] = useState<Progress>({ done: 0, total: 0 });
   const [stack, setStack] = useState<Progress>({ done: 0, total: 0 });
   const [flash, setFlash] = useState(false);
 
   function readLocal() {
-    const g = getTodayGoals();
-    setGoals({ done: g.filter((x) => x.done).length, total: g.length });
     const w = loadWater();
     const key = waterDateKey(new Date());
     setWater({
@@ -108,13 +104,11 @@ export function TopBar() {
     const onVisible = () => {
       if (!document.hidden) onFocus();
     };
-    window.addEventListener(GOALS_CHANGED_EVENT, onLocal);
     window.addEventListener(WATER_CHANGED_EVENT, onLocal);
     window.addEventListener("storage", onLocal);
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
-      window.removeEventListener(GOALS_CHANGED_EVENT, onLocal);
       window.removeEventListener(WATER_CHANGED_EVENT, onLocal);
       window.removeEventListener("storage", onLocal);
       window.removeEventListener("focus", onFocus);
@@ -134,15 +128,10 @@ export function TopBar() {
     window.setTimeout(() => setFlash(false), 220);
   }
 
-  const display = mounted ? { goals, stack, water } : null;
+  const display = mounted ? { stack, water } : null;
 
   return (
     <header className="topbar" aria-label="Quick stats">
-      <Pill
-        href="/"
-        label="Goals"
-        progress={display ? goals : { done: 0, total: 0 }}
-      />
       <Pill
         href="/supplements"
         label="Stack"
