@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ActiveWorkout } from "@/components/workouts/ActiveWorkout";
 import { CoachDayBanner } from "@/components/workouts/CoachDayBanner";
 import { CoachWeight } from "@/components/coach/CoachPanel";
+import { WeightHistory } from "@/components/weight/WeightHistory";
 import { ExerciseDetailPanel } from "@/components/workouts/ExerciseDetailPanel";
 import { LiftingStats } from "@/components/workouts/LiftingStats";
 import { HevyHistory } from "@/components/workouts/HevyHistory";
@@ -198,6 +199,7 @@ export function WorkoutApp({ hevyConnected = false }: { hevyConnected?: boolean 
       {!inSession && !loading ? (
         <>
           <CoachWeight />
+          <WeightHistory />
           <CoachDayBanner
             routines={data?.routines ?? []}
             onStartRoutine={startRoutine}

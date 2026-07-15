@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
-import { upsertWeight } from "@/lib/data/tracking";
+import { deleteWeight, upsertWeight } from "@/lib/data/tracking";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +8,12 @@ const LB_PER_KG = 2.204_622_621_8;
 
 function toLbs(weight: number, unit: "kg" | "lb"): number {
   return unit === "kg" ? weight * LB_PER_KG : weight;
+}
+
+function refreshWeightPaths() {
+  revalidatePath("/");
+  revalidatePath("/habits");
+  revalidatePath("/workouts");
 }
 
 /** Upsert one daily weight reading (coach tracker). */
@@ -28,8 +34,20 @@ export async function POST(request: NextRequest) {
     notes: null,
   });
 
-  revalidatePath("/");
-  revalidatePath("/habits");
+  refreshWeightPaths();
 
+  return NextResponse.json({ ok: true });
+}
+
+/** Delete one daily weight reading. */
+export async function DELETE(request: NextRequest) {
+  const body = await request.json().catch(() => null);
+  const date = typeof body?.date === "string" ? body.date : "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return NextResponse.json({ error: "Invalid date" }, { status: 400 });
+  }
+
+  await deleteWeight(date);
+  refreshWeightPaths();
   return NextResponse.json({ ok: true });
 }
