@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   Apple,
   CalendarCheck,
+  ChevronDown,
   Droplet,
   Dumbbell,
   Flame,
@@ -19,6 +20,7 @@ import {
   TrendingUp,
   User,
   Wallet,
+  Watch,
   X,
 } from "lucide-react";
 import { KovaWordmark } from "@/components/brand/KovaWordmark";
@@ -27,37 +29,73 @@ import { cn } from "@/lib/utils";
 /** Finances code stays at /finances — flip to true to show in nav again. */
 const FINANCES_NAV_ENABLED = false;
 
-const NAV_ALL = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/sleep", label: "Sleep", icon: Moon },
-  { href: "/recovery", label: "Readiness", icon: HeartPulse },
-  { href: "/activity", label: "Activity", icon: Flame },
-  { href: "/workouts", label: "Workouts", icon: Dumbbell },
-  { href: "/nutrition", label: "Nutrition", icon: Apple },
-  { href: "/water", label: "Water", icon: Droplet },
-  { href: "/supplements", label: "Supplements", icon: Pill },
-  { href: "/habits", label: "Habits", icon: CalendarCheck },
-  { href: "/finances", label: "Finances", icon: Wallet },
-  { href: "/trends", label: "Trends", icon: TrendingUp },
-] as const;
+type NavIcon = typeof LayoutDashboard;
+
+type NavLeaf = {
+  type: "link";
+  href: string;
+  label: string;
+  icon: NavIcon;
+};
+
+type NavGroup = {
+  type: "group";
+  id: string;
+  label: string;
+  icon: NavIcon;
+  children: NavLeaf[];
+};
+
+type NavItem = NavLeaf | NavGroup;
+
+const OURA_CHILDREN: NavLeaf[] = [
+  { type: "link", href: "/sleep", label: "Sleep", icon: Moon },
+  { type: "link", href: "/recovery", label: "Readiness", icon: HeartPulse },
+  { type: "link", href: "/activity", label: "Activity", icon: Flame },
+];
+
+const NAV_ALL: NavItem[] = [
+  { type: "link", href: "/", label: "Home", icon: LayoutDashboard },
+  {
+    type: "group",
+    id: "oura",
+    label: "Oura",
+    icon: Watch,
+    children: OURA_CHILDREN,
+  },
+  { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
+  { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
+  { type: "link", href: "/water", label: "Water", icon: Droplet },
+  { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
+  { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
+  { type: "link", href: "/finances", label: "Finances", icon: Wallet },
+  { type: "link", href: "/trends", label: "Trends", icon: TrendingUp },
+];
 
 const NAV = FINANCES_NAV_ENABLED
   ? NAV_ALL
-  : NAV_ALL.filter((item) => item.href !== "/finances");
+  : NAV_ALL.filter(
+      (item) => item.type === "group" || item.href !== "/finances",
+    );
 
-const MOBILE_PRIMARY = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/workouts", label: "Workouts", icon: Dumbbell },
-  { href: "/nutrition", label: "Nutrition", icon: Apple },
-  { href: "/habits", label: "Habits", icon: CalendarCheck },
-] as const;
+const MOBILE_PRIMARY: NavLeaf[] = [
+  { type: "link", href: "/", label: "Home", icon: LayoutDashboard },
+  { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
+  { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
+  { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
+];
 
-const MOBILE_MORE = NAV.filter(
-  (item) => !MOBILE_PRIMARY.some((p) => p.href === item.href),
-);
+const MOBILE_MORE = NAV.filter((item) => {
+  if (item.type === "group") return true;
+  return !MOBILE_PRIMARY.some((p) => p.href === item.href);
+});
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
+}
+
+function groupIsActive(pathname: string, group: NavGroup) {
+  return group.children.some((child) => isActive(pathname, child.href));
 }
 
 function NavLink({
@@ -66,13 +104,15 @@ function NavLink({
   icon: Icon,
   active,
   compact,
+  nested,
   onNavigate,
 }: {
   href: string;
   label: string;
-  icon: typeof LayoutDashboard;
+  icon: NavIcon;
   active: boolean;
   compact?: boolean;
+  nested?: boolean;
   onNavigate?: () => void;
 }) {
   return (
@@ -85,6 +125,7 @@ function NavLink({
         compact
           ? "min-w-[4.5rem] flex-col gap-1 px-2 py-2 text-[10px]"
           : "w-full",
+        nested && !compact ? "pl-10" : null,
         active
           ? compact
             ? "text-text-primary"
@@ -100,14 +141,77 @@ function NavLink({
   );
 }
 
+function NavGroupItem({
+  group,
+  pathname,
+  onNavigate,
+}: {
+  group: NavGroup;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  const childActive = groupIsActive(pathname, group);
+  const [open, setOpen] = useState(childActive);
+
+  useEffect(() => {
+    if (childActive) setOpen(true);
+  }, [childActive, pathname]);
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "nav-tap flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+          childActive
+            ? "text-text-primary"
+            : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary",
+        )}
+      >
+        <group.icon className="size-[18px] shrink-0" strokeWidth={1.5} />
+        <span className="flex-1 text-left">{group.label}</span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 text-text-muted transition-transform",
+            open ? "rotate-180" : "",
+          )}
+          strokeWidth={1.5}
+        />
+      </button>
+      {open ? (
+        <div className="flex flex-col gap-0.5">
+          {group.children.map((child) => (
+            <NavLink
+              key={child.href}
+              href={child.href}
+              label={child.label}
+              icon={child.icon}
+              active={isActive(pathname, child.href)}
+              nested
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * NavBar — Coach-style side rail + native-style mobile tab bar (4 tabs + More).
  * Active state: white text + subtle fill; no colored chrome.
+ * Oura pages (Sleep / Readiness / Activity) nest under one expandable group.
  */
 export function NavBar() {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
-  const moreActive = MOBILE_MORE.some((item) => isActive(pathname, item.href));
+  const moreActive = MOBILE_MORE.some((item) =>
+    item.type === "group"
+      ? groupIsActive(pathname, item)
+      : isActive(pathname, item.href),
+  );
 
   useEffect(() => {
     setMoreOpen(false);
@@ -132,15 +236,19 @@ export function NavBar() {
           </Link>
         </div>
         <nav className="flex flex-col gap-1">
-          {NAV.map(({ href, label, icon }) => (
-            <NavLink
-              key={href}
-              href={href}
-              label={label}
-              icon={icon}
-              active={isActive(pathname, href)}
-            />
-          ))}
+          {NAV.map((item) =>
+            item.type === "group" ? (
+              <NavGroupItem key={item.id} group={item} pathname={pathname} />
+            ) : (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+                active={isActive(pathname, item.href)}
+              />
+            ),
+          )}
         </nav>
         <div className="mt-auto flex flex-col gap-1 pt-4">
           <NavLink
@@ -220,31 +328,69 @@ export function NavBar() {
                 <X className="size-4" />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-1">
-              {MOBILE_MORE.map(({ href, label, icon }) => (
+            <div className="flex flex-col gap-3">
+              {(() => {
+                const groups = MOBILE_MORE.filter(
+                  (item): item is NavGroup => item.type === "group",
+                );
+                const links = MOBILE_MORE.filter(
+                  (item): item is NavLeaf => item.type === "link",
+                );
+                return (
+                  <>
+                    {groups.map((group) => (
+                      <div key={group.id} className="space-y-1">
+                        <div className="text-text-muted flex items-center gap-2 px-1 text-[10px] font-semibold uppercase tracking-wider">
+                          <group.icon className="size-3.5" strokeWidth={1.5} />
+                          {group.label}
+                        </div>
+                        <div className="grid grid-cols-2 gap-1">
+                          {group.children.map((child) => (
+                            <NavLink
+                              key={child.href}
+                              href={child.href}
+                              label={child.label}
+                              icon={child.icon}
+                              active={isActive(pathname, child.href)}
+                              onNavigate={() => setMoreOpen(false)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {links.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-1">
+                        {links.map((item) => (
+                          <NavLink
+                            key={item.href}
+                            href={item.href}
+                            label={item.label}
+                            icon={item.icon}
+                            active={isActive(pathname, item.href)}
+                            onNavigate={() => setMoreOpen(false)}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                  </>
+                );
+              })()}
+              <div className="grid grid-cols-2 gap-1 border-t border-border pt-2">
                 <NavLink
-                  key={href}
-                  href={href}
-                  label={label}
-                  icon={icon}
-                  active={isActive(pathname, href)}
+                  href="/settings/profile"
+                  label="Profile"
+                  icon={User}
+                  active={pathname.startsWith("/settings/profile")}
                   onNavigate={() => setMoreOpen(false)}
                 />
-              ))}
-              <NavLink
-                href="/settings/profile"
-                label="Profile"
-                icon={User}
-                active={pathname.startsWith("/settings/profile")}
-                onNavigate={() => setMoreOpen(false)}
-              />
-              <NavLink
-                href="/settings/security"
-                label="Security"
-                icon={Shield}
-                active={pathname.startsWith("/settings/security")}
-                onNavigate={() => setMoreOpen(false)}
-              />
+                <NavLink
+                  href="/settings/security"
+                  label="Security"
+                  icon={Shield}
+                  active={pathname.startsWith("/settings/security")}
+                  onNavigate={() => setMoreOpen(false)}
+                />
+              </div>
             </div>
             <form action="/api/logout" method="post" className="mt-2">
               <button
