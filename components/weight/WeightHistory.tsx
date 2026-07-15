@@ -9,7 +9,6 @@ import {
   filterWeightLogs,
   formatDeltaLbs,
   formatWeightLbs,
-  summarizeWeightLogs,
   type WeightHistoryRange,
 } from "@/lib/weight-history";
 import { todayInTimezone } from "@/lib/utils";
@@ -98,10 +97,16 @@ export function WeightHistory({
     [logs, range, today],
   );
   const rows = useMemo(() => buildWeightHistoryRows(filtered), [filtered]);
-  const summary = useMemo(
-    () => summarizeWeightLogs(filtered, today),
-    [filtered, today],
-  );
+  const rangeBounds = useMemo(() => {
+    if (!filtered.length) return null;
+    let low = filtered[0]!.weight_lbs;
+    let high = low;
+    for (const r of filtered) {
+      low = Math.min(low, r.weight_lbs);
+      high = Math.max(high, r.weight_lbs);
+    }
+    return { low, high };
+  }, [filtered]);
 
   function remove(date: string) {
     startTransition(async () => {
@@ -146,45 +151,14 @@ export function WeightHistory({
         </div>
       </div>
 
-      {loaded && summary.count > 0 ? (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <SummaryCell
-            label="Latest"
-            value={
-              summary.latest_lbs != null
-                ? `${formatWeightLbs(summary.latest_lbs)} lb`
-                : "—"
-            }
-            caption={
-              summary.latest_date
-                ? formatDayLabel(summary.latest_date, timezone)
-                : undefined
-            }
-          />
-          <SummaryCell
-            label="7-day avg"
-            value={
-              summary.avg_7d_lbs != null
-                ? `${formatWeightLbs(summary.avg_7d_lbs)} lb`
-                : "—"
-            }
-          />
-          <SummaryCell
-            label="30d change"
-            value={formatDeltaLbs(summary.change_30d_lbs)}
-            valueColor={deltaColor(summary.change_30d_lbs)}
-            unit={summary.change_30d_lbs != null ? " lb" : undefined}
-          />
-          <SummaryCell
-            label="Range"
-            value={
-              summary.low_lbs != null && summary.high_lbs != null
-                ? `${formatWeightLbs(summary.low_lbs)}–${formatWeightLbs(summary.high_lbs)}`
-                : "—"
-            }
-            caption={`${summary.count} weigh-in${summary.count === 1 ? "" : "s"}`}
-          />
-        </div>
+      {loaded && filtered.length > 0 ? (
+        <p className="text-text-muted text-xs">
+          {filtered.length} weigh-in{filtered.length === 1 ? "" : "s"} in this
+          range
+          {rangeBounds
+            ? ` · ${formatWeightLbs(rangeBounds.low)}–${formatWeightLbs(rangeBounds.high)} lb`
+            : ""}
+        </p>
       ) : null}
 
       {!loaded ? (
@@ -257,37 +231,5 @@ export function WeightHistory({
         <p className="text-xs text-[var(--color-stress)]">{error}</p>
       ) : null}
     </Card>
-  );
-}
-
-function SummaryCell({
-  label,
-  value,
-  caption,
-  unit,
-  valueColor,
-}: {
-  label: string;
-  value: string;
-  caption?: string;
-  unit?: string;
-  valueColor?: string;
-}) {
-  return (
-    <div className="rounded-xl bg-[rgba(255,255,255,0.03)] px-3 py-2.5">
-      <span className="metric-label">{label}</span>
-      <p
-        className="mt-1 text-base font-semibold tabular-nums text-text-primary"
-        style={valueColor ? { color: valueColor } : undefined}
-      >
-        {value}
-        {unit ? (
-          <span className="text-text-muted text-xs font-normal">{unit}</span>
-        ) : null}
-      </p>
-      {caption ? (
-        <p className="text-text-muted mt-0.5 text-[11px]">{caption}</p>
-      ) : null}
-    </div>
   );
 }

@@ -48,7 +48,6 @@ export function NutritionApp({
 
   return (
     <div className="space-y-6">
-      <GoalSettings goals={goals} />
       <MacroSummary
         totals={totals}
         goals={goals}
@@ -97,6 +96,8 @@ export function NutritionApp({
       </section>
 
       <NutritionWeightTrends views={nutritionWeightTrends} />
+
+      <GoalSettings goals={goals} />
     </div>
   );
 }

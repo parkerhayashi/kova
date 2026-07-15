@@ -4,7 +4,8 @@ import { LogDatePicker } from "@/components/LogDatePicker";
 import { CoachWeight } from "@/components/coach/CoachPanel";
 import { WeightDayLog } from "@/components/weight/WeightDayLog";
 import { WeightHistory } from "@/components/weight/WeightHistory";
-import { getTimezone } from "@/lib/data/oura";
+import { WeightInsights } from "@/components/weight/WeightInsights";
+import { getTimezone, getUserSettings } from "@/lib/data/oura";
 import { getAllWeightLogs, getWeightForDate } from "@/lib/data/tracking";
 import { parseLogDate } from "@/lib/log-date";
 import { todayInTimezone } from "@/lib/utils";
@@ -21,9 +22,10 @@ export default async function WeightPage({
   const today = todayInTimezone(timezone);
   const logDate = parseLogDate(dateParam, today);
 
-  const [weight, weightHistory] = await Promise.all([
+  const [weight, weightHistory, settings] = await Promise.all([
     getWeightForDate(logDate),
     getAllWeightLogs(),
+    getUserSettings(),
   ]);
 
   return (
@@ -31,14 +33,12 @@ export default async function WeightPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Weight"
-          subtitle="Daily weigh-ins, trend chart, and history."
+          subtitle="Weigh-ins, weekly pace, and goal track."
         />
         <Suspense fallback={null}>
           <LogDatePicker selected={logDate} today={today} timezone={timezone} />
         </Suspense>
       </div>
-
-      <CoachWeight />
 
       <WeightDayLog
         logDate={logDate}
@@ -46,6 +46,14 @@ export default async function WeightPage({
         timezone={timezone}
         initialWeightLbs={weight?.weight_lbs ?? null}
       />
+
+      <WeightInsights
+        logs={weightHistory}
+        today={today}
+        goalLbs={settings?.weight_goal_lbs ?? null}
+      />
+
+      <CoachWeight />
 
       <WeightHistory
         initialLogs={weightHistory}
