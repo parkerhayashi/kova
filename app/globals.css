@@ -749,6 +749,11 @@ input[type="number"]::-webkit-outer-spin-button {
   white-space: nowrap;
 }
 
+.topbar-pill-unit {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
 .topbar-water-wrap {
   flex: 1 1 0;
   min-width: 0;

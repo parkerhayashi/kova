@@ -1,20 +1,37 @@
 import { NextResponse } from "next/server";
-import { getSupplements, getSupplementLogs } from "@/lib/data/tracking";
+import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
 import { getTimezone } from "@/lib/data/oura";
+import { getLatestWeight, getWeightForDate } from "@/lib/data/tracking";
 import { todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+/** Lightweight top-bar snapshot: calories, weight, (optional) supplements. */
 export async function GET() {
-  const [tz, supplements] = await Promise.all([
-    getTimezone(),
-    getSupplements(true),
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+
+  const [totals, goals, todayWeight, latestWeight] = await Promise.all([
+    getDailyTotals(today),
+    getNutritionGoals(today),
+    getWeightForDate(today),
+    getLatestWeight(),
   ]);
-  const logs = await getSupplementLogs(1, tz);
-  const today = todayInTimezone(tz);
-  const taken = new Set(
-    logs.filter((l) => l.date === today && l.taken).map((l) => l.supplement_id),
-  );
-  const done = supplements.filter((s) => taken.has(s.id)).length;
-  return NextResponse.json({ supplements: { done, total: supplements.length } });
+
+  const weight = todayWeight ?? latestWeight;
+
+  return NextResponse.json({
+    today,
+    calories: {
+      done: Math.round(totals.calories ?? 0),
+      total: goals.calories,
+    },
+    weight: weight
+      ? {
+          lbs: Math.round(weight.weight_lbs * 10) / 10,
+          date: weight.date,
+          isToday: weight.date === today,
+        }
+      : null,
+  });
 }

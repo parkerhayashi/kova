@@ -112,8 +112,8 @@ const NAV = FINANCES_NAV_ENABLED
 
 const MOBILE_PRIMARY: NavLeaf[] = [
   { type: "link", href: "/", label: "Home", icon: LayoutDashboard },
-  { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
   { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
+  { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
   { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
 ];
 

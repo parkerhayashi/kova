@@ -16,6 +16,7 @@ import { commitWaterState, refreshWaterFromServer } from "@/lib/water-sync";
 
 type Progress = { done: number; total: number };
 type Status = "idle" | "good" | "warn" | "miss";
+type WeightSnap = { lbs: number; date: string; isToday: boolean } | null;
 
 function classify(done: number, total: number): Status {
   if (total === 0) return "idle";
@@ -32,7 +33,7 @@ const DOT_COLOR: Record<Status, string> = {
   miss: "var(--color-stress)",
 };
 
-function Pill({
+function ProgressPill({
   href,
   label,
   progress,
@@ -58,10 +59,32 @@ function Pill({
   );
 }
 
+function WeightPill({ weight }: { weight: WeightSnap }) {
+  const status: Status = weight == null ? "idle" : weight.isToday ? "good" : "warn";
+  const value =
+    weight == null
+      ? "—"
+      : Number.isInteger(weight.lbs)
+        ? `${weight.lbs}`
+        : weight.lbs.toFixed(1);
+
+  return (
+    <Link href="/weight" className="topbar-pill" aria-label="Weight">
+      <span className="topbar-dot" style={{ background: DOT_COLOR[status] }} />
+      <span className="topbar-pill-label">Weight</span>
+      <span className="topbar-pill-count">
+        {value}
+        {weight ? <span className="topbar-pill-unit"> lb</span> : null}
+      </span>
+    </Link>
+  );
+}
+
 export function TopBar() {
   const [mounted, setMounted] = useState(false);
   const [water, setWater] = useState<Progress>({ done: 0, total: 0 });
-  const [stack, setStack] = useState<Progress>({ done: 0, total: 0 });
+  const [calories, setCalories] = useState<Progress>({ done: 0, total: 0 });
+  const [weight, setWeight] = useState<WeightSnap>(null);
   const [flash, setFlash] = useState(false);
 
   function readLocal() {
@@ -78,14 +101,20 @@ export function TopBar() {
     readLocal();
   }
 
-  async function fetchStack() {
+  async function fetchSummary() {
     try {
       const res = await fetch("/api/today/summary", { cache: "no-store" });
       if (!res.ok) return;
       const json = await res.json();
-      if (json?.supplements) setStack(json.supplements);
+      if (json?.calories) {
+        setCalories({
+          done: Number(json.calories.done) || 0,
+          total: Number(json.calories.total) || 0,
+        });
+      }
+      setWeight(json?.weight ?? null);
     } catch {
-      /* offline — keep the last known count */
+      /* offline — keep the last known counts */
     }
   }
 
@@ -93,13 +122,13 @@ export function TopBar() {
     setMounted(true);
     readLocal();
     void pullRemote();
-    fetchStack();
+    void fetchSummary();
 
     const onLocal = () => readLocal();
     const onFocus = () => {
       readLocal();
       void pullRemote();
-      fetchStack();
+      void fetchSummary();
     };
     const onVisible = () => {
       if (!document.hidden) onFocus();
@@ -128,15 +157,17 @@ export function TopBar() {
     window.setTimeout(() => setFlash(false), 220);
   }
 
-  const display = mounted ? { stack, water } : null;
+  const display = mounted ? { calories, weight, water } : null;
 
   return (
     <header className="topbar" aria-label="Quick stats">
-      <Pill
-        href="/supplements"
-        label="Stack"
-        progress={display ? stack : { done: 0, total: 0 }}
+      <ProgressPill
+        href="/nutrition"
+        label="Cals"
+        progress={display ? calories : { done: 0, total: 0 }}
+        accent="var(--color-nutrition)"
       />
+      <WeightPill weight={display ? weight : null} />
       <div className="topbar-water-wrap">
         <Link
           href="/water"
