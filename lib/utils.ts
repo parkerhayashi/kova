@@ -46,6 +46,59 @@ export function todayInTimezone(timeZone: string = DEFAULT_TIMEZONE): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date());
 }
 
+const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Coerce DB/API/date-input values to a plain YYYY-MM-DD calendar date.
+ * Rejects anything that isn't a real calendar day — never timezone-shift.
+ */
+export function normalizeIsoDate(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    const direct = trimmed.slice(0, 10);
+    if (ISO_DATE_RE.test(direct)) {
+      const [, y, m, d] = direct.match(ISO_DATE_RE)!;
+      const dt = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+      if (
+        dt.getUTCFullYear() === Number(y) &&
+        dt.getUTCMonth() === Number(m) - 1 &&
+        dt.getUTCDate() === Number(d)
+      ) {
+        return direct;
+      }
+    }
+    return null;
+  }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    // Drivers sometimes return `date` columns as midnight UTC Date objects.
+    // Use UTC parts so America/New_York never shifts the calendar day back.
+    const y = value.getUTCFullYear();
+    const m = String(value.getUTCMonth() + 1).padStart(2, "0");
+    const d = String(value.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return null;
+}
+
+/** Format a YYYY-MM-DD as a calendar label without timezone shifting the day. */
+export function formatIsoDateLabel(
+  iso: string,
+  options: Intl.DateTimeFormatOptions = {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  },
+): string {
+  const normalized = normalizeIsoDate(iso);
+  if (!normalized) return iso;
+  const [y, m, d] = normalized.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d!, 12)).toLocaleDateString("en-US", {
+    ...options,
+    timeZone: "UTC",
+  });
+}
+
 /** ISO date (YYYY-MM-DD) `n` days before `iso` (n may be negative). */
 export function addDays(iso: string, n: number): string {
   const [y, m, d] = iso.split("-").map(Number);

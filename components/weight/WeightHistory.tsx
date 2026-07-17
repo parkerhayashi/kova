@@ -11,7 +11,7 @@ import {
   formatWeightLbs,
   type WeightHistoryRange,
 } from "@/lib/weight-history";
-import { todayInTimezone } from "@/lib/utils";
+import { todayInTimezone, formatIsoDateLabel, normalizeIsoDate } from "@/lib/utils";
 import type { WeightLog } from "@/types";
 
 const RANGES: { id: WeightHistoryRange; label: string }[] = [
@@ -20,13 +20,8 @@ const RANGES: { id: WeightHistoryRange; label: string }[] = [
   { id: "all", label: "All" },
 ];
 
-function formatDayLabel(iso: string, timeZone: string): string {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone,
-  });
+function formatDayLabel(iso: string): string {
+  return formatIsoDateLabel(iso);
 }
 
 function deltaColor(delta: number | null): string | undefined {
@@ -67,14 +62,20 @@ export function WeightHistory({
         }[];
       };
       setLogs(
-        (json.entries ?? []).map((e) => ({
-          id: e.dateKey,
-          date: e.dateKey,
-          weight_lbs: e.weight_lbs,
-          body_fat_pct: e.body_fat_pct,
-          notes: e.notes,
-          created_at: "",
-        })),
+        (json.entries ?? []).flatMap((e) => {
+          const date = normalizeIsoDate(e.dateKey);
+          if (!date) return [];
+          return [
+            {
+              id: date,
+              date,
+              weight_lbs: e.weight_lbs,
+              body_fat_pct: e.body_fat_pct,
+              notes: e.notes,
+              created_at: "",
+            },
+          ];
+        }),
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Load failed");
@@ -186,7 +187,7 @@ export function WeightHistory({
                   className="min-w-0"
                 >
                   <span className="block font-medium text-text-primary">
-                    {formatDayLabel(row.date, timezone)}
+                    {formatDayLabel(row.date)}
                   </span>
                   {row.body_fat_pct != null ? (
                     <span className="text-text-muted text-xs">

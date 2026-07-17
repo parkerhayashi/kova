@@ -1,44 +1,42 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { addDays } from "@/lib/utils";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { addDays, formatIsoDateLabel, normalizeIsoDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 /**
  * Day selector for manual logs — persists in `?date=YYYY-MM-DD`. Omit the param
  * for today. No lower bound (unlimited past).
+ *
+ * The native date input is a separate calendar button — never an invisible
+ * overlay on the label (mobile browsers often fire a shifted onChange there).
  */
 export function LogDatePicker({
   selected,
   today,
-  timezone,
 }: {
   selected: string;
   today: string;
-  timezone: string;
+  /** Kept for call-site compatibility; labels use calendar dates, not TZ. */
+  timezone?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   function navigate(date: string) {
+    const day = normalizeIsoDate(date);
+    if (!day || day > today) return;
     const params = new URLSearchParams(searchParams.toString());
-    if (date === today) params.delete("date");
-    else params.set("date", date);
+    if (day === today) params.delete("date");
+    else params.set("date", day);
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
   const label =
-    selected === today
-      ? "Today"
-      : new Date(`${selected}T12:00:00`).toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-          timeZone: timezone,
-        });
+    selected === today ? "Today" : formatIsoDateLabel(selected);
 
   const canGoForward = selected < today;
 
@@ -53,21 +51,9 @@ export function LogDatePicker({
         >
           <ChevronLeft className="size-4" strokeWidth={2} />
         </button>
-        <label className="relative flex min-w-[9rem] items-center justify-center px-2 py-1.5">
-          <span className="text-text-primary pointer-events-none text-sm font-medium">
-            {label}
-          </span>
-          <input
-            type="date"
-            value={selected}
-            max={today}
-            onChange={(e) => {
-              if (e.target.value) navigate(e.target.value);
-            }}
-            aria-label="Pick a date"
-            className="absolute inset-0 cursor-pointer opacity-0"
-          />
-        </label>
+        <span className="text-text-primary flex min-w-[9rem] items-center justify-center px-2 py-1.5 text-sm font-medium">
+          {label}
+        </span>
         <button
           type="button"
           onClick={() => navigate(addDays(selected, 1))}
@@ -82,6 +68,20 @@ export function LogDatePicker({
         >
           <ChevronRight className="size-4" strokeWidth={2} />
         </button>
+        <label className="border-border relative ml-0.5 flex size-8 cursor-pointer items-center justify-center rounded-md border-l border-border transition-colors hover:bg-[rgba(255,255,255,0.06)]">
+          <Calendar className="text-text-muted size-3.5" strokeWidth={2} />
+          <input
+            type="date"
+            value={selected}
+            max={today}
+            onChange={(e) => {
+              const day = normalizeIsoDate(e.target.value);
+              if (day) navigate(day);
+            }}
+            aria-label="Pick a date"
+            className="absolute inset-0 cursor-pointer opacity-0"
+          />
+        </label>
       </div>
       {selected !== today ? (
         <button

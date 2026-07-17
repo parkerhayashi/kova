@@ -6,7 +6,7 @@
  */
 import { createServiceClient } from "@/lib/supabase/server";
 import { catalogNutrientsForName } from "@/lib/supplementCatalog";
-import { addDays, todayInTimezone } from "@/lib/utils";
+import { addDays, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type {
   Habit,
   HabitKind,
@@ -15,6 +15,11 @@ import type {
   SupplementLog,
   WeightLog,
 } from "@/types";
+
+function asWeightLog(row: WeightLog): WeightLog {
+  const date = normalizeIsoDate(row.date) ?? row.date;
+  return { ...row, date };
+}
 
 function catalogNutrientsPayload(name: string): Record<string, number> | null {
   const match = catalogNutrientsForName(name);
@@ -31,7 +36,7 @@ export async function getWeightLogs(days: number): Promise<WeightLog[]> {
     .select("*")
     .gte("date", addDays(todayInTimezone(), -days))
     .order("date", { ascending: true });
-  return (data as WeightLog[]) ?? [];
+  return ((data as WeightLog[]) ?? []).map(asWeightLog);
 }
 
 export async function getLatestWeight(): Promise<WeightLog | null> {
@@ -42,17 +47,19 @@ export async function getLatestWeight(): Promise<WeightLog | null> {
     .order("date", { ascending: false })
     .limit(1)
     .maybeSingle();
-  return (data as WeightLog) ?? null;
+  return data ? asWeightLog(data as WeightLog) : null;
 }
 
 export async function getWeightForDate(date: string): Promise<WeightLog | null> {
+  const day = normalizeIsoDate(date);
+  if (!day) return null;
   const db = createServiceClient();
   const { data } = await db
     .from("weight_log")
     .select("*")
-    .eq("date", date)
+    .eq("date", day)
     .maybeSingle();
-  return (data as WeightLog) ?? null;
+  return data ? asWeightLog(data as WeightLog) : null;
 }
 
 export async function upsertWeight(input: {
@@ -61,13 +68,22 @@ export async function upsertWeight(input: {
   body_fat_pct: number | null;
   notes: string | null;
 }): Promise<void> {
+  const day = normalizeIsoDate(input.date);
+  if (!day) throw new Error(`Invalid weight date: ${input.date}`);
   const db = createServiceClient();
-  await db.from("weight_log").upsert(input, { onConflict: "date" });
+  const { error } = await db.from("weight_log").upsert(
+    { ...input, date: day },
+    { onConflict: "date" },
+  );
+  if (error) throw new Error(error.message);
 }
 
 export async function deleteWeight(date: string): Promise<void> {
+  const day = normalizeIsoDate(date);
+  if (!day) throw new Error(`Invalid weight date: ${date}`);
   const db = createServiceClient();
-  await db.from("weight_log").delete().eq("date", date);
+  const { error } = await db.from("weight_log").delete().eq("date", day);
+  if (error) throw new Error(error.message);
 }
 
 export async function getAllWeightLogs(): Promise<WeightLog[]> {
@@ -76,7 +92,7 @@ export async function getAllWeightLogs(): Promise<WeightLog[]> {
     .from("weight_log")
     .select("*")
     .order("date", { ascending: true });
-  return (data as WeightLog[]) ?? [];
+  return ((data as WeightLog[]) ?? []).map(asWeightLog);
 }
 
 // ---------------------------------------------------------------------------

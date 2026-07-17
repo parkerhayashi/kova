@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
@@ -19,11 +19,16 @@ export function WeightDayLog({
   initialWeightLbs: number | null;
 }) {
   const router = useRouter();
+  const logDateRef = useRef(logDate);
   const [weight, setWeight] = useState(
     () => (initialWeightLbs != null ? String(initialWeightLbs) : ""),
   );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    logDateRef.current = logDate;
+  }, [logDate]);
 
   useEffect(() => {
     setWeight(initialWeightLbs != null ? String(initialWeightLbs) : "");
@@ -38,15 +43,22 @@ export function WeightDayLog({
       setError("Enter a valid weight in pounds.");
       return;
     }
+    // Capture the day at click time so a late date-picker change can't steal the write.
+    const date = logDateRef.current;
     setError(null);
     startTransition(async () => {
       const res = await fetch("/api/weight/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: logDate, weight: n, unit: "lb" }),
+        body: JSON.stringify({ date, weight: n, unit: "lb" }),
       });
       if (!res.ok) {
         setError("Could not save weight.");
+        return;
+      }
+      const json = (await res.json().catch(() => null)) as { date?: string } | null;
+      if (json?.date && json.date !== date) {
+        setError(`Saved to ${json.date} instead of ${date}. Try again.`);
         return;
       }
       router.refresh();

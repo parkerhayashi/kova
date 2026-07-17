@@ -1531,7 +1531,7 @@ export function mountCoach(): () => void {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          date: entry.dateKey,
+          date: String(entry.dateKey || "").slice(0, 10),
           weight: entry.weight,
           unit: state.units,
         }),

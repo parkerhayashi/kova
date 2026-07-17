@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { deleteWeight, upsertWeight } from "@/lib/data/tracking";
+import { normalizeIsoDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -17,38 +18,52 @@ function refreshWeightPaths() {
   revalidatePath("/habits");
 }
 
-/** Upsert one daily weight reading (coach tracker). */
+/** Upsert one daily weight reading. */
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
-  const date = typeof body?.date === "string" ? body.date : "";
+  const date = normalizeIsoDate(body?.date);
   const weight = Number(body?.weight);
   const unit = body?.unit === "lb" ? "lb" : "kg";
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(weight) || weight <= 0) {
+  if (!date || !Number.isFinite(weight) || weight <= 0) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  await upsertWeight({
-    date,
-    weight_lbs: Math.round(toLbs(weight, unit) * 10) / 10,
-    body_fat_pct: null,
-    notes: null,
-  });
+  try {
+    await upsertWeight({
+      date,
+      weight_lbs: Math.round(toLbs(weight, unit) * 10) / 10,
+      body_fat_pct: null,
+      notes: null,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Save failed" },
+      { status: 500 },
+    );
+  }
 
   refreshWeightPaths();
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, date });
 }
 
 /** Delete one daily weight reading. */
 export async function DELETE(request: NextRequest) {
   const body = await request.json().catch(() => null);
-  const date = typeof body?.date === "string" ? body.date : "";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  const date = normalizeIsoDate(body?.date);
+  if (!date) {
     return NextResponse.json({ error: "Invalid date" }, { status: 400 });
   }
 
-  await deleteWeight(date);
+  try {
+    await deleteWeight(date);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Delete failed" },
+      { status: 500 },
+    );
+  }
   refreshWeightPaths();
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, date });
 }
