@@ -112,6 +112,14 @@ export function getDukeItem(itemId: string): DukeDiningItem | null {
   return catalog.items.find((i) => i.id === itemId) ?? null;
 }
 
+/** All catalog items for one Duke dining location (for meal-maker context). */
+export function listDukeItemsByLocation(locationId: string): DukeDiningItem[] {
+  const catalog = loadDukeCatalog();
+  return catalog.items
+    .filter((i) => i.locationId === locationId)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export function dukeItemToProfile(item: DukeDiningItem): NutrientProfile {
   return {
     food_id: item.id,

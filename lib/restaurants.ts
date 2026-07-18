@@ -121,6 +121,14 @@ export function getRestaurantItem(itemId: string): RestaurantItem | null {
   return catalog.items.find((i) => i.id === itemId) ?? null;
 }
 
+/** All catalog items for one restaurant (for meal-maker context). */
+export function listRestaurantItems(restaurantId: string): RestaurantItem[] {
+  const catalog = loadRestaurantCatalog();
+  return catalog.items
+    .filter((i) => i.restaurantId === restaurantId)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export function restaurantItemToProfile(item: RestaurantItem): NutrientProfile {
   return {
     food_id: item.id,

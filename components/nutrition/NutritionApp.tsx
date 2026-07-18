@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Utensils } from "lucide-react";
 import { GoalSettings } from "@/components/nutrition/GoalSettings";
 import { AlcoholLog } from "@/components/nutrition/AlcoholLog";
 import { MacroSummary } from "@/components/nutrition/MacroSummary";
 import { MealCaptureFlow } from "@/components/nutrition/MealCaptureFlow";
+import { MealMakerFlow } from "@/components/nutrition/MealMakerFlow";
 import { MealLog } from "@/components/nutrition/MealLog";
 import { CalorieTrend, MicroProgress, NutritionWeightTrends } from "@/components/nutrition/NutritionCharts";
 import type { DualTrendView } from "@/lib/trends/types";
@@ -45,6 +46,7 @@ export function NutritionApp({
   alcoholCalories: number;
 }) {
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [makerOpen, setMakerOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -60,21 +62,52 @@ export function NutritionApp({
         initialTier={alcoholTier}
       />
 
-      <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <span className="metric-label">AI meal capture</span>
-          <p className="text-text-muted mt-1 text-sm">
-            Snap a photo, review items, and log with macro + micro estimates.
-          </p>
-        </div>
-        <Button type="button" variant="primary" onClick={() => setCaptureOpen(true)}>
-          <Sparkles className="size-4" />
-          Capture food
-        </Button>
-      </Card>
+      <section className="grid gap-4 lg:grid-cols-2">
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span className="metric-label">AI meal capture</span>
+            <p className="text-text-muted mt-1 text-sm">
+              Snap a photo, review items, and log with macro + micro estimates.
+            </p>
+          </div>
+          <Button type="button" variant="primary" onClick={() => setCaptureOpen(true)}>
+            <Sparkles className="size-4" />
+            Capture food
+          </Button>
+        </Card>
+
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span className="metric-label">AI meal maker</span>
+            <p className="text-text-muted mt-1 text-sm">
+              Pick Duke Dining or a restaurant, set targets, get a menu meal to save.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => {
+              setMakerOpen(true);
+              setCaptureOpen(false);
+            }}
+          >
+            <Utensils className="size-4" />
+            Make a meal
+          </Button>
+        </Card>
+      </section>
 
       {captureOpen ? (
         <MealCaptureFlow date={logDate} onClose={() => setCaptureOpen(false)} />
+      ) : null}
+
+      {makerOpen ? (
+        <MealMakerFlow
+          date={logDate}
+          totals={totals}
+          goals={goals}
+          onClose={() => setMakerOpen(false)}
+        />
       ) : null}
 
       <section className="grid gap-4 lg:grid-cols-2">
