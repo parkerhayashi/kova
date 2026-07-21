@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Utensils } from "lucide-react";
+import { MessageSquare, Sparkles, Utensils } from "lucide-react";
 import { GoalSettings } from "@/components/nutrition/GoalSettings";
 import { AlcoholLog } from "@/components/nutrition/AlcoholLog";
 import { MacroSummary } from "@/components/nutrition/MacroSummary";
+import { DayPlanFlow } from "@/components/nutrition/DayPlanFlow";
 import { MealCaptureFlow } from "@/components/nutrition/MealCaptureFlow";
 import { MealMakerFlow } from "@/components/nutrition/MealMakerFlow";
 import { MealLog } from "@/components/nutrition/MealLog";
@@ -47,6 +48,13 @@ export function NutritionApp({
 }) {
   const [captureOpen, setCaptureOpen] = useState(false);
   const [makerOpen, setMakerOpen] = useState(false);
+  const [dayPlanOpen, setDayPlanOpen] = useState(false);
+
+  function openOnly(which: "capture" | "maker" | "dayPlan") {
+    setCaptureOpen(which === "capture");
+    setMakerOpen(which === "maker");
+    setDayPlanOpen(which === "dayPlan");
+  }
 
   return (
     <div className="space-y-6">
@@ -62,37 +70,43 @@ export function NutritionApp({
         initialTier={alcoholTier}
       />
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="grid gap-4 lg:grid-cols-3">
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
           <div>
             <span className="metric-label">AI meal capture</span>
             <p className="text-text-muted mt-1 text-sm">
               Snap a photo, review items, and log with macro + micro estimates.
             </p>
           </div>
-          <Button type="button" variant="primary" onClick={() => setCaptureOpen(true)}>
+          <Button type="button" variant="primary" onClick={() => openOnly("capture")}>
             <Sparkles className="size-4" />
             Capture food
           </Button>
         </Card>
 
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
           <div>
             <span className="metric-label">AI meal maker</span>
             <p className="text-text-muted mt-1 text-sm">
               Pick Duke Dining or a restaurant, set targets, get a menu meal to save.
             </p>
           </div>
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => {
-              setMakerOpen(true);
-              setCaptureOpen(false);
-            }}
-          >
+          <Button type="button" variant="primary" onClick={() => openOnly("maker")}>
             <Utensils className="size-4" />
             Make a meal
+          </Button>
+        </Card>
+
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
+          <div>
+            <span className="metric-label">Rest of day</span>
+            <p className="text-text-muted mt-1 text-sm">
+              Split remaining macros across the meals you still need.
+            </p>
+          </div>
+          <Button type="button" variant="primary" onClick={() => openOnly("dayPlan")}>
+            <MessageSquare className="size-4" />
+            Plan the day
           </Button>
         </Card>
       </section>
@@ -107,6 +121,15 @@ export function NutritionApp({
           totals={totals}
           goals={goals}
           onClose={() => setMakerOpen(false)}
+        />
+      ) : null}
+
+      {dayPlanOpen ? (
+        <DayPlanFlow
+          date={logDate}
+          totals={totals}
+          goals={goals}
+          onClose={() => setDayPlanOpen(false)}
         />
       ) : null}
 
