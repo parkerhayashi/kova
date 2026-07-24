@@ -561,6 +561,29 @@ export interface WeightLog {
   created_at: string;
 }
 
+/** Answers from the Weight-page visual body-fat eye test. */
+export type VisualBodyFatAbs = "none" | "faint" | "clear" | "etched";
+export type VisualBodyFatVeins = "none" | "arms" | "shoulders" | "widespread";
+export type VisualBodyFatFace = "soft" | "some" | "sharp";
+export type VisualBodyFatLower = "soft" | "shape" | "clear";
+
+export type VisualBodyFatAnswers = {
+  abs: VisualBodyFatAbs;
+  veins: VisualBodyFatVeins;
+  face: VisualBodyFatFace;
+  lower: VisualBodyFatLower;
+};
+
+export type VisualBodyFatState = {
+  pct: number;
+  band_low: number;
+  band_high: number;
+  answers: VisualBodyFatAnswers;
+  sex: "male" | "female" | "other";
+  assessed_at: string;
+  weight_lbs_at_baseline: number | null;
+};
+
 export type HabitKind = "positive" | "track";
 
 /** Rough drink buckets for alcohol day tags. */
@@ -629,6 +652,8 @@ export interface UserSettings {
   client_sync: ClientSyncPayload | null;
   cut_coach_cache: Record<string, unknown> | null;
   adaptive_energy_state: { adjustment: number; updated_at: string } | null;
+  /** Visual eye-test baseline + answers for rolling body-fat estimate. */
+  visual_body_fat_state: VisualBodyFatState | null;
   oura_last_synced_at: string | null;
   hevy_last_synced_at: string | null;
   updated_at: string;

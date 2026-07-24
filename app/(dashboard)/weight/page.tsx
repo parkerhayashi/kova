@@ -1,9 +1,11 @@
 import { Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { LogDatePicker } from "@/components/LogDatePicker";
+import { BodyFatEstimate } from "@/components/weight/BodyFatEstimate";
 import { WeightDayLog } from "@/components/weight/WeightDayLog";
 import { WeightHistory } from "@/components/weight/WeightHistory";
 import { WeightInsights } from "@/components/weight/WeightInsights";
+import { getBodyFatEstimate } from "@/lib/data/body-fat";
 import { getTimezone, getUserSettings } from "@/lib/data/oura";
 import { getAllWeightLogs, getWeightForDate } from "@/lib/data/tracking";
 import { parseLogDate } from "@/lib/log-date";
@@ -21,10 +23,11 @@ export default async function WeightPage({
   const today = todayInTimezone(timezone);
   const logDate = parseLogDate(dateParam, today);
 
-  const [weight, weightHistory, settings] = await Promise.all([
+  const [weight, weightHistory, settings, bodyFat] = await Promise.all([
     getWeightForDate(logDate),
     getAllWeightLogs(),
     getUserSettings(),
+    getBodyFatEstimate(),
   ]);
 
   return (
@@ -32,7 +35,7 @@ export default async function WeightPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Weight"
-          subtitle="Weigh-ins, weekly pace, and goal track."
+          subtitle="Weigh-ins, body fat estimate, pace, and history."
         />
         <Suspense fallback={null}>
           <LogDatePicker selected={logDate} today={today} timezone={timezone} />
@@ -46,6 +49,8 @@ export default async function WeightPage({
         timezone={timezone}
         initialWeightLbs={weight?.weight_lbs ?? null}
       />
+
+      <BodyFatEstimate initial={bodyFat} />
 
       <WeightInsights
         logs={weightHistory}

@@ -513,6 +513,9 @@ alter table user_settings
   add column if not exists adaptive_energy_state jsonb;
 
 alter table user_settings
+  add column if not exists visual_body_fat_state jsonb;
+
+alter table user_settings
   add column if not exists biological_sex text;
 
 -- Single-user app: seed one settings row.
