@@ -23,7 +23,7 @@
     "@supabase/supabase-js": "^2.108.0",
     "ai": "^6.0.207",
     "lucide-react": "^1.17.0",
-    "next": "16.2.7",
+    "next": "16.3.0-canary.95",
     "otpauth": "^9.5.1",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
@@ -41,10 +41,16 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.7",
+    "eslint-config-next": "16.3.0-canary.95",
     "pdf-parse": "^1.1.1",
     "pg": "^8.21.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "brace-expansion": "1.1.16",
+    "js-yaml": "4.3.0",
+    "postcss": "8.5.22",
+    "sharp": "0.35.3"
   }
 }
