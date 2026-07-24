@@ -63,7 +63,7 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     getUserSettings(),
     getUserProfile(),
     getNutritionByDay(14),
-    getWeightLogs(21),
+    getWeightLogs(30),
   ]);
 
   const weightEntries = weightLogs.map((row) => ({

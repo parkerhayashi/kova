@@ -13,6 +13,8 @@ const MAX_ADAPTIVE_DELTA = 250;
 export const ADAPTIVE_COOLDOWN_DAYS = 14;
 /** Max kcal the nudge can move per review (after cooldown). */
 export const ADAPTIVE_MAX_STEP = 100;
+/** Ignore tiny implied adjustments — below this is weigh-in noise, not signal. */
+export const ADAPTIVE_DEADBAND_KCAL = 50;
 
 export type AdaptiveEnergyState = {
   adjustment: number;
@@ -156,9 +158,12 @@ export function computeAdaptiveEnergySnapshot(input: {
       (weightChangeLbs * KCAL_PER_LB) / windowDays,
   );
   const rawAdjustment = impliedMaintenance - input.formulaTdee;
-  const adjustment = Math.round(
+  const clamped = Math.round(
     Math.max(-MAX_ADAPTIVE_DELTA, Math.min(MAX_ADAPTIVE_DELTA, rawAdjustment)),
   );
+  // Sub-deadband deltas are noise from water weight, not a real TDEE miss.
+  const adjustment =
+    Math.abs(clamped) < ADAPTIVE_DEADBAND_KCAL ? 0 : clamped;
 
   return {
     windowDays,
@@ -200,6 +205,39 @@ export function resolveAdaptiveEnergy(input: {
 
   if (!computed) {
     if (!stored) return { snapshot: null, state: null, persist: false };
+    // Drop leftover noise nudges even when we can't recompute yet.
+    if (Math.abs(stored.adjustment) < ADAPTIVE_DEADBAND_KCAL) {
+      if (stored.adjustment === 0) {
+        return {
+          snapshot: {
+            windowDays: ADAPTIVE_WINDOW_DAYS,
+            loggedDays: 0,
+            avgDailyIntake: 0,
+            weightChangeLbs: 0,
+            impliedMaintenance: 0,
+            adjustment: 0,
+          },
+          state: stored,
+          persist: false,
+        };
+      }
+      const cleared: AdaptiveEnergyState = {
+        adjustment: 0,
+        updated_at: today,
+      };
+      return {
+        snapshot: {
+          windowDays: ADAPTIVE_WINDOW_DAYS,
+          loggedDays: 0,
+          avgDailyIntake: 0,
+          weightChangeLbs: 0,
+          impliedMaintenance: 0,
+          adjustment: 0,
+        },
+        state: cleared,
+        persist: true,
+      };
+    }
     return {
       snapshot: {
         windowDays: ADAPTIVE_WINDOW_DAYS,
@@ -214,11 +252,41 @@ export function resolveAdaptiveEnergy(input: {
     };
   }
 
+  // Clear tiny stored nudges immediately (e.g. leftover −17 kcal noise).
+  if (
+    stored != null &&
+    Math.abs(stored.adjustment) < ADAPTIVE_DEADBAND_KCAL &&
+    stored.adjustment !== 0
+  ) {
+    const cleared: AdaptiveEnergyState = {
+      adjustment: 0,
+      updated_at: today,
+    };
+    return {
+      snapshot: { ...computed, adjustment: 0 },
+      state: cleared,
+      persist: true,
+    };
+  }
+
   const withinCooldown =
     stored != null &&
     daysBetween(stored.updated_at, today) < cooldownDays;
 
   if (withinCooldown && stored) {
+    // If the latest estimate is within the deadband, let the nudge decay to 0
+    // even mid-cooldown so phantom adjustments don't stick for two weeks.
+    if (computed.adjustment === 0 && stored.adjustment !== 0) {
+      const cleared: AdaptiveEnergyState = {
+        adjustment: 0,
+        updated_at: today,
+      };
+      return {
+        snapshot: { ...computed, adjustment: 0 },
+        state: cleared,
+        persist: true,
+      };
+    }
     return {
       snapshot: { ...computed, adjustment: stored.adjustment },
       state: stored,

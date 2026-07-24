@@ -19,10 +19,32 @@ import { getLiftingCompositionSnapshot } from "@/lib/data/workouts";
 import { todayInTimezone } from "@/lib/utils";
 import { unstable_noStore } from "next/cache";
 
-type CutCoachCache = {
-  daily?: { date: string; result: CutCoachResult };
-  weekly?: { date: string; result: CutCoachResult };
+/** Bump when coach metrics/prompt change so same-day cache can't serve stale copy. */
+const CACHE_VERSION = 2;
+
+type CutCoachCacheEntry = {
+  date: string;
+  version: number;
+  result: CutCoachResult;
 };
+
+type CutCoachCache = {
+  daily?: CutCoachCacheEntry;
+  weekly?: CutCoachCacheEntry;
+};
+
+function isFreshEntry(
+  entry: CutCoachCacheEntry | undefined,
+  today: string,
+  phase?: CutCoachResult["phase"],
+): entry is CutCoachCacheEntry {
+  return (
+    entry != null &&
+    entry.date === today &&
+    entry.version === CACHE_VERSION &&
+    (phase == null || entry.result.phase === phase)
+  );
+}
 
 async function readCache(today: string): Promise<CutCoachCache> {
   const db = createServiceClient();
@@ -35,8 +57,8 @@ async function readCache(today: string): Promise<CutCoachCache> {
     ?.cut_coach_cache;
   if (!cache) return {};
   const out: CutCoachCache = {};
-  if (cache.daily?.date === today) out.daily = cache.daily;
-  if (cache.weekly?.date === today) out.weekly = cache.weekly;
+  if (isFreshEntry(cache.daily, today)) out.daily = cache.daily;
+  if (isFreshEntry(cache.weekly, today)) out.weekly = cache.weekly;
   return out;
 }
 
@@ -59,7 +81,7 @@ async function writeCache(
 
   const next: CutCoachCache = {
     ...existing,
-    [mode]: { date: today, result },
+    [mode]: { date: today, version: CACHE_VERSION, result },
   };
 
   await db
@@ -87,7 +109,7 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
     getNutritionGoals(today),
     getDailyTotals(today),
     getNutritionByDay(14),
-    getWeightLogs(21),
+    getWeightLogs(30),
     getLiftingCompositionSnapshot(30),
     getReadinessHistory(7),
   ]);
@@ -171,7 +193,7 @@ export async function getCutCoachStatus(
   const today = todayInTimezone(timezone);
   const cache = await readCache(today);
   const cached = cache[mode];
-  if (cached?.date === today) {
+  if (isFreshEntry(cached, today)) {
     return { result: cached.result, aiConfigured: isCutCoachAiConfigured() };
   }
 
@@ -199,10 +221,8 @@ export async function getCutCoachBundle(): Promise<{
   const phaseCtx = await gatherContext("daily");
   const currentPhase = phaseCtx.phase;
 
-  const needsDaily =
-    cache.daily?.date !== today || cache.daily.result.phase !== currentPhase;
-  const needsWeekly =
-    cache.weekly?.date !== today || cache.weekly.result.phase !== currentPhase;
+  const needsDaily = !isFreshEntry(cache.daily, today, currentPhase);
+  const needsWeekly = !isFreshEntry(cache.weekly, today, currentPhase);
 
   if (!needsDaily && !needsWeekly) {
     return {
@@ -213,18 +233,16 @@ export async function getCutCoachBundle(): Promise<{
   }
 
   const [dailyCtx, weeklyCtx] = await Promise.all([
-    needsDaily ? gatherContext("daily") : null,
+    needsDaily ? Promise.resolve(phaseCtx) : null,
     needsWeekly ? gatherContext("weekly") : null,
   ]);
 
-  const daily =
-    cache.daily?.date === today
-      ? cache.daily.result
-      : await finalizeCoachResult(dailyCtx!, aiConfigured);
-  const weekly =
-    cache.weekly?.date === today
-      ? cache.weekly.result
-      : await finalizeCoachResult(weeklyCtx!, aiConfigured);
+  const daily = needsDaily
+    ? await finalizeCoachResult(dailyCtx!, aiConfigured)
+    : cache.daily!.result;
+  const weekly = needsWeekly
+    ? await finalizeCoachResult(weeklyCtx!, aiConfigured)
+    : cache.weekly!.result;
 
   if (needsDaily) await writeCache(today, "daily", daily);
   if (needsWeekly) await writeCache(today, "weekly", weekly);

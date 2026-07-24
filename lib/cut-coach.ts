@@ -24,7 +24,13 @@ export type CutCoachContext = {
     avg_7d_lbs: number | null;
     change_7d_lbs: number | null;
     change_14d_lbs: number | null;
+    /**
+     * Primary storytelling rate (lb/week) from the 14-day rolling-average
+     * change. Prefer this over raw 7-day deltas — those lag water swings.
+     */
     weekly_rate_lbs: number | null;
+    /** Latest weigh-in minus weigh-in ~7 days ago (what the scale did this week). */
+    scale_week_lbs: number | null;
   };
   nutrition: {
     goal_calories: number;
@@ -137,6 +143,26 @@ export function detectCutPhase(input: {
   return "cut";
 }
 
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+/** Closest weigh-in on or before `dateKey`, within `toleranceDays`. */
+function weightOnOrBefore(
+  sorted: WeightEntry[],
+  dateKey: string,
+  toleranceDays = 2,
+): number | null {
+  const earliest = addDays(dateKey, -toleranceDays);
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const row = sorted[i]!;
+    if (row.dateKey > dateKey) continue;
+    if (row.dateKey < earliest) break;
+    return row.weight;
+  }
+  return null;
+}
+
 export function buildWeightMetrics(
   entries: WeightEntry[],
   endDate: string,
@@ -146,21 +172,33 @@ export function buildWeightMetrics(
   const startAvg7 = rollingAverageWeight(sorted, addDays(endDate, -7), 7);
   const startAvg14 = rollingAverageWeight(sorted, addDays(endDate, -14), 7);
   const change_7d_lbs =
-    endAvg7 != null && startAvg7 != null ? endAvg7 - startAvg7 : null;
+    endAvg7 != null && startAvg7 != null ? round1(endAvg7 - startAvg7) : null;
   const change_14d_lbs =
-    endAvg7 != null && startAvg14 != null ? endAvg7 - startAvg14 : null;
+    endAvg7 != null && startAvg14 != null ? round1(endAvg7 - startAvg14) : null;
   const current_lbs = sorted.length
     ? sorted[sorted.length - 1]?.weight ?? null
     : null;
+  const weekAgo = weightOnOrBefore(sorted, addDays(endDate, -7));
+  const scale_week_lbs =
+    current_lbs != null && weekAgo != null
+      ? round1(current_lbs - weekAgo)
+      : null;
+
+  // Prefer 14-day change as lb/week — 7-day rolling deltas lag and disagree
+  // with what the latest scale reading did vs a week ago.
+  const weekly_rate_lbs =
+    change_14d_lbs != null
+      ? round1(change_14d_lbs / 2)
+      : change_7d_lbs;
 
   return {
     current_lbs,
     goal_lbs: null,
-    avg_7d_lbs: endAvg7,
+    avg_7d_lbs: endAvg7 != null ? round1(endAvg7) : null,
     change_7d_lbs,
     change_14d_lbs,
-    weekly_rate_lbs:
-      change_7d_lbs != null ? Math.round(change_7d_lbs * 10) / 10 : null,
+    weekly_rate_lbs,
+    scale_week_lbs,
   };
 }
 
@@ -236,6 +274,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
   }
 
   const rate = ctx.weight.weekly_rate_lbs;
+  const scaleWeek = ctx.weight.scale_week_lbs;
   const strengthPct =
     ctx.lifting.strength_delta_pct != null
       ? ctx.lifting.strength_delta_pct * 100
@@ -243,16 +282,39 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
   const proteinHit = ctx.nutrition.protein_days_hit_7d;
   const avgCal = ctx.nutrition.avg_calories_7d;
   const goalCal = ctx.nutrition.goal_calories;
+  /** Scale moved opposite the 14d rate this week (water / rebound). */
+  const rebounding =
+    rate != null &&
+    scaleWeek != null &&
+    rate < -0.15 &&
+    scaleWeek > 0.3;
 
   if (phase === "cut") {
     const losing =
-      rate != null && rate < -0.15 && rate > -2.5;
+      rate != null && rate < -0.15 && rate > -2.5 && !rebounding;
     const tooFast = rate != null && rate <= -2.5;
-    const flat = rate != null && Math.abs(rate) < 0.15;
-    const gaining = rate != null && rate > 0.15;
+    const flat =
+      (rate != null && Math.abs(rate) < 0.15) ||
+      (rebounding && Math.abs(scaleWeek!) < 1.5);
+    const gaining =
+      (rate != null && rate > 0.15 && (scaleWeek == null || scaleWeek > 0)) ||
+      (scaleWeek != null && scaleWeek > 0.5 && (rate == null || rate > -0.3));
     const strengthSlipping =
       strengthPct != null && strengthPct < -2 && ctx.lifting.has_data;
     const lowProtein = proteinHit <= 4;
+
+    if (rebounding && !strengthSlipping) {
+      return {
+        status: "on_track",
+        headline: isWeekly ? "Rebound week — hold the line" : "Scale up this week",
+        summary: `Up ${formatRate(scaleWeek)} vs last week, but the 14-day trend is still ${formatRate(rate)}/wk. Likely water/glycogen — not fat regain.`,
+        action: "Don't slash calories. Hit protein, keep logging weight, reassess in 5–7 days.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
 
     if (tooFast && strengthSlipping) {
       return {
@@ -271,7 +333,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
       return {
         status: "on_track",
         headline: isWeekly ? "Solid cut week" : "Cut on track",
-        summary: `Weight ${formatRate(rate)}/wk. Protein hit ${proteinHit}/7 days${strengthPct != null ? ` · strength ${strengthPct >= 0 ? "+" : ""}${strengthPct.toFixed(0)}%` : ""}.`,
+        summary: `Weight ${formatRate(rate)}/wk (14-day pace). Protein hit ${proteinHit}/7 days${strengthPct != null ? ` · strength ${strengthPct >= 0 ? "+" : ""}${strengthPct.toFixed(0)}%` : ""}.`,
         action: isWeekly
           ? "Keep calories and protein steady next week."
           : "Stay the course — hit protein and log weight tomorrow.",
@@ -286,7 +348,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
       return {
         status: "adjust",
         headline: "Weight flat on target intake",
-        summary: `7-day weight change ${formatRate(rate)} at ~${avgCal} kcal/day (goal ${goalCal}). Either water fluctuation or maintenance is lower than estimated.`,
+        summary: `Pace ${formatRate(rate)}/wk at ~${avgCal} kcal/day (goal ${goalCal}). Either water fluctuation or maintenance is lower than estimated.`,
         action: "Hold intake 1 more week; if still flat, trim ~100 kcal or add a short walk block daily.",
         mode: ctx.mode,
         phase,
@@ -295,11 +357,11 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
       };
     }
 
-    if (gaining) {
+    if (gaining && !rebounding) {
       return {
         status: "adjust",
         headline: "Weight trending up",
-        summary: `Up ${formatRate(rate)}/wk while cutting. Avg ~${avgCal ?? "—"} kcal vs ${goalCal} goal.`,
+        summary: `Up ${formatRate(scaleWeek ?? rate)}/wk while cutting. Avg ~${avgCal ?? "—"} kcal vs ${goalCal} goal.`,
         action: "Audit logging gaps, then remove ~150 kcal or swap a carb-heavy meal for your cutting Chipotle bowl.",
         mode: ctx.mode,
         phase,
@@ -477,6 +539,7 @@ const SYSTEM_PROMPT = `You are a concise body-composition coach for a single use
 You receive structured JSON metrics only — never invent numbers. Phase is cut, bulk, or maintain (from weight vs weight_goal_lbs).
 
 Rules:
+- Weight fields: weekly_rate_lbs is the 14-day pace (lb/week). scale_week_lbs is latest vs ~7 days ago (what the scale did this week). Prefer weekly_rate_lbs for trend; if scale_week_lbs has the opposite sign (≥0.3 lb), say the scale rebounded/dipped this week and do NOT claim a steady 1 lb/week loss or gain from the lagging average alone.
 - Cut: target ~0.5–1.5 lb/week loss while preserving strength. Flag: flat weight at deficit, gaining weight, strength down >2%, protein hit <5/7 days, losing >2.5 lb/week with strength drop.
 - Bulk: always treat as LEAN bulk — target ~0.25–0.75 lb/week gain, not aggressive surges. Flag: gaining >1 lb/week, flat weight at surplus, losing weight, strength down >2% while gaining, protein hit <5/7 days. Prefer small calorie nudges (+/−100–150 kcal), never "eat big" advice.
 - Maintain: weight stable within ~0.2 lb/week at goal.
