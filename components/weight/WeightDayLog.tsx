@@ -47,17 +47,23 @@ export function WeightDayLog({
     const date = logDateRef.current;
     setError(null);
     startTransition(async () => {
+      const forToday = date === today;
       const res = await fetch("/api/weight/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, weight: n, unit: "lb" }),
+        body: JSON.stringify({
+          date: forToday ? undefined : date,
+          forToday,
+          weight: n,
+          unit: "lb",
+        }),
       });
       if (!res.ok) {
         setError("Could not save weight.");
         return;
       }
       const json = (await res.json().catch(() => null)) as { date?: string } | null;
-      if (json?.date && json.date !== date) {
+      if (!forToday && json?.date && json.date !== date) {
         setError(`Saved to ${json.date} instead of ${date}. Try again.`);
         return;
       }

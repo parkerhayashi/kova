@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
 import { addDays, formatIsoDateLabel, normalizeIsoDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -9,8 +10,9 @@ import { cn } from "@/lib/utils";
  * Day selector for manual logs — persists in `?date=YYYY-MM-DD`. Omit the param
  * for today. No lower bound (unlimited past).
  *
- * The native date input is a separate calendar button — never an invisible
- * overlay on the label (mobile browsers often fire a shifted onChange there).
+ * Native `<input type="date">` lives only behind the calendar icon (never over
+ * the "Today" label). Spurious iOS onChange that flips today → yesterday is
+ * ignored unless the input was opened intentionally.
  */
 export function LogDatePicker({
   selected,
@@ -24,6 +26,7 @@ export function LogDatePicker({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const pickerOpenRef = useRef(false);
 
   function navigate(date: string) {
     const day = normalizeIsoDate(date);
@@ -74,9 +77,29 @@ export function LogDatePicker({
             type="date"
             value={selected}
             max={today}
+            onFocus={() => {
+              pickerOpenRef.current = true;
+            }}
+            onBlur={() => {
+              // Delay so onChange can still see the intentional-open flag.
+              window.setTimeout(() => {
+                pickerOpenRef.current = false;
+              }, 300);
+            }}
             onChange={(e) => {
               const day = normalizeIsoDate(e.target.value);
-              if (day) navigate(day);
+              if (!day || day === selected) return;
+              // Ignore ghost iOS events that fire without opening the picker
+              // and flip "today" back one calendar day.
+              if (
+                !pickerOpenRef.current &&
+                selected === today &&
+                day === addDays(today, -1)
+              ) {
+                e.target.value = selected;
+                return;
+              }
+              navigate(day);
             }}
             aria-label="Pick a date"
             className="absolute inset-0 cursor-pointer opacity-0"

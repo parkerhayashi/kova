@@ -6,7 +6,7 @@
  */
 import { createServiceClient } from "@/lib/supabase/server";
 import { catalogNutrientsForName } from "@/lib/supplementCatalog";
-import { addDays, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
+import { addDays, DEFAULT_TIMEZONE, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type {
   Habit,
   HabitKind,
@@ -26,15 +26,28 @@ function catalogNutrientsPayload(name: string): Record<string, number> | null {
   return match?.nutrients ?? null;
 }
 
+async function settingsTimezone(): Promise<string> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("user_settings")
+    .select("timezone")
+    .limit(1)
+    .maybeSingle();
+  return (
+    (data as { timezone?: string | null } | null)?.timezone ?? DEFAULT_TIMEZONE
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Weight
 // ---------------------------------------------------------------------------
 export async function getWeightLogs(days: number): Promise<WeightLog[]> {
   const db = createServiceClient();
+  const timezone = await settingsTimezone();
   const { data } = await db
     .from("weight_log")
     .select("*")
-    .gte("date", addDays(todayInTimezone(), -days))
+    .gte("date", addDays(todayInTimezone(timezone), -days))
     .order("date", { ascending: true });
   return ((data as WeightLog[]) ?? []).map(asWeightLog);
 }

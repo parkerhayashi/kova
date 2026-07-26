@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
+import { getTimezone } from "@/lib/data/oura";
 import { deleteWeight, upsertWeight } from "@/lib/data/tracking";
-import { normalizeIsoDate } from "@/lib/utils";
+import { normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +19,25 @@ function refreshWeightPaths() {
   revalidatePath("/habits");
 }
 
+/**
+ * Resolve the calendar day for a weigh-in.
+ * When logging "today", always use the server's timezone-aware today — never
+ * trust the client date (iOS date inputs and device clocks shift it back a day).
+ */
+async function resolveLogDate(body: {
+  date?: unknown;
+  forToday?: unknown;
+}): Promise<string | null> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  if (body?.forToday === true) return today;
+  return normalizeIsoDate(body?.date);
+}
+
 /** Upsert one daily weight reading. */
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
-  const date = normalizeIsoDate(body?.date);
+  const date = await resolveLogDate(body ?? {});
   const weight = Number(body?.weight);
   const unit = body?.unit === "lb" ? "lb" : "kg";
 

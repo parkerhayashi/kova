@@ -1525,13 +1525,15 @@ export function mountCoach(): () => void {
 
   let wtEntries = wtLoad();
 
-  async function wtPushEntry(entry) {
+  async function wtPushEntry(entry, opts) {
     try {
+      const forToday = Boolean(opts && opts.forToday);
       await fetch("/api/weight/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          date: String(entry.dateKey || "").slice(0, 10),
+          date: forToday ? undefined : String(entry.dateKey || "").slice(0, 10),
+          forToday,
           weight: entry.weight,
           unit: state.units,
         }),
@@ -1542,7 +1544,7 @@ export function mountCoach(): () => void {
   async function wtMigrateLocalToServer() {
     if (!wtEntries.length) return;
     for (const entry of wtEntries) {
-      await wtPushEntry(entry);
+      await wtPushEntry(entry, { forToday: false });
     }
   }
 
@@ -1565,8 +1567,20 @@ export function mountCoach(): () => void {
     } catch (e) {}
   }
 
-  function wtSaveEntry(weight) {
-    const key = wtDateKey(new Date());
+  async function wtServerTodayKey() {
+    try {
+      const res = await fetch("/api/today/summary", { cache: "no-store" });
+      if (!res.ok) return wtDateKey(new Date());
+      const json = await res.json();
+      if (typeof json?.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(json.today)) {
+        return json.today;
+      }
+    } catch (e) {}
+    return wtDateKey(new Date());
+  }
+
+  async function wtSaveEntry(weight) {
+    const key = await wtServerTodayKey();
     const existing = wtEntries.find((e) => e.dateKey === key);
     let entry;
     if (existing) {
@@ -1579,7 +1593,7 @@ export function mountCoach(): () => void {
     }
     wtSave(wtEntries);
     wtRender();
-    wtPushEntry(entry);
+    wtPushEntry(entry, { forToday: true });
   }
 
   function wtRender() {
