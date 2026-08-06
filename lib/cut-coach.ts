@@ -10,7 +10,7 @@ import { addDays } from "@/lib/utils";
 
 export const COACH_MODEL = "claude-sonnet-4-6";
 
-export type CutPhase = "cut" | "bulk" | "maintain";
+export type CutPhase = "cut" | "bulk" | "maintain" | "reverse";
 export type CutCoachMode = "daily" | "weekly";
 export type CutCoachStatus = "on_track" | "adjust" | "insufficient_data";
 
@@ -81,6 +81,8 @@ export function coachSectionTitle(phase: CutPhase): string {
       return "Lean bulk coach";
     case "maintain":
       return "Maintain coach";
+    case "reverse":
+      return "Reverse diet coach";
   }
 }
 
@@ -92,6 +94,8 @@ export function coachPhaseLabel(phase: CutPhase): string {
       return "Lean bulk";
     case "maintain":
       return "Maintain";
+    case "reverse":
+      return "Reverse";
   }
 }
 
@@ -112,6 +116,12 @@ function insufficientDataCopy(phase: CutPhase): {
         summary:
           "Log weight and calories on most days so the coach can see if you are holding steady.",
       };
+    case "reverse":
+      return {
+        headline: "Need more logs for reverse-diet coaching",
+        summary:
+          "Log weight most mornings and hit calories on at least 5 of the last 7 days so the reverse ramp can review weekly.",
+      };
     default:
       return {
         headline: "Need more logs to coach your cut",
@@ -125,7 +135,9 @@ export function detectCutPhase(input: {
   weight_goal_lbs: number | null;
   body_fat_pct: number | null;
   body_fat_goal_pct: number | null;
+  reverse_diet_active?: boolean;
 }): CutPhase {
+  if (input.reverse_diet_active) return "reverse";
   const weight = input.weight_lbs;
   const goal = input.weight_goal_lbs;
   if (weight != null && goal != null) {
@@ -522,6 +534,55 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     }
   }
 
+  if (phase === "reverse") {
+    const risingFast = rate != null && rate > 0.45;
+    const stable = rate != null && Math.abs(rate) <= 0.25;
+    const stillLosing = rate != null && rate < -0.15;
+    const gap =
+      ctx.nutrition.maintenance_calories - ctx.nutrition.goal_calories;
+
+    if (risingFast) {
+      return {
+        status: "adjust",
+        headline: isWeekly ? "Scale climbing — hold the ramp" : "Hold this reverse step",
+        summary: `Up ${formatRate(rate)}/wk while reversing. Goal ${goalCal} · maintenance ~${ctx.nutrition.maintenance_calories}.`,
+        action: "Don't add calories this week. Keep protein high and reassess in 5–7 days.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (gap <= 50 && stable) {
+      return {
+        status: "on_track",
+        headline: isWeekly ? "Near maintenance — looking stable" : "Reverse nearly done",
+        summary: `At ~${goalCal} kcal (maintenance ${ctx.nutrition.maintenance_calories}) with pace ${formatRate(rate)}/wk.`,
+        action: "Hold here a few more days. If still flat, end reverse and set a maintain goal.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+
+    if (stillLosing || (stable && gap > 50)) {
+      return {
+        status: "on_track",
+        headline: isWeekly ? "Reverse diet progressing" : "Reverse on track",
+        summary: `${Math.max(0, Math.round(gap))} kcal below maintenance · pace ${formatRate(rate)}/wk · protein ${proteinHit}/7.`,
+        action: isWeekly
+          ? "Next weekly review can add ~100 kcal if the scale stays calm."
+          : "Hit today's calorie target — the weekly review handles the bump.",
+        mode: ctx.mode,
+        phase,
+        generated_at: now,
+        source: "rules",
+      };
+    }
+  }
+
   return {
     status: "on_track",
     headline: isWeekly ? "Week in review" : "Keep logging",
@@ -536,14 +597,15 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
 
 const SYSTEM_PROMPT = `You are a concise body-composition coach for a single user's personal health app (Kova).
 
-You receive structured JSON metrics only — never invent numbers. Phase is cut, bulk, or maintain (from weight vs weight_goal_lbs).
+You receive structured JSON metrics only — never invent numbers. Phase is cut, bulk, maintain, or reverse (reverse = active reverse diet after a cut).
 
 Rules:
 - Weight fields: weekly_rate_lbs is the 14-day pace (lb/week). scale_week_lbs is latest vs ~7 days ago (what the scale did this week). Prefer weekly_rate_lbs for trend; if scale_week_lbs has the opposite sign (≥0.3 lb), say the scale rebounded/dipped this week and do NOT claim a steady 1 lb/week loss or gain from the lagging average alone.
 - Cut: target ~0.5–1.5 lb/week loss while preserving strength. Flag: flat weight at deficit, gaining weight, strength down >2%, protein hit <5/7 days, losing >2.5 lb/week with strength drop.
 - Bulk: always treat as LEAN bulk — target ~0.25–0.75 lb/week gain, not aggressive surges. Flag: gaining >1 lb/week, flat weight at surplus, losing weight, strength down >2% while gaining, protein hit <5/7 days. Prefer small calorie nudges (+/−100–150 kcal), never "eat big" advice.
 - Maintain: weight stable within ~0.2 lb/week at goal.
-- Match tone and headline to phase (cut coach vs lean bulk coach).
+- Reverse: climbing calories ~100/week toward maintenance until weight stabilizes. Flag: gaining >0.45 lb/week (hold the ramp), still losing at a large gap below maintenance (stay the course), near maintenance and flat (ready to finish). Never suggest jumping calories by more than ~100–150 at once.
+- Match tone and headline to phase (cut / lean bulk / maintain / reverse diet coach).
 - Be direct, no medical advice, no hype. 1 headline (≤12 words), 2 short summary sentences, 1 concrete action.
 - status: on_track | adjust | insufficient_data (use insufficient_data only if logged_days_7d < 5 or no weight).
 

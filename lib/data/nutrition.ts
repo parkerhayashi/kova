@@ -16,6 +16,15 @@ import {
   type GoalInputs,
 } from "@/lib/nutrition-goals";
 import { sumMeals, mergeDailyTotals, type DailyTotals } from "@/lib/nutrition";
+import {
+  buildReverseDietStart,
+  parseReverseDietState,
+  reviewReverseDiet,
+  reverseDietView,
+  reverseTargetCalories,
+  type ReverseDietView,
+} from "@/lib/reverse-diet";
+import { buildWeightMetrics } from "@/lib/cut-coach";
 import { sumTakenSupplements } from "@/lib/supplement-nutrition";
 import {
   getLatestWeight,
@@ -31,7 +40,7 @@ import {
   dateRangeFromToday,
 } from "@/lib/trends/nutrition-weight";
 import type { DualTrendView } from "@/lib/trends/types";
-import type { Meal } from "@/types";
+import type { Meal, ReverseDietState } from "@/types";
 import {
   getAlcoholCaloriesByDay,
   getAlcoholCaloriesForDate,
@@ -51,6 +60,22 @@ async function persistAdaptiveEnergyState(
   await db
     .from("user_settings")
     .update({ adaptive_energy_state: state })
+    .eq("id", row.id);
+}
+
+async function persistReverseDietState(
+  state: ReverseDietState | null,
+): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("user_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (!row) return;
+  await db
+    .from("user_settings")
+    .update({ reverse_diet_state: state })
     .eq("id", row.id);
 }
 
@@ -108,6 +133,24 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     await persistAdaptiveEnergyState(state);
   }
 
+  const maintenance =
+    formulaTdee + (snapshot?.adjustment ?? 0);
+
+  let reverseDiet = parseReverseDietState(settings?.reverse_diet_state);
+  if (reverseDiet?.active) {
+    const weightMetrics = buildWeightMetrics(weightEntries, today);
+    const reviewed = reviewReverseDiet({
+      state: reverseDiet,
+      today,
+      rateLbWeek: weightMetrics.weekly_rate_lbs,
+      maintenance,
+    });
+    if (reviewed.changed) {
+      reverseDiet = reviewed.state;
+      await persistReverseDietState(reverseDiet);
+    }
+  }
+
   return {
     weight_lbs: profile.weight_lbs,
     body_fat_pct: profile.body_fat_pct,
@@ -118,6 +161,7 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     biological_sex: profile.biological_sex,
     adaptive: snapshot,
     water_goal_ml: settings?.water_goal_ml ?? null,
+    reverseDiet,
   };
 }
 
@@ -128,6 +172,90 @@ export async function getNutritionGoals(
   const targetDate = date ?? todayInTimezone(timezone);
   const inputs = await gatherGoalInputs(targetDate);
   return computeNutritionGoals(inputs);
+}
+
+export async function getReverseDietStatus(): Promise<ReverseDietView> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const goals = await getNutritionGoals(today);
+  const settings = await getUserSettings();
+  const state = parseReverseDietState(settings?.reverse_diet_state);
+  const weights = await getWeightLogs(21);
+  const metrics = buildWeightMetrics(
+    weights.map((w) => ({ dateKey: w.date, weight: w.weight_lbs })),
+    today,
+  );
+  return reverseDietView({
+    state,
+    today,
+    maintenance: goals.meta.maintenance_calories,
+    rateLbWeek: metrics.weekly_rate_lbs,
+  });
+}
+
+/** Begin reverse diet at the current (usually cut) calorie target. */
+export async function startReverseDiet(): Promise<ReverseDietState> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const settings = await getUserSettings();
+  const existing = parseReverseDietState(settings?.reverse_diet_state);
+  if (existing?.active) return existing;
+
+  // Compute goals without reverse so we capture the cut target as the baseline.
+  const inputs = await gatherGoalInputs(today);
+  const baselineInputs: GoalInputs = { ...inputs, reverseDiet: null };
+  const baseline = computeNutritionGoals(baselineInputs);
+  const weight = baseline.meta.current_weight_lbs;
+  if (weight == null) throw new Error("Log a weigh-in before starting reverse diet.");
+
+  const state = buildReverseDietStart({
+    today,
+    start_calories: baseline.calories,
+    start_weight_lbs: weight,
+  });
+  await persistReverseDietState(state);
+  return state;
+}
+
+export async function stopReverseDiet(): Promise<void> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const settings = await getUserSettings();
+  const existing = parseReverseDietState(settings?.reverse_diet_state);
+  if (!existing) {
+    await persistReverseDietState(null);
+    return;
+  }
+  await persistReverseDietState({
+    ...existing,
+    active: false,
+    completed_at: existing.completed_at ?? today,
+    hold_until: null,
+  });
+}
+
+/** Manual +1 step (skip the weekly gate) — for when you want to bump early. */
+export async function bumpReverseDietNow(): Promise<ReverseDietState> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const settings = await getUserSettings();
+  const existing = parseReverseDietState(settings?.reverse_diet_state);
+  if (!existing?.active) throw new Error("Reverse diet is not active.");
+
+  const goals = await getNutritionGoals(today);
+  const next: ReverseDietState = {
+    ...existing,
+    added_kcal: existing.added_kcal + existing.step_kcal,
+    last_review_at: today,
+    hold_until: null,
+  };
+  // Still respect the soft maintenance ceiling.
+  const capped = reverseTargetCalories(next);
+  if (capped > goals.meta.maintenance_calories + 100) {
+    throw new Error("Already at the reverse-diet maintenance ceiling.");
+  }
+  await persistReverseDietState(next);
+  return next;
 }
 
 export async function saveNutritionTargets(input: {

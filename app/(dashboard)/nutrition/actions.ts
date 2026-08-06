@@ -1,7 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addMeal, deleteMeal, resetAdaptiveEnergyState as persistAdaptiveReset, saveNutritionTargets as persistTargets } from "@/lib/data/nutrition";
+import {
+  bumpReverseDietNow,
+  resetAdaptiveEnergyState as persistAdaptiveReset,
+  saveNutritionTargets as persistTargets,
+  startReverseDiet as persistStartReverse,
+  stopReverseDiet as persistStopReverse,
+  addMeal,
+  deleteMeal,
+} from "@/lib/data/nutrition";
 import {
   deleteSavedMeal,
   getSavedMeals,
@@ -9,7 +17,7 @@ import {
 } from "@/lib/data/saved-meals";
 import { buildMealRow } from "@/lib/nutrition";
 import { sumSavedMealComponents } from "@/lib/saved-meals";
-import type { NutrientProfile, SavedMeal, SavedMealComponent } from "@/types";
+import type { NutrientProfile, ReverseDietState, SavedMeal, SavedMealComponent } from "@/types";
 
 function refresh() {
   revalidatePath("/nutrition");
@@ -60,6 +68,23 @@ export async function saveNutritionTargets(input: {
 export async function resetAdaptiveTdee(): Promise<void> {
   await persistAdaptiveReset();
   refresh();
+}
+
+export async function startReverseDietAction(): Promise<ReverseDietState> {
+  const state = await persistStartReverse();
+  refresh();
+  return state;
+}
+
+export async function stopReverseDietAction(): Promise<void> {
+  await persistStopReverse();
+  refresh();
+}
+
+export async function bumpReverseDietAction(): Promise<ReverseDietState> {
+  const state = await bumpReverseDietNow();
+  refresh();
+  return state;
 }
 
 export async function saveSavedMealAction(input: {

@@ -584,6 +584,23 @@ export type VisualBodyFatState = {
   weight_lbs_at_baseline: number | null;
 };
 
+/** Gradual calorie climb after a cut until weight stabilizes near maintenance. */
+export type ReverseDietState = {
+  active: boolean;
+  started_at: string;
+  start_weight_lbs: number;
+  /** Daily calorie target when reverse started (usually end-of-cut goal). */
+  start_calories: number;
+  /** Cumulative bumps applied since start. */
+  added_kcal: number;
+  step_kcal: number;
+  review_every_days: number;
+  last_review_at: string;
+  /** When set, skip bumps until this date (scale rising too fast). */
+  hold_until: string | null;
+  completed_at: string | null;
+};
+
 export type HabitKind = "positive" | "track";
 
 /** Rough drink buckets for alcohol day tags. */
@@ -654,6 +671,8 @@ export interface UserSettings {
   adaptive_energy_state: { adjustment: number; updated_at: string } | null;
   /** Visual eye-test baseline + answers for rolling body-fat estimate. */
   visual_body_fat_state: VisualBodyFatState | null;
+  /** Gradual reverse-diet ramp after a cut. */
+  reverse_diet_state: ReverseDietState | null;
   oura_last_synced_at: string | null;
   hevy_last_synced_at: string | null;
   updated_at: string;

@@ -1,6 +1,8 @@
 import { rollingAverageWeight, type WeightEntry } from "@/lib/coach-composition";
 import { DEFAULT_GOALS, type NutritionGoals } from "@/lib/nutrition";
+import { applyReverseDietCalories } from "@/lib/reverse-diet";
 import { addDays } from "@/lib/utils";
+import type { ReverseDietState } from "@/types";
 
 const LB_PER_KG = 2.204_622_621_8;
 const KCAL_PER_LB = 3500;
@@ -46,6 +48,10 @@ export type NutritionGoalMeta = {
   adaptive_reason: string | null;
   calorie_adjustment: number;
   adjustment_reason: string | null;
+  /** Active reverse-diet ramp after a cut. */
+  reverse_diet_active: boolean;
+  reverse_diet_added_kcal: number;
+  reverse_diet_detail: string | null;
 };
 
 export type ComputedNutritionGoals = NutritionGoals & { meta: NutritionGoalMeta };
@@ -60,6 +66,7 @@ export type GoalInputs = {
   biological_sex: string | null;
   adaptive?: AdaptiveEnergySnapshot | null;
   water_goal_ml: number | null;
+  reverseDiet?: ReverseDietState | null;
 };
 
 export function lbsToKg(lbs: number): number {
@@ -428,14 +435,35 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
       adaptive: input.adaptive,
     });
 
-  const { adjustment, reason } = calorieAdjustment({
-    current_weight_lbs: weight_lbs,
-    weight_goal_lbs: input.weight_goal_lbs,
-    current_body_fat_pct: body_fat,
-    body_fat_goal_pct: input.body_fat_goal_pct,
-  });
+  let adjustment = 0;
+  let reason: string | null = null;
+  let calories: number;
+  let reverse_diet_active = false;
+  let reverse_diet_added_kcal = 0;
+  let reverse_diet_detail: string | null = null;
 
-  const calories = Math.max(1200, Math.round(maintenance + adjustment));
+  if (input.reverseDiet?.active) {
+    const rev = applyReverseDietCalories({
+      state: input.reverseDiet,
+      maintenance,
+    });
+    calories = rev.calories;
+    adjustment = rev.adjustment;
+    reason = rev.reason;
+    reverse_diet_active = true;
+    reverse_diet_added_kcal = input.reverseDiet.added_kcal;
+    reverse_diet_detail = rev.reason;
+  } else {
+    const adj = calorieAdjustment({
+      current_weight_lbs: weight_lbs,
+      weight_goal_lbs: input.weight_goal_lbs,
+      current_body_fat_pct: body_fat,
+      body_fat_goal_pct: input.body_fat_goal_pct,
+    });
+    adjustment = adj.adjustment;
+    reason = adj.reason;
+    calories = Math.max(1200, Math.round(maintenance + adjustment));
+  }
 
   const protein_cal = protein_g * 4;
   const remaining = Math.max(0, calories - protein_cal);
@@ -464,6 +492,9 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
           : null,
       calorie_adjustment: adjustment,
       adjustment_reason: reason,
+      reverse_diet_active,
+      reverse_diet_added_kcal,
+      reverse_diet_detail,
     },
   };
 }

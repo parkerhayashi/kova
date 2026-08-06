@@ -8,6 +8,7 @@ import {
   getMealsForDate,
   getNutritionGoals,
   getNutritionWeightTrends,
+  getReverseDietStatus,
 } from "@/lib/data/nutrition";
 import { getSavedMeals } from "@/lib/data/saved-meals";
 import { getTimezone } from "@/lib/data/oura";
@@ -32,6 +33,7 @@ export default async function NutritionPage({
     savedMeals,
     totals,
     goals,
+    reverse,
     calorieTrend,
     nutritionWeightTrends,
     alcohol,
@@ -40,6 +42,7 @@ export default async function NutritionPage({
     getSavedMeals(),
     getDailyTotals(logDate),
     getNutritionGoals(logDate),
+    getReverseDietStatus(),
     getCalorieTrend(7),
     getNutritionWeightTrends(30),
     getAlcoholLogForDate(logDate),
@@ -64,6 +67,7 @@ export default async function NutritionPage({
         savedMeals={savedMeals}
         totals={totals}
         goals={goals}
+        reverse={reverse}
         calorieTrend={calorieTrend}
         nutritionWeightTrends={nutritionWeightTrends}
         alcoholHabitId={alcohol.habitId}

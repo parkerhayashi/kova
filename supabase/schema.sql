@@ -518,6 +518,9 @@ alter table user_settings
 alter table user_settings
   add column if not exists biological_sex text;
 
+alter table user_settings
+  add column if not exists reverse_diet_state jsonb;
+
 -- Single-user app: seed one settings row.
 insert into user_settings (id)
 select gen_random_uuid()

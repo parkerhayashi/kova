@@ -67,6 +67,9 @@ export function MacroSummary({
             {meta.calorie_adjustment !== 0
               ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} kcal goal adjustment`
               : ""}
+            {meta.reverse_diet_active
+              ? ` · reverse diet (+${meta.reverse_diet_added_kcal} kcal ramped)`
+              : ""}
             {meta.adjustment_reason ? ` (${meta.adjustment_reason})` : ""}
             {meta.adaptive_reason && meta.adaptive_adjustment !== 0
               ? ` · ${meta.adaptive_reason}`

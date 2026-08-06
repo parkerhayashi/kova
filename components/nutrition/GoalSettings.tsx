@@ -2,15 +2,26 @@
 
 import { useState, useTransition } from "react";
 import { ChevronDown } from "lucide-react";
-import { resetAdaptiveTdee, saveNutritionTargets } from "@/app/(dashboard)/nutrition/actions";
+import {
+  bumpReverseDietAction,
+  resetAdaptiveTdee,
+  saveNutritionTargets,
+  startReverseDietAction,
+  stopReverseDietAction,
+} from "@/app/(dashboard)/nutrition/actions";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
-import {
-  type ComputedNutritionGoals,
-} from "@/lib/nutrition-goals";
+import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
+import type { ReverseDietView } from "@/lib/reverse-diet";
 
-export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
+export function GoalSettings({
+  goals,
+  reverse,
+}: {
+  goals: ComputedNutritionGoals;
+  reverse: ReverseDietView;
+}) {
   const { meta } = goals;
   const [open, setOpen] = useState(false);
   const [weightGoal, setWeightGoal] = useState(
@@ -21,8 +32,10 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
   );
   const [saved, setSaved] = useState(false);
   const [reset, setReset] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [resetPending, startResetTransition] = useTransition();
+  const [reversePending, startReverseTransition] = useTransition();
 
   function handleResetTdee() {
     startResetTransition(async () => {
@@ -45,6 +58,40 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
     });
   }
 
+  function flash(msg: string) {
+    setMessage(msg);
+    setTimeout(() => setMessage(null), 2500);
+  }
+
+  function handleStartReverse() {
+    startReverseTransition(async () => {
+      try {
+        await startReverseDietAction();
+        flash("Reverse diet started");
+      } catch (err) {
+        flash(err instanceof Error ? err.message : "Could not start");
+      }
+    });
+  }
+
+  function handleStopReverse() {
+    startReverseTransition(async () => {
+      await stopReverseDietAction();
+      flash("Reverse diet ended");
+    });
+  }
+
+  function handleBumpReverse() {
+    startReverseTransition(async () => {
+      try {
+        await bumpReverseDietAction();
+        flash("Added +100 kcal");
+      } catch (err) {
+        flash(err instanceof Error ? err.message : "Could not bump");
+      }
+    });
+  }
+
   const currentWeight =
     meta.current_weight_lbs != null
       ? `${Math.round(meta.current_weight_lbs * 10) / 10} lb`
@@ -57,7 +104,11 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
   const summaryParts = [
     `${goals.calories} kcal`,
     `${goals.protein_g}g protein`,
-    meta.weight_goal_lbs != null ? `→ ${meta.weight_goal_lbs} lb` : null,
+    reverse.active
+      ? "reverse diet"
+      : meta.weight_goal_lbs != null
+        ? `→ ${meta.weight_goal_lbs} lb`
+        : null,
   ].filter(Boolean);
 
   return (
@@ -85,8 +136,47 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
         <div className="border-border mt-4 space-y-4 border-t pt-4">
           <p className="body-copy text-sm">
             Calories and macros derive from your weight, lean mass, TDEE estimate,
-            small intake/weight nudges, and the goals below.
+            small intake/weight nudges, and the goals below. Reverse diet overrides
+            the cut deficit and climbs calories weekly until weight stabilizes.
           </p>
+
+          <div className="rounded-xl bg-[rgba(255,255,255,0.03)] px-3 py-3 space-y-2">
+            <span className="metric-label">Reverse diet</span>
+            <p className="text-sm font-semibold text-text-primary">
+              {reverse.headline}
+            </p>
+            <p className="text-text-muted text-xs">{reverse.detail}</p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {reverse.active ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleBumpReverse}
+                    disabled={reversePending}
+                  >
+                    Bump +{reverse.state?.step_kcal ?? 100} now
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleStopReverse}
+                    disabled={reversePending}
+                  >
+                    End reverse
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleStartReverse}
+                  disabled={reversePending}
+                >
+                  {reversePending ? "Starting…" : "Start reverse diet"}
+                </Button>
+              )}
+            </div>
+          </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Weight goal (lb)">
@@ -97,6 +187,7 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
                 placeholder="e.g. 175"
                 value={weightGoal}
                 onChange={(e) => setWeightGoal(e.target.value)}
+                disabled={reverse.active}
               />
             </Field>
             <Field label="Body fat goal (%)">
@@ -107,6 +198,7 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
                 placeholder="e.g. 15"
                 value={bodyFatGoal}
                 onChange={(e) => setBodyFatGoal(e.target.value)}
+                disabled={reverse.active}
               />
             </Field>
           </div>
@@ -136,7 +228,11 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" onClick={handleSave} disabled={pending}>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={pending || reverse.active}
+            >
               {pending ? "Saving…" : "Save goals"}
             </Button>
             {hasAdaptiveNudge ? (
@@ -151,6 +247,7 @@ export function GoalSettings({ goals }: { goals: ComputedNutritionGoals }) {
             ) : null}
             {saved ? <span className="timestamp">Saved</span> : null}
             {reset ? <span className="timestamp">TDEE nudge reset</span> : null}
+            {message ? <span className="timestamp">{message}</span> : null}
           </div>
         </div>
       ) : null}

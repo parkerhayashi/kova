@@ -20,7 +20,7 @@ import { todayInTimezone } from "@/lib/utils";
 import { unstable_noStore } from "next/cache";
 
 /** Bump when coach metrics/prompt change so same-day cache can't serve stale copy. */
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 3;
 
 type CutCoachCacheEntry = {
   date: string;
@@ -138,6 +138,7 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
     weight_goal_lbs: weight.goal_lbs,
     body_fat_pct: profile.body_fat_pct,
     body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
+    reverse_diet_active: goals.meta.reverse_diet_active,
   });
 
   const readinessToday =
