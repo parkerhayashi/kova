@@ -2,42 +2,45 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { setHabitDrinkTier } from "@/app/(dashboard)/habits/actions";
+import { Minus, Plus } from "lucide-react";
+import { setHabitDrinkCount } from "@/app/(dashboard)/habits/actions";
 import { Card } from "@/components/ui/Card";
-import { cn } from "@/lib/utils";
 import {
-  DRINK_TIERS,
-  DRINK_TIER_CALORIES,
-  formatDrinkTier,
+  CALORIES_PER_DRINK,
+  MAX_DRINKS,
+  drinkCountCalories,
+  formatDrinkCount,
 } from "@/lib/habit-drinks";
-import type { DrinkTier } from "@/types";
+import { cn } from "@/lib/utils";
 
 export function AlcoholLog({
   logDate,
   habitId,
-  initialTier,
+  initialDrinks,
 }: {
   logDate: string;
   /** Alcohol day-tag habit id, or null if none exists yet. */
   habitId: string | null;
-  initialTier: DrinkTier | null;
+  initialDrinks: number | null;
 }) {
   const router = useRouter();
-  const [tier, setTier] = useState<DrinkTier | null>(initialTier);
+  const [drinks, setDrinks] = useState<number | null>(initialDrinks);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    setTier(initialTier);
-  }, [logDate, initialTier]);
+    setDrinks(initialDrinks);
+  }, [logDate, initialDrinks]);
 
-  const calories = tier ? DRINK_TIER_CALORIES[tier] : 0;
-  const label = formatDrinkTier(tier);
+  const calories = drinkCountCalories(drinks);
+  const label = formatDrinkCount(drinks);
 
-  function select(next: DrinkTier | null) {
+  function commit(next: number | null) {
     if (!habitId) return;
-    setTier(next);
+    const normalized =
+      next == null || next <= 0 ? null : Math.min(MAX_DRINKS, next);
+    setDrinks(normalized);
     startTransition(async () => {
-      await setHabitDrinkTier(habitId, logDate, next);
+      await setHabitDrinkCount(habitId, logDate, normalized);
       router.refresh();
     });
   }
@@ -48,10 +51,11 @@ export function AlcoholLog({
         <div>
           <span className="metric-label">Alcohol</span>
           <p className="text-text-muted mt-1 text-xs">
-            Same log as Habits — counts toward today’s calorie total.
+            Same log as Habits — {CALORIES_PER_DRINK} kcal per drink toward
+            today&apos;s calorie total.
           </p>
         </div>
-        {tier ? (
+        {drinks ? (
           <span
             className="text-sm font-semibold tabular-nums"
             style={{ color: "var(--color-nutrition)" }}
@@ -67,40 +71,54 @@ export function AlcoholLog({
         </p>
       ) : (
         <>
-          <div
-            className="flex flex-wrap gap-2"
-            role="group"
-            aria-label="Alcohol drink amount"
-          >
-            {DRINK_TIERS.map((option) => {
-              const selected = tier === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  disabled={pending}
-                  aria-pressed={selected}
-                  onClick={() => select(selected ? null : option.id)}
-                  className={cn(
-                    "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
-                    selected
-                      ? "border-[color:var(--color-stress)] bg-[color:var(--color-stress)] text-[#0e0e0e]"
-                      : "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
-                  )}
-                >
-                  {option.label}
-                  <span className="text-[10px] opacity-70">
-                    {" "}
-                    · {DRINK_TIER_CALORIES[option.id]}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={pending || !drinks}
+              aria-label="Fewer drinks"
+              onClick={() => commit((drinks ?? 1) - 1)}
+              className={cn(
+                "flex size-9 items-center justify-center rounded-lg border transition-colors disabled:opacity-40",
+                "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+              )}
+            >
+              <Minus className="size-4" />
+            </button>
+            <div className="min-w-[4.5rem] text-center">
+              <p className="text-2xl font-semibold tabular-nums text-text-primary">
+                {drinks ?? 0}
+              </p>
+              <p className="text-text-muted text-[10px] uppercase tracking-wide">
+                drinks
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={pending || (drinks ?? 0) >= MAX_DRINKS}
+              aria-label="More drinks"
+              onClick={() => commit((drinks ?? 0) + 1)}
+              className={cn(
+                "flex size-9 items-center justify-center rounded-lg border transition-colors disabled:opacity-40",
+                "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+              )}
+            >
+              <Plus className="size-4" />
+            </button>
+            {drinks ? (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => commit(null)}
+                className="text-text-muted hover:text-text-primary ml-1 text-xs underline-offset-2 hover:underline disabled:opacity-50"
+              >
+                Clear
+              </button>
+            ) : null}
           </div>
           <p className="text-text-muted text-xs">
             {label
               ? `${label} logged for this day.`
-              : "No drinks logged — tap a bucket if you drank."}
+              : "No drinks logged — tap + if you drank."}
           </p>
         </>
       )}

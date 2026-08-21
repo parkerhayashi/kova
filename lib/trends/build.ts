@@ -11,7 +11,7 @@ import type {
   TrendsPayload,
   TrendRange,
 } from "@/lib/trends/types";
-import { drinkTierNumeric } from "@/lib/habit-drinks";
+import { drinkCountNumeric } from "@/lib/habit-drinks";
 import type { Activity, Habit, HabitLog, Readiness, Sleep } from "@/types";
 
 function indexByDate<T extends { date: string }>(rows: T[]): Map<string, T> {
@@ -86,7 +86,7 @@ function tagLogByDate(logs: HabitLog[], habitId: string): Map<string, HabitLog> 
 
 function drinkAmountOnDate(log: HabitLog | undefined): number {
   if (!log?.completed) return 0;
-  return drinkTierNumeric(log.amount_tier) ?? 1;
+  return drinkCountNumeric(log.amount_tier) ?? 1;
 }
 
 /** Day tag on D vs a metric on D+1. X uses drink estimate when tier is set. */

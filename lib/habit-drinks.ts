@@ -1,38 +1,41 @@
-import type { DrinkTier, Habit } from "@/types";
+import type { Habit } from "@/types";
 
-export const DRINK_TIERS: { id: DrinkTier; label: string; short: string }[] = [
-  { id: "1-3", label: "1–3 drinks", short: "1–3" },
-  { id: "4-6", label: "4–6 drinks", short: "4–6" },
-  { id: "6+", label: "6+ drinks", short: "6+" },
-];
+/** Estimated kcal per standard drink (beer/wine/spirit average). */
+export const CALORIES_PER_DRINK = 100;
 
-/** Estimated calories added to nutrition when an alcohol tier is logged. */
-export const DRINK_TIER_CALORIES: Record<DrinkTier, number> = {
-  "1-3": 200,
-  "4-6": 500,
-  "6+": 700,
-};
+/** Soft cap for the stepper / stored values. */
+export const MAX_DRINKS = 20;
 
-/** Day tags that support drink-count buckets (alcohol for now). */
+/** Day tags that support drink counts (alcohol for now). */
 export function isDrinkQuantityHabit(habit: Pick<Habit, "name" | "kind">): boolean {
   return habit.kind === "track" && /alcohol/i.test(habit.name);
 }
 
-export function formatDrinkTier(
-  tier: DrinkTier | string | null | undefined,
-): string | null {
-  const normalized = normalizeDrinkTier(tier);
-  if (!normalized) return null;
-  return DRINK_TIERS.find((t) => t.id === normalized)?.label ?? normalized;
-}
-
-/** Midpoint estimate for trend scatter plots. */
-export function drinkTierNumeric(
-  tier: DrinkTier | string | null | undefined,
+/**
+ * Parse amount_tier into an exact drink count.
+ * Accepts numeric strings ("3") and legacy buckets ("1-3", "4-6", "6+", "3-6").
+ */
+export function normalizeDrinkCount(
+  value: string | number | null | undefined,
 ): number | null {
-  switch (normalizeDrinkTier(tier)) {
+  if (value == null || value === "") return null;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value) || value <= 0) return null;
+    return Math.min(MAX_DRINKS, Math.round(value));
+  }
+
+  const trimmed = value.trim();
+  if (/^\d+$/.test(trimmed)) {
+    const n = Number(trimmed);
+    if (n <= 0) return null;
+    return Math.min(MAX_DRINKS, n);
+  }
+
+  // Legacy buckets → midpoint estimates
+  switch (trimmed) {
     case "1-3":
       return 2;
+    case "3-6":
     case "4-6":
       return 5;
     case "6+":
@@ -42,18 +45,56 @@ export function drinkTierNumeric(
   }
 }
 
+export function formatDrinkCount(
+  value: string | number | null | undefined,
+): string | null {
+  const count = normalizeDrinkCount(value);
+  if (count == null) return null;
+  return count === 1 ? "1 drink" : `${count} drinks`;
+}
+
+/** Exact count for trend scatter plots (legacy buckets already midpoints). */
+export function drinkCountNumeric(
+  value: string | number | null | undefined,
+): number | null {
+  return normalizeDrinkCount(value);
+}
+
+export function drinkCountCalories(
+  value: string | number | null | undefined,
+): number {
+  const count = normalizeDrinkCount(value);
+  return count == null ? 0 : count * CALORIES_PER_DRINK;
+}
+
+/** Serialize a count for habit_logs.amount_tier. */
+export function serializeDrinkCount(count: number | null): string | null {
+  if (count == null || count <= 0) return null;
+  return String(Math.min(MAX_DRINKS, Math.round(count)));
+}
+
+/** @deprecated Use normalizeDrinkCount — kept for older call sites during migrate. */
 export function normalizeDrinkTier(
   tier: string | null | undefined,
-): DrinkTier | null {
-  if (tier === "3-6") return "4-6";
-  return isDrinkTier(tier) ? tier : null;
+): number | null {
+  return normalizeDrinkCount(tier);
 }
 
+/** @deprecated Use drinkCountNumeric */
+export function drinkTierNumeric(
+  tier: string | null | undefined,
+): number | null {
+  return normalizeDrinkCount(tier);
+}
+
+/** @deprecated Use drinkCountCalories */
 export function drinkTierCalories(tier: string | null | undefined): number {
-  const normalized = normalizeDrinkTier(tier);
-  return normalized ? DRINK_TIER_CALORIES[normalized] : 0;
+  return drinkCountCalories(tier);
 }
 
-export function isDrinkTier(value: string | null | undefined): value is DrinkTier {
-  return value === "1-3" || value === "4-6" || value === "6+";
+/** @deprecated Use formatDrinkCount */
+export function formatDrinkTier(
+  tier: string | number | null | undefined,
+): string | null {
+  return formatDrinkCount(tier);
 }

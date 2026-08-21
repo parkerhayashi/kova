@@ -20,7 +20,7 @@ import { Card } from "@/components/ui/Card";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import type { DailyTotals } from "@/lib/nutrition";
 import type { ReverseDietView } from "@/lib/reverse-diet";
-import type { DrinkTier, Meal, SavedMeal } from "@/types";
+import type { Meal, SavedMeal } from "@/types";
 
 export function NutritionApp({
   logDate,
@@ -33,7 +33,7 @@ export function NutritionApp({
   calorieTrend,
   nutritionWeightTrends,
   alcoholHabitId,
-  alcoholTier,
+  alcoholDrinks,
   alcoholCalories,
 }: {
   logDate: string;
@@ -46,7 +46,7 @@ export function NutritionApp({
   calorieTrend: { date: string; calories: number; goal: number }[];
   nutritionWeightTrends: DualTrendView[];
   alcoholHabitId: string | null;
-  alcoholTier: DrinkTier | null;
+  alcoholDrinks: number | null;
   alcoholCalories: number;
 }) {
   const [captureOpen, setCaptureOpen] = useState(false);
@@ -70,7 +70,7 @@ export function NutritionApp({
       <AlcoholLog
         logDate={logDate}
         habitId={alcoholHabitId}
-        initialTier={alcoholTier}
+        initialDrinks={alcoholDrinks}
       />
 
       <section className="grid gap-4 lg:grid-cols-3">

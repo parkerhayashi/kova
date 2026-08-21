@@ -421,6 +421,7 @@ create table if not exists habit_logs (
 );
 
 alter table habit_logs add column if not exists amount_tier text;
+-- Alcohol: exact drink count as a numeric string ("3"). Legacy buckets ("1-3", "4-6", "6+") still parse.
 update habit_logs set amount_tier = '4-6' where amount_tier = '3-6';
 
 -- ---------------------------------------------------------------------------

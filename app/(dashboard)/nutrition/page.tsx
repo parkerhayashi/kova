@@ -71,7 +71,7 @@ export default async function NutritionPage({
         calorieTrend={calorieTrend}
         nutritionWeightTrends={nutritionWeightTrends}
         alcoholHabitId={alcohol.habitId}
-        alcoholTier={alcohol.tier}
+        alcoholDrinks={alcohol.drinks}
         alcoholCalories={alcohol.calories}
       />
     </div>

@@ -7,8 +7,12 @@ import {
   setHabitCompletion,
   updateHabit,
 } from "@/lib/data/tracking";
-import type { DrinkTier, HabitKind } from "@/types";
-import { isDrinkTier } from "@/lib/habit-drinks";
+import type { HabitKind } from "@/types";
+import {
+  MAX_DRINKS,
+  normalizeDrinkCount,
+  serializeDrinkCount,
+} from "@/lib/habit-drinks";
 
 function refresh() {
   revalidatePath("/habits");
@@ -26,13 +30,22 @@ export async function toggleHabit(
   refresh();
 }
 
-export async function setHabitDrinkTier(
+/** Log an exact alcohol drink count (null / 0 clears the day tag). */
+export async function setHabitDrinkCount(
   habitId: string,
   date: string,
-  tier: DrinkTier | null,
+  drinks: number | null,
 ): Promise<void> {
-  if (tier && !isDrinkTier(tier)) return;
-  await setHabitCompletion(habitId, date, tier != null, tier);
+  const count =
+    drinks == null || drinks <= 0
+      ? null
+      : normalizeDrinkCount(Math.min(MAX_DRINKS, drinks));
+  await setHabitCompletion(
+    habitId,
+    date,
+    count != null,
+    serializeDrinkCount(count),
+  );
   refresh();
 }
 

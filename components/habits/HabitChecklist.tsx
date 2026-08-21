@@ -1,33 +1,33 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Check, Flame, Shield } from "lucide-react";
+import { Check, Flame, Minus, Plus, Shield } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import {
-  setHabitDrinkTier,
+  setHabitDrinkCount,
   toggleHabit,
 } from "@/app/(dashboard)/habits/actions";
 import {
-  DRINK_TIERS,
-  formatDrinkTier,
+  MAX_DRINKS,
+  formatDrinkCount,
   isDrinkQuantityHabit,
 } from "@/lib/habit-drinks";
-import type { DrinkTier, HabitKind } from "@/types";
+import type { HabitKind } from "@/types";
 
 export interface HabitRow {
   id: string;
   name: string;
   kind: HabitKind;
   completed: boolean;
-  amountTier: DrinkTier | null;
+  drinkCount: number | null;
   streak: number;
   weekRate: number;
 }
 
 function rowStateKey(habits: HabitRow[]): string {
   return habits
-    .map((h) => `${h.id}:${h.completed ? 1 : 0}:${h.amountTier ?? ""}`)
+    .map((h) => `${h.id}:${h.completed ? 1 : 0}:${h.drinkCount ?? ""}`)
     .join("|");
 }
 
@@ -94,17 +94,15 @@ function HabitRowButton({
 
 function DrinkTagRow({
   habit,
-  tier,
-  logged,
-  onSelect,
+  count,
+  onChange,
 }: {
   habit: HabitRow;
-  tier: DrinkTier | null;
-  logged: boolean;
-  onSelect: (tier: DrinkTier | null) => void;
+  count: number | null;
+  onChange: (count: number | null) => void;
 }) {
-  const label = formatDrinkTier(tier);
-  const active = tier != null || logged;
+  const label = formatDrinkCount(count);
+  const active = count != null && count > 0;
 
   return (
     <div className="space-y-3 px-5 py-3.5">
@@ -132,8 +130,6 @@ function DrinkTagRow({
         </span>
         {label ? (
           <span className="timestamp">{label}</span>
-        ) : logged ? (
-          <span className="timestamp">pick amount</span>
         ) : null}
         {habit.streak > 0 ? (
           <span className="text-text-muted inline-flex items-center gap-1 text-xs">
@@ -143,29 +139,46 @@ function DrinkTagRow({
         ) : null}
       </div>
       <div
-        className="flex flex-wrap gap-2 pl-9"
+        className="flex items-center gap-3 pl-9"
         role="group"
-        aria-label={`${habit.name} drink amount`}
+        aria-label={`${habit.name} drink count`}
       >
-        {DRINK_TIERS.map((option) => {
-          const selected = tier === option.id;
-          return (
-            <button
-              key={option.id}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => onSelect(selected ? null : option.id)}
-              className={cn(
-                "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-                selected
-                  ? "border-[color:var(--color-stress)] bg-[color:var(--color-stress)] text-[#0e0e0e]"
-                  : "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
-              )}
-            >
-              {option.label}
-            </button>
-          );
-        })}
+        <button
+          type="button"
+          disabled={!count}
+          aria-label="Fewer drinks"
+          onClick={() => onChange((count ?? 1) - 1)}
+          className={cn(
+            "flex size-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-40",
+            "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+          )}
+        >
+          <Minus className="size-3.5" />
+        </button>
+        <span className="min-w-[2rem] text-center text-sm font-semibold tabular-nums text-text-primary">
+          {count ?? 0}
+        </span>
+        <button
+          type="button"
+          disabled={(count ?? 0) >= MAX_DRINKS}
+          aria-label="More drinks"
+          onClick={() => onChange((count ?? 0) + 1)}
+          className={cn(
+            "flex size-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-40",
+            "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+          )}
+        >
+          <Plus className="size-3.5" />
+        </button>
+        {count ? (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="text-text-muted hover:text-text-primary text-xs underline-offset-2 hover:underline"
+          >
+            Clear
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -176,17 +189,17 @@ function ChecklistSection({
   caption,
   habits,
   done,
-  drinkTiers,
+  drinkCounts,
   onToggle,
-  onDrinkTier,
+  onDrinkCount,
 }: {
   title: string;
   caption: string;
   habits: HabitRow[];
   done: Record<string, boolean>;
-  drinkTiers: Record<string, DrinkTier | null>;
+  drinkCounts: Record<string, number | null>;
   onToggle: (id: string) => void;
-  onDrinkTier: (id: string, tier: DrinkTier | null) => void;
+  onDrinkCount: (id: string, count: number | null) => void;
 }) {
   if (habits.length === 0) return null;
 
@@ -202,9 +215,8 @@ function ChecklistSection({
             <DrinkTagRow
               key={h.id}
               habit={h}
-              tier={drinkTiers[h.id] ?? null}
-              logged={done[h.id]}
-              onSelect={(tier) => onDrinkTier(h.id, tier)}
+              count={drinkCounts[h.id] ?? null}
+              onChange={(count) => onDrinkCount(h.id, count)}
             />
           ) : (
             <HabitRowButton
@@ -234,15 +246,15 @@ export function HabitChecklist({
   const [done, setDone] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(habits.map((h) => [h.id, h.completed])),
   );
-  const [drinkTiers, setDrinkTiers] = useState<Record<string, DrinkTier | null>>(
-    () => Object.fromEntries(habits.map((h) => [h.id, h.amountTier])),
+  const [drinkCounts, setDrinkCounts] = useState<Record<string, number | null>>(
+    () => Object.fromEntries(habits.map((h) => [h.id, h.drinkCount])),
   );
   const [, startTransition] = useTransition();
 
   const stateKey = rowStateKey(habits);
   useEffect(() => {
     setDone(Object.fromEntries(habits.map((h) => [h.id, h.completed])));
-    setDrinkTiers(Object.fromEntries(habits.map((h) => [h.id, h.amountTier])));
+    setDrinkCounts(Object.fromEntries(habits.map((h) => [h.id, h.drinkCount])));
   }, [logDate, stateKey, habits]);
 
   function toggle(id: string) {
@@ -253,11 +265,13 @@ export function HabitChecklist({
     });
   }
 
-  function setDrinkTier(id: string, tier: DrinkTier | null) {
-    setDrinkTiers((t) => ({ ...t, [id]: tier }));
-    setDone((d) => ({ ...d, [id]: tier != null }));
+  function setDrinkCount(id: string, count: number | null) {
+    const next =
+      count == null || count <= 0 ? null : Math.min(MAX_DRINKS, count);
+    setDrinkCounts((t) => ({ ...t, [id]: next }));
+    setDone((d) => ({ ...d, [id]: next != null }));
     startTransition(async () => {
-      await setHabitDrinkTier(id, logDate, tier);
+      await setHabitDrinkCount(id, logDate, next);
     });
   }
 
@@ -279,18 +293,18 @@ export function HabitChecklist({
         caption="Tap when you did it — streaks count consecutive days."
         habits={positive}
         done={done}
-        drinkTiers={drinkTiers}
+        drinkCounts={drinkCounts}
         onToggle={toggle}
-        onDrinkTier={setDrinkTier}
+        onDrinkCount={setDrinkCount}
       />
       <ChecklistSection
         title="Day tags"
-        caption="Tap a bucket for alcohol, or tap other tags if they happened."
+        caption="Set an exact drink count for alcohol, or tap other tags if they happened."
         habits={track}
         done={done}
-        drinkTiers={drinkTiers}
+        drinkCounts={drinkCounts}
         onToggle={toggle}
-        onDrinkTier={setDrinkTier}
+        onDrinkCount={setDrinkCount}
       />
     </div>
   );

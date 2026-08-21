@@ -4,11 +4,10 @@ import {
   getHabitLogsForDate,
 } from "@/lib/data/tracking";
 import {
-  drinkTierCalories,
+  drinkCountCalories,
   isDrinkQuantityHabit,
-  normalizeDrinkTier,
+  normalizeDrinkCount,
 } from "@/lib/habit-drinks";
-import type { DrinkTier } from "@/types";
 
 function alcoholHabitIds(habits: Awaited<ReturnType<typeof getHabits>>): Set<string> {
   return new Set(
@@ -26,7 +25,7 @@ function sumAlcoholCalories(
   let total = 0;
   for (const log of logs) {
     if (!ids.has(log.habit_id) || !log.completed) continue;
-    total += drinkTierCalories(log.amount_tier);
+    total += drinkCountCalories(log.amount_tier);
   }
   return total;
 }
@@ -46,7 +45,7 @@ export async function getAlcoholCaloriesByDay(
   const map = new Map<string, number>();
   for (const log of logs) {
     if (!ids.has(log.habit_id) || !log.completed) continue;
-    const calories = drinkTierCalories(log.amount_tier);
+    const calories = drinkCountCalories(log.amount_tier);
     if (calories <= 0) continue;
     map.set(log.date, (map.get(log.date) ?? 0) + calories);
   }
@@ -61,10 +60,10 @@ export async function getAlcoholCaloriesForDate(date: string): Promise<number> {
   return sumAlcoholCalories(habits, logs);
 }
 
-/** Alcohol day-tag habit + tier for a date (shared by Habits + Nutrition UI). */
+/** Alcohol day-tag habit + drink count for a date (shared by Habits + Nutrition UI). */
 export async function getAlcoholLogForDate(date: string): Promise<{
   habitId: string | null;
-  tier: DrinkTier | null;
+  drinks: number | null;
   calories: number;
 }> {
   const [habits, logs] = await Promise.all([
@@ -73,16 +72,16 @@ export async function getAlcoholLogForDate(date: string): Promise<{
   ]);
   const alcoholHabit = habits.find(isDrinkQuantityHabit) ?? null;
   if (!alcoholHabit) {
-    return { habitId: null, tier: null, calories: 0 };
+    return { habitId: null, drinks: null, calories: 0 };
   }
 
   const log = logs.find((row) => row.habit_id === alcoholHabit.id) ?? null;
-  const tier =
-    log?.completed ? normalizeDrinkTier(log.amount_tier) : null;
+  const drinks =
+    log?.completed ? normalizeDrinkCount(log.amount_tier) : null;
 
   return {
     habitId: alcoholHabit.id,
-    tier,
-    calories: drinkTierCalories(tier),
+    drinks,
+    calories: drinkCountCalories(drinks),
   };
 }

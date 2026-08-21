@@ -27,7 +27,7 @@ export function DayPlanFlow({
   const [configured, setConfigured] = useState(true);
   const [configError, setConfigError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState(
-    "I still need a pre-workout snack and dinner.",
+    "I still need a pre-workout snack and dinner at Duke Dining.",
   );
   const [advice, setAdvice] = useState<DayPlanAdvice | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,8 +86,8 @@ export function DayPlanFlow({
         <div>
           <span className="metric-label">Rest of day</span>
           <p className="text-text-muted mt-1 text-sm">
-            Tell it what meals you still have. It splits your remaining macros and
-            suggests foods.
+            Say what meals you still have. Mention Duke Dining (or a hall) to get
+            real menu items from the catalog.
           </p>
         </div>
         <button
@@ -117,7 +117,7 @@ export function DayPlanFlow({
         <Input
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g. pre-workout snack and dinner at Chipotle"
+          placeholder="e.g. dinner at Duke Dining, or Gothic Grill + a snack"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -152,6 +152,11 @@ export function DayPlanFlow({
               {advice.headline}
             </h3>
             <p className="text-text-muted mt-1 text-sm">{advice.summary}</p>
+            {advice.catalog_source ? (
+              <p className="text-text-muted mt-2 text-xs">
+                Menu items from {advice.catalog_source}
+              </p>
+            ) : null}
           </div>
 
           <ul className="space-y-3">
@@ -167,11 +172,58 @@ export function DayPlanFlow({
                     {meal.fat_g}F
                   </span>
                 </div>
-                <ul className="text-text-secondary mt-2 list-inside list-disc text-sm">
-                  {meal.ideas.map((idea) => (
-                    <li key={idea}>{idea}</li>
-                  ))}
-                </ul>
+                {meal.catalog_items?.length ? (
+                  <ul className="mt-2 space-y-1.5">
+                    {meal.catalog_items.map((item) => (
+                      <li
+                        key={`${meal.name}:${item.id}:${item.servings}`}
+                        className="text-sm text-text-secondary"
+                      >
+                        <span className="text-text-primary font-medium">
+                          {item.name}
+                        </span>
+                        {item.servings !== 1 ? (
+                          <span className="text-text-muted">
+                            {" "}
+                            ×{item.servings}
+                          </span>
+                        ) : null}
+                        <span className="text-text-muted">
+                          {" "}
+                          · {item.location}
+                        </span>
+                        {item.calories != null || item.protein_g != null ? (
+                          <span className="text-text-muted tabular-nums">
+                            {" "}
+                            —{" "}
+                            {[
+                              item.calories != null
+                                ? `${Math.round(item.calories)} kcal`
+                                : null,
+                              item.protein_g != null
+                                ? `${Math.round(item.protein_g)}P`
+                                : null,
+                              item.carbs_g != null
+                                ? `${Math.round(item.carbs_g)}C`
+                                : null,
+                              item.fat_g != null
+                                ? `${Math.round(item.fat_g)}F`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ul className="text-text-secondary mt-2 list-inside list-disc text-sm">
+                    {meal.ideas.map((idea) => (
+                      <li key={idea}>{idea}</li>
+                    ))}
+                  </ul>
+                )}
                 {meal.notes ? (
                   <p className="text-text-muted mt-1.5 text-xs">{meal.notes}</p>
                 ) : null}

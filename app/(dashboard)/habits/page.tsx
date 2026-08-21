@@ -10,8 +10,7 @@ import { getTimezone } from "@/lib/data/oura";
 import { getHabitLogs, getHabits } from "@/lib/data/tracking";
 import { logDateHeading, parseLogDate } from "@/lib/log-date";
 import { addDays, clearStreak, currentStreak, todayInTimezone } from "@/lib/utils";
-import { normalizeDrinkTier } from "@/lib/habit-drinks";
-import type { DrinkTier } from "@/types";
+import { normalizeDrinkCount } from "@/lib/habit-drinks";
 
 export const dynamic = "force-dynamic";
 
@@ -35,14 +34,14 @@ export default async function HabitsPage({
   const trackHabits = habits.filter((h) => h.kind === "track");
 
   const doneByHabit = new Map<string, Set<string>>();
-  const logByHabitDate = new Map<string, { completed: boolean; amount_tier: DrinkTier | null }>();
+  const logByHabitDate = new Map<string, { completed: boolean; drinkCount: number | null }>();
   for (const h of habits) doneByHabit.set(h.id, new Set());
   for (const log of logs) {
     if (log.completed) doneByHabit.get(log.habit_id)?.add(log.date);
-    const tier = normalizeDrinkTier(log.amount_tier);
+    const drinkCount = normalizeDrinkCount(log.amount_tier);
     logByHabitDate.set(`${log.habit_id}:${log.date}`, {
       completed: log.completed,
-      amount_tier: tier,
+      drinkCount,
     });
   }
 
@@ -60,7 +59,7 @@ export default async function HabitsPage({
       name: h.name,
       kind: h.kind ?? "positive",
       completed: dayLog?.completed ?? false,
-      amountTier: dayLog?.amount_tier ?? null,
+      drinkCount: dayLog?.drinkCount ?? null,
       streak,
       weekRate: weekHits / 7,
     };
