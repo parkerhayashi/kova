@@ -624,6 +624,26 @@ function parseCoachResponse(text: string): z.infer<typeof resultSchema> {
   return resultSchema.parse(JSON.parse(jsonMatch[0]));
 }
 
+const COACH_AI_TIMEOUT_MS = 25_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error("Coach AI timed out")),
+      ms,
+    );
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      });
+  });
+}
+
 export async function generateCutCoachAi(
   ctx: CutCoachContext,
 ): Promise<CutCoachResult> {
@@ -633,16 +653,19 @@ export async function generateCutCoachAi(
   }
 
   try {
-    const { text } = await generateText({
-      model: anthropic(COACH_MODEL),
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Mode: ${ctx.mode}\n\nContext JSON:\n${JSON.stringify(ctx, null, 2)}`,
-        },
-      ],
-    });
+    const { text } = await withTimeout(
+      generateText({
+        model: anthropic(COACH_MODEL),
+        system: SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: `Mode: ${ctx.mode}\n\nContext JSON:\n${JSON.stringify(ctx, null, 2)}`,
+          },
+        ],
+      }),
+      COACH_AI_TIMEOUT_MS,
+    );
 
     if (!text?.trim()) {
       return generateCutCoachFallback(ctx);

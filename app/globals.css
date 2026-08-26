@@ -385,6 +385,10 @@ input[type="number"]::-webkit-outer-spin-button {
   border-color: color-mix(in srgb, var(--color-stress) 35%, var(--dash-border));
 }
 
+.cut-coach-status-muted {
+  color: var(--color-text-muted);
+}
+
 .cut-coach-headline {
   font-size: 18px;
   font-weight: 700;

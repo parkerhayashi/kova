@@ -9,7 +9,7 @@ import {
 } from "@/lib/client-sync";
 import { refreshLiftingSnapshot } from "@/lib/coach-bridge";
 
-export type CoachPanelMode = "weight-only" | "body-only";
+export type CoachPanelMode = "weight-only" | "body-only" | "composition-only";
 
 export function CoachPanel({ mode }: { mode: CoachPanelMode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -54,4 +54,9 @@ export function CoachPanel({ mode }: { mode: CoachPanelMode }) {
 
 export function CoachWeight() {
   return <CoachPanel mode="weight-only" />;
+}
+
+/** Weight trend + muscle/fat composition estimate (uses Coach localStorage + lifting sync). */
+export function CoachComposition() {
+  return <CoachPanel mode="composition-only" />;
 }

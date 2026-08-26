@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { LogDatePicker } from "@/components/LogDatePicker";
 import { BodyFatEstimate } from "@/components/weight/BodyFatEstimate";
+import { CoachComposition } from "@/components/coach/CoachPanel";
 import { WeightDayLog } from "@/components/weight/WeightDayLog";
 import { WeightHistory } from "@/components/weight/WeightHistory";
 import { WeightInsights } from "@/components/weight/WeightInsights";
@@ -57,6 +58,8 @@ export default async function WeightPage({
         today={today}
         goalLbs={settings?.weight_goal_lbs ?? null}
       />
+
+      <CoachComposition />
 
       <WeightHistory
         initialLogs={weightHistory}

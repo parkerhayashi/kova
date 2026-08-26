@@ -1947,4 +1947,38 @@
       font-size: 22px;
     }
   }
+
+  /*
+   * Composition-only — muscle/fat estimate on the Weight page (no duplicate log UI).
+   */
+  &.po-app--composition-only {
+    min-height: 0;
+
+    & .po-day-pill,
+    & .card,
+    & #poTw,
+    & #poTwPastToggle,
+    & #poTwPastBody,
+    & .po-header,
+    & .wt-divider,
+    & .wt-row,
+    & .wt-avg-row,
+    & .wt-delta,
+    & .wt-streak,
+    & .wt-empty,
+    & .wt-chart-wrap,
+    & .wt-legend,
+    & .wt-locked,
+    & .wt-input-row,
+    & .wt-progress-link {
+      display: none !important;
+    }
+
+    & .wt-card {
+      display: block !important;
+      border: none;
+      background: transparent;
+      padding: 0;
+    }
+  }
 }

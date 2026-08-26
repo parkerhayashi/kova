@@ -47,19 +47,28 @@ function isFreshEntry(
 }
 
 async function readCache(today: string): Promise<CutCoachCache> {
-  const db = createServiceClient();
-  const { data } = await db
-    .from("user_settings")
-    .select("cut_coach_cache")
-    .limit(1)
-    .maybeSingle();
-  const cache = (data as { cut_coach_cache?: CutCoachCache } | null)
-    ?.cut_coach_cache;
-  if (!cache) return {};
-  const out: CutCoachCache = {};
-  if (isFreshEntry(cache.daily, today)) out.daily = cache.daily;
-  if (isFreshEntry(cache.weekly, today)) out.weekly = cache.weekly;
-  return out;
+  try {
+    const db = createServiceClient();
+    const { data, error } = await db
+      .from("user_settings")
+      .select("cut_coach_cache")
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      console.error("[cut-coach] cache read failed", error.message);
+      return {};
+    }
+    const cache = (data as { cut_coach_cache?: CutCoachCache } | null)
+      ?.cut_coach_cache;
+    if (!cache) return {};
+    const out: CutCoachCache = {};
+    if (isFreshEntry(cache.daily, today)) out.daily = cache.daily;
+    if (isFreshEntry(cache.weekly, today)) out.weekly = cache.weekly;
+    return out;
+  } catch (err) {
+    console.error("[cut-coach] cache read failed", err);
+    return {};
+  }
 }
 
 async function writeCache(
@@ -67,27 +76,31 @@ async function writeCache(
   mode: CutCoachMode,
   result: CutCoachResult,
 ): Promise<void> {
-  const db = createServiceClient();
-  const { data: row } = await db
-    .from("user_settings")
-    .select("id, cut_coach_cache")
-    .limit(1)
-    .maybeSingle();
-  if (!row) return;
+  try {
+    const db = createServiceClient();
+    const { data: row, error } = await db
+      .from("user_settings")
+      .select("id, cut_coach_cache")
+      .limit(1)
+      .maybeSingle();
+    if (error || !row) return;
 
-  const existing =
-    ((row as { cut_coach_cache?: CutCoachCache }).cut_coach_cache as CutCoachCache) ??
-    {};
+    const existing =
+      ((row as { cut_coach_cache?: CutCoachCache }).cut_coach_cache as CutCoachCache) ??
+      {};
 
-  const next: CutCoachCache = {
-    ...existing,
-    [mode]: { date: today, version: CACHE_VERSION, result },
-  };
+    const next: CutCoachCache = {
+      ...existing,
+      [mode]: { date: today, version: CACHE_VERSION, result },
+    };
 
-  await db
-    .from("user_settings")
-    .update({ cut_coach_cache: next })
-    .eq("id", (row as { id: string }).id);
+    await db
+      .from("user_settings")
+      .update({ cut_coach_cache: next })
+      .eq("id", (row as { id: string }).id);
+  } catch (err) {
+    console.error("[cut-coach] cache write failed", err);
+  }
 }
 
 async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
@@ -185,35 +198,37 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
   };
 }
 
-export async function getCutCoachStatus(
-  mode: CutCoachMode,
-): Promise<{ result: CutCoachResult; aiConfigured: boolean }> {
-  unstable_noStore();
-
-  const timezone = await getTimezone();
-  const today = todayInTimezone(timezone);
-  const cache = await readCache(today);
-  const cached = cache[mode];
-  if (isFreshEntry(cached, today)) {
-    return { result: cached.result, aiConfigured: isCutCoachAiConfigured() };
-  }
-
-  const ctx = await gatherContext(mode);
-  const result = isCutCoachAiConfigured()
-    ? await generateCutCoachAi(ctx)
+async function finalizeCoachResult(
+  ctx: CutCoachContext,
+  aiConfigured: boolean,
+): Promise<CutCoachResult> {
+  return aiConfigured
+    ? generateCutCoachAi(ctx)
     : generateCutCoachFallback(ctx);
-
-  await writeCache(today, mode, result);
-  return { result, aiConfigured: isCutCoachAiConfigured() };
 }
 
-export async function getCutCoachBundle(): Promise<{
+/** Rules-only bundle — never calls AI or cache. Used when the main path fails. */
+export async function getCutCoachRulesBundle(): Promise<{
   daily: CutCoachResult;
   weekly: CutCoachResult;
   aiConfigured: boolean;
 }> {
-  unstable_noStore();
+  const [dailyCtx, weeklyCtx] = await Promise.all([
+    gatherContext("daily"),
+    gatherContext("weekly"),
+  ]);
+  return {
+    daily: generateCutCoachFallback(dailyCtx),
+    weekly: generateCutCoachFallback(weeklyCtx),
+    aiConfigured: isCutCoachAiConfigured(),
+  };
+}
 
+async function getCutCoachBundleInternal(): Promise<{
+  daily: CutCoachResult;
+  weekly: CutCoachResult;
+  aiConfigured: boolean;
+}> {
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
   const cache = await readCache(today);
@@ -238,12 +253,14 @@ export async function getCutCoachBundle(): Promise<{
     needsWeekly ? gatherContext("weekly") : null,
   ]);
 
-  const daily = needsDaily
-    ? await finalizeCoachResult(dailyCtx!, aiConfigured)
-    : cache.daily!.result;
-  const weekly = needsWeekly
-    ? await finalizeCoachResult(weeklyCtx!, aiConfigured)
-    : cache.weekly!.result;
+  const [daily, weekly] = await Promise.all([
+    needsDaily
+      ? finalizeCoachResult(dailyCtx!, aiConfigured)
+      : Promise.resolve(cache.daily!.result),
+    needsWeekly
+      ? finalizeCoachResult(weeklyCtx!, aiConfigured)
+      : Promise.resolve(cache.weekly!.result),
+  ]);
 
   if (needsDaily) await writeCache(today, "daily", daily);
   if (needsWeekly) await writeCache(today, "weekly", weekly);
@@ -251,11 +268,38 @@ export async function getCutCoachBundle(): Promise<{
   return { daily, weekly, aiConfigured };
 }
 
-async function finalizeCoachResult(
-  ctx: CutCoachContext,
-  aiConfigured: boolean,
-): Promise<CutCoachResult> {
-  return aiConfigured
-    ? generateCutCoachAi(ctx)
-    : generateCutCoachFallback(ctx);
+export async function getCutCoachStatus(
+  mode: CutCoachMode,
+): Promise<{ result: CutCoachResult; aiConfigured: boolean }> {
+  unstable_noStore();
+
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const cache = await readCache(today);
+  const phaseCtx = await gatherContext("daily");
+  const cached = cache[mode];
+  if (isFreshEntry(cached, today, phaseCtx.phase)) {
+    return { result: cached.result, aiConfigured: isCutCoachAiConfigured() };
+  }
+
+  const ctx = mode === "weekly" ? await gatherContext("weekly") : phaseCtx;
+  const result = await finalizeCoachResult(ctx, isCutCoachAiConfigured());
+
+  await writeCache(today, mode, result);
+  return { result, aiConfigured: isCutCoachAiConfigured() };
+}
+
+export async function getCutCoachBundle(): Promise<{
+  daily: CutCoachResult;
+  weekly: CutCoachResult;
+  aiConfigured: boolean;
+}> {
+  unstable_noStore();
+
+  try {
+    return await getCutCoachBundleInternal();
+  } catch (err) {
+    console.error("[cut-coach] bundle failed, using rules fallback", err);
+    return getCutCoachRulesBundle();
+  }
 }
