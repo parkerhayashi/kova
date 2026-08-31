@@ -18,6 +18,7 @@ import { getWeightLogs } from "@/lib/data/tracking";
 import { getLiftingCompositionSnapshot } from "@/lib/data/workouts";
 import { todayInTimezone } from "@/lib/utils";
 import { unstable_noStore } from "next/cache";
+import { after } from "next/server";
 
 /** Bump when coach metrics/prompt change so same-day cache can't serve stale copy. */
 const CACHE_VERSION = 3;
@@ -207,6 +208,30 @@ async function finalizeCoachResult(
     : generateCutCoachFallback(ctx);
 }
 
+async function refreshCutCoachAiInBackground(
+  today: string,
+  ctx: { daily?: CutCoachContext; weekly?: CutCoachContext },
+): Promise<void> {
+  if (!isCutCoachAiConfigured()) return;
+
+  const tasks: Promise<void>[] = [];
+  if (ctx.daily) {
+    tasks.push(
+      generateCutCoachAi(ctx.daily).then((result) =>
+        writeCache(today, "daily", result),
+      ),
+    );
+  }
+  if (ctx.weekly) {
+    tasks.push(
+      generateCutCoachAi(ctx.weekly).then((result) =>
+        writeCache(today, "weekly", result),
+      ),
+    );
+  }
+  await Promise.all(tasks);
+}
+
 /** Rules-only bundle — never calls AI or cache. Used when the main path fails. */
 export async function getCutCoachRulesBundle(): Promise<{
   daily: CutCoachResult;
@@ -253,17 +278,27 @@ async function getCutCoachBundleInternal(): Promise<{
     needsWeekly ? gatherContext("weekly") : null,
   ]);
 
-  const [daily, weekly] = await Promise.all([
-    needsDaily
-      ? finalizeCoachResult(dailyCtx!, aiConfigured)
-      : Promise.resolve(cache.daily!.result),
-    needsWeekly
-      ? finalizeCoachResult(weeklyCtx!, aiConfigured)
-      : Promise.resolve(cache.weekly!.result),
-  ]);
+  // Serve rules-based copy immediately so Home never blocks on Anthropic.
+  const daily = needsDaily
+    ? generateCutCoachFallback(dailyCtx!)
+    : cache.daily!.result;
+  const weekly = needsWeekly
+    ? generateCutCoachFallback(weeklyCtx!)
+    : cache.weekly!.result;
 
   if (needsDaily) await writeCache(today, "daily", daily);
   if (needsWeekly) await writeCache(today, "weekly", weekly);
+
+  if (aiConfigured && (needsDaily || needsWeekly)) {
+    after(() =>
+      refreshCutCoachAiInBackground(today, {
+        daily: needsDaily ? dailyCtx! : undefined,
+        weekly: needsWeekly ? weeklyCtx! : undefined,
+      }).catch((err) =>
+        console.error("[cut-coach] background AI refresh failed", err),
+      ),
+    );
+  }
 
   return { daily, weekly, aiConfigured };
 }

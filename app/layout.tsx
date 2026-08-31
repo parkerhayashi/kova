@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
+import { KovaSplash } from "@/components/KovaSplash";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { SPLASH_BOOT_SCRIPT, SPLASH_STYLES } from "@/lib/splash-boot";
+import { getSplashWordmarkSvg } from "@/lib/splash-boot";
 import "./globals.css";
 
 const inter = Inter({
@@ -40,22 +40,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const wordmarkSvg = getSplashWordmarkSvg();
+
   return (
     <html
       lang="en"
       className={`${inter.variable} h-full antialiased`}
     >
-      <head>
-        <style dangerouslySetInnerHTML={{ __html: SPLASH_STYLES }} />
-      </head>
       <body className="bg-background text-text-primary min-h-full">
+        <KovaSplash wordmarkSvg={wordmarkSvg} />
         {children}
         <ServiceWorkerRegister />
-        <Script
-          id="kova-splash-boot"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: SPLASH_BOOT_SCRIPT }}
-        />
       </body>
     </html>
   );
