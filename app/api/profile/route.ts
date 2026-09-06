@@ -12,6 +12,7 @@ export async function PATCH(req: Request) {
     age: body.age ?? null,
     height_m: body.height_m ?? null,
     biological_sex: body.biological_sex ?? null,
+    activity_level: body.activity_level ?? null,
   });
   const profile = await getUserProfile();
   return NextResponse.json({ profile });

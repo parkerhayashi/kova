@@ -21,12 +21,15 @@ import { unstable_noStore } from "next/cache";
 import { after } from "next/server";
 
 /** Bump when coach metrics/prompt change so same-day cache can't serve stale copy. */
-const CACHE_VERSION = 3;
+const CACHE_VERSION = 4;
 
 type CutCoachCacheEntry = {
   date: string;
   version: number;
   result: CutCoachResult;
+  /** Invalidate when calorie targets change (e.g. TDEE formula updates). */
+  goal_calories: number;
+  maintenance_calories: number;
 };
 
 type CutCoachCache = {
@@ -34,16 +37,25 @@ type CutCoachCache = {
   weekly?: CutCoachCacheEntry;
 };
 
+type CoachGoalFingerprint = {
+  goal_calories: number;
+  maintenance_calories: number;
+};
+
 function isFreshEntry(
   entry: CutCoachCacheEntry | undefined,
   today: string,
   phase?: CutCoachResult["phase"],
+  goals?: CoachGoalFingerprint,
 ): entry is CutCoachCacheEntry {
   return (
     entry != null &&
     entry.date === today &&
     entry.version === CACHE_VERSION &&
-    (phase == null || entry.result.phase === phase)
+    (phase == null || entry.result.phase === phase) &&
+    (goals == null ||
+      (entry.goal_calories === goals.goal_calories &&
+        entry.maintenance_calories === goals.maintenance_calories))
   );
 }
 
@@ -76,6 +88,7 @@ async function writeCache(
   today: string,
   mode: CutCoachMode,
   result: CutCoachResult,
+  goals: CoachGoalFingerprint,
 ): Promise<void> {
   try {
     const db = createServiceClient();
@@ -92,7 +105,13 @@ async function writeCache(
 
     const next: CutCoachCache = {
       ...existing,
-      [mode]: { date: today, version: CACHE_VERSION, result },
+      [mode]: {
+        date: today,
+        version: CACHE_VERSION,
+        result,
+        goal_calories: goals.goal_calories,
+        maintenance_calories: goals.maintenance_calories,
+      },
     };
 
     await db
@@ -150,7 +169,7 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
   const phase = detectCutPhase({
     weight_lbs: weight.current_lbs,
     weight_goal_lbs: weight.goal_lbs,
-    body_fat_pct: profile.body_fat_pct,
+    body_fat_pct: goals.meta.current_body_fat_pct ?? profile.body_fat_pct,
     body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
     reverse_diet_active: goals.meta.reverse_diet_active,
   });
@@ -195,7 +214,14 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
     },
     readiness_today: readinessToday,
     body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
-    body_fat_pct: profile.body_fat_pct,
+    body_fat_pct: goals.meta.current_body_fat_pct ?? profile.body_fat_pct,
+  };
+}
+
+function fingerprintFromContext(ctx: CutCoachContext): CoachGoalFingerprint {
+  return {
+    goal_calories: ctx.nutrition.goal_calories,
+    maintenance_calories: ctx.nutrition.maintenance_calories,
   };
 }
 
@@ -216,16 +242,18 @@ async function refreshCutCoachAiInBackground(
 
   const tasks: Promise<void>[] = [];
   if (ctx.daily) {
+    const goals = fingerprintFromContext(ctx.daily);
     tasks.push(
       generateCutCoachAi(ctx.daily).then((result) =>
-        writeCache(today, "daily", result),
+        writeCache(today, "daily", result, goals),
       ),
     );
   }
   if (ctx.weekly) {
+    const goals = fingerprintFromContext(ctx.weekly);
     tasks.push(
       generateCutCoachAi(ctx.weekly).then((result) =>
-        writeCache(today, "weekly", result),
+        writeCache(today, "weekly", result, goals),
       ),
     );
   }
@@ -261,9 +289,10 @@ async function getCutCoachBundleInternal(): Promise<{
 
   const phaseCtx = await gatherContext("daily");
   const currentPhase = phaseCtx.phase;
+  const goals = fingerprintFromContext(phaseCtx);
 
-  const needsDaily = !isFreshEntry(cache.daily, today, currentPhase);
-  const needsWeekly = !isFreshEntry(cache.weekly, today, currentPhase);
+  const needsDaily = !isFreshEntry(cache.daily, today, currentPhase, goals);
+  const needsWeekly = !isFreshEntry(cache.weekly, today, currentPhase, goals);
 
   if (!needsDaily && !needsWeekly) {
     return {
@@ -286,8 +315,17 @@ async function getCutCoachBundleInternal(): Promise<{
     ? generateCutCoachFallback(weeklyCtx!)
     : cache.weekly!.result;
 
-  if (needsDaily) await writeCache(today, "daily", daily);
-  if (needsWeekly) await writeCache(today, "weekly", weekly);
+  if (needsDaily) {
+    await writeCache(today, "daily", daily, fingerprintFromContext(dailyCtx!));
+  }
+  if (needsWeekly) {
+    await writeCache(
+      today,
+      "weekly",
+      weekly,
+      fingerprintFromContext(weeklyCtx!),
+    );
+  }
 
   if (aiConfigured && (needsDaily || needsWeekly)) {
     after(() =>
@@ -312,15 +350,16 @@ export async function getCutCoachStatus(
   const today = todayInTimezone(timezone);
   const cache = await readCache(today);
   const phaseCtx = await gatherContext("daily");
+  const goals = fingerprintFromContext(phaseCtx);
   const cached = cache[mode];
-  if (isFreshEntry(cached, today, phaseCtx.phase)) {
+  if (isFreshEntry(cached, today, phaseCtx.phase, goals)) {
     return { result: cached.result, aiConfigured: isCutCoachAiConfigured() };
   }
 
   const ctx = mode === "weekly" ? await gatherContext("weekly") : phaseCtx;
   const result = await finalizeCoachResult(ctx, isCutCoachAiConfigured());
 
-  await writeCache(today, mode, result);
+  await writeCache(today, mode, result, fingerprintFromContext(ctx));
   return { result, aiConfigured: isCutCoachAiConfigured() };
 }
 

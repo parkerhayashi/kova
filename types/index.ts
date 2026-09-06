@@ -654,6 +654,8 @@ export interface UserSettings {
   age: number | null;
   height_m: number | null;
   biological_sex: string | null;
+  /** sedentary | light | moderate | high — drives TDEE multiplier (default moderate). */
+  activity_level: string | null;
   calorie_goal: number | null;
   protein_goal_g: number | null;
   carbs_goal_g: number | null;
@@ -683,6 +685,8 @@ export interface UserProfile {
   age: number | null;
   height_m: number | null;
   biological_sex: string | null;
+  /** sedentary | light | moderate | high */
+  activity_level: string | null;
   weight_lbs: number | null;
   body_fat_pct: number | null;
   /** Which fields are explicitly set in user_settings vs inferred from Oura. */
@@ -690,8 +694,9 @@ export interface UserProfile {
     age: "settings" | "oura" | null;
     height_m: "settings" | "oura" | null;
     biological_sex: "settings" | "oura" | null;
+    activity_level: "settings" | null;
     weight_lbs: "weight_log" | "oura" | null;
-    body_fat_pct: "weight_log" | null;
+    body_fat_pct: "weight_log" | "visual" | null;
   };
 }
 

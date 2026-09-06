@@ -522,6 +522,9 @@ alter table user_settings
 alter table user_settings
   add column if not exists reverse_diet_state jsonb;
 
+alter table user_settings
+  add column if not exists activity_level text;
+
 -- Single-user app: seed one settings row.
 insert into user_settings (id)
 select gen_random_uuid()

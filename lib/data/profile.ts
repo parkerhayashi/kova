@@ -1,7 +1,11 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { getOuraProfile, getTimezone, getUserSettings } from "@/lib/data/oura";
 import { getLatestWeight, upsertWeight } from "@/lib/data/tracking";
-import { kgToLbs } from "@/lib/nutrition-goals";
+import {
+  kgToLbs,
+  parseActivityLevel,
+  type ActivityLevel,
+} from "@/lib/nutrition-goals";
 import { profileSexToWater, waterSexToProfile, applyProfileToWater } from "@/lib/profile";
 import { normalizeWater, type WaterState } from "@/lib/water";
 import { todayInTimezone } from "@/lib/utils";
@@ -11,6 +15,7 @@ export type ProfilePatch = {
   age?: number | null;
   height_m?: number | null;
   biological_sex?: string | null;
+  activity_level?: ActivityLevel | null;
 };
 
 /** Canonical profile: user_settings wins, then weight log / Oura. */
@@ -24,17 +29,29 @@ export async function getUserProfile(): Promise<UserProfile> {
   const age = settings?.age ?? oura?.age ?? null;
   const height_m = settings?.height_m ?? oura?.height ?? null;
   const biological_sex = settings?.biological_sex ?? oura?.biological_sex ?? null;
+  const activity_level = settings?.activity_level
+    ? parseActivityLevel(settings.activity_level)
+    : null;
 
   const weight_lbs =
     weight?.weight_lbs ??
     (oura?.weight != null ? Math.round(kgToLbs(oura.weight) * 10) / 10 : null);
 
+  const visualPct = settings?.visual_body_fat_state?.pct ?? null;
+  const body_fat_pct =
+    weight?.body_fat_pct != null && weight.body_fat_pct > 0
+      ? weight.body_fat_pct
+      : visualPct != null && visualPct > 0
+        ? visualPct
+        : null;
+
   return {
     age,
     height_m,
     biological_sex,
+    activity_level,
     weight_lbs,
-    body_fat_pct: weight?.body_fat_pct ?? null,
+    body_fat_pct,
     sources: {
       age: settings?.age != null ? "settings" : oura?.age != null ? "oura" : null,
       height_m:
@@ -49,13 +66,19 @@ export async function getUserProfile(): Promise<UserProfile> {
           : oura?.biological_sex != null
             ? "oura"
             : null,
+      activity_level: settings?.activity_level != null ? "settings" : null,
       weight_lbs:
         weight?.weight_lbs != null
           ? "weight_log"
           : oura?.weight != null
             ? "oura"
             : null,
-      body_fat_pct: weight?.body_fat_pct != null ? "weight_log" : null,
+      body_fat_pct:
+        weight?.body_fat_pct != null && weight.body_fat_pct > 0
+          ? "weight_log"
+          : visualPct != null && visualPct > 0
+            ? "visual"
+            : null,
     },
   };
 }
@@ -69,14 +92,19 @@ export async function saveUserProfile(patch: ProfilePatch): Promise<void> {
     .maybeSingle();
   if (!row) throw new Error("Settings not found");
 
-  await db
-    .from("user_settings")
-    .update({
-      age: patch.age ?? null,
-      height_m: patch.height_m ?? null,
-      biological_sex: patch.biological_sex ?? null,
-    })
-    .eq("id", row.id);
+  const update: Record<string, unknown> = {
+    age: patch.age ?? null,
+    height_m: patch.height_m ?? null,
+    biological_sex: patch.biological_sex ?? null,
+  };
+  if (patch.activity_level !== undefined) {
+    update.activity_level =
+      patch.activity_level != null
+        ? parseActivityLevel(patch.activity_level)
+        : null;
+  }
+
+  await db.from("user_settings").update(update).eq("id", row.id);
 
   if (row.water_state && typeof row.water_state === "object") {
     const profile = await getUserProfile();

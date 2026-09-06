@@ -11,6 +11,11 @@ import {
   metersToInches,
   normalizeProfileSex,
 } from "@/lib/profile";
+import {
+  DEFAULT_ACTIVITY_LEVEL,
+  parseActivityLevel,
+  type ActivityLevel,
+} from "@/lib/nutrition-goals";
 import type { UserProfile } from "@/types";
 
 function Seg({
@@ -58,6 +63,9 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
     profile.height_m != null ? String(metersToInches(profile.height_m)) : "",
   );
   const [sex, setSex] = useState(normalizeSex(profile.biological_sex));
+  const [activity, setActivity] = useState<ActivityLevel>(
+    parseActivityLevel(profile.activity_level ?? DEFAULT_ACTIVITY_LEVEL),
+  );
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -67,6 +75,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
         age: age.trim() ? Number(age) : null,
         height_m: heightIn.trim() ? inchesToMeters(Number(heightIn)) : null,
         biological_sex: sex,
+        activity_level: activity,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -124,6 +133,22 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
               <span className="timestamp">{sourceNote("oura")}</span>
             ) : null}
           </Field>
+          <Field label="Activity level" className="sm:col-span-2">
+            <Seg
+              value={activity}
+              options={[
+                { v: "sedentary", label: "Sedentary" },
+                { v: "light", label: "Light" },
+                { v: "moderate", label: "Moderate" },
+                { v: "high", label: "High" },
+              ]}
+              onPick={(v) => setActivity(parseActivityLevel(v))}
+            />
+            <p className="text-text-muted mt-1 text-xs">
+              Used for TDEE (BMR × activity). Moderate matches typical gym + desk
+              days; lower it if weight stalls above target.
+            </p>
+          </Field>
         </div>
 
         <div className="border-border border-t pt-3">
@@ -138,6 +163,9 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
           </p>
           <p className="text-text-muted mt-1 text-xs">
             {sourceNote(profile.sources.weight_lbs) ?? "Log weight under Workouts → Body weight"}
+            {profile.sources.body_fat_pct === "visual" ? (
+              <> · Body fat from Weight eye-test estimate</>
+            ) : null}
             {profile.sources.weight_lbs !== "weight_log" ? (
               <>
                 {" · "}

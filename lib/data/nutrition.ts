@@ -8,13 +8,15 @@ import {
   computeAdaptiveEnergySnapshot,
   computeNutritionGoals,
   estimateTdee,
-  mifflinStJeorBmr,
+  parseActivityLevel,
   parseAdaptiveEnergyState,
   resolveAdaptiveEnergy,
+  resolveBmr,
   type AdaptiveEnergyState,
   type ComputedNutritionGoals,
   type GoalInputs,
 } from "@/lib/nutrition-goals";
+import { bodyFatPctFromSources } from "@/lib/data/body-fat";
 import { sumMeals, mergeDailyTotals, type DailyTotals } from "@/lib/nutrition";
 import {
   buildReverseDietStart,
@@ -96,25 +98,24 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     weight: row.weight_lbs,
   }));
 
-  const bmrInputs = {
-    weight_lbs: profile.weight_lbs,
-    height_m: profile.height_m,
-    age: profile.age,
-    biological_sex: profile.biological_sex,
-  };
-  const weight_lbs = bmrInputs.weight_lbs ?? 170;
+  const body_fat_pct = bodyFatPctFromSources({
+    weightLogPct: profile.body_fat_pct,
+    visual: settings?.visual_body_fat_state,
+  });
+  const activity_level = parseActivityLevel(settings?.activity_level);
+
+  const weight_lbs = profile.weight_lbs ?? 170;
   const weight_kg = weight_lbs / 2.2046226218;
-  const height_cm = (bmrInputs.height_m ?? 1.75) * 100;
-  const age = bmrInputs.age ?? 30;
-  const bmr = Math.round(
-    mifflinStJeorBmr({
-      weightKg: weight_kg,
-      heightCm: height_cm,
-      age,
-      sex: bmrInputs.biological_sex,
-    }),
-  );
-  const formulaTdee = estimateTdee(bmr);
+  const height_cm = (profile.height_m ?? 1.75) * 100;
+  const age = profile.age ?? 30;
+  const { bmr } = resolveBmr({
+    weightKg: weight_kg,
+    heightCm: height_cm,
+    age,
+    sex: profile.biological_sex,
+    body_fat_pct,
+  });
+  const formulaTdee = estimateTdee(bmr, activity_level);
 
   const computed = computeAdaptiveEnergySnapshot({
     caloriesByDay,
@@ -153,12 +154,13 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
 
   return {
     weight_lbs: profile.weight_lbs,
-    body_fat_pct: profile.body_fat_pct,
+    body_fat_pct,
     weight_goal_lbs: settings?.weight_goal_lbs ?? null,
     body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
     height_m: profile.height_m,
     age: profile.age,
     biological_sex: profile.biological_sex,
+    activity_level,
     adaptive: snapshot,
     water_goal_ml: settings?.water_goal_ml ?? null,
     reverseDiet,
@@ -441,14 +443,21 @@ export async function getCalorieTrend(
     weight: row.weight_lbs,
   }));
 
+  const body_fat_pct = bodyFatPctFromSources({
+    weightLogPct: profile.body_fat_pct,
+    visual: settings?.visual_body_fat_state,
+  });
+  const activity_level = parseActivityLevel(settings?.activity_level);
+
   const baseInputs: Omit<GoalInputs, "adaptive"> = {
     weight_lbs: profile.weight_lbs,
-    body_fat_pct: profile.body_fat_pct,
+    body_fat_pct,
     weight_goal_lbs: settings?.weight_goal_lbs ?? null,
     body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
     height_m: profile.height_m,
     age: profile.age,
     biological_sex: profile.biological_sex,
+    activity_level,
     water_goal_ml: settings?.water_goal_ml ?? null,
   };
 
@@ -474,15 +483,14 @@ export async function getCalorieTrend(
     const weight_kg = weight_lbs / 2.2046226218;
     const height_cm = (baseInputs.height_m ?? 1.75) * 100;
     const age = baseInputs.age ?? 30;
-    const bmr = Math.round(
-      mifflinStJeorBmr({
-        weightKg: weight_kg,
-        heightCm: height_cm,
-        age,
-        sex: baseInputs.biological_sex,
-      }),
-    );
-    const formulaTdee = estimateTdee(bmr);
+    const { bmr } = resolveBmr({
+      weightKg: weight_kg,
+      heightCm: height_cm,
+      age,
+      sex: baseInputs.biological_sex,
+      body_fat_pct: baseInputs.body_fat_pct,
+    });
+    const formulaTdee = estimateTdee(bmr, activity_level);
     const goals = computeNutritionGoals({
       ...baseInputs,
       adaptive: computeAdaptiveEnergySnapshot({

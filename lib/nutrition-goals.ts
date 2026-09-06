@@ -9,8 +9,53 @@ const KCAL_PER_LB = 3500;
 const ADAPTIVE_WINDOW_DAYS = 14;
 const MIN_LOGGED_DAYS = 10;
 const MIN_DAILY_CALORIES = 400;
-const TDEE_ACTIVITY_MULTIPLIER = 1.55;
 const MAX_ADAPTIVE_DELTA = 250;
+
+export type ActivityLevel = "sedentary" | "light" | "moderate" | "high";
+export type BmrFormula = "katch_mcardle" | "mifflin_st_jeor";
+
+export const DEFAULT_ACTIVITY_LEVEL: ActivityLevel = "moderate";
+
+export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
+  sedentary: 1.2,
+  light: 1.375,
+  moderate: 1.55,
+  high: 1.725,
+};
+
+export function parseActivityLevel(raw: unknown): ActivityLevel {
+  if (
+    raw === "sedentary" ||
+    raw === "light" ||
+    raw === "moderate" ||
+    raw === "high"
+  ) {
+    return raw;
+  }
+  return DEFAULT_ACTIVITY_LEVEL;
+}
+
+export function activityLevelLabel(level: ActivityLevel): string {
+  switch (level) {
+    case "sedentary":
+      return "Sedentary";
+    case "light":
+      return "Light";
+    case "moderate":
+      return "Moderate";
+    case "high":
+      return "High";
+  }
+}
+
+export function bmrFormulaLabel(formula: BmrFormula): string {
+  switch (formula) {
+    case "katch_mcardle":
+      return "Katch–McArdle";
+    case "mifflin_st_jeor":
+      return "Mifflin–St Jeor";
+  }
+}
 /** Minimum days between applied TDEE nudge changes. */
 export const ADAPTIVE_COOLDOWN_DAYS = 14;
 /** Max kcal the nudge can move per review (after cooldown). */
@@ -40,6 +85,9 @@ export type NutritionGoalMeta = {
   weight_goal_lbs: number | null;
   body_fat_goal_pct: number | null;
   bmr: number;
+  bmr_formula: BmrFormula;
+  activity_level: ActivityLevel;
+  activity_multiplier: number;
   tdee_calories: number;
   maintenance_calories: number;
   maintenance_source: MaintenanceSource;
@@ -64,6 +112,7 @@ export type GoalInputs = {
   height_m: number | null;
   age: number | null;
   biological_sex: string | null;
+  activity_level?: ActivityLevel | null;
   adaptive?: AdaptiveEnergySnapshot | null;
   water_goal_ml: number | null;
   reverseDiet?: ReverseDietState | null;
@@ -98,9 +147,49 @@ export function mifflinStJeorBmr(params: {
   return base + 5;
 }
 
-/** TDEE from Mifflin–St Jeor BMR × activity factor (fixed moderate default). */
-export function estimateTdee(bmr: number): number {
-  return Math.round(bmr * TDEE_ACTIVITY_MULTIPLIER);
+/** Katch–McArdle BMR from lean mass (kcal/day). Prefer when body fat is known. */
+export function katchMcardleBmr(leanMassKg: number): number {
+  return 370 + 21.6 * leanMassKg;
+}
+
+/**
+ * Resolve BMR: Katch–McArdle when measured/estimated body fat is present,
+ * otherwise Mifflin–St Jeor. Do not invent BF% for BMR.
+ */
+export function resolveBmr(input: {
+  weightKg: number;
+  heightCm: number;
+  age: number;
+  sex: string | null;
+  body_fat_pct: number | null;
+}): { bmr: number; formula: BmrFormula } {
+  const bf = input.body_fat_pct;
+  if (bf != null && bf > 0 && bf < 60) {
+    const leanKg = input.weightKg * (1 - bf / 100);
+    return {
+      bmr: Math.round(katchMcardleBmr(leanKg)),
+      formula: "katch_mcardle",
+    };
+  }
+  return {
+    bmr: Math.round(
+      mifflinStJeorBmr({
+        weightKg: input.weightKg,
+        heightCm: input.heightCm,
+        age: input.age,
+        sex: input.sex,
+      }),
+    ),
+    formula: "mifflin_st_jeor",
+  };
+}
+
+/** TDEE from BMR × activity multiplier (default moderate = 1.55). */
+export function estimateTdee(
+  bmr: number,
+  activityLevel: ActivityLevel = DEFAULT_ACTIVITY_LEVEL,
+): number {
+  return Math.round(bmr * ACTIVITY_MULTIPLIERS[activityLevel]);
 }
 
 export function averageDailyIntake(
@@ -337,6 +426,7 @@ export function parseAdaptiveEnergyState(
 
 export function estimateMaintenanceCalories(input: {
   bmr: number;
+  activity_level?: ActivityLevel | null;
   adaptive?: AdaptiveEnergySnapshot | null;
 }): {
   tdee: number;
@@ -344,7 +434,8 @@ export function estimateMaintenanceCalories(input: {
   source: MaintenanceSource;
   adaptiveAdjustment: number;
 } {
-  const tdee = estimateTdee(input.bmr);
+  const activity = parseActivityLevel(input.activity_level);
+  const tdee = estimateTdee(input.bmr, activity);
   const adaptiveAdjustment = input.adaptive?.adjustment ?? 0;
   if (input.adaptive && adaptiveAdjustment !== 0) {
     return {
@@ -420,18 +511,19 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
 
   const height_cm = (input.height_m ?? 1.75) * 100;
   const age = input.age ?? 30;
-  const bmr = Math.round(
-    mifflinStJeorBmr({
-      weightKg: weight_kg,
-      heightCm: height_cm,
-      age,
-      sex: input.biological_sex,
-    }),
-  );
+  const activity_level = parseActivityLevel(input.activity_level);
+  const { bmr, formula: bmr_formula } = resolveBmr({
+    weightKg: weight_kg,
+    heightCm: height_cm,
+    age,
+    sex: input.biological_sex,
+    body_fat_pct: input.body_fat_pct,
+  });
 
   const { tdee, maintenance, source, adaptiveAdjustment } =
     estimateMaintenanceCalories({
       bmr,
+      activity_level,
       adaptive: input.adaptive,
     });
 
@@ -482,6 +574,9 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
       weight_goal_lbs: input.weight_goal_lbs,
       body_fat_goal_pct: input.body_fat_goal_pct,
       bmr,
+      bmr_formula,
+      activity_level,
+      activity_multiplier: ACTIVITY_MULTIPLIERS[activity_level],
       tdee_calories: tdee,
       maintenance_calories: maintenance,
       maintenance_source: source,

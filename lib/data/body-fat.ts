@@ -35,6 +35,23 @@ export async function getVisualBodyFatState(): Promise<VisualBodyFatState | null
   return parseVisualState(settings?.visual_body_fat_state);
 }
 
+/**
+ * Body fat % for TDEE/macros without calling getNutritionGoals (avoids cycles).
+ * Prefer weight-log BF, else visual eye-test baseline pct.
+ */
+export function bodyFatPctFromSources(input: {
+  weightLogPct: number | null | undefined;
+  visual: VisualBodyFatState | null | undefined;
+}): number | null {
+  if (input.weightLogPct != null && input.weightLogPct > 0) {
+    return input.weightLogPct;
+  }
+  if (input.visual?.pct != null && input.visual.pct > 0) {
+    return input.visual.pct;
+  }
+  return null;
+}
+
 export async function saveVisualBodyFatBaseline(input: {
   answers: VisualBodyFatAnswers;
   sex: VisualBodyFatState["sex"];

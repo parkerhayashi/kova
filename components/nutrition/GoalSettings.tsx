@@ -13,6 +13,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
+import {
+  activityLevelLabel,
+  bmrFormulaLabel,
+} from "@/lib/nutrition-goals";
 import type { ReverseDietView } from "@/lib/reverse-diet";
 
 export function GoalSettings({
@@ -211,7 +215,9 @@ export function GoalSettings({
                 : ` · ${currentBodyFat}`}
             </p>
             <p>
-              BMR {meta.bmr} kcal · TDEE {meta.tdee_calories} kcal
+              BMR {meta.bmr} kcal ({bmrFormulaLabel(meta.bmr_formula)}) · TDEE{" "}
+              {meta.tdee_calories} kcal ({activityLevelLabel(meta.activity_level)}{" "}
+              ×{meta.activity_multiplier})
               {meta.adaptive_adjustment !== 0
                 ? ` · ${meta.adaptive_adjustment > 0 ? "+" : ""}${meta.adaptive_adjustment} from intake/weight`
                 : ""}
