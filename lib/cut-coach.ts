@@ -25,11 +25,11 @@ export type CutCoachContext = {
     change_7d_lbs: number | null;
     change_14d_lbs: number | null;
     /**
-     * Primary storytelling rate (lb/week) from the 14-day rolling-average
-     * change. Prefer this over raw 7-day deltas — those lag water swings.
+     * Primary storytelling rate (lb/week) from 7-day rolling-average change.
+     * Prefer this over the longer 14-day pace — that lags after a big early drop.
      */
     weekly_rate_lbs: number | null;
-    /** Latest weigh-in minus weigh-in ~7 days ago (what the scale did this week). */
+    /** Recent 3-day avg minus 3-day avg ~7 days ago (spike-resistant "this week"). */
     scale_week_lbs: number | null;
   };
   nutrition: {
@@ -175,6 +175,20 @@ function weightOnOrBefore(
   return null;
 }
 
+/** Mean of weigh-ins in the `days`-long window ending on `endDate`. */
+function windowAverageWeight(
+  sorted: WeightEntry[],
+  endDate: string,
+  days: number,
+): number | null {
+  const start = addDays(endDate, -(days - 1));
+  const slice = sorted.filter(
+    (row) => row.dateKey >= start && row.dateKey <= endDate,
+  );
+  if (!slice.length) return null;
+  return slice.reduce((sum, row) => sum + row.weight, 0) / slice.length;
+}
+
 export function buildWeightMetrics(
   entries: WeightEntry[],
   endDate: string,
@@ -190,18 +204,28 @@ export function buildWeightMetrics(
   const current_lbs = sorted.length
     ? sorted[sorted.length - 1]?.weight ?? null
     : null;
-  const weekAgo = weightOnOrBefore(sorted, addDays(endDate, -7));
-  const scale_week_lbs =
-    current_lbs != null && weekAgo != null
-      ? round1(current_lbs - weekAgo)
-      : null;
 
-  // Prefer 14-day change as lb/week — 7-day rolling deltas lag and disagree
-  // with what the latest scale reading did vs a week ago.
+  // 3-day averages mute single-day spikes (e.g. one high weigh-in a week ago).
+  const recent3 = windowAverageWeight(sorted, endDate, 3);
+  const prior3 = windowAverageWeight(sorted, addDays(endDate, -7), 3);
+  let scale_week_lbs: number | null =
+    recent3 != null && prior3 != null ? round1(recent3 - prior3) : null;
+  if (scale_week_lbs == null) {
+    const weekAgo = weightOnOrBefore(sorted, addDays(endDate, -7));
+    scale_week_lbs =
+      current_lbs != null && weekAgo != null
+        ? round1(current_lbs - weekAgo)
+        : null;
+  }
+
+  // Prefer 7-day rolling pace (already lb/week). The 14-day pace lags after a
+  // steep early drop and can claim ~1 lb/week loss while the last week is flat.
   const weekly_rate_lbs =
-    change_14d_lbs != null
-      ? round1(change_14d_lbs / 2)
-      : change_7d_lbs;
+    change_7d_lbs != null
+      ? change_7d_lbs
+      : change_14d_lbs != null
+        ? round1(change_14d_lbs / 2)
+        : null;
 
   return {
     current_lbs,
@@ -294,22 +318,32 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
   const proteinHit = ctx.nutrition.protein_days_hit_7d;
   const avgCal = ctx.nutrition.avg_calories_7d;
   const goalCal = ctx.nutrition.goal_calories;
-  /** Scale moved opposite the 14d rate this week (water / rebound). */
+  /** Scale moved opposite the recent rate this week (water / rebound). */
   const rebounding =
     rate != null &&
     scaleWeek != null &&
-    rate < -0.15 &&
+    rate < -0.3 &&
     scaleWeek > 0.3;
+  /** Longer 14d pace still falling while the last week is flat/up. */
+  const longerPace =
+    ctx.weight.change_14d_lbs != null
+      ? round1(ctx.weight.change_14d_lbs / 2)
+      : null;
+  const staleLongerLoss =
+    rate != null &&
+    Math.abs(rate) < 0.3 &&
+    longerPace != null &&
+    longerPace < -0.4;
 
   if (phase === "cut") {
     const losing =
-      rate != null && rate < -0.15 && rate > -2.5 && !rebounding;
+      rate != null && rate <= -0.3 && rate > -2.5 && !rebounding;
     const tooFast = rate != null && rate <= -2.5;
     const flat =
-      (rate != null && Math.abs(rate) < 0.15) ||
+      (rate != null && Math.abs(rate) < 0.3) ||
       (rebounding && Math.abs(scaleWeek!) < 1.5);
     const gaining =
-      (rate != null && rate > 0.15 && (scaleWeek == null || scaleWeek > 0)) ||
+      (rate != null && rate >= 0.3 && (scaleWeek == null || scaleWeek > 0)) ||
       (scaleWeek != null && scaleWeek > 0.5 && (rate == null || rate > -0.3));
     const strengthSlipping =
       strengthPct != null && strengthPct < -2 && ctx.lifting.has_data;
@@ -345,7 +379,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
       return {
         status: "on_track",
         headline: isWeekly ? "Solid cut week" : "Cut on track",
-        summary: `Weight ${formatRate(rate)}/wk (14-day pace). Protein hit ${proteinHit}/7 days${strengthPct != null ? ` · strength ${strengthPct >= 0 ? "+" : ""}${strengthPct.toFixed(0)}%` : ""}.`,
+        summary: `Weight ${formatRate(rate)}/wk (7-day pace). Protein hit ${proteinHit}/7 days${strengthPct != null ? ` · strength ${strengthPct >= 0 ? "+" : ""}${strengthPct.toFixed(0)}%` : ""}.`,
         action: isWeekly
           ? "Keep calories and protein steady next week."
           : "Stay the course — hit protein and log weight tomorrow.",
@@ -359,8 +393,12 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (flat && avgCal != null && avgCal <= goalCal + 100) {
       return {
         status: "adjust",
-        headline: "Weight flat on target intake",
-        summary: `Pace ${formatRate(rate)}/wk at ~${avgCal} kcal/day (goal ${goalCal}). Either water fluctuation or maintenance is lower than estimated.`,
+        headline: staleLongerLoss
+          ? "Cut stalled this week"
+          : "Weight flat on target intake",
+        summary: staleLongerLoss
+          ? `Last week is ${formatRate(rate)} (flat) even though the longer 14-day pace was still ${formatRate(longerPace)}/wk. At ~${avgCal} kcal/day (goal ${goalCal}).`
+          : `Pace ${formatRate(rate)}/wk at ~${avgCal} kcal/day (goal ${goalCal}). Either water fluctuation or maintenance is lower than estimated.`,
         action: "Hold intake 1 more week; if still flat, trim ~100 kcal or add a short walk block daily.",
         mode: ctx.mode,
         phase,
@@ -600,7 +638,9 @@ const SYSTEM_PROMPT = `You are a concise body-composition coach for a single use
 You receive structured JSON metrics only — never invent numbers. Phase is cut, bulk, maintain, or reverse (reverse = active reverse diet after a cut).
 
 Rules:
-- Weight fields: weekly_rate_lbs is the 14-day pace (lb/week). scale_week_lbs is latest vs ~7 days ago (what the scale did this week). Prefer weekly_rate_lbs for trend; if scale_week_lbs has the opposite sign (≥0.3 lb), say the scale rebounded/dipped this week and do NOT claim a steady 1 lb/week loss or gain from the lagging average alone.
+- Weight fields: weekly_rate_lbs is the PRIMARY pace (lb/week) from 7-day rolling averages — use this for "are you losing/gaining this week." change_14d_lbs is the longer window (divide by 2 for lb/week context only). scale_week_lbs is recent 3-day avg vs 3-day avg ~7 days ago.
+- NEVER claim ~1 lb/week loss if weekly_rate_lbs is between −0.3 and +0.3 (call it flat/stalled). If change_14d_lbs still shows older loss but weekly_rate_lbs is flat, say the longer trend was down but this week has stalled — do not celebrate a 1 lb/week pace.
+- If scale_week_lbs and weekly_rate_lbs disagree by ≥0.5 lb, trust weekly_rate_lbs and mention scale noise.
 - Cut: target ~0.5–1.5 lb/week loss while preserving strength. Flag: flat weight at deficit, gaining weight, strength down >2%, protein hit <5/7 days, losing >2.5 lb/week with strength drop.
 - Bulk: always treat as LEAN bulk — target ~0.25–0.75 lb/week gain, not aggressive surges. Flag: gaining >1 lb/week, flat weight at surplus, losing weight, strength down >2% while gaining, protein hit <5/7 days. Prefer small calorie nudges (+/−100–150 kcal), never "eat big" advice.
 - Maintain: weight stable within ~0.2 lb/week at goal.

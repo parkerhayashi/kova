@@ -21,7 +21,7 @@ import { unstable_noStore } from "next/cache";
 import { after } from "next/server";
 
 /** Bump when coach metrics/prompt change so same-day cache can't serve stale copy. */
-const CACHE_VERSION = 4;
+const CACHE_VERSION = 5;
 
 type CutCoachCacheEntry = {
   date: string;
