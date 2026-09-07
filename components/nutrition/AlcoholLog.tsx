@@ -52,7 +52,7 @@ export function AlcoholLog({
           <span className="metric-label">Alcohol</span>
           <p className="text-text-muted mt-1 text-xs">
             Same log as Habits — {CALORIES_PER_DRINK} kcal per drink toward
-            today&apos;s calorie total.
+            this day&apos;s calorie total.
           </p>
         </div>
         {drinks ? (

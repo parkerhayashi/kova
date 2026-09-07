@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { logMeal } from "@/app/(dashboard)/nutrition/actions";
 import { Button } from "@/components/ui/Button";
@@ -69,6 +70,7 @@ export function FoodDetailPanel({
   const [servings, setServings] = useState(1);
   const [showAll, setShowAll] = useState(false);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   const perServing = profile.nutrients;
   const scaled = useMemo(
@@ -96,6 +98,7 @@ export function FoodDetailPanel({
   function submit() {
     startTransition(async () => {
       await logMeal(profile, date, servings);
+      router.refresh();
       onDone();
     });
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { logMealItems } from "@/app/(dashboard)/nutrition/actions";
 import { Button } from "@/components/ui/Button";
@@ -217,6 +218,7 @@ export function MealCaptureReview({
 }) {
   const [fixText, setFixText] = useState("");
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   const totals = useMemo(() => sumCaptureTotals(items), [items]);
 
@@ -238,6 +240,7 @@ export function MealCaptureReview({
         mealName: mealName.trim() || undefined,
         items: profiles,
       });
+      router.refresh();
       onDone();
     });
   }

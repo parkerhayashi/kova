@@ -22,6 +22,8 @@ import type { NutrientProfile, ReverseDietState, SavedMeal, SavedMealComponent }
 function refresh() {
   revalidatePath("/nutrition");
   revalidatePath("/");
+  revalidatePath("/habits");
+  revalidatePath("/trends");
 }
 
 export async function logMeal(

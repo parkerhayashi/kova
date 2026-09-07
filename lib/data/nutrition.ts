@@ -35,7 +35,7 @@ import {
   getSupplements,
   getWeightLogs,
 } from "@/lib/data/tracking";
-import { addDays, todayInTimezone } from "@/lib/utils";
+import { addDays, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import {
   buildNutritionCaloriesVsWeight,
   buildNutritionProteinVsWeight,
@@ -48,6 +48,10 @@ import {
   getAlcoholCaloriesForDate,
 } from "@/lib/alcohol-nutrition";
 
+function asMeal(row: Meal): Meal {
+  const date = normalizeIsoDate(row.date) ?? row.date;
+  return { ...row, date };
+}
 async function persistAdaptiveEnergyState(
   state: AdaptiveEnergyState,
 ): Promise<void> {
@@ -289,13 +293,14 @@ export async function resetAdaptiveEnergyState(): Promise<void> {
 }
 
 export async function getMealsForDate(date: string): Promise<Meal[]> {
+  const day = normalizeIsoDate(date) ?? date;
   const db = createServiceClient();
   const { data } = await db
     .from("meals")
     .select("*")
-    .eq("date", date)
+    .eq("date", day)
     .order("logged_at", { ascending: true });
-  return (data as Meal[]) ?? [];
+  return ((data as Meal[]) ?? []).map(asMeal);
 }
 
 export async function getMealsSince(days: number): Promise<Meal[]> {
@@ -307,7 +312,7 @@ export async function getMealsSince(days: number): Promise<Meal[]> {
     .select("*")
     .gte("date", since)
     .order("date", { ascending: true });
-  return (data as Meal[]) ?? [];
+  return ((data as Meal[]) ?? []).map(asMeal);
 }
 
 /** Daily nutrition totals keyed by date (meals + supplements). */
@@ -398,10 +403,15 @@ export async function getDailyTotals(date: string): Promise<DailyTotals> {
 export async function addMeal(
   row: Omit<Meal, "id" | "logged_at">,
 ): Promise<Meal> {
+  const day = normalizeIsoDate(row.date) ?? row.date;
   const db = createServiceClient();
-  const { data, error } = await db.from("meals").insert(row).select("*").single();
+  const { data, error } = await db
+    .from("meals")
+    .insert({ ...row, date: day })
+    .select("*")
+    .single();
   if (error) throw new Error(error.message);
-  return data as Meal;
+  return asMeal(data as Meal);
 }
 
 export async function deleteMeal(id: string): Promise<void> {

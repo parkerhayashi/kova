@@ -126,6 +126,11 @@ export async function getHabits(activeOnly = true): Promise<Habit[]> {
   }));
 }
 
+function asHabitLog(row: HabitLog): HabitLog {
+  const date = normalizeIsoDate(row.date) ?? row.date;
+  return { ...row, date };
+}
+
 export async function getHabitLogs(
   sinceDays: number,
   timezone?: string,
@@ -135,13 +140,14 @@ export async function getHabitLogs(
     .from("habit_logs")
     .select("*")
     .gte("date", addDays(todayInTimezone(timezone), -sinceDays));
-  return (data as HabitLog[]) ?? [];
+  return ((data as HabitLog[]) ?? []).map(asHabitLog);
 }
 
 export async function getHabitLogsForDate(date: string): Promise<HabitLog[]> {
+  const day = normalizeIsoDate(date) ?? date;
   const db = createServiceClient();
-  const { data } = await db.from("habit_logs").select("*").eq("date", date);
-  return (data as HabitLog[]) ?? [];
+  const { data } = await db.from("habit_logs").select("*").eq("date", day);
+  return ((data as HabitLog[]) ?? []).map(asHabitLog);
 }
 
 export async function setHabitCompletion(
@@ -150,10 +156,11 @@ export async function setHabitCompletion(
   completed: boolean,
   amountTier?: string | null,
 ): Promise<void> {
+  const day = normalizeIsoDate(date) ?? date;
   const db = createServiceClient();
   const row: Record<string, unknown> = {
     habit_id: habitId,
-    date,
+    date: day,
     completed,
     amount_tier: completed && amountTier ? amountTier : null,
   };
