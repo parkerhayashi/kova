@@ -69,6 +69,7 @@ export function FoodDetailPanel({
 }) {
   const [servings, setServings] = useState(1);
   const [showAll, setShowAll] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -96,10 +97,15 @@ export function FoodDetailPanel({
   ) as [NutrientKey, number][];
 
   function submit() {
+    setError(null);
     startTransition(async () => {
-      await logMeal(profile, date, servings);
-      router.refresh();
-      onDone();
+      try {
+        await logMeal(profile, date, servings);
+        router.refresh();
+        onDone();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not log meal");
+      }
     });
   }
 
@@ -272,6 +278,11 @@ export function FoodDetailPanel({
             Cancel
           </button>
         </div>
+        {error ? (
+          <p className="text-sm" style={{ color: "var(--color-stress)" }}>
+            {error}
+          </p>
+        ) : null}
       </div>
     </Card>
   );

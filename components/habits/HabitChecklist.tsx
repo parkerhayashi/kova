@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Flame, Minus, Plus, Shield } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -250,6 +251,7 @@ export function HabitChecklist({
     () => Object.fromEntries(habits.map((h) => [h.id, h.drinkCount])),
   );
   const [, startTransition] = useTransition();
+  const router = useRouter();
 
   const stateKey = rowStateKey(habits);
   useEffect(() => {
@@ -262,6 +264,7 @@ export function HabitChecklist({
     setDone((d) => ({ ...d, [id]: next }));
     startTransition(async () => {
       await toggleHabit(id, logDate, next);
+      router.refresh();
     });
   }
 
@@ -272,6 +275,7 @@ export function HabitChecklist({
     setDone((d) => ({ ...d, [id]: next != null }));
     startTransition(async () => {
       await setHabitDrinkCount(id, logDate, next);
+      router.refresh();
     });
   }
 

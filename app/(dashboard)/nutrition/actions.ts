@@ -32,7 +32,8 @@ export async function logMeal(
   servings: number,
   mealName?: string,
 ): Promise<void> {
-  if (!date || servings <= 0) return;
+  if (!date) throw new Error("Date is required");
+  if (servings <= 0) throw new Error("Servings must be greater than zero");
   const row = buildMealRow(profile, date, servings, mealName);
   await addMeal(row);
   refresh();
@@ -44,7 +45,8 @@ export async function logMealItems(input: {
   items: NutrientProfile[];
 }): Promise<void> {
   const { date, mealName, items } = input;
-  if (!date || items.length === 0) return;
+  if (!date) throw new Error("Date is required");
+  if (items.length === 0) throw new Error("Add at least one item");
 
   for (const profile of items) {
     const row = buildMealRow(profile, date, 1, mealName?.trim() || profile.name);
@@ -54,7 +56,7 @@ export async function logMealItems(input: {
 }
 
 export async function removeMeal(id: string): Promise<void> {
-  if (!id) return;
+  if (!id) throw new Error("Meal id is required");
   await deleteMeal(id);
   refresh();
 }

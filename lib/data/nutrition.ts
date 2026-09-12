@@ -295,11 +295,12 @@ export async function resetAdaptiveEnergyState(): Promise<void> {
 export async function getMealsForDate(date: string): Promise<Meal[]> {
   const day = normalizeIsoDate(date) ?? date;
   const db = createServiceClient();
-  const { data } = await db
+  const { data, error } = await db
     .from("meals")
     .select("*")
     .eq("date", day)
     .order("logged_at", { ascending: true });
+  if (error) throw new Error(error.message);
   return ((data as Meal[]) ?? []).map(asMeal);
 }
 
@@ -307,11 +308,12 @@ export async function getMealsSince(days: number): Promise<Meal[]> {
   const db = createServiceClient();
   const timezone = await getTimezone();
   const since = addDays(todayInTimezone(timezone), -(days - 1));
-  const { data } = await db
+  const { data, error } = await db
     .from("meals")
     .select("*")
     .gte("date", since)
     .order("date", { ascending: true });
+  if (error) throw new Error(error.message);
   return ((data as Meal[]) ?? []).map(asMeal);
 }
 
@@ -416,7 +418,8 @@ export async function addMeal(
 
 export async function deleteMeal(id: string): Promise<void> {
   const db = createServiceClient();
-  await db.from("meals").delete().eq("id", id);
+  const { error } = await db.from("meals").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function getCalorieTrend(

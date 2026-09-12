@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { removeMeal } from "@/app/(dashboard)/nutrition/actions";
@@ -16,11 +17,22 @@ export function MealLog({
   logDate: string;
   today: string;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [items, setItems] = useState(meals);
+
+  useEffect(() => {
+    setItems(meals);
+  }, [meals]);
 
   function onDelete(id: string) {
+    setItems((prev) => prev.filter((meal) => meal.id !== id));
     startTransition(async () => {
-      await removeMeal(id);
+      try {
+        await removeMeal(id);
+      } finally {
+        router.refresh();
+      }
     });
   }
 
@@ -30,14 +42,14 @@ export function MealLog({
         <span className="metric-label">
           {logDate === today ? "Today's log" : "Meal log"}
         </span>
-        <span className="timestamp">{meals.length} items</span>
+        <span className="timestamp">{items.length} items</span>
       </div>
 
-      {meals.length === 0 ? (
+      {items.length === 0 ? (
         <p className="body-copy text-sm">Nothing logged yet — search or scan to add food.</p>
       ) : (
         <ul className="divide-border divide-y">
-          {meals.map((meal) => (
+          {items.map((meal) => (
             <li
               key={meal.id}
               className="flex items-start gap-3 py-3 first:pt-0 last:pb-0"

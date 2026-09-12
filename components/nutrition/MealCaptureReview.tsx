@@ -217,6 +217,7 @@ export function MealCaptureReview({
   onDone: () => void;
 }) {
   const [fixText, setFixText] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -233,15 +234,20 @@ export function MealCaptureReview({
   }
 
   function logAll() {
+    setError(null);
     startTransition(async () => {
-      const profiles = items.map(captureItemToProfile);
-      await logMealItems({
-        date,
-        mealName: mealName.trim() || undefined,
-        items: profiles,
-      });
-      router.refresh();
-      onDone();
+      try {
+        const profiles = items.map(captureItemToProfile);
+        await logMealItems({
+          date,
+          mealName: mealName.trim() || undefined,
+          items: profiles,
+        });
+        router.refresh();
+        onDone();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not log meal");
+      }
     });
   }
 
@@ -321,6 +327,11 @@ export function MealCaptureReview({
           Retake
         </button>
       </div>
+      {error ? (
+        <p className="text-sm" style={{ color: "var(--color-stress)" }}>
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
