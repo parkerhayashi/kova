@@ -1,1 +1,14 @@
-{}
+{
+  "duke:the-farmstead:285908540": {
+    "nutrients": { "calories": 150, "protein_g": 3, "carbs_g": 34, "fat_g": 0.5 }
+  },
+  "duke:the-farmstead:285908566": {
+    "nutrients": { "calories": 150, "protein_g": 3, "carbs_g": 34, "fat_g": 0.5 }
+  },
+  "duke:the-farmstead:285908580": {
+    "nutrients": { "calories": 150, "protein_g": 3, "carbs_g": 34, "fat_g": 0.5 }
+  },
+  "duke:the-farmstead:285909219": {
+    "nutrients": { "calories": 150, "protein_g": 3, "carbs_g": 34, "fat_g": 0.5 }
+  }
+}
