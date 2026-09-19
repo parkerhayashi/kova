@@ -523,6 +523,9 @@ alter table user_settings
   add column if not exists reverse_diet_state jsonb;
 
 alter table user_settings
+  add column if not exists diet_break_state jsonb;
+
+alter table user_settings
   add column if not exists activity_level text;
 
 -- Single-user app: seed one settings row.

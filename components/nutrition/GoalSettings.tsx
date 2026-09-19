@@ -6,7 +6,9 @@ import {
   bumpReverseDietAction,
   resetAdaptiveTdee,
   saveNutritionTargets,
+  startDietBreakAction,
   startReverseDietAction,
+  stopDietBreakAction,
   stopReverseDietAction,
 } from "@/app/(dashboard)/nutrition/actions";
 import { Button } from "@/components/ui/Button";
@@ -17,14 +19,18 @@ import {
   activityLevelLabel,
   bmrFormulaLabel,
 } from "@/lib/nutrition-goals";
+import type { DietBreakDurationDays, DietBreakView } from "@/lib/diet-break";
 import type { ReverseDietView } from "@/lib/reverse-diet";
+import { cn } from "@/lib/utils";
 
 export function GoalSettings({
   goals,
   reverse,
+  dietBreak,
 }: {
   goals: ComputedNutritionGoals;
   reverse: ReverseDietView;
+  dietBreak: DietBreakView;
 }) {
   const { meta } = goals;
   const [open, setOpen] = useState(false);
@@ -34,12 +40,17 @@ export function GoalSettings({
   const [bodyFatGoal, setBodyFatGoal] = useState(
     meta.body_fat_goal_pct != null ? String(meta.body_fat_goal_pct) : "",
   );
+  const [breakDuration, setBreakDuration] =
+    useState<DietBreakDurationDays>(7);
   const [saved, setSaved] = useState(false);
   const [reset, setReset] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [resetPending, startResetTransition] = useTransition();
   const [reversePending, startReverseTransition] = useTransition();
+  const [breakPending, startBreakTransition] = useTransition();
+
+  const modeLocked = reverse.active || dietBreak.active;
 
   function handleResetTdee() {
     startResetTransition(async () => {
@@ -96,6 +107,24 @@ export function GoalSettings({
     });
   }
 
+  function handleStartBreak() {
+    startBreakTransition(async () => {
+      try {
+        await startDietBreakAction(breakDuration);
+        flash("Diet break started");
+      } catch (err) {
+        flash(err instanceof Error ? err.message : "Could not start");
+      }
+    });
+  }
+
+  function handleStopBreak() {
+    startBreakTransition(async () => {
+      await stopDietBreakAction();
+      flash("Diet break ended");
+    });
+  }
+
   const currentWeight =
     meta.current_weight_lbs != null
       ? `${Math.round(meta.current_weight_lbs * 10) / 10} lb`
@@ -108,12 +137,20 @@ export function GoalSettings({
   const summaryParts = [
     `${goals.calories} kcal`,
     `${goals.protein_g}g protein`,
-    reverse.active
-      ? "reverse diet"
-      : meta.weight_goal_lbs != null
-        ? `→ ${meta.weight_goal_lbs} lb`
-        : null,
+    dietBreak.active
+      ? "diet break"
+      : reverse.active
+        ? "reverse diet"
+        : meta.weight_goal_lbs != null
+          ? `→ ${meta.weight_goal_lbs} lb`
+          : null,
   ].filter(Boolean);
+
+  const durationOptions: { label: string; value: DietBreakDurationDays }[] = [
+    { label: "7 days", value: 7 },
+    { label: "14 days", value: 14 },
+    { label: "Open", value: null },
+  ];
 
   return (
     <Card className="space-y-0">
@@ -140,9 +177,61 @@ export function GoalSettings({
         <div className="border-border mt-4 space-y-4 border-t pt-4">
           <p className="body-copy text-sm">
             Calories and macros derive from your weight, lean mass, TDEE estimate,
-            small intake/weight nudges, and the goals below. Reverse diet overrides
-            the cut deficit and climbs calories weekly until weight stabilizes.
+            small intake/weight nudges, and the goals below. Diet break holds you
+            at maintenance; reverse diet climbs toward it after a cut.
           </p>
+
+          <div className="rounded-xl bg-[rgba(255,255,255,0.03)] px-3 py-3 space-y-2">
+            <span className="metric-label">Diet break</span>
+            <p className="text-sm font-semibold text-text-primary">
+              {dietBreak.headline}
+            </p>
+            <p className="text-text-muted text-xs">{dietBreak.detail}</p>
+            {dietBreak.active ? (
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleStopBreak}
+                  disabled={breakPending}
+                >
+                  End diet break
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-1">
+                <div className="flex flex-wrap gap-2">
+                  {durationOptions.map((opt) => (
+                    <button
+                      key={String(opt.value)}
+                      type="button"
+                      onClick={() => setBreakDuration(opt.value)}
+                      className={cn(
+                        "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                        breakDuration === opt.value
+                          ? "border-border-strong text-text-primary bg-[rgba(255,255,255,0.07)]"
+                          : "border-border text-text-muted hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleStartBreak}
+                  disabled={breakPending}
+                >
+                  {breakPending ? "Starting…" : "Start diet break"}
+                </Button>
+                {reverse.active ? (
+                  <p className="text-text-muted text-xs">
+                    Starts maintenance eating and ends the active reverse diet.
+                  </p>
+                ) : null}
+              </div>
+            )}
+          </div>
 
           <div className="rounded-xl bg-[rgba(255,255,255,0.03)] px-3 py-3 space-y-2">
             <span className="metric-label">Reverse diet</span>
@@ -180,6 +269,11 @@ export function GoalSettings({
                 </Button>
               )}
             </div>
+            {!reverse.active && dietBreak.active ? (
+              <p className="text-text-muted text-xs">
+                Starts the reverse ramp and ends the active diet break.
+              </p>
+            ) : null}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -191,7 +285,7 @@ export function GoalSettings({
                 placeholder="e.g. 175"
                 value={weightGoal}
                 onChange={(e) => setWeightGoal(e.target.value)}
-                disabled={reverse.active}
+                disabled={modeLocked}
               />
             </Field>
             <Field label="Body fat goal (%)">
@@ -202,7 +296,7 @@ export function GoalSettings({
                 placeholder="e.g. 15"
                 value={bodyFatGoal}
                 onChange={(e) => setBodyFatGoal(e.target.value)}
-                disabled={reverse.active}
+                disabled={modeLocked}
               />
             </Field>
           </div>
@@ -237,7 +331,7 @@ export function GoalSettings({
             <Button
               type="button"
               onClick={handleSave}
-              disabled={pending || reverse.active}
+              disabled={pending || modeLocked}
             >
               {pending ? "Saving…" : "Save goals"}
             </Button>

@@ -26,6 +26,14 @@ import {
   reverseTargetCalories,
   type ReverseDietView,
 } from "@/lib/reverse-diet";
+import {
+  buildDietBreakStart,
+  dietBreakView,
+  parseDietBreakState,
+  reviewDietBreak,
+  type DietBreakDurationDays,
+  type DietBreakView,
+} from "@/lib/diet-break";
 import { buildWeightMetrics } from "@/lib/cut-coach";
 import { sumTakenSupplements } from "@/lib/supplement-nutrition";
 import {
@@ -42,7 +50,7 @@ import {
   dateRangeFromToday,
 } from "@/lib/trends/nutrition-weight";
 import type { DualTrendView } from "@/lib/trends/types";
-import type { Meal, ReverseDietState } from "@/types";
+import type { DietBreakState, Meal, ReverseDietState } from "@/types";
 import {
   getAlcoholCaloriesByDay,
   getAlcoholCaloriesForDate,
@@ -82,6 +90,22 @@ async function persistReverseDietState(
   await db
     .from("user_settings")
     .update({ reverse_diet_state: state })
+    .eq("id", row.id);
+}
+
+async function persistDietBreakState(
+  state: DietBreakState | null,
+): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("user_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (!row) return;
+  await db
+    .from("user_settings")
+    .update({ diet_break_state: state })
     .eq("id", row.id);
 }
 
@@ -156,6 +180,15 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     }
   }
 
+  let dietBreak = parseDietBreakState(settings?.diet_break_state);
+  if (dietBreak?.active) {
+    const reviewed = reviewDietBreak({ state: dietBreak, today });
+    if (reviewed.changed) {
+      dietBreak = reviewed.state;
+      await persistDietBreakState(dietBreak);
+    }
+  }
+
   return {
     weight_lbs: profile.weight_lbs,
     body_fat_pct,
@@ -168,6 +201,7 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     adaptive: snapshot,
     water_goal_ml: settings?.water_goal_ml ?? null,
     reverseDiet,
+    dietBreak,
   };
 }
 
@@ -199,6 +233,19 @@ export async function getReverseDietStatus(): Promise<ReverseDietView> {
   });
 }
 
+export async function getDietBreakStatus(): Promise<DietBreakView> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const goals = await getNutritionGoals(today);
+  const settings = await getUserSettings();
+  const state = parseDietBreakState(settings?.diet_break_state);
+  return dietBreakView({
+    state,
+    today,
+    maintenance: goals.meta.maintenance_calories,
+  });
+}
+
 /** Begin reverse diet at the current (usually cut) calorie target. */
 export async function startReverseDiet(): Promise<ReverseDietState> {
   const timezone = await getTimezone();
@@ -207,9 +254,23 @@ export async function startReverseDiet(): Promise<ReverseDietState> {
   const existing = parseReverseDietState(settings?.reverse_diet_state);
   if (existing?.active) return existing;
 
-  // Compute goals without reverse so we capture the cut target as the baseline.
+  // Ending an active diet break — reverse and break are mutually exclusive.
+  const breakState = parseDietBreakState(settings?.diet_break_state);
+  if (breakState?.active) {
+    await persistDietBreakState({
+      ...breakState,
+      active: false,
+      completed_at: today,
+    });
+  }
+
+  // Compute goals without reverse/break so we capture the cut target as baseline.
   const inputs = await gatherGoalInputs(today);
-  const baselineInputs: GoalInputs = { ...inputs, reverseDiet: null };
+  const baselineInputs: GoalInputs = {
+    ...inputs,
+    reverseDiet: null,
+    dietBreak: null,
+  };
   const baseline = computeNutritionGoals(baselineInputs);
   const weight = baseline.meta.current_weight_lbs;
   if (weight == null) throw new Error("Log a weigh-in before starting reverse diet.");
@@ -262,6 +323,61 @@ export async function bumpReverseDietNow(): Promise<ReverseDietState> {
   }
   await persistReverseDietState(next);
   return next;
+}
+
+/** Begin a diet break — pin calories at maintenance for a set or open stretch. */
+export async function startDietBreak(
+  durationDays: DietBreakDurationDays = null,
+): Promise<DietBreakState> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const settings = await getUserSettings();
+  const existing = parseDietBreakState(settings?.diet_break_state);
+  if (existing?.active) return existing;
+
+  // Ending an active reverse — mutually exclusive with diet break.
+  const reverse = parseReverseDietState(settings?.reverse_diet_state);
+  if (reverse?.active) {
+    await persistReverseDietState({
+      ...reverse,
+      active: false,
+      completed_at: today,
+      hold_until: null,
+    });
+  }
+
+  const inputs = await gatherGoalInputs(today);
+  const baseline = computeNutritionGoals({
+    ...inputs,
+    reverseDiet: null,
+    dietBreak: null,
+  });
+  const weight = baseline.meta.current_weight_lbs;
+  if (weight == null) throw new Error("Log a weigh-in before starting a diet break.");
+
+  const state = buildDietBreakStart({
+    today,
+    start_weight_lbs: weight,
+    duration_days: durationDays,
+  });
+  await persistDietBreakState(state);
+  return state;
+}
+
+export async function stopDietBreak(): Promise<void> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const settings = await getUserSettings();
+  const existing = parseDietBreakState(settings?.diet_break_state);
+  if (!existing) {
+    await persistDietBreakState(null);
+    return;
+  }
+  await persistDietBreakState({
+    ...existing,
+    active: false,
+    completed_at: existing.completed_at ?? today,
+  });
 }
 
 export async function saveNutritionTargets(input: {

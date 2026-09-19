@@ -5,6 +5,7 @@ import { NutritionApp } from "@/components/nutrition/NutritionApp";
 import {
   getCalorieTrend,
   getDailyTotals,
+  getDietBreakStatus,
   getMealsForDate,
   getNutritionGoals,
   getNutritionWeightTrends,
@@ -34,6 +35,7 @@ export default async function NutritionPage({
     totals,
     goals,
     reverse,
+    dietBreak,
     calorieTrend,
     nutritionWeightTrends,
     alcohol,
@@ -43,6 +45,7 @@ export default async function NutritionPage({
     getDailyTotals(logDate),
     getNutritionGoals(logDate),
     getReverseDietStatus(),
+    getDietBreakStatus(),
     getCalorieTrend(7),
     getNutritionWeightTrends(30),
     getAlcoholLogForDate(logDate),
@@ -68,6 +71,7 @@ export default async function NutritionPage({
         totals={totals}
         goals={goals}
         reverse={reverse}
+        dietBreak={dietBreak}
         calorieTrend={calorieTrend}
         nutritionWeightTrends={nutritionWeightTrends}
         alcoholHabitId={alcohol.habitId}

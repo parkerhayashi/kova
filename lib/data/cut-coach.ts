@@ -172,6 +172,7 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
     body_fat_pct: goals.meta.current_body_fat_pct ?? profile.body_fat_pct,
     body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
     reverse_diet_active: goals.meta.reverse_diet_active,
+    diet_break_active: goals.meta.diet_break_active,
   });
 
   const readinessToday =

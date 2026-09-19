@@ -1,8 +1,9 @@
 import { rollingAverageWeight, type WeightEntry } from "@/lib/coach-composition";
+import { applyDietBreakCalories } from "@/lib/diet-break";
 import { DEFAULT_GOALS, type NutritionGoals } from "@/lib/nutrition";
 import { applyReverseDietCalories } from "@/lib/reverse-diet";
 import { addDays } from "@/lib/utils";
-import type { ReverseDietState } from "@/types";
+import type { DietBreakState, ReverseDietState } from "@/types";
 
 const LB_PER_KG = 2.204_622_621_8;
 const KCAL_PER_LB = 3500;
@@ -100,6 +101,9 @@ export type NutritionGoalMeta = {
   reverse_diet_active: boolean;
   reverse_diet_added_kcal: number;
   reverse_diet_detail: string | null;
+  /** Temporary eat-at-maintenance pause during a cut. */
+  diet_break_active: boolean;
+  diet_break_detail: string | null;
 };
 
 export type ComputedNutritionGoals = NutritionGoals & { meta: NutritionGoalMeta };
@@ -116,6 +120,7 @@ export type GoalInputs = {
   adaptive?: AdaptiveEnergySnapshot | null;
   water_goal_ml: number | null;
   reverseDiet?: ReverseDietState | null;
+  dietBreak?: DietBreakState | null;
 };
 
 export function lbsToKg(lbs: number): number {
@@ -533,8 +538,17 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
   let reverse_diet_active = false;
   let reverse_diet_added_kcal = 0;
   let reverse_diet_detail: string | null = null;
+  let diet_break_active = false;
+  let diet_break_detail: string | null = null;
 
-  if (input.reverseDiet?.active) {
+  if (input.dietBreak?.active) {
+    const brk = applyDietBreakCalories({ maintenance });
+    calories = brk.calories;
+    adjustment = brk.adjustment;
+    reason = brk.reason;
+    diet_break_active = true;
+    diet_break_detail = brk.reason;
+  } else if (input.reverseDiet?.active) {
     const rev = applyReverseDietCalories({
       state: input.reverseDiet,
       maintenance,
@@ -590,6 +604,8 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
       reverse_diet_active,
       reverse_diet_added_kcal,
       reverse_diet_detail,
+      diet_break_active,
+      diet_break_detail,
     },
   };
 }

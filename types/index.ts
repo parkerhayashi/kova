@@ -601,6 +601,18 @@ export type ReverseDietState = {
   completed_at: string | null;
 };
 
+/** Temporary eat-at-maintenance pause during a cut (no calorie ramp). */
+export type DietBreakState = {
+  active: boolean;
+  started_at: string;
+  start_weight_lbs: number;
+  /** Planned length in days; null = open-ended. */
+  duration_days: number | null;
+  /** Inclusive end date when duration_days was set; null if open-ended. */
+  ends_on: string | null;
+  completed_at: string | null;
+};
+
 export type HabitKind = "positive" | "track";
 
 export interface Habit {
@@ -675,6 +687,8 @@ export interface UserSettings {
   visual_body_fat_state: VisualBodyFatState | null;
   /** Gradual reverse-diet ramp after a cut. */
   reverse_diet_state: ReverseDietState | null;
+  /** Temporary eat-at-maintenance pause during a cut. */
+  diet_break_state: DietBreakState | null;
   oura_last_synced_at: string | null;
   hevy_last_synced_at: string | null;
   updated_at: string;

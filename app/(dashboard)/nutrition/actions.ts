@@ -5,7 +5,9 @@ import {
   bumpReverseDietNow,
   resetAdaptiveEnergyState as persistAdaptiveReset,
   saveNutritionTargets as persistTargets,
+  startDietBreak as persistStartDietBreak,
   startReverseDiet as persistStartReverse,
+  stopDietBreak as persistStopDietBreak,
   stopReverseDiet as persistStopReverse,
   addMeal,
   deleteMeal,
@@ -17,7 +19,14 @@ import {
 } from "@/lib/data/saved-meals";
 import { buildMealRow } from "@/lib/nutrition";
 import { sumSavedMealComponents } from "@/lib/saved-meals";
-import type { NutrientProfile, ReverseDietState, SavedMeal, SavedMealComponent } from "@/types";
+import type { DietBreakDurationDays } from "@/lib/diet-break";
+import type {
+  DietBreakState,
+  NutrientProfile,
+  ReverseDietState,
+  SavedMeal,
+  SavedMealComponent,
+} from "@/types";
 
 function refresh() {
   revalidatePath("/nutrition");
@@ -89,6 +98,19 @@ export async function bumpReverseDietAction(): Promise<ReverseDietState> {
   const state = await bumpReverseDietNow();
   refresh();
   return state;
+}
+
+export async function startDietBreakAction(
+  durationDays: DietBreakDurationDays = null,
+): Promise<DietBreakState> {
+  const state = await persistStartDietBreak(durationDays);
+  refresh();
+  return state;
+}
+
+export async function stopDietBreakAction(): Promise<void> {
+  await persistStopDietBreak();
+  refresh();
 }
 
 export async function saveSavedMealAction(input: {

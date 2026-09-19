@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import type { DailyTotals } from "@/lib/nutrition";
+import type { DietBreakView } from "@/lib/diet-break";
 import type { ReverseDietView } from "@/lib/reverse-diet";
 import type { Meal, SavedMeal } from "@/types";
 
@@ -30,6 +31,7 @@ export function NutritionApp({
   totals,
   goals,
   reverse,
+  dietBreak,
   calorieTrend,
   nutritionWeightTrends,
   alcoholHabitId,
@@ -43,6 +45,7 @@ export function NutritionApp({
   totals: DailyTotals;
   goals: ComputedNutritionGoals;
   reverse: ReverseDietView;
+  dietBreak: DietBreakView;
   calorieTrend: { date: string; calories: number; goal: number }[];
   nutritionWeightTrends: DualTrendView[];
   alcoholHabitId: string | null;
@@ -156,7 +159,7 @@ export function NutritionApp({
 
       <NutritionWeightTrends views={nutritionWeightTrends} />
 
-      <GoalSettings goals={goals} reverse={reverse} />
+      <GoalSettings goals={goals} reverse={reverse} dietBreak={dietBreak} />
     </div>
   );
 }

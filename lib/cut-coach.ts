@@ -10,7 +10,7 @@ import { addDays } from "@/lib/utils";
 
 export const COACH_MODEL = "claude-sonnet-4-6";
 
-export type CutPhase = "cut" | "bulk" | "maintain" | "reverse";
+export type CutPhase = "cut" | "bulk" | "maintain" | "reverse" | "diet_break";
 export type CutCoachMode = "daily" | "weekly";
 export type CutCoachStatus = "on_track" | "adjust" | "insufficient_data";
 
@@ -83,6 +83,8 @@ export function coachSectionTitle(phase: CutPhase): string {
       return "Maintain coach";
     case "reverse":
       return "Reverse diet coach";
+    case "diet_break":
+      return "Diet break coach";
   }
 }
 
@@ -96,6 +98,8 @@ export function coachPhaseLabel(phase: CutPhase): string {
       return "Maintain";
     case "reverse":
       return "Reverse";
+    case "diet_break":
+      return "Diet break";
   }
 }
 
@@ -122,6 +126,12 @@ function insufficientDataCopy(phase: CutPhase): {
         summary:
           "Log weight most mornings and hit calories on at least 5 of the last 7 days so the reverse ramp can review weekly.",
       };
+    case "diet_break":
+      return {
+        headline: "Need more logs for diet-break coaching",
+        summary:
+          "Log weight and calories on most days so the coach can confirm you are holding steady at maintenance.",
+      };
     default:
       return {
         headline: "Need more logs to coach your cut",
@@ -136,7 +146,9 @@ export function detectCutPhase(input: {
   body_fat_pct: number | null;
   body_fat_goal_pct: number | null;
   reverse_diet_active?: boolean;
+  diet_break_active?: boolean;
 }): CutPhase {
+  if (input.diet_break_active) return "diet_break";
   if (input.reverse_diet_active) return "reverse";
   const weight = input.weight_lbs;
   const goal = input.weight_goal_lbs;
@@ -572,6 +584,31 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     }
   }
 
+  if (phase === "diet_break") {
+    const drifting = rate != null && Math.abs(rate) > 0.35;
+    const steady = rate != null && Math.abs(rate) <= 0.25;
+    return {
+      status: drifting ? "adjust" : "on_track",
+      headline: drifting
+        ? isWeekly
+          ? "Scale moving on the break"
+          : "Watch the scale this break"
+        : isWeekly
+          ? "Holding maintenance this week"
+          : "Diet break at maintenance",
+      summary: steady
+        ? `Goal ${goalCal} (maintenance ~${ctx.nutrition.maintenance_calories}) with pace ${formatRate(rate)}/wk.`
+        : `Goal ${goalCal} at maintenance ~${ctx.nutrition.maintenance_calories}. Pace ${formatRate(rate)}/wk.`,
+      action: drifting
+        ? "Keep eating at the maintenance target and check weigh-ins for consistency — don't resume the cut early."
+        : "Stay at maintenance until the break ends, then resume the cut deficit.",
+      mode: ctx.mode,
+      phase,
+      generated_at: now,
+      source: "rules",
+    };
+  }
+
   if (phase === "reverse") {
     const risingFast = rate != null && rate > 0.45;
     const stable = rate != null && Math.abs(rate) <= 0.25;
@@ -645,7 +682,7 @@ Rules:
 - Bulk: always treat as LEAN bulk — target ~0.25–0.75 lb/week gain, not aggressive surges. Flag: gaining >1 lb/week, flat weight at surplus, losing weight, strength down >2% while gaining, protein hit <5/7 days. Prefer small calorie nudges (+/−100–150 kcal), never "eat big" advice.
 - Maintain: weight stable within ~0.2 lb/week at goal.
 - Reverse: climbing calories ~100/week toward maintenance until weight stabilizes. Flag: gaining >0.45 lb/week (hold the ramp), still losing at a large gap below maintenance (stay the course), near maintenance and flat (ready to finish). Never suggest jumping calories by more than ~100–150 at once.
-- Match tone and headline to phase (cut / lean bulk / maintain / reverse diet coach).
+- Match tone and headline to phase (cut / lean bulk / maintain / reverse diet / diet break coach).
 - Be direct, no medical advice, no hype. 1 headline (≤12 words), 2 short summary sentences, 1 concrete action.
 - status: on_track | adjust | insufficient_data (use insufficient_data only if logged_days_7d < 5 or no weight).
 
