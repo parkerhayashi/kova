@@ -20,6 +20,8 @@ import type {
   Activity,
   HeartRateDaily,
   OuraProfile,
+  OuraSession,
+  OuraTag,
   OuraWorkout,
   Readiness,
   Sleep,
@@ -217,6 +219,26 @@ export async function getOuraWorkouts(days: number): Promise<OuraWorkout[]> {
     .gte("day", isoDaysAgo(days))
     .order("start_datetime", { ascending: false });
   return (data as OuraWorkout[]) ?? [];
+}
+
+export async function getOuraSessions(days: number): Promise<OuraSession[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("oura_sessions")
+    .select("*")
+    .gte("day", isoDaysAgo(days))
+    .order("start_datetime", { ascending: false });
+  return (data as OuraSession[]) ?? [];
+}
+
+export async function getOuraTags(days: number): Promise<OuraTag[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("oura_tags")
+    .select("*")
+    .gte("start_day", isoDaysAgo(days))
+    .order("start_day", { ascending: false });
+  return (data as OuraTag[]) ?? [];
 }
 
 export interface SyncResult {

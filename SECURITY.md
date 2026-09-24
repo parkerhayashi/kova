@@ -24,6 +24,7 @@ Kova aggregates personal health and lifestyle data (Oura Ring, habits, weight, w
 - **Least privilege:** Integration secrets (Oura, Hevy, Plaid, Supabase service role, cron secret, encryption key) exist only in server-side environment variables. They are never exposed to client components or `NEXT_PUBLIC_*` variables.
 - **Database:** All tables have Row Level Security enabled with no permissive policies, so the public anon key cannot read or write rows. The application uses the Supabase service role exclusively in server-side code.
 - **Cron routes:** `/api/sync/*` endpoints authenticate with a `Bearer` token (`CRON_SECRET`), not the session cookie.
+- **Muse connector:** `/api/muse/*` data routes authenticate with a separate `Bearer` token (`MUSE_API_TOKEN`). The OpenAPI spec and setup brief are public; all health data requires the token. The Muse token is read-only and must not be reused as `CRON_SECRET`.
 - **OAuth:** Third-party OAuth flows use a random `state` value stored in an HttpOnly cookie to prevent CSRF.
 
 ## Encryption

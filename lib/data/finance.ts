@@ -313,3 +313,18 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     transactions: (recent as FinancialTransaction[]) ?? [],
   };
 }
+
+export async function getFinancialTransactionsSince(
+  since: string,
+  limit = 250,
+): Promise<FinancialTransaction[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("financial_transactions")
+    .select("*")
+    .gte("date", since)
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return (data as FinancialTransaction[]) ?? [];
+}

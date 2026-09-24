@@ -25,6 +25,8 @@ export function proxy(request: NextRequest) {
   // not the session cookie, so let them reach their own guard.
   if (pathname.startsWith("/api/sync")) return NextResponse.next();
   if (pathname === "/api/hevy/webhook") return NextResponse.next();
+  // Muse custom connector uses MUSE_API_TOKEN, not the session cookie.
+  if (pathname.startsWith("/api/muse")) return NextResponse.next();
   if (isPublic(pathname)) return NextResponse.next();
 
   const token = request.cookies.get(AUTH_COOKIE)?.value;
