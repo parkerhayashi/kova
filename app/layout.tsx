@@ -22,7 +22,11 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    // "black" (not "black-translucent"): keep web content below a solid status
+    // bar so the sticky TopBar pills don't sit inside the top safe-area inset,
+    // which iOS 26/27 renders as a frosted "Liquid Glass" layer. The app is
+    // pure black, so a solid black status bar looks identical, minus the glass.
+    statusBarStyle: "black",
     title: "Kova",
   },
 };
