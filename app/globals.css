@@ -697,6 +697,28 @@ input[type="number"]::-webkit-outer-spin-button {
  * Persistent quick-stats top bar. Monochrome chrome (per blueprint §4);
  * only the status dots carry a data accent.
  */
+/*
+ * Fixed, viewport-spanning, opaque scroll shell. Required to defeat iOS 26's
+ * scroll-edge blur on the installed PWA: Safari skips the effect when top-edge
+ * content sits inside a fixed/sticky container that spans the viewport with an
+ * opaque background. The sticky .topbar is a child of this shell.
+ */
+.kova-scroll {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--color-background);
+  overscroll-behavior-y: none;
+}
+
+@media print {
+  .kova-scroll {
+    position: static;
+    overflow: visible;
+  }
+}
+
 .topbar {
   position: sticky;
   top: 0;
