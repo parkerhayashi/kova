@@ -1,6 +1,6 @@
 {
   "syncedAt": "2026-06-10T14:04:07.783Z",
-  "source": "netnutrition.cbord.com/nn-prod/Duke + food-devil legacy",
+  "source": "netnutrition.cbord.com/nn-prod/Duke + food-devil legacy + partial re-scrape (J.B.'s, It's Thyme)",
   "locations": [
     {
       "id": "beyu-blue-coffee",
@@ -58,9 +58,14 @@
       "itemCount": 136
     },
     {
+      "id": "it-s-thyme",
+      "name": "It's Thyme",
+      "itemCount": 35
+    },
+    {
       "id": "j-b-s-roast-chops",
       "name": "J.B.'s Roast & Chops",
-      "itemCount": 42
+      "itemCount": 57
     },
     {
       "id": "mcdonald-s",
@@ -2035,982 +2040,6 @@
         "sugar_g": 0
       },
       "ingredients": "Lemon 165 CT"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-braised-beef-brisket",
-      "name": "Braised Beef Brisket",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "5 oz Portion (142g)",
-      "serving_size_g": 142,
-      "tags": [],
-      "nutrients": {
-        "calories": 280,
-        "protein_g": 45,
-        "carbs_g": 0,
-        "fat_g": 9,
-        "saturated_fat_g": 3.5,
-        "cholesterol_mg": 135,
-        "sodium_mg": 1540,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Beef Brisket Choice Angus 120 Deckle Off, Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-chili-rubbed-mahi-mahi",
-      "name": "Chili Rubbed Mahi Mahi",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "6 oz Portion (170g)",
-      "serving_size_g": 170,
-      "tags": [],
-      "nutrients": {
-        "calories": 190,
-        "protein_g": 25,
-        "carbs_g": 0,
-        "fat_g": 10,
-        "saturated_fat_g": 1,
-        "cholesterol_mg": 105,
-        "sodium_mg": 660,
-        "fiber_g": 0
-      },
-      "ingredients": "Mahi Mahi 8 oz Piece Bnls Sknls Raw IQF(MAHI MAHI), Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Mild Chili Powder(CHILI PEPPER AND OTHER SPICES, SALT AND GARLIC POWDER.), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Red Wine Shallot Butter(Unsalted Solid Butter(PASTEURIZED CREAM, NATURAL FLAVORINGS), Burgundy Wine(BURGUNDY WINE, SALT, POTASSIUM SORBATE TO PRESERVE FRESHNESS, POTASSIUM METABISULFITE ADDED TO PROTECT COLOR. THIS PRODUCT IS GLUTEN FREE. 11 ALCOHOL BY VOLUME. 1.5 SALT ADDED), Peeled Shallots, Fresh Curly Parsley Herb)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-flank-steak",
-      "name": "Flank Steak",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "10 oz Portion (283g)",
-      "serving_size_g": 283,
-      "tags": [],
-      "nutrients": {
-        "calories": 580,
-        "protein_g": 58,
-        "carbs_g": 12,
-        "fat_g": 31,
-        "saturated_fat_g": 13,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 140,
-        "sodium_mg": 4330,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Beef Flank Steak Choice 193 Raw, Sauce Worcestershire(WATER, DISTILLED VINEGAR, SOY SAUCE (WATER, SALT, HYDROLYZED SOY PROTEIN, CORN SYRUP, CARAMEL COLOR, POTASSIUM SORBATE (PRESERVATIVE), SUGAR, CORN SYRUP, SALT, TAMARIND EXTRACT, CARAMEL COLOR, SPICES, CITRIC ACID, GARLIC*, ONION*, XANTHAN GUM, NATURAL FLAVORS, POTASSIUM SORBATE (A PRESERVATIVE). *DEHYDRATED.), Soy Sauce(WATER, WHEAT, SOYBEANS, SALT, SODIUM BENZOATE: LESS THAN 1/10 OF 1 AS A PRESERVATIVE, MIXING AGENT), Granulated Garlic(GRANULATED GARLIC.), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-grilled-chicken-breast",
-      "name": "Grilled Chicken Breast",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "6 oz Portion (169g)",
-      "serving_size_g": 169,
-      "tags": [],
-      "nutrients": {
-        "calories": 260,
-        "protein_g": 54,
-        "carbs_g": 0,
-        "fat_g": 5,
-        "saturated_fat_g": 1.5,
-        "cholesterol_mg": 195,
-        "sodium_mg": 80,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Chicken Breast Dbl Lobe Bnls Sknls 6 oz, Marinade Basic Herb(75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Fresh Basil Herb(FRESH BASIL.), Washed & Destemmed Fresh Parsley Herb, Garlic White Whole Clove Pld 4/5lb, Herb Thyme Fresh 8 oz(FRESH THYME.), Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), zz Fresh Tarragon Herb(FRESH TARRAGON))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-grilled-salmon",
-      "name": "Grilled Salmon",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "6 oz Portion (169g)",
-      "serving_size_g": 169,
-      "tags": [],
-      "nutrients": {
-        "calories": 310,
-        "protein_g": 42,
-        "carbs_g": 0,
-        "fat_g": 14,
-        "saturated_fat_g": 2.5,
-        "cholesterol_mg": 95,
-        "sodium_mg": 730,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Salmon Fillet, Marinade Basic Herb(75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Fresh Basil Herb(FRESH BASIL.), Washed & Destemmed Fresh Parsley Herb, Garlic White Whole Clove Pld 4/5lb, Herb Thyme Fresh 8 oz(FRESH THYME.), Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), zz Fresh Tarragon Herb(FRESH TARRAGON))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-paella-mixta",
-      "name": "Paella Mixta",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "8 oz Portion (227g)",
-      "serving_size_g": 227,
-      "tags": [],
-      "nutrients": {
-        "calories": 560,
-        "protein_g": 23,
-        "carbs_g": 64,
-        "fat_g": 21,
-        "saturated_fat_g": 7,
-        "cholesterol_mg": 70,
-        "sodium_mg": 1220,
-        "fiber_g": 3,
-        "sugar_g": 1
-      },
-      "ingredients": "Rice Arborio Raw Superfino Imported Ital(ITALIAN ARBORIO RICE), Pork Sausage Chorizo Ground Raw Frz(PORK, WATER, SALT, PAPRIKA, GARLIC, NATURAL FLAVORING, PACKED IN COLLAGEN OR HOG CASING), Chicken Breast(CHICKEN. MAY CONTAIN UP TO 4% RETAINED WATER), Shrimp Raw 31-35 White Peeled Deveined, Pea Green Fancy Imported IQF, Tomato 4x5, Pepper Bell Red Choice 22-28, Spanish Sofrito JB's(Cnd Diced NSA Tomatoes in Juice(VINE-RIPENED TOMATOES, TOMATO JUICE, LESS THAN 2% OF: CALCIUM CHLORIDE, CITRIC ACID.), Jumbo Red Onion, 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Pepper Bell Red Choice 22-28, Herb Cilantro Fresh 4 oz, Garlic White Whole Clove Pld 4/5lb, Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Spice Thyme Dried Leaf(THYME LEAVES.)), 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Base Chicken Rstd Paste No Msg(ROASTED CHICKEN AND CHICKEN FAT, SALT, AUTOLYZED YEAST EXTRACT, CHICKEN FLAVOR (WITH HYDROLYZED CORN SOY WHEAT GLUTEN PROTEIN, MALTODEXTRIN, EGG YOLK, YEAST EXTRACT, DEHYDRATED COOKED CHICKEN, MODIFIED FOOD STARCH), FLAVOR (WITH TORULA YEAST), DISODIUM INOSINATE, DISODIUM GUANYLATE, POTATO STARCH, TURMERIC.), Garlic White Whole Clove Pld 4/5lb, Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Saffron Thread"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-pollo-a-la-brasa",
-      "name": "Pollo a la Brasa",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "Quarter Portion (145g)",
-      "serving_size_g": 145,
-      "tags": [],
-      "nutrients": {
-        "calories": 350,
-        "protein_g": 37,
-        "carbs_g": 0,
-        "fat_g": 21,
-        "saturated_fat_g": 5,
-        "cholesterol_mg": 120,
-        "sodium_mg": 900,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Chicken Half 14 Hd 3-3.25 Lb, Marinade Ancho Chili(Pepper Chili Ancho Dried(SALT, ANCHO CHILI PEPPER AND OTHER SPICES, DEHYDRATED GARLIC, DEHYDRATED RED AND GREEN BELL PEPPERS, DEHYDRATED ONION, SUGAR, RED PEPPER, SPICE EXTRACTIVES.), 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Vinegar Wine White TFF Roland(WHITE WINE VINEGAR, SODIUM METABISULFITE OR SODIUM BISULFITE AS A PRESERVATIVE), Jumbo Yellow Onion(ONION), Cnd Whole Chipotle Peppers in Adobo(CHIPOTLE PEPPERS, VINEGAR, TOMATOES, ONIONS, SUGAR, IODIZED SALT, PAPRIKA, SOY BEAN OIL AND SPICES.), Garlic White Whole Clove Pld 4/5lb, Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Sauce Soy Tamari Gluten Free 1/2 Gal(WATER,SOYBEANS,SALT,SUGAR,BREWING STARTER), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Dried Oregano Leaf(WHOLE OREGANO LEAVES.))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:wood-fired-classics-shrimp-scampi",
-      "name": "Shrimp Scampi",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Wood Fired Classics",
-      "menu": null,
-      "servingSize": "9 oz Portion (251g)",
-      "serving_size_g": 251,
-      "tags": [],
-      "nutrients": {
-        "calories": 580,
-        "protein_g": 31,
-        "carbs_g": 3,
-        "fat_g": 49,
-        "saturated_fat_g": 20,
-        "cholesterol_mg": 370,
-        "sodium_mg": 3630
-      },
-      "ingredients": "Shrimp Raw 31-35 White Peeled Deveined, Red Wine Shallot Butter(Unsalted Solid Butter(PASTEURIZED CREAM, NATURAL FLAVORINGS), Burgundy Wine(BURGUNDY WINE, SALT, POTASSIUM SORBATE TO PRESERVE FRESHNESS, POTASSIUM METABISULFITE ADDED TO PROTECT COLOR. THIS PRODUCT IS GLUTEN FREE. 11 ALCOHOL BY VOLUME. 1.5 SALT ADDED), Peeled Shallots, Fresh Curly Parsley Herb), 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Lemon 165 CT"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:signature-sauces-and-butters-choose-1-beef-au-jus",
-      "name": "Beef Au Jus",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Signature Sauces and Butters (Choose 1)",
-      "menu": null,
-      "servingSize": "2 oz Ladle (56g)",
-      "serving_size_g": 56,
-      "tags": [],
-      "nutrients": {
-        "calories": 35,
-        "protein_g": 2,
-        "carbs_g": 6,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 1140,
-        "fiber_g": 1,
-        "sugar_g": 2
-      },
-      "ingredients": "Tomato Crushed Concentrated Canned 13% S(VINE-RIPENED FRESH TOMATOES, SALT AND NATURALLY DERIVED CITRIC ACID.), Jumbo Yellow Onion(ONION), Molly's Beef Base(ROASTED BEEF AND BEEF BROTH, SALT, HYDROLYZED SOY PROTEIN, MALTODEXTRIN, SUGAR, SOYBEAN OIL, FLAVORINGS, CARAMEL COLOR, DISODIUM INOSINATE, DISODIUM GUANYLATE.), Celery Stalk Fresh 36 CT, Jumbo Carrots, Whole Bay Leaf, 20 oz Distilled Water(WATER)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:signature-sauces-and-butters-choose-1-chimichurri-sauce",
-      "name": "Chimichurri Sauce",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Signature Sauces and Butters (Choose 1)",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 30,
-        "protein_g": 1,
-        "carbs_g": 4,
-        "fat_g": 1,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 500,
-        "fiber_g": 1,
-        "sugar_g": 0
-      },
-      "ingredients": "Vinegar Red Wine 50 Grain(RED WINE VINEGAR (DILUTED WITH WATER TO 5% ACIDITY), POTASSIUM METABISULFITE (PRESERVATIVE).), Parsley, Garlic White Whole Clove Pld 4/5lb, Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), Peeled Shallots, Dried Oregano Leaf(WHOLE OREGANO LEAVES.), Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:signature-sauces-and-butters-choose-1-chipotle-ranch-dressing",
-      "name": "Chipotle Ranch Dressing",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Signature Sauces and Butters (Choose 1)",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 270,
-        "protein_g": 0,
-        "carbs_g": 4,
-        "fat_g": 29,
-        "saturated_fat_g": 5,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 10,
-        "sodium_mg": 570,
-        "fiber_g": 0,
-        "sugar_g": 2
-      },
-      "ingredients": "Ranch Dressing(SOYBEAN OIL, WATER, CULTURED BUTTERMILK, DISTILLED VINEGAR, HIGH FRUCTOSE CORN SYRUP, BUTTERMILK SOLIDS, CONTAINS LESS THAN 2 OF SALT, EGG YOLK, ONION, MONOSODIUM GLUTAMATE, GARLIC, XANTHAN GUM, LACTIC ACID, NATURAL FLAVOR, POLYSORBATE 60, POTASSIUM SORBATE PRESERVATIVE, PHOSPHORIC ACID, PROPYLENE GLYCOL ALGINATE, SPICE. DRIED), Cnd Whole Chipotle Peppers in Adobo(CHIPOTLE PEPPERS, VINEGAR, TOMATOES, ONIONS, SUGAR, IODIZED SALT, PAPRIKA, SOY BEAN OIL AND SPICES.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:signature-sauces-and-butters-choose-1-honey-mustard-sauce",
-      "name": "Honey Mustard Sauce",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Signature Sauces and Butters (Choose 1)",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 230,
-        "protein_g": 1,
-        "carbs_g": 7,
-        "fat_g": 22,
-        "saturated_fat_g": 4.5,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 30,
-        "sodium_mg": 310,
-        "fiber_g": 0,
-        "sugar_g": 5
-      },
-      "ingredients": "Mayonnaise Extra-Heavy(SOYBEAN OIL, WATER, CORN SYRUP, EGG YOLK, DISTILLED AND CIDER VINEGAR, SALT, SPICE, CALCIUM DISODIUM EDTA ADDED TO PROTECT FLAVOR.), Sour Cream(CULTURED CREAM, ENZYME.), Mustard Yellow Monarch 1 Ga(WATER, DISTILLED VINEGAR, #1 MUSTARD SEED, SALT, TURMERIC, OLEORESIN PAPRIKA AND SPICES.), Lite Amber Honey(HONEY.), Vinegar Apple Cider Domestic 50 Grain(APPLE CIDER VINEGAR (DILUTED WITH WATER TO 5% ACIDITY)), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Smoked Paprika(PAPRIKA, AND SILICON DIOXIDE (ADDED TO MAKE FREE FLOWING).), Granulated Garlic(GRANULATED GARLIC.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:signature-sauces-and-butters-choose-1-house-steak-sauce",
-      "name": "House Steak Sauce",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Signature Sauces and Butters (Choose 1)",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 60,
-        "protein_g": 0,
-        "carbs_g": 13,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 530,
-        "fiber_g": 0,
-        "sugar_g": 9
-      },
-      "ingredients": "Ketchup Tomato Fancy Monarch(TOMATO CONCENTRATE, HIGH FRUCTOSE CORN SYRUP, DISTILLED VINEGAR, CORN SYRUP, SALT, LESS THAN 2% OF: SPICES, ONION POWDER, GARLIC POWDER, NATURAL FLAVORS), Sauce Worcestershire(WATER, DISTILLED VINEGAR, SOY SAUCE (WATER, SALT, HYDROLYZED SOY PROTEIN, CORN SYRUP, CARAMEL COLOR, POTASSIUM SORBATE (PRESERVATIVE), SUGAR, CORN SYRUP, SALT, TAMARIND EXTRACT, CARAMEL COLOR, SPICES, CITRIC ACID, GARLIC*, ONION*, XANTHAN GUM, NATURAL FLAVORS, POTASSIUM SORBATE (A PRESERVATIVE). *DEHYDRATED.), Vinegar Apple Cider Domestic 50 Grain(APPLE CIDER VINEGAR (DILUTED WITH WATER TO 5% ACIDITY)), Horseradish Prepared Monarch(HORSERADISH, DISTILLED VINEGAR, WATER, SOYBEAN OIL, SALT, ARTIFICIAL FLAVOR.), Hot Sauce Texas Pete 1 Gal(VINEGAR, AGED PEPPERS (PEPPERS, SALT, VINEGAR), WATER, XANTHAN GUM AND BENZOATE OF SODA (TO PRESERVE FRESHNESS AND FLAVOR)), Mustard Dijon Extra Strong Shelf Stable(WATER, MUSTARD SEEDS, VINEGAR, SALT, SULFITES AS A PRESERVATIVE), Sugar Brown Dark Dixie 50 LB(BROWN SUGAR (SUGAR, CANE SYRUPS))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:signature-sauces-and-butters-choose-1-red-wine-shallot-butter",
-      "name": "Red Wine Shallot Butter",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Signature Sauces and Butters (Choose 1)",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 330,
-        "protein_g": 1,
-        "carbs_g": 1,
-        "fat_g": 36,
-        "saturated_fat_g": 22,
-        "cholesterol_mg": 95,
-        "sodium_mg": 85,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Unsalted Solid Butter(PASTEURIZED CREAM, NATURAL FLAVORINGS), Burgundy Wine(BURGUNDY WINE, SALT, POTASSIUM SORBATE TO PRESERVE FRESHNESS, POTASSIUM METABISULFITE ADDED TO PROTECT COLOR. THIS PRODUCT IS GLUTEN FREE. 11 ALCOHOL BY VOLUME. 1.5 SALT ADDED), Peeled Shallots, Fresh Curly Parsley Herb"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:premium-accompaniments-balsamic-glazed-onions",
-      "name": "Balsamic Glazed Onions",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Premium Accompaniments",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 45,
-        "protein_g": 1,
-        "carbs_g": 5,
-        "fat_g": 2.5,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 0,
-        "fiber_g": 1,
-        "sugar_g": 2
-      },
-      "ingredients": "Jumbo Yellow Onion(ONION), 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Balsamic Vinegar(WINE VINEGAR, CONCENTRATED GRAPE MUST, CARAMEL COLOR), Garlic White Whole Clove Pld 4/5lb, Herb Thyme Fresh 8 oz(FRESH THYME.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:premium-accompaniments-red-wine-butter-mushrooms",
-      "name": "Red Wine Butter Mushrooms",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Premium Accompaniments",
-      "menu": null,
-      "servingSize": "2 oz Portion (61g)",
-      "serving_size_g": 61,
-      "tags": [],
-      "nutrients": {
-        "calories": 100,
-        "protein_g": 1,
-        "carbs_g": 3,
-        "fat_g": 9,
-        "saturated_fat_g": 3.5,
-        "cholesterol_mg": 15,
-        "sodium_mg": 15,
-        "fiber_g": 1,
-        "sugar_g": 1
-      },
-      "ingredients": "Medium Fresh Mushrooms, Red Wine Shallot Butter(Unsalted Solid Butter(PASTEURIZED CREAM, NATURAL FLAVORINGS), Burgundy Wine(BURGUNDY WINE, SALT, POTASSIUM SORBATE TO PRESERVE FRESHNESS, POTASSIUM METABISULFITE ADDED TO PROTECT COLOR. THIS PRODUCT IS GLUTEN FREE. 11 ALCOHOL BY VOLUME. 1.5 SALT ADDED), Peeled Shallots, Fresh Curly Parsley Herb), 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Garlic White Whole Clove Pld 4/5lb, Herb Thyme Fresh 8 oz(FRESH THYME.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:salads-apple-fennel-salad",
-      "name": "Apple Fennel Salad",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Salads",
-      "menu": null,
-      "servingSize": "Large (310g)",
-      "serving_size_g": 310,
-      "tags": [],
-      "nutrients": {
-        "calories": 360,
-        "protein_g": 4,
-        "carbs_g": 42,
-        "fat_g": 21,
-        "saturated_fat_g": 1.5,
-        "cholesterol_mg": 0,
-        "sodium_mg": 85,
-        "fiber_g": 9,
-        "sugar_g": 29
-      },
-      "ingredients": "Lettuce Romaine Hearts CL&TR Fresh(ROMAINE LETTUCE.), Apple Granny Smith 56 Ct(APPLE), White Wine Vinaigrette(Nutra Salad Canola Oil(CANOLA OIL), Vinegar Wine White TFF Roland(WHITE WINE VINEGAR, SODIUM METABISULFITE OR SODIUM BISULFITE AS A PRESERVATIVE), White Granulated Cane Sugar(GRANULATED SUGAR), Dijon Mustard(INGREDIENTS: WATER, VINEGAR, MUSTARD SEED, SALT, WHITE WINE,FRUIT PECTIN, CITRIC ACID, TARTARIC ACID, SUGAR, SPICE), Garlic White Whole Clove Pld 4/5lb, Dried Basil Leaf(WHOLE BASIL LEAVES.), Fresh Curly Parsley Herb, Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.))), Green Arugula(ARUGULA), Cranberry Dried Sweet(DRIED CRANBERRIES, SUGAR, SUNFLOWER OIL.), Fresh Fennel Herb"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:salads-strawberry-fields-salad",
-      "name": "Strawberry Fields Salad",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Salads",
-      "menu": null,
-      "servingSize": "Small (196g)",
-      "serving_size_g": 196,
-      "tags": [],
-      "nutrients": {
-        "calories": 120,
-        "protein_g": 5,
-        "carbs_g": 11,
-        "fat_g": 6,
-        "saturated_fat_g": 4,
-        "cholesterol_mg": 10,
-        "sodium_mg": 270,
-        "fiber_g": 2,
-        "sugar_g": 6
-      },
-      "ingredients": "Lettuce Romaine Hearts CL&TR Fresh(ROMAINE LETTUCE.), CUCUMBER LARGE ENGLISH SEEDLESS(ENGLISH LONG CUCUMBER.), Cheese Chevre Log Domestic Goat(PASTEURIZED GOAT MILK, CHEESE CULTURES, RENNET, SALT.), Salad Mix Mesclun Spring B, Strawberries, Balsamic Vinaigrette(WATER, BALSAMIC VINEGAR, HIGH FRUCTOSE CORN SYRUP, MALTODEXTRIN, CORN SYRUP SOLIDS, RED WINE VINEGAR, SALT,, CONTAINS LESS THAN 2% OF: BURGUNDY WINE, DISTILLED VINEGAR,, XANTHAN GUM, SPICES, POTASSIUM SORBATE AND CALCIUM DISODIUM, EDTA AS PRESERVATIVES, GARLIC, SODIUM ALGINATE, MODIFIED FOOD, STARCH, ONION, BEET POWDER, WHITE WINE, CITRIC ACID, TARTARIC, ACID.), Jumbo Red Onion"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:salad-add-ons-flank-steak",
-      "name": "Flank Steak",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Salad Add Ons",
-      "menu": null,
-      "servingSize": "5 oz Portion (142g)",
-      "serving_size_g": 142,
-      "tags": [],
-      "nutrients": {
-        "calories": 290,
-        "protein_g": 29,
-        "carbs_g": 6,
-        "fat_g": 16,
-        "saturated_fat_g": 7,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 70,
-        "sodium_mg": 2170,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Beef Flank Steak Choice 193 Raw, Sauce Worcestershire(WATER, DISTILLED VINEGAR, SOY SAUCE (WATER, SALT, HYDROLYZED SOY PROTEIN, CORN SYRUP, CARAMEL COLOR, POTASSIUM SORBATE (PRESERVATIVE), SUGAR, CORN SYRUP, SALT, TAMARIND EXTRACT, CARAMEL COLOR, SPICES, CITRIC ACID, GARLIC*, ONION*, XANTHAN GUM, NATURAL FLAVORS, POTASSIUM SORBATE (A PRESERVATIVE). *DEHYDRATED.), Soy Sauce(WATER, WHEAT, SOYBEANS, SALT, SODIUM BENZOATE: LESS THAN 1/10 OF 1 AS A PRESERVATIVE, MIXING AGENT), Granulated Garlic(GRANULATED GARLIC.), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:salad-add-ons-grilled-chicken-breast",
-      "name": "Grilled Chicken Breast",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Salad Add Ons",
-      "menu": null,
-      "servingSize": "6 oz Portion (169g)",
-      "serving_size_g": 169,
-      "tags": [],
-      "nutrients": {
-        "calories": 260,
-        "protein_g": 54,
-        "carbs_g": 0,
-        "fat_g": 5,
-        "saturated_fat_g": 1.5,
-        "cholesterol_mg": 195,
-        "sodium_mg": 80,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Chicken Breast Dbl Lobe Bnls Sknls 6 oz, Marinade Basic Herb(75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Fresh Basil Herb(FRESH BASIL.), Washed & Destemmed Fresh Parsley Herb, Garlic White Whole Clove Pld 4/5lb, Herb Thyme Fresh 8 oz(FRESH THYME.), Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), zz Fresh Tarragon Herb(FRESH TARRAGON))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-battered-onion-rings",
-      "name": "Battered Onion Rings",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "4 oz Portion (113g)",
-      "serving_size_g": 113,
-      "tags": [],
-      "nutrients": {
-        "calories": 270,
-        "protein_g": 6,
-        "carbs_g": 33,
-        "fat_g": 13,
-        "saturated_fat_g": 2,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 650,
-        "fiber_g": 1,
-        "sugar_g": 4
-      },
-      "ingredients": "Onion Rings Battered Beer(SWEET SPANISH ONIONS, WATER, BLEACHED WHEAT FLOUR, YELLOW CORN FLOUR. CONTAINS LESS THAN 2% OF: DRIED WHEY, SOY FLOUR, SUGAR, SALT, DEXTROSE, LEAVENING (MONOCALCIUM PHOSPHATE, SODIUM BICARBONATE), SOYBEAN OIL, POLYSORBATE 80. PREFRIED IN VEGETABLE OIL (SOYBEAN AND/OR CORN OIL).)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-cranberry-quinoa",
-      "name": "Cranberry Quinoa",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "3.5 oz Portion (99g)",
-      "serving_size_g": 99,
-      "tags": [],
-      "nutrients": {
-        "calories": 260,
-        "protein_g": 2,
-        "carbs_g": 57,
-        "fat_g": 3,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 630,
-        "fiber_g": 4,
-        "sugar_g": 39
-      },
-      "ingredients": "Cranberry Dried Sweet(DRIED CRANBERRIES, SUGAR, SUNFLOWER OIL.), Quinoa Base JB's(White Quinoa, Base Vegetable Paste Shelf Stable Jar(SAUTEED VEGETABLE PUREES (CARROT, CELERY, ONION), SALT, SUGAR, MALTODEXTRIN, CORN OIL, HYDROLYZED SOY PROTEIN, FOOD STARCH-MODIFIED, ONION POWDER, CARAMEL COLOR, TURMERIC (COLOR), SPICE EXTRACTIVE. CONTAINS: SOY), Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), 20 oz Distilled Water(WATER)), Chimichurri Sauce(Vinegar Red Wine 50 Grain(RED WINE VINEGAR (DILUTED WITH WATER TO 5% ACIDITY), POTASSIUM METABISULFITE (PRESERVATIVE).), Parsley, Garlic White Whole Clove Pld 4/5lb, Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), Peeled Shallots, Dried Oregano Leaf(WHOLE OREGANO LEAVES.), Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-dinner-roll",
-      "name": "Dinner Roll",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "Roll (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 220,
-        "protein_g": 5,
-        "carbs_g": 35,
-        "fat_g": 6,
-        "saturated_fat_g": 1,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 15,
-        "sodium_mg": 360,
-        "fiber_g": 1,
-        "sugar_g": 7
-      },
-      "ingredients": "Roll White UNSL Parkerhouse 2 oz FRZ(ENRICHED BLEACHED WHEAT FLOUR (BLEACHED WHEAT FLOUR, MALTED BARLEY FLOUR, NIACIN, IRON, THIAMIN MONONITRATE, RIBOFLAVIN, FOLIC ACID), WATER, SUGAR, EGGS, SOYBEAN OIL, SALT, HYDROGENATED COTTONSEED OIL, PARTIALLY HYDROGENATED SOYBEAN OIL, YEAST, MONO AND DIGYLCERIDES)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-garlic-and-parsley-fries",
-      "name": "Garlic and Parsley Fries",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "5 oz Portion (142g)",
-      "serving_size_g": 142,
-      "tags": [],
-      "nutrients": {
-        "calories": 130,
-        "protein_g": 3,
-        "carbs_g": 30,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 720,
-        "fiber_g": 3,
-        "sugar_g": 2
-      },
-      "ingredients": "Potato Russet Idaho 70 Ct, Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Washed & Destemmed Fresh Parsley Herb, Garlic White Whole Clove Pld 4/5lb"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-grilled-asparagus",
-      "name": "Grilled Asparagus",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 15,
-        "protein_g": 1,
-        "carbs_g": 3,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 25,
-        "fiber_g": 1,
-        "sugar_g": 1
-      },
-      "ingredients": "Standard Green Asparagus, Dressing, Vinaigrette Balsamic Monarch(WATER, HIGH FRUCTOSE CORN SYRUP, RED WINE VINEGAR, VEGETABLE OIL (SOYBEAN AND/OR CANOLA), BALSAMIC VINEGAR, CONTAINS LESS THAN 2% OF: SALT, GARLIC, XANTHAN GUM, SPICE, SODIUM ALGINATE, PROPYLENE GLYCOL ALGINATE, CARAMEL COLOR, CALCIUM DISODIUM EDTA TO PROTECT FLAVOR)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-mixed-vegetables",
-      "name": "Mixed Vegetables",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "3 oz Portion (86g)",
-      "serving_size_g": 86,
-      "tags": [],
-      "nutrients": {
-        "calories": 70,
-        "protein_g": 4,
-        "carbs_g": 11,
-        "fat_g": 3,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 35,
-        "fiber_g": 7,
-        "sugar_g": 1
-      },
-      "ingredients": "White Cauliflower, Fresh Fennel Herb, Medium Squash Zucchini, Medium Yellow Squash, Medium Red Onion, Yellow Bell Pepper(YELLOW BELL PEPPER), Pepper Bell Red Choice 22-28"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-roasted-garlic-mashed-potatoes",
-      "name": "Roasted Garlic Mashed Potatoes",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "4.5 oz Portion (127g)",
-      "serving_size_g": 127,
-      "tags": [],
-      "nutrients": {
-        "calories": 170,
-        "protein_g": 3,
-        "carbs_g": 29,
-        "fat_g": 4.5,
-        "saturated_fat_g": 2.5,
-        "cholesterol_mg": 15,
-        "sodium_mg": 15,
-        "fiber_g": 2,
-        "sugar_g": 1
-      },
-      "ingredients": "POTATO YUKON GOLD FRESH REF, Gallon Whole Milk Vit D(MILK, VITAMIN D3), Unsalted Solid Butter(PASTEURIZED CREAM, NATURAL FLAVORINGS), Garlic Roasted JB's(Garlic White Whole Clove Pld 4/5lb), Cream Heavy Whipping 40%"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:sides-steamed-broccoli",
-      "name": "Steamed Broccoli",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Sides",
-      "menu": null,
-      "servingSize": "3 oz Portion (85g)",
-      "serving_size_g": 85,
-      "tags": [],
-      "nutrients": {
-        "calories": 150,
-        "protein_g": 1,
-        "carbs_g": 4,
-        "fat_g": 16,
-        "saturated_fat_g": 1,
-        "cholesterol_mg": 0,
-        "sodium_mg": 3090,
-        "fiber_g": 2,
-        "sugar_g": 1
-      },
-      "ingredients": "Broccoli Florets, 75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:desserts-flourless-chocolate-torte",
-      "name": "Flourless Chocolate Torte",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Desserts",
-      "menu": null,
-      "servingSize": "Slice (82g)",
-      "serving_size_g": 82,
-      "tags": [],
-      "nutrients": {
-        "calories": 350,
-        "protein_g": 4,
-        "carbs_g": 29,
-        "fat_g": 26,
-        "saturated_fat_g": 15,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 85,
-        "sodium_mg": 125,
-        "fiber_g": 2,
-        "sugar_g": 23
-      },
-      "ingredients": "CHOCOLATE [SUGAR, UNSWEETENED CHOCOLATE, COCOA BUTTER, MILK FAT, SOY LECITHIN, VANILLA], SUGAR, EGGS, BUTTER, WATER, MARGARINE [VEGETABLE OIL (SOYBEAN & PALM OILS), WATER, SALT, MONO & DIGLYCERIDES, NONFAT DRY MILK, SOY LECITHIN, NATURAL FLAVOR, VITAMIN A PALMITATE, BETA CAROTENE], EVAPORATED MILK [MILK, DIPOTASSIUM PHOSPHATE, CARRAGEENAN, VITAMIN D3], GLUCOSE, COCONUT OIL, MADAGASCAR VANILLA, SOY LECITHIN, SALT."
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:desserts-tiramisu",
-      "name": "Tiramisu",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Desserts",
-      "menu": null,
-      "servingSize": "Slice (163g)",
-      "serving_size_g": 163,
-      "tags": [],
-      "nutrients": {
-        "calories": 450,
-        "protein_g": 7,
-        "carbs_g": 44,
-        "fat_g": 240,
-        "saturated_fat_g": 9,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 145,
-        "sodium_mg": 105,
-        "fiber_g": 1,
-        "sugar_g": 25
-      },
-      "ingredients": "JB's Tiramisu(CREAM, WATER, LADYFINGERS [WHEAT FLOUR, SUGAR, PASTEURIZED WHOLE EGGS, DISODIUM DIPHOSPHATE, SODIUM CARBONATE ACID, AMMONIUM CARBONATE ACID, GLUCOSE SYRUP, FLAVORING, SALT], MASCARPONE CHEESE [PASTEURIZED MILK, CREAM, CITRIC ACID], GLUCOSE,EGGS, SUGAR, COFFEE, COFFEE BRANDY [WATER, SUGAR, ETHYL ALCOHOL, NATURAL FLAVOR, CARAMEL COLOR], CHOCOLATE NEW SNOW [DEXTROSE, COCOA, PALM OIL, NATURAL FLAVOR], GELATIN, ESPRESSO, CARAMEL COLOR, MADAGASCAR VANILLA, SUGAR, MODIFIED FOOD STARCH, SALT.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:desserts-white-chocolate-raspberry-cheesecake",
-      "name": "White Chocolate Raspberry Cheesecake",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "Desserts",
-      "menu": null,
-      "servingSize": "Slice (176g)",
-      "serving_size_g": 176,
-      "tags": [],
-      "nutrients": {
-        "calories": 620,
-        "protein_g": 9,
-        "carbs_g": 49,
-        "fat_g": 389,
-        "saturated_fat_g": 26,
-        "trans_fat_g": 0.5,
-        "cholesterol_mg": 85,
-        "sodium_mg": 500,
-        "fiber_g": 2,
-        "sugar_g": 33
-      },
-      "ingredients": "Cheesecake RSP WHT CHOC(CREAM CHEESE [PASTEURIZED MILK, CREAM, CHEESE CULTURES, SALT, CAROB BEAN AND/OR XANTHAN AND/OR GUAR GUMS], EGGS, WHITE PASTEL [SUGAR, PALM KERNEL & PALM OILS, WHEY, NONFAT MILK, SOYA LECITHIN, TITANIUM DIOXIDE, NATURAL FLAVOR,PURE VANILLA], SUGAR, MARGARINE [VEGETABLE OIL (SOYBEAN & PALM OILS), WATER, SALT, MONO & DIGLYCERIDES, NONFAT DRY MILK, SOY LECITHIN, NATURAL FLAVOR, VITAMIN A PALMITATE, BETA CAROTENE], ENRICHED FLOUR [WHEAT FLOUR, MALTED BARLEY FLOUR, NIACIN,IRON, THIAMIN MONONITRATE, RIBOFLAVIN, FOLIC ACID], SOUR CREAM [CULTURED PASTEURIZED LIGHT CREAM, NONFAT MILK, ENZYME], GRAHAM CRUMBS [ENRICHED WHEAT FLOUR, GRAHAM FLOUR, SUGAR, PALM OIL, GLUCOSE, MOLASSES, SALT, BAKING SODA],RASPBERRY FILLING [SUGAR, RASPBERRY PUREE, RASPBERRY JUICE, LEMON JUICE, PECTIN], CREAM, RASPBERRIES, OATS, GLAZE [CORN SYRUP, WATER, FRUCTOSE, INVERT SUGAR, SUGAR, PECTIN, CITRIC ACID, XANTHAN GUM], WATER, COCONUT, GLUCOSE, MODIFIED TAPIOCA STARCH,SOYBEAN OIL, CORN STARCH, LEMON JUICE, (MORE...))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-beef-au-jus",
-      "name": "Beef Au Jus",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "2 oz Ladle (56g)",
-      "serving_size_g": 56,
-      "tags": [],
-      "nutrients": {
-        "calories": 35,
-        "protein_g": 2,
-        "carbs_g": 6,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 1140,
-        "fiber_g": 1,
-        "sugar_g": 2
-      },
-      "ingredients": "Tomato Crushed Concentrated Canned 13% S(VINE-RIPENED FRESH TOMATOES, SALT AND NATURALLY DERIVED CITRIC ACID.), Jumbo Yellow Onion(ONION), Molly's Beef Base(ROASTED BEEF AND BEEF BROTH, SALT, HYDROLYZED SOY PROTEIN, MALTODEXTRIN, SUGAR, SOYBEAN OIL, FLAVORINGS, CARAMEL COLOR, DISODIUM INOSINATE, DISODIUM GUANYLATE.), Celery Stalk Fresh 36 CT, Jumbo Carrots, Whole Bay Leaf, 20 oz Distilled Water(WATER)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-chimichurri-sauce",
-      "name": "Chimichurri Sauce",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 30,
-        "protein_g": 1,
-        "carbs_g": 4,
-        "fat_g": 1,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 500,
-        "fiber_g": 1,
-        "sugar_g": 0
-      },
-      "ingredients": "Vinegar Red Wine 50 Grain(RED WINE VINEGAR (DILUTED WITH WATER TO 5% ACIDITY), POTASSIUM METABISULFITE (PRESERVATIVE).), Parsley, Garlic White Whole Clove Pld 4/5lb, Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), Peeled Shallots, Dried Oregano Leaf(WHOLE OREGANO LEAVES.), Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-chipotle-ranch-dressing",
-      "name": "Chipotle Ranch Dressing",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 270,
-        "protein_g": 0,
-        "carbs_g": 4,
-        "fat_g": 29,
-        "saturated_fat_g": 5,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 10,
-        "sodium_mg": 570,
-        "fiber_g": 0,
-        "sugar_g": 2
-      },
-      "ingredients": "Ranch Dressing(SOYBEAN OIL, WATER, CULTURED BUTTERMILK, DISTILLED VINEGAR, HIGH FRUCTOSE CORN SYRUP, BUTTERMILK SOLIDS, CONTAINS LESS THAN 2 OF SALT, EGG YOLK, ONION, MONOSODIUM GLUTAMATE, GARLIC, XANTHAN GUM, LACTIC ACID, NATURAL FLAVOR, POLYSORBATE 60, POTASSIUM SORBATE PRESERVATIVE, PHOSPHORIC ACID, PROPYLENE GLYCOL ALGINATE, SPICE. DRIED), Cnd Whole Chipotle Peppers in Adobo(CHIPOTLE PEPPERS, VINEGAR, TOMATOES, ONIONS, SUGAR, IODIZED SALT, PAPRIKA, SOY BEAN OIL AND SPICES.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-dinner-roll",
-      "name": "Dinner Roll",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "Roll (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 220,
-        "protein_g": 5,
-        "carbs_g": 35,
-        "fat_g": 6,
-        "saturated_fat_g": 1,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 15,
-        "sodium_mg": 360,
-        "fiber_g": 1,
-        "sugar_g": 7
-      },
-      "ingredients": "Roll White UNSL Parkerhouse 2 oz FRZ(ENRICHED BLEACHED WHEAT FLOUR (BLEACHED WHEAT FLOUR, MALTED BARLEY FLOUR, NIACIN, IRON, THIAMIN MONONITRATE, RIBOFLAVIN, FOLIC ACID), WATER, SUGAR, EGGS, SOYBEAN OIL, SALT, HYDROGENATED COTTONSEED OIL, PARTIALLY HYDROGENATED SOYBEAN OIL, YEAST, MONO AND DIGYLCERIDES)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-flank-steak",
-      "name": "Flank Steak",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "5 oz Portion (142g)",
-      "serving_size_g": 142,
-      "tags": [],
-      "nutrients": {
-        "calories": 290,
-        "protein_g": 29,
-        "carbs_g": 6,
-        "fat_g": 16,
-        "saturated_fat_g": 7,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 70,
-        "sodium_mg": 2170,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Beef Flank Steak Choice 193 Raw, Sauce Worcestershire(WATER, DISTILLED VINEGAR, SOY SAUCE (WATER, SALT, HYDROLYZED SOY PROTEIN, CORN SYRUP, CARAMEL COLOR, POTASSIUM SORBATE (PRESERVATIVE), SUGAR, CORN SYRUP, SALT, TAMARIND EXTRACT, CARAMEL COLOR, SPICES, CITRIC ACID, GARLIC*, ONION*, XANTHAN GUM, NATURAL FLAVORS, POTASSIUM SORBATE (A PRESERVATIVE). *DEHYDRATED.), Soy Sauce(WATER, WHEAT, SOYBEANS, SALT, SODIUM BENZOATE: LESS THAN 1/10 OF 1 AS A PRESERVATIVE, MIXING AGENT), Granulated Garlic(GRANULATED GARLIC.), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-grilled-chicken-breast",
-      "name": "Grilled Chicken Breast",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "6 oz Portion (169g)",
-      "serving_size_g": 169,
-      "tags": [],
-      "nutrients": {
-        "calories": 260,
-        "protein_g": 54,
-        "carbs_g": 0,
-        "fat_g": 5,
-        "saturated_fat_g": 1.5,
-        "cholesterol_mg": 195,
-        "sodium_mg": 80,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Chicken Breast Dbl Lobe Bnls Sknls 6 oz, Marinade Basic Herb(75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Fresh Basil Herb(FRESH BASIL.), Washed & Destemmed Fresh Parsley Herb, Garlic White Whole Clove Pld 4/5lb, Herb Thyme Fresh 8 oz(FRESH THYME.), Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), zz Fresh Tarragon Herb(FRESH TARRAGON))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-grilled-salmon",
-      "name": "Grilled Salmon",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "6 oz Portion (169g)",
-      "serving_size_g": 169,
-      "tags": [],
-      "nutrients": {
-        "calories": 310,
-        "protein_g": 42,
-        "carbs_g": 0,
-        "fat_g": 14,
-        "saturated_fat_g": 2.5,
-        "cholesterol_mg": 95,
-        "sodium_mg": 730,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Salmon Fillet, Marinade Basic Herb(75/25 Canola and Extra Virgin Olive Oil(CANOLA OIL, EXTRA VIRGIN OLIVE OIL), Fresh Basil Herb(FRESH BASIL.), Washed & Destemmed Fresh Parsley Herb, Garlic White Whole Clove Pld 4/5lb, Herb Thyme Fresh 8 oz(FRESH THYME.), Juice Lemon Reconstituted 32 oz(FILTERED WATER, LEMON JUICE CONCENTRATE, SODIUM BISULFITE (PRESERVATIVE), SODIUM BENZOATE (PRESERVATIVE), AND LEMON OIL.), zz Fresh Tarragon Herb(FRESH TARRAGON))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-honey-mustard-sauce",
-      "name": "Honey Mustard Sauce",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 230,
-        "protein_g": 1,
-        "carbs_g": 7,
-        "fat_g": 22,
-        "saturated_fat_g": 4.5,
-        "trans_fat_g": 0,
-        "cholesterol_mg": 30,
-        "sodium_mg": 310,
-        "fiber_g": 0,
-        "sugar_g": 5
-      },
-      "ingredients": "Mayonnaise Extra-Heavy(SOYBEAN OIL, WATER, CORN SYRUP, EGG YOLK, DISTILLED AND CIDER VINEGAR, SALT, SPICE, CALCIUM DISODIUM EDTA ADDED TO PROTECT FLAVOR.), Sour Cream(CULTURED CREAM, ENZYME.), Mustard Yellow Monarch 1 Ga(WATER, DISTILLED VINEGAR, #1 MUSTARD SEED, SALT, TURMERIC, OLEORESIN PAPRIKA AND SPICES.), Lite Amber Honey(HONEY.), Vinegar Apple Cider Domestic 50 Grain(APPLE CIDER VINEGAR (DILUTED WITH WATER TO 5% ACIDITY)), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Smoked Paprika(PAPRIKA, AND SILICON DIOXIDE (ADDED TO MAKE FREE FLOWING).), Granulated Garlic(GRANULATED GARLIC.)"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-house-steak-sauce",
-      "name": "House Steak Sauce",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 60,
-        "protein_g": 0,
-        "carbs_g": 13,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 530,
-        "fiber_g": 0,
-        "sugar_g": 9
-      },
-      "ingredients": "Ketchup Tomato Fancy Monarch(TOMATO CONCENTRATE, HIGH FRUCTOSE CORN SYRUP, DISTILLED VINEGAR, CORN SYRUP, SALT, LESS THAN 2% OF: SPICES, ONION POWDER, GARLIC POWDER, NATURAL FLAVORS), Sauce Worcestershire(WATER, DISTILLED VINEGAR, SOY SAUCE (WATER, SALT, HYDROLYZED SOY PROTEIN, CORN SYRUP, CARAMEL COLOR, POTASSIUM SORBATE (PRESERVATIVE), SUGAR, CORN SYRUP, SALT, TAMARIND EXTRACT, CARAMEL COLOR, SPICES, CITRIC ACID, GARLIC*, ONION*, XANTHAN GUM, NATURAL FLAVORS, POTASSIUM SORBATE (A PRESERVATIVE). *DEHYDRATED.), Vinegar Apple Cider Domestic 50 Grain(APPLE CIDER VINEGAR (DILUTED WITH WATER TO 5% ACIDITY)), Horseradish Prepared Monarch(HORSERADISH, DISTILLED VINEGAR, WATER, SOYBEAN OIL, SALT, ARTIFICIAL FLAVOR.), Hot Sauce Texas Pete 1 Gal(VINEGAR, AGED PEPPERS (PEPPERS, SALT, VINEGAR), WATER, XANTHAN GUM AND BENZOATE OF SODA (TO PRESERVE FRESHNESS AND FLAVOR)), Mustard Dijon Extra Strong Shelf Stable(WATER, MUSTARD SEEDS, VINEGAR, SALT, SULFITES AS A PRESERVATIVE), Sugar Brown Dark Dixie 50 LB(BROWN SUGAR (SUGAR, CANE SYRUPS))"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-red-wine-shallot-butter",
-      "name": "Red Wine Shallot Butter",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 330,
-        "protein_g": 1,
-        "carbs_g": 1,
-        "fat_g": 36,
-        "saturated_fat_g": 22,
-        "cholesterol_mg": 95,
-        "sodium_mg": 85,
-        "fiber_g": 0,
-        "sugar_g": 0
-      },
-      "ingredients": "Unsalted Solid Butter(PASTEURIZED CREAM, NATURAL FLAVORINGS), Burgundy Wine(BURGUNDY WINE, SALT, POTASSIUM SORBATE TO PRESERVE FRESHNESS, POTASSIUM METABISULFITE ADDED TO PROTECT COLOR. THIS PRODUCT IS GLUTEN FREE. 11 ALCOHOL BY VOLUME. 1.5 SALT ADDED), Peeled Shallots, Fresh Curly Parsley Herb"
-    },
-    {
-      "id": "duke:legacy:j-b-s-roast-chops:a-la-carte-sweet-nc-bbq-sauce",
-      "name": "Sweet NC BBQ Sauce",
-      "location": "J.B.'s Roast & Chops",
-      "locationId": "j-b-s-roast-chops",
-      "category": "A La Carte",
-      "menu": null,
-      "servingSize": "2 oz Portion (57g)",
-      "serving_size_g": 57,
-      "tags": [],
-      "nutrients": {
-        "calories": 80,
-        "protein_g": 0,
-        "carbs_g": 20,
-        "fat_g": 0,
-        "saturated_fat_g": 0,
-        "cholesterol_mg": 0,
-        "sodium_mg": 380,
-        "fiber_g": 0,
-        "sugar_g": 17
-      },
-      "ingredients": "Ketchup Tomato Fancy Monarch(TOMATO CONCENTRATE, HIGH FRUCTOSE CORN SYRUP, DISTILLED VINEGAR, CORN SYRUP, SALT, LESS THAN 2% OF: SPICES, ONION POWDER, GARLIC POWDER, NATURAL FLAVORS), Vinegar Apple Cider Domestic 50 Grain(APPLE CIDER VINEGAR (DILUTED WITH WATER TO 5% ACIDITY)), Molasses Light Unsulphured Plastic Jug(CANE MOLASSES.), Sugar Brown Dark Dixie 50 LB(BROWN SUGAR (SUGAR, CANE SYRUPS)), Granulated Garlic(GRANULATED GARLIC.), Salt and Pepper Blend(Salt Kosher Ground Coarse Box(SALT, YELLOW PRUSSIATE OF SODA), Spice Pepper Black Ground 5 lb(COARSE GRIND BLACK PEPPER.)), Crushed Red Pepper(CRUSHED RED PEPPER.), Spice Thyme Dried Leaf(THYME LEAVES.), 20 oz Distilled Water(WATER)"
     },
     {
       "id": "duke:legacy:the-pitchfork:breakfast-breakfast-scrambles-cheese-breakfast-scramble",
@@ -76040,6 +75069,2412 @@
         "sugar_g": 0
       },
       "ingredients": "Potato Diced 3/4\" Seasoned Sknls Parfrie(POTATOES, VEGETABLE OIL (CONTAINS ONE OR MORE OF THE FOLLOWING: SOYBEAN OIL, CANOLA OIL), ENRICHED WHEAT FLOUR (WHEAT FLOUR, NIACIN, REDUCED IRON, THIAMINE MONONITRATE, RIBOFLAVIN, FOLIC ACID), MODIFIED CORN STARCH, RICE FLOUR, YELLOW CORN MEAL, SALT, GARLIC POWDER, ONION POWDER, SPICES, FLAVOR (CONTAINS AUOLYZED YEAST EXTRACT, DRIED TORULA YEAST, THIAMINE HYDROCHLORIDE, CORN SYRUP SOLIDS), DEHYDRATED PARSLEY, GUAR GUM, DISODIUM DIHYDROGEN PYROPHOSPHATE TO PROMOTE COLOR RETENTION, AND DEXTROSE. CONTAINS: WHEAT)"
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684411",
+      "name": "Chili Rubbed Mahi Mahi",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Seafood on the Grill",
+      "menu": null,
+      "servingSize": "6 oz Portion (170g)",
+      "serving_size_g": 170,
+      "tags": [
+        "Fish",
+        "Milk"
+      ],
+      "nutrients": {
+        "calories": 190,
+        "fat_g": 10,
+        "saturated_fat_g": 1,
+        "cholesterol_mg": 105,
+        "sodium_mg": 650,
+        "carbs_g": 0,
+        "protein_g": 25,
+        "calcium_mg": 26,
+        "iron_mg": 2.1
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684412",
+      "name": "Grilled Salmon",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Seafood on the Grill",
+      "menu": null,
+      "servingSize": "Fillet (141g)",
+      "serving_size_g": 141,
+      "tags": [
+        "Fish"
+      ],
+      "nutrients": {
+        "calories": 290,
+        "fat_g": 18,
+        "saturated_fat_g": 3.5,
+        "cholesterol_mg": 90,
+        "sodium_mg": 360,
+        "carbs_g": 0,
+        "protein_g": 31,
+        "calcium_mg": 21,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684414",
+      "name": "Grilled Yellow Fin Tuna",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Seafood on the Grill",
+      "menu": null,
+      "servingSize": "6 oz Portion (137g)",
+      "serving_size_g": 137,
+      "tags": [
+        "Fish"
+      ],
+      "nutrients": {
+        "calories": 140,
+        "fat_g": 0.5,
+        "cholesterol_mg": 55,
+        "sodium_mg": 270,
+        "carbs_g": 0,
+        "protein_g": 34
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684413",
+      "name": "Shrimp Skewer",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Seafood on the Grill",
+      "menu": null,
+      "servingSize": "Skewer (174g)",
+      "serving_size_g": 174,
+      "tags": [
+        "Shellfish"
+      ],
+      "nutrients": {
+        "calories": 110,
+        "fat_g": 2,
+        "sodium_mg": 1660,
+        "carbs_g": 1,
+        "protein_g": 19,
+        "calcium_mg": 47,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684417",
+      "name": "London Broil",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Carved To Order",
+      "menu": null,
+      "servingSize": "5 oz Portion (142g)",
+      "serving_size_g": 142,
+      "tags": [
+        "Fish",
+        "Soy"
+      ],
+      "nutrients": {
+        "calories": 250,
+        "fat_g": 9,
+        "saturated_fat_g": 4,
+        "cholesterol_mg": 105,
+        "sodium_mg": 410,
+        "carbs_g": 1,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 38,
+        "calcium_mg": 31,
+        "iron_mg": 2.4
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684416",
+      "name": "Prime Rib",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Carved To Order",
+      "menu": null,
+      "servingSize": "5 oz Portion (142g)",
+      "serving_size_g": 142,
+      "tags": [],
+      "nutrients": {
+        "calories": 350,
+        "fat_g": 22,
+        "saturated_fat_g": 8,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 105,
+        "sodium_mg": 230,
+        "carbs_g": 2,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 35,
+        "calcium_mg": 10,
+        "iron_mg": 4.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684421",
+      "name": "Flame Roasted Chicken",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "Quarter (207g)",
+      "serving_size_g": 207,
+      "tags": [
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 490,
+        "fat_g": 28,
+        "saturated_fat_g": 8,
+        "cholesterol_mg": 180,
+        "sodium_mg": 820,
+        "carbs_g": 0,
+        "protein_g": 56,
+        "calcium_mg": 31,
+        "iron_mg": 2.6
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684419",
+      "name": "Grilled Chicken Breast",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "4.5 oz Portion (130g)",
+      "serving_size_g": 130,
+      "tags": [
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 220,
+        "fat_g": 4.5,
+        "saturated_fat_g": 1.5,
+        "cholesterol_mg": 150,
+        "sodium_mg": 610,
+        "carbs_g": 0,
+        "protein_g": 41,
+        "calcium_mg": 8,
+        "iron_mg": 0.6
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684422",
+      "name": "Paella Mixta",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "9.6 oz Portion (272g)",
+      "serving_size_g": 272,
+      "tags": [
+        "Shellfish"
+      ],
+      "nutrients": {
+        "calories": 380,
+        "fat_g": 16,
+        "saturated_fat_g": 3,
+        "cholesterol_mg": 90,
+        "sodium_mg": 1150,
+        "carbs_g": 36,
+        "fiber_g": 3,
+        "sugar_g": 3,
+        "protein_g": 22,
+        "calcium_mg": 58,
+        "iron_mg": 1.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684426",
+      "name": "Petite Sirloin",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "4 oz Portion (109g)",
+      "serving_size_g": 109,
+      "tags": [],
+      "nutrients": {
+        "calories": 240,
+        "fat_g": 13,
+        "saturated_fat_g": 5,
+        "cholesterol_mg": 90,
+        "sodium_mg": 210,
+        "carbs_g": 0,
+        "protein_g": 28,
+        "calcium_mg": 27,
+        "iron_mg": 1.9
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684423",
+      "name": "Pork Chop",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "8 oz Portion (240g)",
+      "serving_size_g": 240,
+      "tags": [],
+      "nutrients": {
+        "calories": 560,
+        "fat_g": 33,
+        "saturated_fat_g": 12,
+        "cholesterol_mg": 180,
+        "sodium_mg": 2470,
+        "carbs_g": 1,
+        "protein_g": 60,
+        "calcium_mg": 9,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684424",
+      "name": "Pork Rib Rack",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "1/3 Rack (408g)",
+      "serving_size_g": 408,
+      "tags": [],
+      "nutrients": {
+        "calories": 1380,
+        "fat_g": 51,
+        "saturated_fat_g": 19,
+        "cholesterol_mg": 270,
+        "sodium_mg": 3010,
+        "carbs_g": 115,
+        "fiber_g": 3,
+        "sugar_g": 109,
+        "protein_g": 94,
+        "calcium_mg": 88,
+        "iron_mg": 4.7
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684425",
+      "name": "Ribeye",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "Portion (224g)",
+      "serving_size_g": 224,
+      "tags": [],
+      "nutrients": {
+        "calories": 550,
+        "fat_g": 36,
+        "saturated_fat_g": 12,
+        "trans_fat_g": 1.5,
+        "cholesterol_mg": 165,
+        "sodium_mg": 680,
+        "carbs_g": 5,
+        "protein_g": 51,
+        "calcium_mg": 24,
+        "iron_mg": 6.7
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684427",
+      "name": "Beef Skewer",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Chop House Classics",
+      "menu": null,
+      "servingSize": "Skewer (218g)",
+      "serving_size_g": 218,
+      "tags": [],
+      "nutrients": {
+        "calories": 400,
+        "fat_g": 26,
+        "saturated_fat_g": 9,
+        "cholesterol_mg": 115,
+        "sodium_mg": 380,
+        "carbs_g": 5,
+        "fiber_g": 1,
+        "sugar_g": 1,
+        "protein_g": 35,
+        "calcium_mg": 33,
+        "iron_mg": 2.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684428",
+      "name": "Beef Au Jus",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Signature Sauces and Butters (Choose 1)",
+      "menu": null,
+      "servingSize": "2 oz Ladle (56g)",
+      "serving_size_g": 56,
+      "tags": [
+        "Soy"
+      ],
+      "nutrients": {
+        "calories": 35,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 1140,
+        "carbs_g": 6,
+        "fiber_g": 1,
+        "sugar_g": 2,
+        "protein_g": 2,
+        "calcium_mg": 14,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684429",
+      "name": "Chimichurri Sauce",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Signature Sauces and Butters (Choose 1)",
+      "menu": null,
+      "servingSize": "2 oz Portion (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 30,
+        "fat_g": 1,
+        "sodium_mg": 510,
+        "carbs_g": 4,
+        "fiber_g": 1,
+        "protein_g": 1,
+        "calcium_mg": 39,
+        "iron_mg": 1.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684430",
+      "name": "Chipotle Ranch Dressing",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Signature Sauces and Butters (Choose 1)",
+      "menu": null,
+      "servingSize": "2 oz Portion (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 210,
+        "fat_g": 23,
+        "saturated_fat_g": 4,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 10,
+        "sodium_mg": 400,
+        "carbs_g": 2,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 0,
+        "calcium_mg": 0,
+        "iron_mg": 0.4
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684431",
+      "name": "Honey Mustard Sauce",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Signature Sauces and Butters (Choose 1)",
+      "menu": null,
+      "servingSize": "2 oz Portion (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 230,
+        "fat_g": 22,
+        "saturated_fat_g": 5,
+        "cholesterol_mg": 20,
+        "sodium_mg": 300,
+        "carbs_g": 5,
+        "sugar_g": 5,
+        "protein_g": 1,
+        "calcium_mg": 24
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684433",
+      "name": "House Steak Sauce",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Signature Sauces and Butters (Choose 1)",
+      "menu": null,
+      "servingSize": "2 oz Portion (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Egg",
+        "Soy",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 270,
+        "fat_g": 29,
+        "saturated_fat_g": 5,
+        "cholesterol_mg": 25,
+        "sodium_mg": 400,
+        "carbs_g": 3,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 0,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684432",
+      "name": "Shallot and Red Wine Butter Sauce",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Signature Sauces and Butters (Choose 1)",
+      "menu": null,
+      "servingSize": "1 oz Portion (28g)",
+      "serving_size_g": 28,
+      "tags": [
+        "Milk",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "fat_g": 16,
+        "saturated_fat_g": 10,
+        "cholesterol_mg": 45,
+        "sodium_mg": 60,
+        "carbs_g": 0,
+        "protein_g": 0,
+        "calcium_mg": 1,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684434",
+      "name": "Western NC BBQ Sauce",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Signature Sauces and Butters (Choose 1)",
+      "menu": null,
+      "servingSize": "2 oz Portion (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 80,
+        "fat_g": 0,
+        "sodium_mg": 200,
+        "carbs_g": 18,
+        "fiber_g": 1,
+        "sugar_g": 16,
+        "protein_g": 0,
+        "calcium_mg": 2,
+        "iron_mg": 0.1
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684435",
+      "name": "Apple Fennel Salad",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Salads",
+      "menu": null,
+      "servingSize": "Large (310g)",
+      "serving_size_g": 310,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 400,
+        "fat_g": 26,
+        "saturated_fat_g": 1.5,
+        "sodium_mg": 100,
+        "carbs_g": 42,
+        "fiber_g": 10,
+        "sugar_g": 29,
+        "protein_g": 4,
+        "calcium_mg": 57,
+        "iron_mg": 1.7
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684436",
+      "name": "Caesar Salad",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Salads",
+      "menu": null,
+      "servingSize": "Large (50g)",
+      "serving_size_g": 50,
+      "tags": [
+        "Fish",
+        "Gluten",
+        "Milk",
+        "Soy",
+        "Tree Nut",
+        "Wheat"
+      ],
+      "nutrients": {
+        "calories": 100,
+        "fat_g": 6,
+        "saturated_fat_g": 1.5,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 5,
+        "sodium_mg": 260,
+        "carbs_g": 9,
+        "fiber_g": 1,
+        "sugar_g": 0,
+        "protein_g": 4,
+        "calcium_mg": 54,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684437",
+      "name": "Smoked Chophouse Salad",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Salads",
+      "menu": null,
+      "servingSize": "Salad (849g)",
+      "serving_size_g": 849,
+      "tags": [
+        "Egg",
+        "Milk",
+        "Soy",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 670,
+        "fat_g": 45,
+        "saturated_fat_g": 14,
+        "cholesterol_mg": 60,
+        "sodium_mg": 1290,
+        "carbs_g": 53,
+        "fiber_g": 11,
+        "sugar_g": 14,
+        "protein_g": 22,
+        "calcium_mg": 114,
+        "iron_mg": 2.7
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684438",
+      "name": "Wedge Salad",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Salads",
+      "menu": null,
+      "servingSize": "Salad (419g)",
+      "serving_size_g": 419,
+      "tags": [
+        "Milk",
+        "Soy"
+      ],
+      "nutrients": {
+        "calories": 530,
+        "fat_g": 44,
+        "saturated_fat_g": 16,
+        "cholesterol_mg": 75,
+        "sodium_mg": 1610,
+        "carbs_g": 15,
+        "fiber_g": 5,
+        "sugar_g": 8,
+        "protein_g": 21,
+        "calcium_mg": 45,
+        "iron_mg": 1.1
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684439",
+      "name": "Grilled Chicken Breast",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Salad Add Ons",
+      "menu": null,
+      "servingSize": "4.5 oz Portion (130g)",
+      "serving_size_g": 130,
+      "tags": [
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 220,
+        "fat_g": 4.5,
+        "saturated_fat_g": 1.5,
+        "cholesterol_mg": 150,
+        "sodium_mg": 610,
+        "carbs_g": 0,
+        "protein_g": 41,
+        "calcium_mg": 8,
+        "iron_mg": 0.6
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684441",
+      "name": "Grilled Salmon",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Salad Add Ons",
+      "menu": null,
+      "servingSize": "Fillet (141g)",
+      "serving_size_g": 141,
+      "tags": [
+        "Fish"
+      ],
+      "nutrients": {
+        "calories": 290,
+        "fat_g": 18,
+        "saturated_fat_g": 3.5,
+        "cholesterol_mg": 90,
+        "sodium_mg": 360,
+        "carbs_g": 0,
+        "protein_g": 31,
+        "calcium_mg": 21,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684440",
+      "name": "London Broil",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Salad Add Ons",
+      "menu": null,
+      "servingSize": "5 oz Portion (142g)",
+      "serving_size_g": 142,
+      "tags": [
+        "Fish",
+        "Soy"
+      ],
+      "nutrients": {
+        "calories": 250,
+        "fat_g": 9,
+        "saturated_fat_g": 4,
+        "cholesterol_mg": 105,
+        "sodium_mg": 410,
+        "carbs_g": 1,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 38,
+        "calcium_mg": 31,
+        "iron_mg": 2.4
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684442",
+      "name": "Beyond Meat Burger",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sandwiches (Choose 1 Side)",
+      "menu": null,
+      "servingSize": "Sandwich (393g)",
+      "serving_size_g": 393,
+      "tags": [
+        "Egg",
+        "Gluten",
+        "Sesame",
+        "Soy",
+        "Wheat",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 880,
+        "fat_g": 58,
+        "saturated_fat_g": 11,
+        "cholesterol_mg": 10,
+        "sodium_mg": 1250,
+        "carbs_g": 53,
+        "fiber_g": 5,
+        "sugar_g": 9,
+        "protein_g": 37,
+        "calcium_mg": 190,
+        "iron_mg": 7.6
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684443",
+      "name": "Black and Blue Burger",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sandwiches (Choose 1 Side)",
+      "menu": null,
+      "servingSize": "Sandwich (271g)",
+      "serving_size_g": 271,
+      "tags": [
+        "Gluten",
+        "Milk",
+        "Sesame",
+        "Soy",
+        "Wheat"
+      ],
+      "nutrients": {
+        "calories": 730,
+        "fat_g": 39,
+        "saturated_fat_g": 17,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 135,
+        "sodium_mg": 1780,
+        "carbs_g": 49,
+        "fiber_g": 4,
+        "sugar_g": 7,
+        "protein_g": 43,
+        "calcium_mg": 79,
+        "iron_mg": 4.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684444",
+      "name": "Chophouse Steakburger",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sandwiches (Choose 1 Side)",
+      "menu": null,
+      "servingSize": "Sandwich (497g)",
+      "serving_size_g": 497,
+      "tags": [
+        "Gluten",
+        "Milk",
+        "Sesame",
+        "Soy",
+        "Wheat"
+      ],
+      "nutrients": {
+        "calories": 1090,
+        "fat_g": 71,
+        "saturated_fat_g": 25,
+        "cholesterol_mg": 40,
+        "sodium_mg": 1480,
+        "carbs_g": 50,
+        "fiber_g": 2,
+        "sugar_g": 9,
+        "protein_g": 60,
+        "calcium_mg": 65,
+        "iron_mg": 2.1
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684446",
+      "name": "Grilled Chicken Sandwich",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sandwiches (Choose 1 Side)",
+      "menu": null,
+      "servingSize": "Sandwich (443g)",
+      "serving_size_g": 443,
+      "tags": [
+        "Gluten",
+        "Milk",
+        "Sesame",
+        "Soy",
+        "Wheat",
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 760,
+        "fat_g": 36,
+        "saturated_fat_g": 10,
+        "cholesterol_mg": 190,
+        "sodium_mg": 1950,
+        "carbs_g": 50,
+        "fiber_g": 2,
+        "sugar_g": 9,
+        "protein_g": 59,
+        "calcium_mg": 73,
+        "iron_mg": 2.8
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684445",
+      "name": "Loaded GOAT Cheeseburger",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sandwiches (Choose 1 Side)",
+      "menu": null,
+      "servingSize": "Sandwich (256g)",
+      "serving_size_g": 256,
+      "tags": [
+        "Gluten",
+        "Milk",
+        "Sesame",
+        "Soy",
+        "Wheat"
+      ],
+      "nutrients": {
+        "calories": 670,
+        "fat_g": 40,
+        "saturated_fat_g": 12,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 95,
+        "sodium_mg": 650,
+        "carbs_g": 42,
+        "fiber_g": 1,
+        "sugar_g": 8,
+        "protein_g": 35,
+        "calcium_mg": 74,
+        "iron_mg": 4.2
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684447",
+      "name": "Prime Rib Steak Sandwich",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sandwiches (Choose 1 Side)",
+      "menu": null,
+      "servingSize": "Sandwich (338g)",
+      "serving_size_g": 338,
+      "tags": [
+        "Egg",
+        "Gluten",
+        "Milk",
+        "Soy",
+        "Wheat"
+      ],
+      "nutrients": {
+        "calories": 820,
+        "fat_g": 41,
+        "saturated_fat_g": 18,
+        "trans_fat_g": 1,
+        "cholesterol_mg": 160,
+        "sodium_mg": 740,
+        "carbs_g": 55,
+        "fiber_g": 3,
+        "sugar_g": 4,
+        "protein_g": 55,
+        "calcium_mg": 352,
+        "iron_mg": 4.7
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684457",
+      "name": "Brown Rice",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "4 oz Portion (113g)",
+      "serving_size_g": 113,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 120,
+        "fat_g": 1,
+        "sodium_mg": 560,
+        "carbs_g": 25,
+        "fiber_g": 2,
+        "protein_g": 3,
+        "calcium_mg": 12,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684456",
+      "name": "Cranberry Quinoa",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "3.5 oz Portion (50g)",
+      "serving_size_g": 50,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 70,
+        "fat_g": 1.5,
+        "sodium_mg": 430,
+        "carbs_g": 11,
+        "fiber_g": 1,
+        "sugar_g": 2,
+        "protein_g": 2,
+        "calcium_mg": 8,
+        "iron_mg": 0.7
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684458",
+      "name": "Dinner Roll",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "Roll (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Egg",
+        "Gluten",
+        "Milk",
+        "Soy",
+        "Wheat",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 220,
+        "fat_g": 6,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 15,
+        "sodium_mg": 360,
+        "carbs_g": 35,
+        "fiber_g": 1,
+        "sugar_g": 7,
+        "protein_g": 5,
+        "calcium_mg": 0,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684454",
+      "name": "Garlic and Parsley Potato Wedge",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "4 oz Portion (109g)",
+      "serving_size_g": 109,
+      "tags": [
+        "Soy",
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 240,
+        "fat_g": 15,
+        "saturated_fat_g": 2.5,
+        "sodium_mg": 1140,
+        "carbs_g": 23,
+        "fiber_g": 2,
+        "sugar_g": 1,
+        "protein_g": 2,
+        "calcium_mg": 5,
+        "iron_mg": 0.1
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684448",
+      "name": "Grilled Asparagus",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "2 oz Portion (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Soy",
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 25,
+        "fat_g": 1.5,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 30,
+        "carbs_g": 2,
+        "fiber_g": 1,
+        "sugar_g": 1,
+        "protein_g": 1,
+        "calcium_mg": 12,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684459",
+      "name": "Grilled Tomato Salad",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "5.3 oz Portion (151g)",
+      "serving_size_g": 151,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 60,
+        "fat_g": 4,
+        "sodium_mg": 740,
+        "carbs_g": 6,
+        "fiber_g": 1,
+        "sugar_g": 4,
+        "protein_g": 1,
+        "calcium_mg": 17,
+        "iron_mg": 0.9
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684460",
+      "name": "Mixed Vegetables",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "4 oz Portion (112g)",
+      "serving_size_g": 112,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 130,
+        "fat_g": 6,
+        "sodium_mg": 390,
+        "carbs_g": 21,
+        "fiber_g": 13,
+        "protein_g": 7,
+        "calcium_mg": 15,
+        "iron_mg": 2.2
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684452",
+      "name": "Paella Mixta",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "5 oz Portion (142g)",
+      "serving_size_g": 142,
+      "tags": [
+        "Shellfish"
+      ],
+      "nutrients": {
+        "calories": 200,
+        "fat_g": 8,
+        "saturated_fat_g": 1.5,
+        "cholesterol_mg": 50,
+        "sodium_mg": 600,
+        "carbs_g": 19,
+        "fiber_g": 2,
+        "sugar_g": 2,
+        "protein_g": 11,
+        "calcium_mg": 30,
+        "iron_mg": 0.7
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684449",
+      "name": "Roasted Broccoli",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "4 oz Portion (117g)",
+      "serving_size_g": 117,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 60,
+        "fat_g": 3.5,
+        "sodium_mg": 700,
+        "carbs_g": 8,
+        "fiber_g": 4,
+        "sugar_g": 2,
+        "protein_g": 3,
+        "calcium_mg": 45,
+        "iron_mg": 0.8
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684455",
+      "name": "Roasted Garlic Mashed Potatoes",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "4 oz Portion (113g)",
+      "serving_size_g": 113,
+      "tags": [
+        "Milk",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 190,
+        "fat_g": 10,
+        "saturated_fat_g": 6,
+        "cholesterol_mg": 35,
+        "sodium_mg": 200,
+        "carbs_g": 23,
+        "fiber_g": 2,
+        "sugar_g": 1,
+        "protein_g": 2,
+        "calcium_mg": 21,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684450",
+      "name": "Sweet Potato Fries",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "3 oz Portion (85g)",
+      "serving_size_g": 85,
+      "tags": [
+        "Gluten",
+        "Soy",
+        "Wheat",
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 180,
+        "fat_g": 3,
+        "sodium_mg": 560,
+        "carbs_g": 34,
+        "fiber_g": 3,
+        "sugar_g": 5,
+        "protein_g": 3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684453",
+      "name": "Twice Baked Potato",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Sides",
+      "menu": null,
+      "servingSize": "Half Potato (170g)",
+      "serving_size_g": 170,
+      "tags": [
+        "Milk",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 210,
+        "fat_g": 7,
+        "saturated_fat_g": 4,
+        "cholesterol_mg": 20,
+        "sodium_mg": 310,
+        "carbs_g": 31,
+        "fiber_g": 3,
+        "sugar_g": 3,
+        "protein_g": 7,
+        "calcium_mg": 47,
+        "iron_mg": 1.5
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684463",
+      "name": "Flourless Chocolate Torte",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Desserts",
+      "menu": null,
+      "servingSize": "Slice (82g)",
+      "serving_size_g": 82,
+      "tags": [
+        "Egg",
+        "Milk",
+        "Peanut",
+        "Soy",
+        "Tree Nut",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 350,
+        "fat_g": 26,
+        "saturated_fat_g": 15,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 85,
+        "sodium_mg": 125,
+        "carbs_g": 29,
+        "fiber_g": 2,
+        "sugar_g": 23,
+        "protein_g": 4,
+        "calcium_mg": 40
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684461",
+      "name": "Tiramisu",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Desserts",
+      "menu": null,
+      "servingSize": "Slice (163g)",
+      "serving_size_g": 163,
+      "tags": [
+        "Egg",
+        "Gluten",
+        "Milk",
+        "Peanut",
+        "Tree Nut",
+        "Wheat"
+      ],
+      "nutrients": {
+        "calories": 450,
+        "fat_g": 240,
+        "saturated_fat_g": 9,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 145,
+        "sodium_mg": 105,
+        "carbs_g": 44,
+        "fiber_g": 1,
+        "sugar_g": 25,
+        "protein_g": 7,
+        "calcium_mg": 53,
+        "iron_mg": 1
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684462",
+      "name": "White Chocolate Raspberry Cheesecake",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "Desserts",
+      "menu": null,
+      "servingSize": "Slice (176g)",
+      "serving_size_g": 176,
+      "tags": [
+        "Egg",
+        "Gluten",
+        "Milk",
+        "Peanut",
+        "Soy",
+        "Tree Nut",
+        "Wheat",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 620,
+        "fat_g": 389,
+        "saturated_fat_g": 26,
+        "trans_fat_g": 0.5,
+        "cholesterol_mg": 85,
+        "sodium_mg": 500,
+        "carbs_g": 49,
+        "fiber_g": 2,
+        "sugar_g": 33,
+        "protein_g": 9,
+        "calcium_mg": 100,
+        "iron_mg": 1.1
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684468",
+      "name": "Flame Roasted Chicken",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "Quarter (207g)",
+      "serving_size_g": 207,
+      "tags": [
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 490,
+        "fat_g": 28,
+        "saturated_fat_g": 8,
+        "cholesterol_mg": 180,
+        "sodium_mg": 820,
+        "carbs_g": 0,
+        "protein_g": 56,
+        "calcium_mg": 31,
+        "iron_mg": 2.6
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684466",
+      "name": "Grilled Chicken Breast",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "4.5 oz Portion (130g)",
+      "serving_size_g": 130,
+      "tags": [
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 220,
+        "fat_g": 4.5,
+        "saturated_fat_g": 1.5,
+        "cholesterol_mg": 150,
+        "sodium_mg": 610,
+        "carbs_g": 0,
+        "protein_g": 41,
+        "calcium_mg": 8,
+        "iron_mg": 0.6
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684472",
+      "name": "Grilled Salmon",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "Fillet (141g)",
+      "serving_size_g": 141,
+      "tags": [
+        "Fish"
+      ],
+      "nutrients": {
+        "calories": 290,
+        "fat_g": 18,
+        "saturated_fat_g": 3.5,
+        "cholesterol_mg": 90,
+        "sodium_mg": 360,
+        "carbs_g": 0,
+        "protein_g": 31,
+        "calcium_mg": 21,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684470",
+      "name": "London Broil",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "5 oz Portion (142g)",
+      "serving_size_g": 142,
+      "tags": [
+        "Fish",
+        "Soy"
+      ],
+      "nutrients": {
+        "calories": 250,
+        "fat_g": 9,
+        "saturated_fat_g": 4,
+        "cholesterol_mg": 105,
+        "sodium_mg": 410,
+        "carbs_g": 1,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 38,
+        "calcium_mg": 31,
+        "iron_mg": 2.4
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684474",
+      "name": "Petite Sirloin",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "4 oz Portion (109g)",
+      "serving_size_g": 109,
+      "tags": [],
+      "nutrients": {
+        "calories": 240,
+        "fat_g": 13,
+        "saturated_fat_g": 5,
+        "cholesterol_mg": 90,
+        "sodium_mg": 210,
+        "carbs_g": 0,
+        "protein_g": 28,
+        "calcium_mg": 27,
+        "iron_mg": 1.9
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684471",
+      "name": "Pork Chop",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "8 oz Portion (240g)",
+      "serving_size_g": 240,
+      "tags": [],
+      "nutrients": {
+        "calories": 560,
+        "fat_g": 33,
+        "saturated_fat_g": 12,
+        "cholesterol_mg": 180,
+        "sodium_mg": 2470,
+        "carbs_g": 1,
+        "protein_g": 60,
+        "calcium_mg": 9,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684464",
+      "name": "Prime Rib",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "8 oz Portion (227g)",
+      "serving_size_g": 227,
+      "tags": [],
+      "nutrients": {
+        "calories": 560,
+        "fat_g": 35,
+        "saturated_fat_g": 13,
+        "trans_fat_g": 1.5,
+        "cholesterol_mg": 170,
+        "sodium_mg": 370,
+        "carbs_g": 3,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 56,
+        "calcium_mg": 16,
+        "iron_mg": 6.9
+      }
+    },
+    {
+      "id": "duke:j-b-s-roast-chops:299684473",
+      "name": "Shrimp Skewer",
+      "location": "J.B.'s Roast & Chops",
+      "locationId": "j-b-s-roast-chops",
+      "category": "A La Carte",
+      "menu": null,
+      "servingSize": "Skewer (174g)",
+      "serving_size_g": 174,
+      "tags": [
+        "Shellfish"
+      ],
+      "nutrients": {
+        "calories": 110,
+        "fat_g": 2,
+        "sodium_mg": 1660,
+        "carbs_g": 1,
+        "protein_g": 19,
+        "calcium_mg": 47,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134335",
+      "name": "Sweet Potato Fries",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Dinner Thyme Sides",
+      "menu": "Dinner",
+      "servingSize": "4 oz Portion (113g)",
+      "serving_size_g": 113,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 180,
+        "fat_g": 10,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 135,
+        "carbs_g": 22,
+        "fiber_g": 3,
+        "sugar_g": 7,
+        "protein_g": 2,
+        "calcium_mg": 75,
+        "iron_mg": 1.9
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134363",
+      "name": "Oven Roasted Potato Medley",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Base (Choose up to Two)",
+      "menu": "All Day",
+      "servingSize": "6.6 oz Portion (187g)",
+      "serving_size_g": 187,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 230,
+        "fat_g": 6,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 800,
+        "carbs_g": 41,
+        "fiber_g": 4,
+        "sugar_g": 4,
+        "protein_g": 4,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134362",
+      "name": "Shredded Kale",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Base (Choose up to Two)",
+      "menu": "All Day",
+      "servingSize": "3 oz Portion (85g)",
+      "serving_size_g": 85,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 35,
+        "fat_g": 1.5,
+        "sodium_mg": 45,
+        "carbs_g": 4,
+        "fiber_g": 3,
+        "sugar_g": 1,
+        "protein_g": 2,
+        "calcium_mg": 216,
+        "iron_mg": 1.4
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134361",
+      "name": "Brown Rice and Quinoa",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Base (Choose up to Two)",
+      "menu": "All Day",
+      "servingSize": "8 oz Portion (227g)",
+      "serving_size_g": 227,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 190,
+        "fat_g": 3.5,
+        "sodium_mg": 390,
+        "carbs_g": 35,
+        "fiber_g": 3,
+        "protein_g": 4,
+        "calcium_mg": 16,
+        "iron_mg": 0.9
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134364",
+      "name": "Rosemary Thyme Red Potatoes",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Base (Choose up to Two)",
+      "menu": "All Day",
+      "servingSize": "6.6 oz Portion (187g)",
+      "serving_size_g": 187,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 260,
+        "fat_g": 12,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 95,
+        "carbs_g": 35,
+        "fiber_g": 3,
+        "sugar_g": 2,
+        "protein_g": 3,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134366",
+      "name": "White Rice",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Base (Choose up to Two)",
+      "menu": "All Day",
+      "servingSize": "Batch (12524g)",
+      "serving_size_g": 12524,
+      "tags": [],
+      "nutrients": {
+        "calories": 8500,
+        "fat_g": 167,
+        "saturated_fat_g": 15,
+        "sodium_mg": 45510,
+        "carbs_g": 1536,
+        "fiber_g": 53,
+        "sugar_g": 6,
+        "protein_g": 172,
+        "calcium_mg": 1120,
+        "iron_mg": 106.7
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134365",
+      "name": "Long Grain Brown Rice",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Base (Choose up to Two)",
+      "menu": "All Day",
+      "servingSize": "5.3 oz Portion (150g)",
+      "serving_size_g": 150,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 170,
+        "fat_g": 1,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "carbs_g": 35,
+        "fiber_g": 3,
+        "protein_g": 3,
+        "calcium_mg": 15,
+        "iron_mg": 0.8
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134370",
+      "name": "Lemon Thyme Grilled Chicken",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Protein (Choose One)",
+      "menu": "All Day",
+      "servingSize": "4.24 oz Portion (120g)",
+      "serving_size_g": 120,
+      "tags": [
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 150,
+        "fat_g": 5,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 710,
+        "carbs_g": 2,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 22,
+        "calcium_mg": 3,
+        "iron_mg": 0.1
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134373",
+      "name": "Burmese Tofu",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Protein (Choose One)",
+      "menu": "All Day",
+      "servingSize": "5.92 oz Portion (170g)",
+      "serving_size_g": 170,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 230,
+        "fat_g": 16,
+        "saturated_fat_g": 1,
+        "cholesterol_mg": 0,
+        "sodium_mg": 430,
+        "carbs_g": 17,
+        "fiber_g": 4,
+        "sugar_g": 1,
+        "protein_g": 7,
+        "calcium_mg": 17,
+        "iron_mg": 1.6
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134371",
+      "name": "Chickpea Falafel",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Protein (Choose One)",
+      "menu": "All Day",
+      "servingSize": "3.54 oz Portion (100g)",
+      "serving_size_g": 100,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 200,
+        "fat_g": 15,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 230,
+        "carbs_g": 14,
+        "fiber_g": 2,
+        "sugar_g": 2,
+        "protein_g": 5,
+        "calcium_mg": 41,
+        "iron_mg": 1.1
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134369",
+      "name": "Caribbean Jerk Chicken",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Protein (Choose One)",
+      "menu": "All Day",
+      "servingSize": "4.22 oz Portion (120g)",
+      "serving_size_g": 120,
+      "tags": [
+        "Halal"
+      ],
+      "nutrients": {
+        "calories": 140,
+        "fat_g": 3,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 790,
+        "carbs_g": 5,
+        "fiber_g": 0,
+        "sugar_g": 3,
+        "protein_g": 23,
+        "calcium_mg": 3,
+        "iron_mg": 0.2
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134368",
+      "name": "Beef Barbacoa",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Protein (Choose One)",
+      "menu": "All Day",
+      "servingSize": "4 oz Portion (113g)",
+      "serving_size_g": 113,
+      "tags": [],
+      "nutrients": {
+        "calories": 230,
+        "fat_g": 16,
+        "saturated_fat_g": 7,
+        "trans_fat_g": 1.5,
+        "cholesterol_mg": 65,
+        "sodium_mg": 500,
+        "carbs_g": 4,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 17,
+        "calcium_mg": 0,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134372",
+      "name": "Kalua Style Pork",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Protein (Choose One)",
+      "menu": "All Day",
+      "servingSize": "4 oz Portion (113g)",
+      "serving_size_g": 113,
+      "tags": [],
+      "nutrients": {
+        "calories": 310,
+        "fat_g": 22,
+        "saturated_fat_g": 8,
+        "cholesterol_mg": 95,
+        "sodium_mg": 490,
+        "carbs_g": 0,
+        "protein_g": 25,
+        "calcium_mg": 27,
+        "iron_mg": 1.4
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134367",
+      "name": "Smoky Black Beans",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Protein (Choose One)",
+      "menu": "All Day",
+      "servingSize": "8 oz Portion (227g)",
+      "serving_size_g": 227,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 220,
+        "fat_g": 3,
+        "sodium_mg": 1040,
+        "carbs_g": 28,
+        "fiber_g": 7,
+        "sugar_g": 3,
+        "protein_g": 9,
+        "calcium_mg": 9,
+        "iron_mg": 0.1
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134374",
+      "name": "Cajun Pinto Beans",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Hot Toppings (Choose Up To Two)",
+      "menu": "All Day",
+      "servingSize": "1.97 oz Portion (56g)",
+      "serving_size_g": 56,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 45,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 190,
+        "carbs_g": 9,
+        "fiber_g": 2,
+        "protein_g": 2,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134375",
+      "name": "Cilantro Lime Black Beans",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Hot Toppings (Choose Up To Two)",
+      "menu": "All Day",
+      "servingSize": "1.92 oz Portion (54g)",
+      "serving_size_g": 54,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 40,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 135,
+        "carbs_g": 5,
+        "fiber_g": 2,
+        "sugar_g": 0,
+        "protein_g": 2
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134377",
+      "name": "Mixed Roasted Vegetables",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Hot Toppings (Choose Up To Two)",
+      "menu": "All Day",
+      "servingSize": "2 oz Portion (55g)",
+      "serving_size_g": 55,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 15,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 420,
+        "carbs_g": 4,
+        "fiber_g": 1,
+        "sugar_g": 2,
+        "protein_g": 1,
+        "calcium_mg": 15,
+        "iron_mg": 0.4
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134376",
+      "name": "Fire Roasted Corn with Poblano Peppers",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Hot Toppings (Choose Up To Two)",
+      "menu": "All Day",
+      "servingSize": "1.82 oz Portion (52g)",
+      "serving_size_g": 52,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 50,
+        "fat_g": 2,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 170,
+        "carbs_g": 9,
+        "fiber_g": 1,
+        "sugar_g": 1,
+        "protein_g": 1,
+        "calcium_mg": 3,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134378",
+      "name": "Avocado",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": "1.4 oz Portion (40g)",
+      "serving_size_g": 40,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 90,
+        "fat_g": 8,
+        "saturated_fat_g": 1,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "carbs_g": 3,
+        "fiber_g": 2,
+        "sugar_g": 0,
+        "protein_g": 1,
+        "calcium_mg": 0,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134380",
+      "name": "Shredded Carrots",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": "1 oz Disher (14g)",
+      "serving_size_g": 14,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 5,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 10,
+        "carbs_g": 1,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134381",
+      "name": "Chickpeas",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": "1 oz Disher (20g)",
+      "serving_size_g": 20,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 10,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 35,
+        "carbs_g": 2,
+        "fiber_g": 1,
+        "sugar_g": 0,
+        "protein_g": 1,
+        "calcium_mg": 3,
+        "iron_mg": 0.2
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134382",
+      "name": "Cucumbers",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": ".58 oz Portion (16g)",
+      "serving_size_g": 16,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 0,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 0,
+        "carbs_g": 0,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 0,
+        "calcium_mg": 2,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134386",
+      "name": "Roasted Red Peppers",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": "1 oz Disher (24g)",
+      "serving_size_g": 24,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 5,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 55,
+        "carbs_g": 1,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134389",
+      "name": "Roasted Tomatoes",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": "1.6 oz Portion (45g)",
+      "serving_size_g": 45,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 35,
+        "fat_g": 3,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 150,
+        "carbs_g": 2,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 0,
+        "calcium_mg": 5,
+        "iron_mg": 0.5
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134379",
+      "name": "Pickled Red Cabbage",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": ".29 oz Portion (8g)",
+      "serving_size_g": 8,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 0,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 25,
+        "carbs_g": 0,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 0,
+        "calcium_mg": 1,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134383",
+      "name": "Lemon Garlic Hummus",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": ".675 oz Portion (19g)",
+      "serving_size_g": 19,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 15,
+        "fat_g": 0.5,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 55,
+        "carbs_g": 2,
+        "fiber_g": 1,
+        "protein_g": 1,
+        "calcium_mg": 4,
+        "iron_mg": 0.2
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134384",
+      "name": "Pickled Jalapenos",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": ".455 oz Portion (13g)",
+      "serving_size_g": 13,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 5,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 95,
+        "carbs_g": 1,
+        "fiber_g": 0,
+        "sugar_g": 2,
+        "protein_g": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134385",
+      "name": "Red Pickled Onion",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": "1.06 oz Portion (30g)",
+      "serving_size_g": 30,
+      "tags": [
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 15,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 100,
+        "carbs_g": 3,
+        "fiber_g": 0,
+        "sugar_g": 2,
+        "protein_g": 0,
+        "calcium_mg": 5,
+        "iron_mg": 0.1
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134387",
+      "name": "Pico de Gallo",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Cold Toppings (Choose Up to Three)",
+      "menu": "All Day",
+      "servingSize": "1 oz Portion (30g)",
+      "serving_size_g": 30,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 10,
+        "saturated_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 95,
+        "carbs_g": 2,
+        "fiber_g": 0,
+        "sugar_g": 1,
+        "protein_g": 0,
+        "calcium_mg": 4,
+        "iron_mg": 0.1
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134393",
+      "name": "Smoky Chipotle Sauce",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Sauce/Salsa (Choose Up to Two)",
+      "menu": "All Day",
+      "servingSize": "2 oz Portion (57g)",
+      "serving_size_g": 57,
+      "tags": [
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 30,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "sodium_mg": 190,
+        "carbs_g": 7,
+        "fiber_g": 1,
+        "sugar_g": 6,
+        "calcium_mg": 30,
+        "iron_mg": 1
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134394",
+      "name": "Sweet Thai Chili Sauce",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Sauce/Salsa (Choose Up to Two)",
+      "menu": "All Day",
+      "servingSize": ".61 oz Portion (17g)",
+      "serving_size_g": 17,
+      "tags": [
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 30,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 290,
+        "carbs_g": 7,
+        "fiber_g": 0,
+        "sugar_g": 7,
+        "protein_g": 0,
+        "calcium_mg": 0,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134395",
+      "name": "Cilantro Lime Vinaigrette",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Sauce/Salsa (Choose Up to Two)",
+      "menu": "All Day",
+      "servingSize": ".44 oz Portion (12g)",
+      "serving_size_g": 12,
+      "tags": [
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 70,
+        "fat_g": 7,
+        "saturated_fat_g": 1,
+        "cholesterol_mg": 0,
+        "sodium_mg": 15,
+        "carbs_g": 1,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 0,
+        "calcium_mg": 1,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134390",
+      "name": "Mango Salsa",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Sauce/Salsa (Choose Up to Two)",
+      "menu": "All Day",
+      "servingSize": "1 oz Portion (28g)",
+      "serving_size_g": 28,
+      "tags": [
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 15,
+        "fat_g": 3,
+        "carbs_g": 3,
+        "sugar_g": 132,
+        "calcium_mg": 0,
+        "iron_mg": 0.3
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134391",
+      "name": "Tomatillo Salsa Verde",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Sauce/Salsa (Choose Up to Two)",
+      "menu": "All Day",
+      "servingSize": "1 oz Portion (20g)",
+      "serving_size_g": 20,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 0,
+        "fat_g": 0,
+        "saturated_fat_g": 0,
+        "trans_fat_g": 0,
+        "cholesterol_mg": 0,
+        "sodium_mg": 30,
+        "carbs_g": 0,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 0,
+        "calcium_mg": 0,
+        "iron_mg": 0
+      }
+    },
+    {
+      "id": "duke:it-s-thyme:302134392",
+      "name": "Lemon Garlic Thyme Sauce",
+      "location": "It's Thyme",
+      "locationId": "it-s-thyme",
+      "category": "Build Your Own Bowl Sauce/Salsa (Choose Up to Two)",
+      "menu": "All Day",
+      "servingSize": "1 oz Portion (27g)",
+      "serving_size_g": 27,
+      "tags": [
+        "Vegan",
+        "Vegetarian"
+      ],
+      "nutrients": {
+        "calories": 70,
+        "fat_g": 8,
+        "saturated_fat_g": 1,
+        "cholesterol_mg": 0,
+        "sodium_mg": 75,
+        "carbs_g": 0,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "protein_g": 0,
+        "calcium_mg": 3,
+        "iron_mg": 0.1
+      }
     }
   ]
 }
