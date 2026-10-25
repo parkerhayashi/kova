@@ -8,6 +8,7 @@ import {
   computeAdaptiveEnergySnapshot,
   computeNutritionGoals,
   estimateTdee,
+  MANUAL_NUDGE_LIMIT,
   parseActivityLevel,
   parseAdaptiveEnergyState,
   resolveAdaptiveEnergy,
@@ -406,6 +407,39 @@ export async function resetAdaptiveEnergyState(): Promise<void> {
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
   await persistAdaptiveEnergyState({ adjustment: 0, updated_at: today });
+}
+
+/** Leave manual mode: clear stored state so auto review resumes immediately. */
+export async function clearAdaptiveEnergyState(): Promise<void> {
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("user_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (!row) return;
+  await db
+    .from("user_settings")
+    .update({ adaptive_energy_state: null })
+    .eq("id", row.id);
+}
+
+/** Pin the TDEE nudge to a hand-set value; auto review holds it until reset. */
+export async function setManualAdaptiveEnergyState(
+  adjustment: number,
+): Promise<number> {
+  if (!Number.isFinite(adjustment)) throw new Error("Nudge must be a number");
+  const value = Math.round(
+    Math.max(-MANUAL_NUDGE_LIMIT, Math.min(MANUAL_NUDGE_LIMIT, adjustment)),
+  );
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  await persistAdaptiveEnergyState({
+    adjustment: value,
+    updated_at: today,
+    manual: true,
+  });
+  return value;
 }
 
 export async function getMealsForDate(date: string): Promise<Meal[]> {

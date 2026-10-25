@@ -63,10 +63,14 @@ export const ADAPTIVE_COOLDOWN_DAYS = 14;
 export const ADAPTIVE_MAX_STEP = 100;
 /** Ignore tiny implied adjustments — below this is weigh-in noise, not signal. */
 export const ADAPTIVE_DEADBAND_KCAL = 50;
+/** Bounds for a user-set nudge (wider than the auto range, but still sane). */
+export const MANUAL_NUDGE_LIMIT = 1000;
 
 export type AdaptiveEnergyState = {
   adjustment: number;
   updated_at: string;
+  /** User-set nudge: auto review holds it until the user returns to auto. */
+  manual?: boolean;
 };
 
 export type MaintenanceSource = "tdee" | "tdee_adjusted";
@@ -78,6 +82,7 @@ export type AdaptiveEnergySnapshot = {
   weightChangeLbs: number;
   impliedMaintenance: number;
   adjustment: number;
+  manual?: boolean;
 };
 
 export type NutritionGoalMeta = {
@@ -95,6 +100,8 @@ export type NutritionGoalMeta = {
   /** Small nudge applied on top of TDEE from intake/weight trend. */
   adaptive_adjustment: number;
   adaptive_reason: string | null;
+  /** True when the nudge was set by hand and auto review is paused. */
+  adaptive_manual: boolean;
   calorie_adjustment: number;
   adjustment_reason: string | null;
   /** Active reverse-diet ramp after a cut. */
@@ -304,6 +311,25 @@ export function resolveAdaptiveEnergy(input: {
   const maxStep = input.maxStep ?? ADAPTIVE_MAX_STEP;
   const { computed, stored, today } = input;
 
+  // A hand-set nudge is held as-is — no deadband clearing, decay, or review.
+  if (stored?.manual) {
+    return {
+      snapshot: {
+        ...(computed ?? {
+          windowDays: ADAPTIVE_WINDOW_DAYS,
+          loggedDays: 0,
+          avgDailyIntake: 0,
+          weightChangeLbs: 0,
+          impliedMaintenance: 0,
+        }),
+        adjustment: stored.adjustment,
+        manual: true,
+      },
+      state: stored,
+      persist: false,
+    };
+  }
+
   if (!computed) {
     if (!stored) return { snapshot: null, state: null, persist: false };
     // Drop leftover noise nudges even when we can't recompute yet.
@@ -426,7 +452,11 @@ export function parseAdaptiveEnergyState(
   if (typeof row.adjustment !== "number" || typeof row.updated_at !== "string") {
     return null;
   }
-  return { adjustment: row.adjustment, updated_at: row.updated_at };
+  return {
+    adjustment: row.adjustment,
+    updated_at: row.updated_at,
+    ...(row.manual === true ? { manual: true } : {}),
+  };
 }
 
 export function estimateMaintenanceCalories(input: {
@@ -494,6 +524,7 @@ export function calorieAdjustment(input: {
 }
 
 function adaptiveReason(snapshot: AdaptiveEnergySnapshot): string {
+  if (snapshot.manual) return "Manual TDEE nudge (auto-adjust paused)";
   const weight =
     snapshot.weightChangeLbs === 0
       ? "weight stable"
@@ -599,6 +630,7 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
         input.adaptive && adaptiveAdjustment !== 0
           ? adaptiveReason(input.adaptive)
           : null,
+      adaptive_manual: input.adaptive?.manual === true,
       calorie_adjustment: adjustment,
       adjustment_reason: reason,
       reverse_diet_active,

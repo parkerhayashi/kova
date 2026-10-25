@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import {
   bumpReverseDietNow,
+  clearAdaptiveEnergyState as persistAdaptiveClear,
   resetAdaptiveEnergyState as persistAdaptiveReset,
   saveNutritionTargets as persistTargets,
+  setManualAdaptiveEnergyState as persistManualNudge,
   startDietBreak as persistStartDietBreak,
   startReverseDiet as persistStartReverse,
   stopDietBreak as persistStopDietBreak,
@@ -81,6 +83,17 @@ export async function saveNutritionTargets(input: {
 export async function resetAdaptiveTdee(): Promise<void> {
   await persistAdaptiveReset();
   refresh();
+}
+
+export async function returnTdeeNudgeToAuto(): Promise<void> {
+  await persistAdaptiveClear();
+  refresh();
+}
+
+export async function setManualTdeeNudge(adjustment: number): Promise<number> {
+  const value = await persistManualNudge(adjustment);
+  refresh();
+  return value;
 }
 
 export async function startReverseDietAction(): Promise<ReverseDietState> {

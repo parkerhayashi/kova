@@ -5,7 +5,9 @@ import { ChevronDown } from "lucide-react";
 import {
   bumpReverseDietAction,
   resetAdaptiveTdee,
+  returnTdeeNudgeToAuto,
   saveNutritionTargets,
+  setManualTdeeNudge,
   startDietBreakAction,
   startReverseDietAction,
   stopDietBreakAction,
@@ -49,18 +51,51 @@ export function GoalSettings({
   const [resetPending, startResetTransition] = useTransition();
   const [reversePending, startReverseTransition] = useTransition();
   const [breakPending, startBreakTransition] = useTransition();
+  const [nudge, setNudge] = useState(String(meta.adaptive_adjustment));
+  // Resync the field when the server-side nudge changes (e.g. back to auto).
+  const [nudgeSource, setNudgeSource] = useState(meta.adaptive_adjustment);
+  if (nudgeSource !== meta.adaptive_adjustment) {
+    setNudgeSource(meta.adaptive_adjustment);
+    setNudge(String(meta.adaptive_adjustment));
+  }
 
   const modeLocked = reverse.active || dietBreak.active;
 
   function handleResetTdee() {
     startResetTransition(async () => {
-      await resetAdaptiveTdee();
-      setReset(true);
-      setTimeout(() => setReset(false), 2000);
+      if (meta.adaptive_manual) {
+        await returnTdeeNudgeToAuto();
+        flash("Back to auto nudge");
+      } else {
+        await resetAdaptiveTdee();
+        setNudge("0");
+        setReset(true);
+        setTimeout(() => setReset(false), 2000);
+      }
     });
   }
 
   const hasAdaptiveNudge = meta.adaptive_adjustment !== 0;
+  const nudgeValue = Number(nudge);
+  const nudgeValid = nudge.trim() !== "" && Number.isFinite(nudgeValue);
+
+  function stepNudge(delta: number) {
+    const base = Number.isFinite(nudgeValue) ? nudgeValue : 0;
+    setNudge(String(Math.round(base + delta)));
+  }
+
+  function handleSetNudge() {
+    if (!nudgeValid) return;
+    startResetTransition(async () => {
+      try {
+        const applied = await setManualTdeeNudge(nudgeValue);
+        setNudge(String(applied));
+        flash(`Nudge set to ${applied > 0 ? "+" : ""}${applied} kcal`);
+      } catch (err) {
+        flash(err instanceof Error ? err.message : "Could not set nudge");
+      }
+    });
+  }
 
   function handleSave() {
     startTransition(async () => {
@@ -327,6 +362,79 @@ export function GoalSettings({
             ) : null}
           </div>
 
+          <div className="rounded-xl bg-[rgba(255,255,255,0.03)] px-3 py-3 space-y-2">
+            <span className="metric-label">TDEE nudge</span>
+            <p className="text-sm font-semibold text-text-primary">
+              {meta.adaptive_adjustment > 0 ? "+" : ""}
+              {meta.adaptive_adjustment} kcal ·{" "}
+              {meta.adaptive_manual ? "manual" : "auto"}
+            </p>
+            <p className="text-text-muted text-xs">
+              {meta.adaptive_manual
+                ? "Set by you. Auto-adjust from intake vs. weight is paused until you return to auto."
+                : "Auto-adjusts from logged intake vs. weight trend (±100 kcal per 2 weeks). Set a value to override it."}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => stepNudge(-25)}
+                disabled={resetPending}
+                aria-label="Decrease nudge by 25 kcal"
+              >
+                −25
+              </Button>
+              <Input
+                type="number"
+                step="25"
+                inputMode="numeric"
+                aria-label="TDEE nudge in kcal"
+                className="w-24 text-center tabular-nums"
+                value={nudge}
+                onChange={(e) => setNudge(e.target.value)}
+                disabled={resetPending}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => stepNudge(25)}
+                disabled={resetPending}
+                aria-label="Increase nudge by 25 kcal"
+              >
+                +25
+              </Button>
+              {/* iOS numeric keypads have no minus key — flip sign here. */}
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setNudge(String(-(Number(nudge) || 0)))}
+                disabled={resetPending}
+                aria-label="Flip nudge sign"
+              >
+                ±
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                onClick={handleSetNudge}
+                disabled={resetPending || !nudgeValid}
+              >
+                {resetPending ? "Saving…" : "Set nudge"}
+              </Button>
+              {meta.adaptive_manual || hasAdaptiveNudge ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleResetTdee}
+                  disabled={resetPending}
+                >
+                  {meta.adaptive_manual ? "Return to auto" : "Reset to 0"}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
@@ -335,16 +443,6 @@ export function GoalSettings({
             >
               {pending ? "Saving…" : "Save goals"}
             </Button>
-            {hasAdaptiveNudge ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleResetTdee}
-                disabled={resetPending}
-              >
-                {resetPending ? "Resetting…" : "Reset TDEE nudge"}
-              </Button>
-            ) : null}
             {saved ? <span className="timestamp">Saved</span> : null}
             {reset ? <span className="timestamp">TDEE nudge reset</span> : null}
             {message ? <span className="timestamp">{message}</span> : null}

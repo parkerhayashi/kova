@@ -682,7 +682,11 @@ export interface UserSettings {
   water_state: Record<string, unknown> | null;
   client_sync: ClientSyncPayload | null;
   cut_coach_cache: Record<string, unknown> | null;
-  adaptive_energy_state: { adjustment: number; updated_at: string } | null;
+  adaptive_energy_state: {
+    adjustment: number;
+    updated_at: string;
+    manual?: boolean;
+  } | null;
   /** Visual eye-test baseline + answers for rolling body-fat estimate. */
   visual_body_fat_state: VisualBodyFatState | null;
   /** Gradual reverse-diet ramp after a cut. */
