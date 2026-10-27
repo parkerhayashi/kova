@@ -15,12 +15,6 @@ import {
   type HevyWorkoutEvent,
 } from "@/lib/hevy";
 import { addDays } from "@/lib/utils";
-import {
-  flattenHevyWorkouts,
-  normalizeExerciseName,
-  toHevyCoachWorkoutLog,
-  type HevyCoachWorkoutLog,
-} from "@/lib/lifting-unified";
 import type { Workout } from "@/types";
 
 export type HevySyncResult = {
@@ -140,23 +134,6 @@ export async function listHevyWorkoutsSince(sinceDate: string): Promise<Workout[
     .gte("date", sinceDate)
     .order("date", { ascending: false });
   return (data as Workout[]) ?? [];
-}
-
-export async function listAllHevyWorkouts(): Promise<Workout[]> {
-  const db = createServiceClient();
-  const { data } = await db
-    .from("workouts")
-    .select("*")
-    .order("date", { ascending: false });
-  return (data as Workout[]) ?? [];
-}
-
-/** Compact top-set payload for syncing Hevy history into Coach. */
-export async function getHevyCoachPayload(): Promise<HevyCoachWorkoutLog[]> {
-  const workouts = await listAllHevyWorkouts();
-  return workouts
-    .map((workout) => toHevyCoachWorkoutLog(workout))
-    .filter((row): row is HevyCoachWorkoutLog => row != null);
 }
 
 export async function listHevyWorkouts(limit = 20): Promise<Workout[]> {

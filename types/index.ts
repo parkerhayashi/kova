@@ -250,128 +250,6 @@ export interface Workout {
   created_at: string;
 }
 
-// Native strength tracker (Phase 4). Weights in lbs.
-export interface Exercise {
-  id: string;
-  name: string;
-  category: string | null;
-  equipment: string | null;
-  exercisedb_id: string | null;
-  gif_url: string | null;
-  target_muscle: string | null;
-  body_part: string | null;
-  secondary_muscles: string[] | null;
-  instructions: string[] | null;
-  is_active: boolean;
-  created_at: string;
-}
-
-export interface ExerciseCatalogItem {
-  exercisedb_id: string;
-  name: string;
-  gif_url: string;
-  body_part: string | null;
-  equipment: string | null;
-  target_muscle: string | null;
-  secondary_muscles: string[];
-  instructions: string[];
-  category: string | null;
-}
-
-export type ExerciseSearchResult = {
-  local: Exercise[];
-  catalog: ExerciseCatalogItem[];
-};
-
-export type WorkoutSessionStatus = "in_progress" | "completed";
-
-export interface WorkoutRoutine {
-  id: string;
-  name: string;
-  sort_order: number;
-  created_at: string;
-}
-
-export interface WorkoutRoutineExercise {
-  id: string;
-  routine_id: string;
-  exercise_id: string;
-  position: number;
-  target_sets: number;
-  rep_min: number | null;
-  rep_max: number | null;
-  rest_seconds: number;
-  notes: string | null;
-}
-
-export interface WorkoutSessionExercise {
-  id: string;
-  session_id: string;
-  exercise_id: string;
-  position: number;
-  target_sets: number;
-  rep_min: number | null;
-  rep_max: number | null;
-  rest_seconds: number;
-  notes: string | null;
-}
-
-export interface RoutineExerciseView {
-  id: string;
-  position: number;
-  target_sets: number;
-  rep_min: number | null;
-  rep_max: number | null;
-  rest_seconds: number;
-  notes: string | null;
-  exercise: Exercise;
-}
-
-export interface RoutineDetail extends WorkoutRoutine {
-  exercises: RoutineExerciseView[];
-  total_sets: number;
-  estimated_minutes: number;
-}
-
-export interface SessionExerciseView extends RoutineExerciseView {
-  session_exercise_id: string;
-  sets: WorkoutSet[];
-}
-
-export interface ActiveWorkoutView {
-  session: WorkoutSession;
-  exercises: SessionExerciseView[];
-  total_volume_lbs: number;
-}
-
-export interface RepRecord {
-  reps: number;
-  weight_lbs: number;
-  date: string;
-  session_id: string;
-}
-
-export interface ExerciseStats {
-  exercise: Exercise;
-  heaviest_weight_lbs: number | null;
-  best_est_1rm_lbs: number | null;
-  best_set_volume_lbs: number | null;
-  best_session_volume_lbs: number | null;
-  rep_records: RepRecord[];
-  total_sets: number;
-  total_sessions: number;
-  last_performed: string | null;
-}
-
-export interface ExerciseHistorySession {
-  session_id: string;
-  date: string;
-  title: string | null;
-  sets: WorkoutSet[];
-  session_volume_lbs: number;
-  best_est_1rm_lbs: number | null;
-}
-
 export interface LiftingDashboard {
   period_days: number;
   total_sessions: number;
@@ -382,15 +260,13 @@ export interface LiftingDashboard {
   muscle_split: { category: string; sets: number; volume_lbs: number }[];
 }
 
-export type WorkoutTodayStatus = "none" | "in_progress" | "completed_today";
+export type WorkoutTodayStatus = "none" | "completed_today";
 
 export interface WorkoutTodaySummary {
   status: WorkoutTodayStatus;
   title: string | null;
-  session_id: string | null;
   volume_lbs: number | null;
   duration_seconds: number | null;
-  started_at: string | null;
   /** Smart caption for home / today tiles. */
   insight: string | null;
   last_session: {
@@ -400,40 +276,6 @@ export interface WorkoutTodaySummary {
   } | null;
   volume_vs_avg_pct: number | null;
   training_streak_days: number | null;
-}
-
-export interface WorkoutSession {
-  id: string;
-  date: string;
-  title: string | null;
-  notes: string | null;
-  duration: number | null;
-  routine_id: string | null;
-  status: WorkoutSessionStatus;
-  started_at: string | null;
-  completed_at: string | null;
-  created_at: string;
-}
-
-export interface WorkoutSet {
-  id: string;
-  session_id: string;
-  exercise_id: string;
-  position: number;
-  set_index: number;
-  weight_lbs: number | null;
-  reps: number | null;
-  rpe: number | null;
-  is_warmup: boolean;
-  completed: boolean;
-  created_at: string;
-}
-
-/** A session's sets grouped by exercise, in logging order. */
-export interface SessionExerciseGroup {
-  exercise: Exercise;
-  position: number;
-  sets: WorkoutSet[];
 }
 
 export type MealSource =
@@ -678,6 +520,8 @@ export interface UserSettings {
   reverse_diet_state: ReverseDietState | null;
   /** Temporary eat-at-maintenance pause during a cut. */
   diet_break_state: DietBreakState | null;
+  /** Run fuel carbs per hour beyond the first hour (30–60; null = 45). */
+  run_fuel_carbs_per_hour: number | null;
   oura_last_synced_at: string | null;
   hevy_last_synced_at: string | null;
   updated_at: string;
@@ -777,4 +621,118 @@ export interface NutrientProfile {
       | "logged_at"
     >
   >;
+}
+
+// ---------------------------------------------------------------------------
+// Running nutrition + Plan Calendar (supabase/schema.sql "Running nutrition")
+// Distances are canonical km; durations are minutes.
+// ---------------------------------------------------------------------------
+
+export type RunType = "easy" | "long" | "tempo" | "intervals" | "race";
+/** Mode 3 events — races only. */
+export type RaceEventType = "ten_mile" | "half_marathon" | "marathon";
+export type PlannedRunStatus = "planned" | "completed" | "skipped";
+export type ActualRunSource = "garmin" | "manual";
+export type RunFuelBasis = "planned" | "actual";
+export type RunFuelKind = "run_fuel" | "carb_load";
+
+/** The nutrition designation: a Mode 2 fueling run or a Mode 3 race. */
+export interface PlannedRun {
+  id: string;
+  date: string;
+  run_type: RunType;
+  planned_distance_km: number | null;
+  planned_duration_min: number | null;
+  /** True when duration was estimated from recent easy pace. */
+  duration_estimated: boolean;
+  event_type: RaceEventType | null;
+  is_race: boolean;
+  event_date: string | null;
+  designated_at: string | null;
+  status: PlannedRunStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActualRun {
+  id: string;
+  planned_run_id: string | null;
+  date: string;
+  run_type: RunType | null;
+  actual_distance_km: number | null;
+  actual_duration_min: number;
+  started_at: string | null;
+  source: ActualRunSource;
+  external_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** One per day, recomputed by the app — never hand-edited. */
+export interface RunFuelAdjustment {
+  id: string;
+  date: string;
+  basis: RunFuelBasis;
+  kind: RunFuelKind;
+  planned_run_id: string | null;
+  load_day_index: number | null;
+  load_day_count: number | null;
+  added_carbs_g: number;
+  added_kcal: number;
+  added_protein_g: number;
+  added_fat_g: number;
+  target_carbs_g: number | null;
+  target_fat_g: number | null;
+  carbs_g_per_kg: number | null;
+  basis_duration_min: number | null;
+  computed_at: string;
+}
+
+/** Gels and other on-run fuel. Counts as intake; never moves targets. */
+export interface MidRunIntake {
+  id: string;
+  date: string;
+  planned_run_id: string | null;
+  actual_run_id: string | null;
+  label: string;
+  carbs_g: number;
+  kcal: number;
+  taken_at_min: number | null;
+  logged_at: string;
+}
+
+/** Training-only calendar entry; changes no targets on its own. */
+export interface CalendarRun {
+  id: string;
+  date: string;
+  run_type: Exclude<RunType, "race">;
+  planned_distance_km: number | null;
+  planned_duration_min: number | null;
+  notes: string | null;
+  planned_run_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CalendarEntryKind =
+  | "prescribed_run"
+  | "planned_run"
+  | "race"
+  | "completed_run";
+export type CalendarNutritionStatus = "none" | "fueling" | "carb_load";
+
+/** One rendered calendar item — derived from the records above + the plan. */
+export interface CalendarEntry {
+  id: string;
+  date: string;
+  kind: CalendarEntryKind;
+  source: "plan" | "user";
+  run_type: RunType | null;
+  planned_distance_km: number | null;
+  planned_duration_min: number | null;
+  event_type: RaceEventType | null;
+  nutrition_status: CalendarNutritionStatus;
+  planned_run_id: string | null;
+  actual_run_id: string | null;
+  label: string;
 }

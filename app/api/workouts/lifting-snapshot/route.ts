@@ -3,7 +3,7 @@ import { getLiftingCompositionSnapshot } from "@/lib/data/workouts";
 
 export const dynamic = "force-dynamic";
 
-/** Lifting stats for Coach weight composition (Hevy + native). */
+/** Hevy lifting stats for the Coach weight composition estimate. */
 export async function GET(request: NextRequest) {
   const days = Math.min(
     90,

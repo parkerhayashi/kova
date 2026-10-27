@@ -118,7 +118,10 @@ alter table workouts add column if not exists start_time timestamptz;
 alter table workouts add column if not exists end_time timestamptz;
 
 -- ---------------------------------------------------------------------------
--- Native strength tracker (Phase 4 — self-logged in Kova). Weights in lbs.
+-- Native strength tracker — RETIRED (Oct 2026). Lifts are logged in Hevy and
+-- imported into `workouts`; the app no longer reads or writes exercises,
+-- exercise_catalog, workout_sessions/sets, or workout_routines*. Tables are
+-- kept so existing rows aren't lost; the starter seed data was removed.
 -- ---------------------------------------------------------------------------
 create table if not exists exercises (
   id          uuid primary key default gen_random_uuid(),
@@ -218,7 +221,7 @@ alter table exercises add column if not exists secondary_muscles jsonb;
 create unique index if not exists exercises_exercisedb_id_idx
   on exercises (exercisedb_id) where exercisedb_id is not null;
 
--- Full ExerciseDB catalog (~1500 exercises) for search; synced via scripts/sync-exercisedb.mjs
+-- Former ExerciseDB catalog cache (retired with the native tracker).
 create table if not exists exercise_catalog (
   exercisedb_id     text primary key,
   name              text not null,
@@ -233,83 +236,6 @@ create table if not exists exercise_catalog (
 );
 
 create index if not exists exercise_catalog_name_idx on exercise_catalog (name);
-
--- Seed a starter exercise library (no-op if a name already exists).
-insert into exercises (name, category, equipment) values
-  ('Barbell Back Squat', 'legs', 'barbell'),
-  ('Barbell Bench Press', 'chest', 'barbell'),
-  ('Deadlift', 'back', 'barbell'),
-  ('Overhead Press', 'shoulders', 'barbell'),
-  ('Barbell Row', 'back', 'barbell'),
-  ('Pull-Up', 'back', 'bodyweight'),
-  ('Lat Pulldown', 'back', 'cable'),
-  ('Incline Dumbbell Press', 'chest', 'dumbbell'),
-  ('Dumbbell Shoulder Press', 'shoulders', 'dumbbell'),
-  ('Romanian Deadlift', 'legs', 'barbell'),
-  ('Leg Press', 'legs', 'machine'),
-  ('Leg Curl', 'legs', 'machine'),
-  ('Leg Extension', 'legs', 'machine'),
-  ('Bicep Curl', 'arms', 'dumbbell'),
-  ('Tricep Pushdown', 'arms', 'cable'),
-  ('Lateral Raise', 'shoulders', 'dumbbell'),
-  ('Cable Fly', 'chest', 'cable'),
-  ('Hip Thrust', 'legs', 'barbell'),
-  ('Plank', 'core', 'bodyweight'),
-  ('Hanging Leg Raise', 'core', 'bodyweight')
-on conflict (name) do nothing;
-
--- Parker's Hevy routines (Push / Pull / Legs) — idempotent by routine name.
-insert into exercises (name, category, equipment) values
-  ('Incline Bench Press (Dumbbell)', 'chest', 'dumbbell'),
-  ('Single Arm Lateral Raise (Cable)', 'shoulders', 'cable'),
-  ('Triceps Pushdown', 'arms', 'cable'),
-  ('Seated Chest Flys (Cable)', 'chest', 'cable'),
-  ('Triceps Dip (Assisted)', 'arms', 'bodyweight'),
-  ('Lat Pulldown (Cable)', 'back', 'cable'),
-  ('Rear Delt Reverse Fly (Machine)', 'shoulders', 'machine'),
-  ('Preacher Curl (Machine)', 'arms', 'machine'),
-  ('Seated Cable Row - V Grip (Cable)', 'back', 'cable'),
-  ('Single Arm Curl (Cable)', 'arms', 'cable'),
-  ('Lying Leg Curl (Machine)', 'legs', 'machine'),
-  ('Leg Press (Machine)', 'legs', 'machine'),
-  ('Decline Crunch (Weighted)', 'core', 'bodyweight'),
-  ('Glute Ham Raise', 'legs', 'bodyweight'),
-  ('Leg Extension (Machine)', 'legs', 'machine'),
-  ('Seated Calf Raise', 'legs', 'machine')
-on conflict (name) do nothing;
-
-insert into workout_routines (name, sort_order) values
-  ('Push', 1),
-  ('Pull', 2),
-  ('Legs', 3)
-on conflict (name) do nothing;
-
-insert into workout_routine_exercises (routine_id, exercise_id, position, target_sets, rep_min, rep_max, rest_seconds, notes)
-select r.id, e.id, v.position, v.target_sets, v.rep_min, v.rep_max, 180, v.notes
-from (values
-  ('Push', 'Incline Bench Press (Dumbbell)', 0, 2, 5, 5, null::text),
-  ('Push', 'Single Arm Lateral Raise (Cable)', 1, 2, 5, 5, null),
-  ('Push', 'Triceps Pushdown', 2, 2, 5, 5, null),
-  ('Push', 'Seated Chest Flys (Cable)', 3, 2, 5, 5, null),
-  ('Push', 'Triceps Dip (Assisted)', 4, 2, 5, 5, null),
-  ('Pull', 'Lat Pulldown (Cable)', 0, 2, 5, 8, null),
-  ('Pull', 'Rear Delt Reverse Fly (Machine)', 1, 2, 6, 8, null),
-  ('Pull', 'Preacher Curl (Machine)', 2, 2, 4, 8, null),
-  ('Pull', 'Seated Cable Row - V Grip (Cable)', 3, 2, 5, 7, null),
-  ('Pull', 'Single Arm Curl (Cable)', 4, 2, 6, 6, null),
-  ('Legs', 'Lying Leg Curl (Machine)', 0, 2, 6, 7, null),
-  ('Legs', 'Leg Press (Machine)', 1, 2, 6, 6, null),
-  ('Legs', 'Decline Crunch (Weighted)', 2, 2, 20, 20, '25 lb'),
-  ('Legs', 'Glute Ham Raise', 3, 2, 6, 6, '25 lb'),
-  ('Legs', 'Leg Extension (Machine)', 4, 2, 20, 20, null),
-  ('Legs', 'Seated Calf Raise', 5, 2, 6, 7, null)
-) as v(routine_name, exercise_name, position, target_sets, rep_min, rep_max, notes)
-join workout_routines r on r.name = v.routine_name
-join exercises e on e.name = v.exercise_name
-where not exists (
-  select 1 from workout_routine_exercises wre
-  where wre.routine_id = r.id and wre.position = v.position
-);
 
 -- ---------------------------------------------------------------------------
 -- Nutrition: meals (USDA / Open Food Facts / manual)
@@ -564,6 +490,10 @@ alter table user_settings
 alter table user_settings
   add column if not exists activity_level text;
 
+-- Run fuel: carbs per hour of running beyond the first hour (30–60; default 45).
+alter table user_settings
+  add column if not exists run_fuel_carbs_per_hour int;
+
 -- Single-user app: seed one settings row.
 insert into user_settings (id)
 select gen_random_uuid()
@@ -688,6 +618,99 @@ create table if not exists oura_profile (
 );
 
 -- ---------------------------------------------------------------------------
+-- Running nutrition (Modes 1–3) + Plan Calendar
+-- planned_runs  — the nutrition designation (Mode 2 fueling run or Mode 3 race).
+-- actual_runs   — completed runs (manual now; Garmin sync later, deduped on external_id).
+-- run_fuel_adjustments — one per day, recomputed by the app, never hand-edited.
+-- mid_run_intakes — gels/chews/drink mix logged against a run; counts as intake.
+-- calendar_runs — training-only calendar entries (never change nutrition alone).
+-- Distances are canonical km; durations are minutes.
+-- ---------------------------------------------------------------------------
+create table if not exists planned_runs (
+  id                    uuid primary key default gen_random_uuid(),
+  date                  date not null,
+  run_type              text not null
+                        check (run_type in ('easy', 'long', 'tempo', 'intervals', 'race')),
+  planned_distance_km   float,
+  planned_duration_min  float,
+  duration_estimated    boolean not null default false, -- true when derived from recent easy pace
+  event_type            text check (event_type in ('ten_mile', 'half_marathon', 'marathon')),
+  is_race               boolean not null default false,
+  event_date            date,
+  designated_at         timestamptz,
+  status                text not null default 'planned'
+                        check (status in ('planned', 'completed', 'skipped')),
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create index if not exists planned_runs_date_idx on planned_runs (date);
+
+create table if not exists actual_runs (
+  id                    uuid primary key default gen_random_uuid(),
+  planned_run_id        uuid references planned_runs (id) on delete set null,
+  date                  date not null,     -- the day the run started
+  run_type              text check (run_type in ('easy', 'long', 'tempo', 'intervals', 'race')),
+  actual_distance_km    float,
+  actual_duration_min   float not null,
+  started_at            timestamptz,
+  source                text not null default 'manual' check (source in ('garmin', 'manual')),
+  external_id           text unique,       -- Garmin activity id
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create index if not exists actual_runs_date_idx on actual_runs (date);
+
+create table if not exists run_fuel_adjustments (
+  id                    uuid primary key default gen_random_uuid(),
+  date                  date unique not null,
+  basis                 text not null check (basis in ('planned', 'actual')),
+  kind                  text not null check (kind in ('run_fuel', 'carb_load')),
+  planned_run_id        uuid references planned_runs (id) on delete set null,
+  load_day_index        int,               -- carb_load: 1..load_day_count
+  load_day_count        int,
+  added_carbs_g         float not null default 0,
+  added_kcal            float not null default 0,
+  added_protein_g       float not null default 0,
+  added_fat_g           float not null default 0,
+  target_carbs_g        float,             -- carb_load: absolute day carb target (g/kg × weight)
+  target_fat_g          float,             -- carb_load: reduced fat target
+  carbs_g_per_kg        float,             -- carb_load: the stored per-kg rate
+  basis_duration_min    float,             -- run_fuel: summed duration the fuel was computed from
+  computed_at           timestamptz default now()
+);
+
+create table if not exists mid_run_intakes (
+  id                    uuid primary key default gen_random_uuid(),
+  date                  date not null,
+  planned_run_id        uuid references planned_runs (id) on delete set null,
+  actual_run_id         uuid references actual_runs (id) on delete set null,
+  label                 text not null default 'Gel',
+  carbs_g               float not null default 25,
+  kcal                  float not null default 100,
+  taken_at_min          float,
+  logged_at             timestamptz default now()
+);
+
+create index if not exists mid_run_intakes_date_idx on mid_run_intakes (date);
+
+create table if not exists calendar_runs (
+  id                    uuid primary key default gen_random_uuid(),
+  date                  date not null,
+  run_type              text not null default 'easy'
+                        check (run_type in ('easy', 'long', 'tempo', 'intervals')),
+  planned_distance_km   float,
+  planned_duration_min  float,
+  notes                 text,
+  planned_run_id        uuid references planned_runs (id) on delete set null, -- set by a separate Mode 2 designation
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create index if not exists calendar_runs_date_idx on calendar_runs (date);
+
+-- ---------------------------------------------------------------------------
 -- Plaid — linked bank / credit accounts and transactions (US via Plaid Link)
 -- Access tokens are encrypted at rest; sync uses /transactions/sync cursors.
 -- ---------------------------------------------------------------------------
@@ -804,3 +827,8 @@ alter table oura_profile      enable row level security;
 alter table plaid_items       enable row level security;
 alter table financial_accounts enable row level security;
 alter table financial_transactions enable row level security;
+alter table planned_runs      enable row level security;
+alter table actual_runs       enable row level security;
+alter table run_fuel_adjustments enable row level security;
+alter table mid_run_intakes   enable row level security;
+alter table calendar_runs     enable row level security;

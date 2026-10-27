@@ -13,25 +13,6 @@ const nextConfig: NextConfig = {
       { source: "/water", destination: "/nutrition", permanent: false },
     ];
   },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "static.exercisedb.dev",
-        pathname: "/media/**",
-      },
-      {
-        protocol: "https",
-        hostname: "assets.exercisedb.dev",
-        pathname: "/media/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cdn.exercisedb.dev",
-        pathname: "/media/**",
-      },
-    ],
-  },
 };
 
 export default nextConfig;

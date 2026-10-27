@@ -355,7 +355,7 @@ function sleepVsNextLifting(
   );
 }
 
-/** Training volume (Hevy + native, lb) vs HRV. */
+/** Hevy training volume (lb) vs HRV. */
 function trainingVsHrv(
   liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
   readiness: Readiness[],
@@ -378,7 +378,7 @@ function trainingVsHrv(
     {
       id: "training-hrv",
       title: "Training Volume vs. HRV",
-      subtitle: "Lifting volume (Hevy + Kova) vs. HRV balance",
+      subtitle: "Hevy lifting volume vs. HRV balance",
       xLabel: "Volume (lb)",
       yLabel: "HRV balance",
       xAccent: "activity",

@@ -41,17 +41,14 @@ export async function HealthSnapshot() {
   const data = await getHealthSnapshot();
 
   const workoutValue =
-    data.workout.status === "in_progress" ||
     data.workout.status === "completed_today"
       ? data.workout.title
       : data.workout.last_session?.title ?? null;
   const workoutCaption =
     data.workout.insight ??
-    (data.workout.status === "in_progress"
-      ? `${formatDuration(data.workout.duration_seconds ?? 0)} in progress`
-      : data.workout.status === "completed_today"
-        ? `${data.workout.volume_lbs?.toLocaleString() ?? "—"} lb · ${formatDuration(data.workout.duration_seconds ?? 0)}`
-        : "log a session");
+    (data.workout.status === "completed_today"
+      ? `${data.workout.volume_lbs?.toLocaleString() ?? "—"} lb · ${formatDuration(data.workout.duration_seconds ?? 0)}`
+      : "log in Hevy");
 
   const weightCaption = data.weight
     ? new Date(`${data.weight.date}T12:00:00`).toLocaleDateString("en-US", {

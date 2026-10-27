@@ -93,9 +93,9 @@ export function museOpenApi() {
       "/api/muse/training": {
         get: {
           operationId: "getTraining",
-          summary: "Hevy + native lifting",
+          summary: "Hevy lifting",
           description:
-            "Recent Hevy workouts with sets, native sessions, routines, lifting dashboard, and composition snapshot.",
+            "Recent Hevy workouts with sets, lifting dashboard, and composition snapshot.",
           security: bearer,
           parameters: [
             daysParam(30, 90),
@@ -166,7 +166,7 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 | \`GET /api/muse/oura?days=30\` | Sleep / readiness / activity history, Oura workouts, sessions, tags. Add \`samples=1\` only if you need waveforms |
 | \`GET /api/muse/nutrition?days=14\` | Every logged meal, daily calories/protein, goals, supplements, saved meals, alcohol. Optional \`date=YYYY-MM-DD\` |
 | \`GET /api/muse/body?days=90\` | Weight log, rates, body-fat estimate, profile |
-| \`GET /api/muse/training?days=30&hevy_limit=40\` | Hevy workouts with sets, native sessions, routines, lifting dashboard |
+| \`GET /api/muse/training?days=30&hevy_limit=40\` | Hevy workouts with sets, lifting dashboard, composition snapshot |
 | \`GET /api/muse/trends?range=30\` | Correlations (incl. alcohol → next-day sleep/readiness/HRV/lifting). \`range\` is 7, 30, or 90 |
 | \`GET /api/muse/life?days=30\` | Profile, MFA flag, connection status, Plaid accounts + transactions |
 

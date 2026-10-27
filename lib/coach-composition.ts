@@ -1,9 +1,7 @@
 /**
- * Weight composition estimates — uses unified lifting data (Hevy + Kova)
- * and Coach logs as fallback.
+ * Weight composition estimates — splits scale change into muscle vs fat using
+ * Hevy lifting signals (strength trend, training frequency, volume).
  */
-import { coachEstimate1RM } from "@/lib/coach-rx";
-import type { CoachLog } from "@/lib/coach-rx";
 import type { UnifiedWorkingSet } from "@/lib/lifting-unified";
 import { estimate1RM, setVolume } from "@/lib/workouts";
 
@@ -21,7 +19,7 @@ export type LiftingCompositionSnapshot = {
   sessionsPerWeek: number;
   strengthDelta: number;
   strengthExerciseCount: number;
-  source: "hevy+kova" | "coach-logs";
+  source: "hevy";
 };
 
 export type CompositionLiftSignals = {
@@ -253,99 +251,36 @@ export function computeStrengthDeltaFromSets(
   return { strengthDelta, exerciseCount: ratios.length };
 }
 
-export function buildLiftSignalsFromCoachLogs(
-  logsByExercise: Record<string, CoachLog[]>,
-  exercises: { id: string; bw?: boolean }[],
-  periodStart: Date,
-): CompositionLiftSignals {
-  const workoutDays = new Set<string>();
-  let totalVolumeLbs = 0;
-  const strengthRatios: number[] = [];
-
-  for (const ex of exercises) {
-    const logs = (logsByExercise[ex.id] ?? []).slice();
-    if (logs.length < 2 || ex.bw) {
-      for (const log of logs) {
-        if (new Date(log.date) >= periodStart) {
-          workoutDays.add(log.date.slice(0, 10));
-          totalVolumeLbs += (log.weight || 0) * (log.reps || 0);
-        }
-      }
-      continue;
-    }
-
-    const inWin = logs.filter((l) => new Date(l.date) >= periodStart);
-    const before = logs.filter((l) => new Date(l.date) < periodStart);
-    for (const log of inWin) {
-      workoutDays.add(log.date.slice(0, 10));
-      totalVolumeLbs += (log.weight || 0) * (log.reps || 0);
-    }
-    if (!inWin.length || !before.length) continue;
-
-    const avg = (arr: CoachLog[]) =>
-      arr.reduce((s, l) => s + coachEstimate1RM(l.weight, l.reps), 0) / arr.length;
-    const a = avg(before);
-    const b = avg(inWin);
-    if (a <= 0) continue;
-    strengthRatios.push(b / a);
-  }
-
-  const strengthDelta = strengthRatios.length
-    ? strengthRatios.reduce((s, r) => s + r, 0) / strengthRatios.length - 1
-    : 0;
-
-  return {
-    strengthDelta,
-    sessionsPerWeek: 0,
-    totalVolumeLbs: Math.round(totalVolumeLbs),
-    workoutDayCount: workoutDays.size,
-    hasLiftData: workoutDays.size > 0 || strengthRatios.length > 0,
-    liftSource: "Coach logs",
-    strengthExerciseCount: strengthRatios.length,
-  };
-}
-
-export function mergeLiftSignals(
+/** Lifting signals for the composition estimate, from the server Hevy snapshot. */
+export function liftSignalsFromSnapshot(
   snapshot: LiftingCompositionSnapshot | null,
-  coachSignals: CompositionLiftSignals,
   actualDays: number,
 ): CompositionLiftSignals {
   if (!snapshot || snapshot.workoutDates.length === 0) {
     return {
-      ...coachSignals,
-      sessionsPerWeek:
-        actualDays > 0 ? (coachSignals.workoutDayCount / actualDays) * 7 : 0,
+      strengthDelta: 0,
+      sessionsPerWeek: 0,
+      totalVolumeLbs: 0,
+      workoutDayCount: 0,
+      hasLiftData: false,
+      liftSource: "Hevy",
+      strengthExerciseCount: 0,
     };
   }
-
-  const workoutDayCount = Math.max(
-    snapshot.workoutDates.length,
-    coachSignals.workoutDayCount,
-  );
-  const useSnapshotStrength = snapshot.strengthExerciseCount > 0;
-
+  const workoutDayCount = snapshot.workoutDates.length;
   return {
-    strengthDelta: useSnapshotStrength
-      ? snapshot.strengthDelta
-      : coachSignals.strengthDelta,
+    strengthDelta: snapshot.strengthExerciseCount > 0 ? snapshot.strengthDelta : 0,
     sessionsPerWeek:
       snapshot.sessionsPerWeek > 0
         ? snapshot.sessionsPerWeek
         : actualDays > 0
           ? (workoutDayCount / actualDays) * 7
           : 0,
-    totalVolumeLbs: Math.max(
-      snapshot.totalVolumeLbs,
-      coachSignals.totalVolumeLbs,
-    ),
+    totalVolumeLbs: snapshot.totalVolumeLbs,
     workoutDayCount,
     hasLiftData: true,
-    liftSource:
-      snapshot.source === "hevy+kova" ? "Hevy + Kova" : coachSignals.liftSource,
-    strengthExerciseCount: Math.max(
-      snapshot.strengthExerciseCount,
-      coachSignals.strengthExerciseCount,
-    ),
+    liftSource: "Hevy",
+    strengthExerciseCount: snapshot.strengthExerciseCount,
   };
 }
 

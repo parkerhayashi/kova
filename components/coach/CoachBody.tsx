@@ -2,7 +2,7 @@
 
 import { CoachPanel } from "./CoachPanel";
 
-/** Progress photos and split settings. Daily weight lives on the main Workouts page. */
+/** Progress photos (camera, library, compare). Daily weight lives on the Weight page. */
 export function CoachBody() {
   return <CoachPanel mode="body-only" />;
 }

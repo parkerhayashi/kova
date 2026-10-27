@@ -1,9 +1,9 @@
 /**
- * Shared helpers to treat Hevy imports and native Kova sets uniformly.
+ * Helpers to flatten Hevy imports into working sets for lifting stats.
  * Client-safe — no server imports.
  */
-import { estimate1RM, setVolume, type WorkingSet } from "@/lib/workouts";
-import type { Workout, WorkoutExercise } from "@/types";
+import { setVolume, type WorkingSet } from "@/lib/workouts";
+import type { Workout } from "@/types";
 
 export const KG_TO_LB = 2.204_622_621_8;
 
@@ -20,13 +20,18 @@ export function normalizeExerciseName(name: string): string {
     .trim();
 }
 
+/**
+ * First match wins, so specific movements come before the generic keywords
+ * they contain: "Leg Curl" must hit legs before arms' `curl`, "Lateral Raise"
+ * and "Rear Delt Fly" must hit shoulders before back's `lat` / chest's `fly`.
+ */
 const CATEGORY_PATTERNS: [RegExp, string][] = [
-  [/curl|tricep|bicep|preacher|hammer|skull/i, "arms"],
-  [/bench|fly|pec|push.?up|chest press/i, "chest"],
-  [/row|pull.?up|lat|pulldown|deadlift|back extension|good morning/i, "back"],
-  [/squat|leg press|lunge|split squat|hip thrust|glute|ham|calve|calf|leg curl|leg extension/i, "legs"],
-  [/shoulder|ohp|overhead|lateral raise|face pull|delts|arnold/i, "shoulders"],
-  [/crunch|ab|core|plank|sit.?up|twist/i, "core"],
+  [/leg curl|leg extension|leg press|squat|lunge|hip thrust|glute|hamstring|romanian|\brdl\b|stiff.?leg|calve|calf|adductor|abductor/i, "legs"],
+  [/lateral raise|rear delt|reverse fly|face pull|shoulder|\bohp\b|overhead press|military press|upright row|delt|arnold/i, "shoulders"],
+  [/curl|tricep|bicep|preacher|hammer|skull|pushdown|jm press/i, "arms"],
+  [/bench|fly|flye|pec|push.?up|chest press|chest dip|crossover/i, "chest"],
+  [/row|pull.?up|chin.?up|\blats?\b|pulldown|pullover|deadlift|back extension|good morning|shrug|traction/i, "back"],
+  [/crunch|\babs?\b|ab wheel|core|plank|sit.?up|twist|leg raise|knee raise/i, "core"],
 ];
 
 /** Keyword fallback when an exercise isn't in the Kova catalog. */
@@ -42,29 +47,8 @@ export type UnifiedWorkingSet = WorkingSet & {
   date: string;
   exercise_name: string;
   exercise_category: string;
-  source: "native" | "hevy";
+  source: "hevy";
 };
-
-export type HevyCoachExerciseLog = {
-  name: string;
-  weight_lbs: number;
-  reps: number;
-};
-
-export type HevyCoachWorkoutLog = {
-  hevy_id: string;
-  date: string;
-  title: string | null;
-  exercises: HevyCoachExerciseLog[];
-};
-
-export function exerciseNamesMatch(a: string, b: string): boolean {
-  const na = normalizeExerciseName(a);
-  const nb = normalizeExerciseName(b);
-  if (!na || !nb) return false;
-  if (na === nb) return true;
-  return na.includes(nb) || nb.includes(na);
-}
 
 export function resolveExerciseCategory(
   name: string,
@@ -79,35 +63,6 @@ export function resolveExerciseCategory(
   }
 
   return inferExerciseCategory(name);
-}
-
-function isWorkingHevySet(
-  set: WorkoutExercise["sets"][number],
-): boolean {
-  if (set.is_warmup) return false;
-  if (set.reps == null || set.reps <= 0) return false;
-  if (set.weight_kg != null && set.weight_kg <= 0) return false;
-  return true;
-}
-
-export function bestSetFromHevyExercise(
-  exercise: WorkoutExercise,
-): { weight_lbs: number; reps: number } | null {
-  let best: { weight_lbs: number; reps: number; est: number } | null = null;
-
-  for (const set of exercise.sets ?? []) {
-    if (!isWorkingHevySet(set)) continue;
-    const weight_lbs = hevyWeightToLbs(set.weight_kg) ?? 0;
-    const reps = set.reps ?? 0;
-    const est =
-      weight_lbs > 0 ? estimate1RM(weight_lbs, reps) : reps;
-    if (!best || est >= best.est) {
-      best = { weight_lbs, reps, est };
-    }
-  }
-
-  if (!best) return null;
-  return { weight_lbs: best.weight_lbs, reps: best.reps };
 }
 
 export function flattenHevyWorkout(
@@ -153,27 +108,6 @@ export function flattenHevyWorkouts(
   catalog: Map<string, string> = new Map(),
 ): UnifiedWorkingSet[] {
   return workouts.flatMap((workout) => flattenHevyWorkout(workout, catalog));
-}
-
-export function toHevyCoachWorkoutLog(
-  workout: Pick<Workout, "hevy_id" | "date" | "title" | "exercises">,
-): HevyCoachWorkoutLog | null {
-  if (!workout.date || !workout.exercises?.length) return null;
-
-  const exercises: HevyCoachExerciseLog[] = [];
-  for (const exercise of workout.exercises) {
-    const best = bestSetFromHevyExercise(exercise);
-    if (!best) continue;
-    exercises.push({ name: exercise.name, ...best });
-  }
-
-  if (exercises.length === 0) return null;
-  return {
-    hevy_id: workout.hevy_id,
-    date: workout.date,
-    title: workout.title,
-    exercises,
-  };
 }
 
 export function aggregateVolumeByDay(

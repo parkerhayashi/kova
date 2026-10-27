@@ -48,10 +48,7 @@ import {
 import {
   getLiftingCompositionSnapshot,
   getLiftingDashboard,
-  getRoutineDetail,
   getTodayWorkoutSummary,
-  listRecentSessions,
-  listRoutines,
 } from "@/lib/data/workouts";
 import { getTrendsPayload, parseTrendRange } from "@/lib/data/trends";
 import {
@@ -334,26 +331,15 @@ export async function readMuseBody(days: number) {
 export async function readMuseTraining(days: number, hevyLimit: number) {
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
-  const routines = await listRoutines();
-  const [
-    summary,
-    dashboard,
-    composition,
-    hevy,
-    sessions,
-    routineDetails,
-    hevyConnected,
-    hevyLastSynced,
-  ] = await Promise.all([
-    getTodayWorkoutSummary(),
-    getLiftingDashboard(days),
-    getLiftingCompositionSnapshot(days),
-    listHevyWorkouts(hevyLimit),
-    listRecentSessions(15),
-    Promise.all(routines.map((routine) => getRoutineDetail(routine.id))),
-    isHevyConnected(),
-    getHevyLastSyncedAt(),
-  ]);
+  const [summary, dashboard, composition, hevy, hevyConnected, hevyLastSynced] =
+    await Promise.all([
+      getTodayWorkoutSummary(),
+      getLiftingDashboard(days),
+      getLiftingCompositionSnapshot(days),
+      listHevyWorkouts(hevyLimit),
+      isHevyConnected(),
+      getHevyLastSyncedAt(),
+    ]);
 
   return {
     today,
@@ -365,8 +351,6 @@ export async function readMuseTraining(days: number, hevyLimit: number) {
     dashboard,
     composition,
     hevy_workouts: hevy,
-    native_sessions: sessions,
-    routines: routineDetails.filter(Boolean),
   };
 }
 
