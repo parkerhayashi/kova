@@ -2,6 +2,7 @@ import { rollingAverageWeight, type WeightEntry } from "@/lib/coach-composition"
 import { applyDietBreakCalories } from "@/lib/diet-break";
 import type { NutritionGoals } from "@/lib/nutrition";
 import { applyReverseDietCalories } from "@/lib/reverse-diet";
+import type { RunDayMeta } from "@/lib/run-fuel";
 import { addDays } from "@/lib/utils";
 import type { DietBreakState, ReverseDietState } from "@/types";
 
@@ -111,6 +112,8 @@ export type NutritionGoalMeta = {
   /** Temporary eat-at-maintenance pause during a cut. */
   diet_break_active: boolean;
   diet_break_detail: string | null;
+  /** Run fuel / carb load for the day (null = Mode 1, base targets only). */
+  run_day: RunDayMeta | null;
 };
 
 export type ComputedNutritionGoals = NutritionGoals & { meta: NutritionGoalMeta };
@@ -636,6 +639,7 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
       reverse_diet_detail,
       diet_break_active,
       diet_break_detail,
+      run_day: null,
     },
   };
 }

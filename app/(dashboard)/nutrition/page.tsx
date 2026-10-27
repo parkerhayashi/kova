@@ -12,6 +12,7 @@ import {
   getReverseDietStatus,
 } from "@/lib/data/nutrition";
 import { getSavedMeals } from "@/lib/data/saved-meals";
+import { getMidRunIntakesForDate } from "@/lib/data/running";
 import { getTimezone } from "@/lib/data/oura";
 import { getAlcoholLogForDate } from "@/lib/alcohol-nutrition";
 import { parseLogDate } from "@/lib/log-date";
@@ -39,6 +40,7 @@ export default async function NutritionPage({
     calorieTrend,
     nutritionWeightTrends,
     alcohol,
+    runIntakes,
   ] = await Promise.all([
     getMealsForDate(logDate),
     getSavedMeals(),
@@ -49,6 +51,7 @@ export default async function NutritionPage({
     getCalorieTrend(7),
     getNutritionWeightTrends(30),
     getAlcoholLogForDate(logDate),
+    getMidRunIntakesForDate(logDate),
   ]);
 
   return (
@@ -76,6 +79,7 @@ export default async function NutritionPage({
         nutritionWeightTrends={nutritionWeightTrends}
         alcoholDrinks={alcohol.drinks}
         alcoholCalories={alcohol.calories}
+        runIntakes={runIntakes}
       />
     </div>
   );

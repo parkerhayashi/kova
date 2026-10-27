@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Dumbbell,
   Flame,
+  Footprints,
   HeartPulse,
   LayoutDashboard,
   LogOut,
@@ -55,6 +56,7 @@ const OURA_CHILDREN: NavLeaf[] = [
 
 const TRAINING_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
+  { type: "link", href: "/running", label: "Running", icon: Footprints },
   { type: "link", href: "/weight", label: "Weight", icon: Scale },
 ];
 

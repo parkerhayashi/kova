@@ -12,6 +12,7 @@ import {
   isCutCoachAiConfigured,
 } from "@/lib/cut-coach";
 import { getDailyTotals, getNutritionByDay, getNutritionGoals } from "@/lib/data/nutrition";
+import { getCarbLoadDates, withoutDates } from "@/lib/data/running";
 import { getReadinessHistory, getTimezone, getUserSettings } from "@/lib/data/oura";
 import { getUserProfile } from "@/lib/data/profile";
 import { getWeightLogs } from "@/lib/data/tracking";
@@ -132,10 +133,11 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
     profile,
     goals,
     todayTotals,
-    { caloriesByDay, proteinByDay },
+    { caloriesByDay: rawCalories, proteinByDay },
     weightLogs,
     lifting,
     readinessRows,
+    loadDays,
   ] = await Promise.all([
     getUserSettings(),
     getUserProfile(),
@@ -145,7 +147,10 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
     getWeightLogs(30),
     getLiftingCompositionSnapshot(30),
     getReadinessHistory(7),
+    getCarbLoadDates(14),
   ]);
+  // Planned carb-load days never count toward intake drift.
+  const caloriesByDay = withoutDates(rawCalories, loadDays);
 
   const weightEntries = weightLogs.map((row) => ({
     dateKey: row.date,

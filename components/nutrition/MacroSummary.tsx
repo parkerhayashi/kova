@@ -75,6 +75,11 @@ export function MacroSummary({
             {meta.adaptive_reason && meta.adaptive_adjustment !== 0
               ? ` · ${meta.adaptive_reason}`
               : ""}
+            {meta.run_day?.fuel
+              ? meta.run_day.fuel.kind === "carb_load"
+                ? ` · carb-load day (${meta.run_day.fuel.added_kcal > 0 ? "+" : ""}${meta.run_day.fuel.added_kcal} kcal, outside the cut)`
+                : ` · +${meta.run_day.fuel.added_kcal} kcal run fuel (${meta.run_day.fuel.basis === "actual" ? "actual" : "estimated"})`
+              : ""}
             {" · "}
             protein from lean mass
           </p>

@@ -5,6 +5,7 @@ import { MessageSquare, Sparkles, Utensils } from "lucide-react";
 import { GoalSettings } from "@/components/nutrition/GoalSettings";
 import { AlcoholLog } from "@/components/nutrition/AlcoholLog";
 import { MacroSummary } from "@/components/nutrition/MacroSummary";
+import { RunFuelCard } from "@/components/nutrition/RunFuelCard";
 import { DayPlanFlow } from "@/components/nutrition/DayPlanFlow";
 import { MealCaptureFlow } from "@/components/nutrition/MealCaptureFlow";
 import { MealMakerFlow } from "@/components/nutrition/MealMakerFlow";
@@ -21,7 +22,7 @@ import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import type { DailyTotals } from "@/lib/nutrition";
 import type { DietBreakView } from "@/lib/diet-break";
 import type { ReverseDietView } from "@/lib/reverse-diet";
-import type { Meal, SavedMeal } from "@/types";
+import type { Meal, MidRunIntake, SavedMeal } from "@/types";
 
 export function NutritionApp({
   logDate,
@@ -36,6 +37,7 @@ export function NutritionApp({
   nutritionWeightTrends,
   alcoholDrinks,
   alcoholCalories,
+  runIntakes,
 }: {
   logDate: string;
   today: string;
@@ -49,6 +51,7 @@ export function NutritionApp({
   nutritionWeightTrends: DualTrendView[];
   alcoholDrinks: number | null;
   alcoholCalories: number;
+  runIntakes: MidRunIntake[];
 }) {
   const [captureOpen, setCaptureOpen] = useState(false);
   const [makerOpen, setMakerOpen] = useState(false);
@@ -67,6 +70,14 @@ export function NutritionApp({
         goals={goals}
         meta={goals.meta}
         alcoholCalories={alcoholCalories}
+      />
+      <RunFuelCard
+        date={logDate}
+        runDay={goals.meta.run_day}
+        targets={goals}
+        totals={totals}
+        intakes={runIntakes}
+        showRunningLink
       />
       <AlcoholLog
         logDate={logDate}

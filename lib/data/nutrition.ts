@@ -56,6 +56,15 @@ import {
   getAlcoholCaloriesByDay,
   getAlcoholCaloriesForDate,
 } from "@/lib/alcohol-nutrition";
+import {
+  getCarbLoadDates,
+  getMidRunIntakeByDay,
+  getMidRunIntakesForDate,
+  getRunDayState,
+  sumIntakes,
+  withoutDates,
+} from "@/lib/data/running";
+import { withRunDay } from "@/lib/run-fuel";
 
 function asMeal(row: Meal): Meal {
   const date = normalizeIsoDate(row.date) ?? row.date;
@@ -115,12 +124,16 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
   const today = todayInTimezone(timezone);
   const excludeTodayIntake = date === today;
 
-  const [settings, profile, { caloriesByDay }, weightLogs] = await Promise.all([
-    getUserSettings(),
-    getUserProfile(),
-    getNutritionByDay(14),
-    getWeightLogs(30),
-  ]);
+  const [settings, profile, { caloriesByDay: rawCalories }, weightLogs, loadDays] =
+    await Promise.all([
+      getUserSettings(),
+      getUserProfile(),
+      getNutritionByDay(14),
+      getWeightLogs(30),
+      getCarbLoadDates(30),
+    ]);
+  // Planned carb-load days are exempt from intake-vs-weight drift.
+  const caloriesByDay = withoutDates(rawCalories, loadDays);
 
   const weightEntries = weightLogs.map((row) => ({
     dateKey: row.date,
@@ -205,13 +218,31 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
   };
 }
 
+/**
+ * Base targets with no run fuel. Future days use today's base (adaptive state
+ * can't be reviewed ahead of time).
+ */
+export async function getBaseNutritionGoals(
+  date?: string,
+): Promise<ComputedNutritionGoals> {
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const targetDate = date ?? today;
+  const inputs = await gatherGoalInputs(targetDate > today ? today : targetDate);
+  return computeNutritionGoals(inputs);
+}
+
+/** The day's targets: base + any run-fuel / carb-load adjustment. */
 export async function getNutritionGoals(
   date?: string,
 ): Promise<ComputedNutritionGoals> {
   const timezone = await getTimezone();
   const targetDate = date ?? todayInTimezone(timezone);
-  const inputs = await gatherGoalInputs(targetDate);
-  return computeNutritionGoals(inputs);
+  const [base, runDay] = await Promise.all([
+    getBaseNutritionGoals(targetDate),
+    getRunDayState(targetDate),
+  ]);
+  return withRunDay(base, runDay);
 }
 
 export async function getReverseDietStatus(): Promise<ReverseDietView> {
@@ -473,12 +504,14 @@ export async function getNutritionByDay(days: number): Promise<{
 }> {
   const timezone = await getTimezone();
   const since = addDays(todayInTimezone(timezone), -(days - 1));
-  const [meals, supplements, supplementLogs, alcoholByDay] = await Promise.all([
-    getMealsSince(days),
-    getSupplements(true),
-    getSupplementLogsSince(since),
-    getAlcoholCaloriesByDay(days, timezone),
-  ]);
+  const [meals, supplements, supplementLogs, alcoholByDay, runIntakeByDay] =
+    await Promise.all([
+      getMealsSince(days),
+      getSupplements(true),
+      getSupplementLogsSince(since),
+      getAlcoholCaloriesByDay(days, timezone),
+      getMidRunIntakeByDay(since),
+    ]);
 
   const caloriesByDay = new Map<string, number>();
   const proteinByDay = new Map<string, number>();
@@ -528,6 +561,12 @@ export async function getNutritionByDay(days: number): Promise<{
     if (alcohol > 0) caloriesByDay.set(date, alcohol);
   }
 
+  // Gels and other on-run fuel count as intake.
+  for (const [date, intake] of runIntakeByDay) {
+    if (intake.kcal <= 0) continue;
+    caloriesByDay.set(date, Math.round((caloriesByDay.get(date) ?? 0) + intake.kcal));
+  }
+
   return { caloriesByDay, proteinByDay };
 }
 
@@ -538,17 +577,24 @@ export async function getProteinByDay(days: number): Promise<Map<string, number>
 }
 
 export async function getDailyTotals(date: string): Promise<DailyTotals> {
-  const [meals, supplements, logs, alcoholCalories] = await Promise.all([
+  const [meals, supplements, logs, alcoholCalories, runIntakes] = await Promise.all([
     getMealsForDate(date),
     getSupplements(true),
     getSupplementLogsForDate(date),
     getAlcoholCaloriesForDate(date),
+    getMidRunIntakesForDate(date),
   ]);
   const mealTotals = sumMeals(meals);
   const supplementTotals = sumTakenSupplements(supplements, logs);
-  const base = mergeDailyTotals(mealTotals, supplementTotals);
-  if (alcoholCalories <= 0) return base;
-  return mergeDailyTotals(base, { calories: alcoholCalories });
+  let totals = mergeDailyTotals(mealTotals, supplementTotals);
+  if (alcoholCalories > 0) {
+    totals = mergeDailyTotals(totals, { calories: alcoholCalories });
+  }
+  if (runIntakes.length > 0) {
+    const fuel = sumIntakes(runIntakes);
+    totals = mergeDailyTotals(totals, { calories: fuel.kcal, carbs_g: fuel.carbs_g });
+  }
+  return totals;
 }
 
 export async function addMeal(
@@ -575,16 +621,28 @@ export async function getCalorieTrend(
   days: number,
 ): Promise<{ date: string; calories: number; goal: number }[]> {
   const timezone = await getTimezone();
-  const [meals, settings, profile, supplements, supplementLogs, alcoholByDay, weightLogs] =
-    await Promise.all([
-      getMealsSince(days),
-      getUserSettings(),
-      getUserProfile(),
-      getSupplements(true),
-      getSupplementLogsSince(addDays(todayInTimezone(timezone), -(days - 1))),
-      getAlcoholCaloriesByDay(days, timezone),
-      getWeightLogs(Math.max(days, 21)),
-    ]);
+  const since = addDays(todayInTimezone(timezone), -(days - 1));
+  const [
+    meals,
+    settings,
+    profile,
+    supplements,
+    supplementLogs,
+    alcoholByDay,
+    weightLogs,
+    runIntakeByDay,
+    loadDays,
+  ] = await Promise.all([
+    getMealsSince(days),
+    getUserSettings(),
+    getUserProfile(),
+    getSupplements(true),
+    getSupplementLogsSince(since),
+    getAlcoholCaloriesByDay(days, timezone),
+    getWeightLogs(Math.max(days, 21)),
+    getMidRunIntakeByDay(since),
+    getCarbLoadDates(days),
+  ]);
 
   const mealsByDate = new Map<string, Meal[]>();
   for (const meal of meals) {
@@ -636,9 +694,11 @@ export async function getCalorieTrend(
       sumTakenSupplements(supplements, daySupplementLogs),
     );
     const dayCalories = Math.round(
-      (dayTotals.calories ?? 0) + (alcoholByDay.get(date) ?? 0),
+      (dayTotals.calories ?? 0) +
+        (alcoholByDay.get(date) ?? 0) +
+        (runIntakeByDay.get(date)?.kcal ?? 0),
     );
-    if (dayCalories > 0) rollingCalories.set(date, dayCalories);
+    if (dayCalories > 0 && !loadDays.has(date)) rollingCalories.set(date, dayCalories);
 
     const weight_lbs = baseInputs.weight_lbs ?? 170;
     const weight_kg = weight_lbs / 2.2046226218;
