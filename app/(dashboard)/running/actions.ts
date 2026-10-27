@@ -5,18 +5,19 @@ import { getBaseNutritionGoals } from "@/lib/data/nutrition";
 import {
   addMidRunIntake,
   deleteActualRun,
-  deleteCalendarRun,
   deleteMidRunIntake,
   deletePlannedRun,
+  deleteTrainingPlanRun,
+  moveTrainingPlanRun,
   saveActualRun,
-  saveCalendarRun,
   savePlannedRun,
   saveRace,
+  saveTrainingPlanRun,
   setPlannedRunStatus,
   setRunFuelCarbsPerHour,
   type ActualRunInput,
-  type CalendarRunInput,
   type PlannedRunInput,
+  type PlanRunInput,
   type RaceInput,
 } from "@/lib/data/running";
 import type { LeadTimeStatus } from "@/lib/run-fuel";
@@ -27,7 +28,7 @@ function refresh() {
   revalidatePath("/");
 }
 
-/** Mode 2 — designate a run for nutrition. Below threshold is stored, changes nothing. */
+/** A run on the calendar is its nutrition designation. Below threshold is stored, changes nothing. */
 export async function designateRunAction(
   input: PlannedRunInput,
 ): Promise<{ qualifies: boolean }> {
@@ -92,15 +93,25 @@ export async function deleteMidRunIntakeAction(id: string): Promise<void> {
   refresh();
 }
 
-/** Training-only calendar entry — never changes targets on its own. */
-export async function saveCalendarRunAction(input: CalendarRunInput): Promise<void> {
-  await saveCalendarRun(input);
-  refresh();
+/** Training plan queue — never changes nutrition on its own. */
+export async function saveTrainingPlanRunAction(
+  input: PlanRunInput & { id?: string },
+): Promise<void> {
+  await saveTrainingPlanRun(input);
+  revalidatePath("/running");
 }
 
-export async function deleteCalendarRunAction(id: string): Promise<void> {
-  await deleteCalendarRun(id);
-  refresh();
+export async function deleteTrainingPlanRunAction(id: string): Promise<void> {
+  await deleteTrainingPlanRun(id);
+  revalidatePath("/running");
+}
+
+export async function moveTrainingPlanRunAction(
+  id: string,
+  direction: "up" | "down",
+): Promise<void> {
+  await moveTrainingPlanRun(id, direction);
+  revalidatePath("/running");
 }
 
 export async function setRunFuelRateAction(rate: number): Promise<number> {

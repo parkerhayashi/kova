@@ -37,6 +37,7 @@ const TABLES = [
   "run_fuel_adjustments",
   "mid_run_intakes",
   "calendar_runs",
+  "training_plan_runs",
 ];
 
 const supabase = createClient(url, serviceKey, {

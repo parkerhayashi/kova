@@ -6,8 +6,8 @@ import {
   addMidRunIntakeAction,
   designateRunAction,
   saveActualRunAction,
-  saveCalendarRunAction,
   saveRaceAction,
+  saveTrainingPlanRunAction,
 } from "@/app/(dashboard)/running/actions";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select } from "@/components/ui/Input";
@@ -109,15 +109,14 @@ function DistanceField({
 const TRAINING_TYPES = RUN_TYPES as Exclude<RunType, "race">[];
 
 // ---------------------------------------------------------------------------
-// Mode 2 — designate a run for nutrition
+// Planned run on the calendar — this is the nutrition designation
 // ---------------------------------------------------------------------------
 
 export function DesignationForm({
   date,
   paceMinPerKm,
   initial,
-  calendarRunId,
-  submitLabel = "Save planned run",
+  submitLabel = "Add to calendar",
   onDone,
 }: {
   date: string;
@@ -129,7 +128,6 @@ export function DesignationForm({
     planned_duration_min: number | null;
     duration_estimated?: boolean;
   };
-  calendarRunId?: string | null;
   submitLabel?: string;
   onDone?: () => void;
 }) {
@@ -161,13 +159,12 @@ export function DesignationForm({
           run_type: runType,
           planned_distance_km: distanceKm,
           planned_duration_min: durationMin,
-          calendar_run_id: calendarRunId ?? null,
         }),
       (res) => {
         setNotice(
           res.qualifies
             ? null
-            : "Saved. It's below the fueling threshold, so today's targets don't change.",
+            : "Saved. It's below the fueling threshold, so targets don't change.",
         );
         if (res.qualifies) onDone?.();
       },
@@ -453,32 +450,31 @@ export function RaceForm({
 }
 
 // ---------------------------------------------------------------------------
-// Training-only calendar entry
+// Training plan queue item (dateless: type + mileage)
 // ---------------------------------------------------------------------------
 
-export function TrainingRunForm({
-  date,
+export function PlanRunForm({
   initial,
   onDone,
 }: {
-  date: string;
   initial?: {
     id: string;
     run_type: Exclude<RunType, "race">;
-    planned_distance_km: number | null;
-    planned_duration_min: number | null;
+    distance_km: number | null;
+    duration_min: number | null;
     notes: string | null;
   };
   onDone?: () => void;
 }) {
   const { pending, error, run } = useRunAction();
   const [runType, setRunType] = useState<Exclude<RunType, "race">>(initial?.run_type ?? "easy");
-  const [distance, setDistance] = useState(fromKm(initial?.planned_distance_km));
+  const [distance, setDistance] = useState(fromKm(initial?.distance_km));
   const [unit, setUnit] = useState<Unit>("mi");
   const [duration, setDuration] = useState(
-    initial?.planned_duration_min != null ? String(Math.round(initial.planned_duration_min)) : "",
+    initial?.duration_min != null ? String(Math.round(initial.duration_min)) : "",
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const valid = parseNum(distance) != null || parseNum(duration) != null;
 
   return (
     <div className="space-y-3">
@@ -508,31 +504,26 @@ export function TrainingRunForm({
       <Field label="Note">
         <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="optional" />
       </Field>
-      <p className="text-text-muted text-xs">
-        Calendar entries are training only. Use &ldquo;Plan fuel&rdquo; on the entry to get
-        nutrition for it.
-      </p>
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
           variant="primary"
-          disabled={pending}
+          disabled={pending || !valid}
           onClick={() =>
             run(
               () =>
-                saveCalendarRunAction({
+                saveTrainingPlanRunAction({
                   id: initial?.id,
-                  date,
                   run_type: runType,
-                  planned_distance_km: toKm(distance, unit),
-                  planned_duration_min: parseNum(duration),
+                  distance_km: toKm(distance, unit),
+                  duration_min: parseNum(duration),
                   notes,
                 }),
               () => onDone?.(),
             )
           }
         >
-          {pending ? "Saving…" : initial ? "Update entry" : "Add to calendar"}
+          {pending ? "Saving…" : initial ? "Update" : "Add to plan"}
         </Button>
         {onDone ? (
           <Button type="button" variant="ghost" onClick={onDone} disabled={pending}>

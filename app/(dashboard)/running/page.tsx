@@ -6,8 +6,9 @@ import {
   getRecentEasyPace,
   getRunFuelCarbsPerHour,
   getRunningRange,
+  getTrainingPlan,
 } from "@/lib/data/running";
-import { monthGridRange } from "@/lib/training-plan";
+import { monthGridRange } from "@/lib/run-calendar";
 import { normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -26,11 +27,12 @@ export default async function RunningPage({
 
   // Range first: it sweeps stale plans so the day's targets read clean.
   const range = await getRunningRange(start, end);
-  const [goals, totals, pace, rate] = await Promise.all([
+  const [goals, totals, pace, rate, plan] = await Promise.all([
     getNutritionGoals(selected),
     selected <= today ? getDailyTotals(selected) : Promise.resolve({}),
     getRecentEasyPace(),
     getRunFuelCarbsPerHour(),
+    getTrainingPlan(5),
   ]);
 
   return (
@@ -49,6 +51,7 @@ export default async function RunningPage({
         totals={totals}
         pace={pace}
         carbsPerHour={rate}
+        plan={plan}
       />
     </div>
   );

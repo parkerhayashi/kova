@@ -1,5 +1,6 @@
 /**
- * Server-side data layer for running nutrition + the Plan Calendar.
+ * Server-side data layer for running nutrition, the Plan Calendar, and the
+ * training plan queue.
  *
  * Every write that can change a day's targets ends in `recomputeDay(date)`,
  * which rebuilds that day's single run_fuel_adjustments row from the records
@@ -26,19 +27,19 @@ import {
   type CarbLoadPlan,
   type FuelRun,
 } from "@/lib/run-fuel";
-import { buildCalendarEntries, prescribedRunsBetween } from "@/lib/training-plan";
+import { buildCalendarEntries } from "@/lib/run-calendar";
 import { addDays, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type {
   ActualRun,
   ActualRunSource,
   CalendarEntry,
-  CalendarRun,
   MidRunIntake,
   PlannedRun,
   PlannedRunStatus,
   RaceEventType,
   RunFuelAdjustment,
   RunType,
+  TrainingPlanRun,
 } from "@/types";
 
 function day(value: string): string {
@@ -537,8 +538,6 @@ export type PlannedRunInput = {
   run_type: Exclude<RunType, "race">;
   planned_distance_km?: number | null;
   planned_duration_min?: number | null;
-  /** Calendar training entry this designation references (optional). */
-  calendar_run_id?: string | null;
 };
 
 export async function savePlannedRun(
@@ -578,13 +577,6 @@ export async function savePlannedRun(
     : await db.from("planned_runs").insert(row).select("*").single();
   if (error) throw new Error(error.message);
   const planned = asPlanned(data as PlannedRun);
-
-  if (input.calendar_run_id) {
-    await db
-      .from("calendar_runs")
-      .update({ planned_run_id: planned.id, updated_at: new Date().toISOString() })
-      .eq("id", input.calendar_run_id);
-  }
 
   await recomputeDay(date);
   if (previous && previous.date !== date) await recomputeDay(previous.date);
@@ -873,6 +865,7 @@ export async function saveActualRun(input: ActualRunInput): Promise<ActualRun> {
   const run = withDate(data as ActualRun);
 
   await markCompleted(run.planned_run_id);
+  if (!previous) await completeNextPlanRun(run.id);
   if (previous?.planned_run_id && previous.planned_run_id !== run.planned_run_id) {
     await reopenIfOrphaned(previous.planned_run_id);
   }
@@ -907,6 +900,11 @@ export async function deleteActualRun(id: string): Promise<void> {
   const { data } = await db.from("actual_runs").select("*").eq("id", id).maybeSingle();
   const run = data as ActualRun | null;
   if (!run) return;
+  // The plan item this run completed goes back to upcoming.
+  await db
+    .from("training_plan_runs")
+    .update({ actual_run_id: null, completed_at: null, updated_at: new Date().toISOString() })
+    .eq("actual_run_id", id);
   const { error } = await db.from("actual_runs").delete().eq("id", id);
   if (error) throw new Error(error.message);
   if (run.planned_run_id) await reopenIfOrphaned(run.planned_run_id);
@@ -968,11 +966,14 @@ export async function ingestActualRuns(
       if (day(prev.date) !== date) touched.add(day(prev.date));
     } else {
       const match = await matchPlannedRun(date);
-      const { error } = await db
+      const { data: created, error } = await db
         .from("actual_runs")
-        .insert({ ...fields, planned_run_id: match?.id ?? null });
+        .insert({ ...fields, planned_run_id: match?.id ?? null })
+        .select("id")
+        .single();
       if (error) throw new Error(error.message);
       await markCompleted(match?.id ?? null);
+      await completeNextPlanRun((created as { id: string }).id);
       inserted++;
     }
     touched.add(date);
@@ -983,43 +984,163 @@ export async function ingestActualRuns(
 }
 
 // ---------------------------------------------------------------------------
-// Plan Calendar — training-only entries
+// Training plan — an ordered queue of runs (type + mileage, no dates).
+// Edited by hand on /running or by Muse. A logged run completes the head of
+// the queue; the plan never touches nutrition on its own.
 // ---------------------------------------------------------------------------
 
-export type CalendarRunInput = {
-  id?: string;
-  date: string;
-  run_type: CalendarRun["run_type"];
-  planned_distance_km?: number | null;
-  planned_duration_min?: number | null;
+export type TrainingPlanView = {
+  /** First upcoming run, or null when the queue is empty. */
+  next: TrainingPlanRun | null;
+  upcoming: TrainingPlanRun[];
+  /** Most recently completed, newest first. */
+  completed: TrainingPlanRun[];
+};
+
+export async function getTrainingPlan(completedLimit = 10): Promise<TrainingPlanView> {
+  const db = createServiceClient();
+  const [upcoming, completed] = await Promise.all([
+    db
+      .from("training_plan_runs")
+      .select("*")
+      .is("actual_run_id", null)
+      .order("position", { ascending: true }),
+    db
+      .from("training_plan_runs")
+      .select("*")
+      .not("actual_run_id", "is", null)
+      .order("completed_at", { ascending: false })
+      .limit(completedLimit),
+  ]);
+  if (upcoming.error) throw new Error(upcoming.error.message);
+  const queue = ((upcoming.data as TrainingPlanRun[]) ?? []);
+  return {
+    next: queue[0] ?? null,
+    upcoming: queue,
+    completed: ((completed.data as TrainingPlanRun[]) ?? []),
+  };
+}
+
+/** Mark the head of the queue done by this logged run (no-op if empty). */
+async function completeNextPlanRun(actualRunId: string): Promise<void> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("training_plan_runs")
+    .select("id")
+    .is("actual_run_id", null)
+    .order("position", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!data) return;
+  const now = new Date().toISOString();
+  await db
+    .from("training_plan_runs")
+    .update({ actual_run_id: actualRunId, completed_at: now, updated_at: now })
+    .eq("id", (data as { id: string }).id);
+}
+
+export type PlanRunInput = {
+  run_type: TrainingPlanRun["run_type"];
+  distance_km?: number | null;
+  duration_min?: number | null;
   notes?: string | null;
 };
 
-/** Putting a run on the calendar changes no targets. */
-export async function saveCalendarRun(input: CalendarRunInput): Promise<CalendarRun> {
-  const date = normalizeIsoDate(input.date);
-  if (!date) throw new Error("A valid date is required");
-  const db = createServiceClient();
-  const row = {
-    date,
+function planRunFields(input: PlanRunInput) {
+  if (!RUN_TYPE_SET.has(input.run_type)) {
+    throw new Error("run_type must be easy, long, tempo, or intervals");
+  }
+  const distance = positive(input.distance_km);
+  const duration = positive(input.duration_min);
+  if (distance == null && duration == null) {
+    throw new Error("Each plan run needs a distance or a duration");
+  }
+  return {
     run_type: input.run_type,
-    planned_distance_km: positive(input.planned_distance_km),
-    planned_duration_min: positive(input.planned_duration_min),
+    distance_km: distance,
+    duration_min: duration,
     notes: input.notes?.trim() || null,
-    updated_at: new Date().toISOString(),
   };
-  const { data, error } = input.id
-    ? await db.from("calendar_runs").update(row).eq("id", input.id).select("*").single()
-    : await db.from("calendar_runs").insert(row).select("*").single();
-  if (error) throw new Error(error.message);
-  return withDate(data as CalendarRun);
 }
 
-/** Removes only the calendar entry — any Mode 2 designation is unaffected. */
-export async function deleteCalendarRun(id: string): Promise<void> {
+const RUN_TYPE_SET = new Set<string>(["easy", "long", "tempo", "intervals"]);
+
+async function lastPosition(): Promise<number> {
   const db = createServiceClient();
-  const { error } = await db.from("calendar_runs").delete().eq("id", id);
+  const { data } = await db
+    .from("training_plan_runs")
+    .select("position")
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as { position: number } | null)?.position ?? 0;
+}
+
+/** Add to the end of the queue, or edit an existing upcoming run. */
+export async function saveTrainingPlanRun(
+  input: PlanRunInput & { id?: string },
+): Promise<TrainingPlanRun> {
+  const db = createServiceClient();
+  const fields = { ...planRunFields(input), updated_at: new Date().toISOString() };
+  const { data, error } = input.id
+    ? await db.from("training_plan_runs").update(fields).eq("id", input.id).select("*").single()
+    : await db
+        .from("training_plan_runs")
+        .insert({ ...fields, position: (await lastPosition()) + 1 })
+        .select("*")
+        .single();
   if (error) throw new Error(error.message);
+  return data as TrainingPlanRun;
+}
+
+export async function deleteTrainingPlanRun(id: string): Promise<void> {
+  const db = createServiceClient();
+  const { error } = await db.from("training_plan_runs").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/** Swap an upcoming run with its neighbour. */
+export async function moveTrainingPlanRun(id: string, direction: "up" | "down"): Promise<void> {
+  const { upcoming } = await getTrainingPlan(0);
+  const index = upcoming.findIndex((r) => r.id === id);
+  const other = upcoming[direction === "up" ? index - 1 : index + 1];
+  if (index < 0 || !other) return;
+  const current = upcoming[index]!;
+  const db = createServiceClient();
+  const now = new Date().toISOString();
+  await db.from("training_plan_runs").update({ position: other.position, updated_at: now }).eq("id", current.id);
+  await db.from("training_plan_runs").update({ position: current.position, updated_at: now }).eq("id", other.id);
+}
+
+/**
+ * Replace every upcoming run with `runs`, in order (Muse's write path).
+ * Completed runs are history and are never touched. Validates everything
+ * before writing so a bad payload changes nothing.
+ */
+export async function replaceUpcomingPlan(runs: PlanRunInput[]): Promise<TrainingPlanView> {
+  if (!Array.isArray(runs)) throw new Error("runs must be an array");
+  if (runs.length > 200) throw new Error("At most 200 upcoming runs");
+  const rows = runs.map(planRunFields);
+
+  // Insert the new queue first, then drop the old one — a failed insert
+  // leaves the existing plan intact.
+  const { upcoming: old } = await getTrainingPlan(0);
+  const db = createServiceClient();
+  if (rows.length > 0) {
+    const base = await lastPosition();
+    const { error } = await db.from("training_plan_runs").insert(
+      rows.map((row, i) => ({ ...row, position: base + i + 1 })),
+    );
+    if (error) throw new Error(error.message);
+  }
+  if (old.length > 0) {
+    const { error } = await db
+      .from("training_plan_runs")
+      .delete()
+      .in("id", old.map((r) => r.id));
+    if (error) throw new Error(error.message);
+  }
+  return getTrainingPlan();
 }
 
 // ---------------------------------------------------------------------------
@@ -1032,7 +1153,6 @@ export type RunningRange = {
   planned: PlannedRun[];
   actual: ActualRun[];
   adjustments: RunFuelAdjustment[];
-  calendarRuns: CalendarRun[];
   intakes: MidRunIntake[];
   entries: CalendarEntry[];
 };
@@ -1040,14 +1160,13 @@ export type RunningRange = {
 export async function getRunningRange(start: string, end: string): Promise<RunningRange> {
   await sweepStalePlannedRuns();
   const db = createServiceClient();
-  const [planned, actual, adjustments, calendarRuns, intakes] = await Promise.all([
+  const [planned, actual, adjustments, intakes] = await Promise.all([
     db.from("planned_runs").select("*").gte("date", start).lte("date", end).order("date"),
     db.from("actual_runs").select("*").gte("date", start).lte("date", end).order("date"),
     db.from("run_fuel_adjustments").select("*").gte("date", start).lte("date", end),
-    db.from("calendar_runs").select("*").gte("date", start).lte("date", end).order("date"),
     db.from("mid_run_intakes").select("*").gte("date", start).lte("date", end).order("logged_at"),
   ]);
-  for (const res of [planned, actual, adjustments, calendarRuns, intakes]) {
+  for (const res of [planned, actual, adjustments, intakes]) {
     if (res.error) throw new Error(res.error.message);
   }
 
@@ -1057,14 +1176,20 @@ export async function getRunningRange(start: string, end: string): Promise<Runni
     planned: ((planned.data as PlannedRun[]) ?? []).map(asPlanned),
     actual: ((actual.data as ActualRun[]) ?? []).map(withDate),
     adjustments: ((adjustments.data as RunFuelAdjustment[]) ?? []).map(withDate),
-    calendarRuns: ((calendarRuns.data as CalendarRun[]) ?? []).map(withDate),
     intakes: ((intakes.data as MidRunIntake[]) ?? []).map(withDate),
   };
-  return {
-    ...view,
-    entries: buildCalendarEntries({
-      prescribed: prescribedRunsBetween(start, end),
-      ...view,
-    }),
-  };
+  return { ...view, entries: buildCalendarEntries(view) };
+}
+
+/** Logged runs over the last `days`, newest first (for Muse's plan upkeep). */
+export async function getRecentActualRuns(days: number): Promise<ActualRun[]> {
+  const { today: now } = await today();
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("actual_runs")
+    .select("*")
+    .gte("date", addDays(now, -days))
+    .order("date", { ascending: false });
+  if (error) throw new Error(error.message);
+  return ((data as ActualRun[]) ?? []).map(withDate);
 }

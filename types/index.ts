@@ -701,24 +701,22 @@ export interface MidRunIntake {
   logged_at: string;
 }
 
-/** Training-only calendar entry; changes no targets on its own. */
-export interface CalendarRun {
+/** One run in the training plan queue — type + mileage, no date. */
+export interface TrainingPlanRun {
   id: string;
-  date: string;
+  position: number;
   run_type: Exclude<RunType, "race">;
-  planned_distance_km: number | null;
-  planned_duration_min: number | null;
+  distance_km: number | null;
+  duration_min: number | null;
   notes: string | null;
-  planned_run_id: string | null;
+  /** Set once a logged run completes this item; null = still upcoming. */
+  actual_run_id: string | null;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export type CalendarEntryKind =
-  | "prescribed_run"
-  | "planned_run"
-  | "race"
-  | "completed_run";
+export type CalendarEntryKind = "planned_run" | "race" | "completed_run";
 export type CalendarNutritionStatus = "none" | "fueling" | "carb_load";
 
 /** One rendered calendar item — derived from the records above + the plan. */
@@ -726,7 +724,6 @@ export interface CalendarEntry {
   id: string;
   date: string;
   kind: CalendarEntryKind;
-  source: "plan" | "user";
   run_type: RunType | null;
   planned_distance_km: number | null;
   planned_duration_min: number | null;

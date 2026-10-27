@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Check, Flag, Trash2 } from "lucide-react";
 import {
   deleteActualRunAction,
-  deleteCalendarRunAction,
   deleteMidRunIntakeAction,
   deletePlannedRunAction,
   setPlannedRunStatusAction,
@@ -16,7 +15,6 @@ import {
   FormError,
   MidRunIntakeForm,
   RaceForm,
-  TrainingRunForm,
   useRunAction,
 } from "@/components/running/RunForms";
 import { Button } from "@/components/ui/Button";
@@ -33,12 +31,11 @@ import {
 import { daysBetween, formatIsoDateLabel } from "@/lib/utils";
 import type {
   ActualRun,
-  CalendarEntry,
-  CalendarRun,
   MidRunIntake,
   PlannedRun,
   RunFuelAdjustment,
   RunType,
+  TrainingPlanRun,
 } from "@/types";
 
 function runSummary(r: {
@@ -85,11 +82,10 @@ function Row({ children }: { children: React.ReactNode }) {
 export function DayDetail({
   date,
   today,
-  entries,
   planned,
   actual,
   intakes,
-  calendarRuns,
+  nextPlanRun,
   adjustment,
   goals,
   totals,
@@ -97,11 +93,10 @@ export function DayDetail({
 }: {
   date: string;
   today: string;
-  entries: CalendarEntry[];
   planned: PlannedRun[];
   actual: ActualRun[];
   intakes: MidRunIntake[];
-  calendarRuns: CalendarRun[];
+  nextPlanRun: TrainingPlanRun | null;
   adjustment: RunFuelAdjustment | null;
   goals: ComputedNutritionGoals;
   totals: DailyTotals;
@@ -109,19 +104,16 @@ export function DayDetail({
 }) {
   const { pending, error, run } = useRunAction();
   const [designating, setDesignating] = useState<
-    | { calendarRunId: string | null; run_type: Exclude<RunType, "race">; planned_distance_km: number | null; planned_duration_min: number | null }
+    | { run_type: Exclude<RunType, "race">; planned_distance_km: number | null; planned_duration_min: number | null }
     | null
   >(null);
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
-  const [addingTraining, setAddingTraining] = useState(false);
-  const [editingTraining, setEditingTraining] = useState<string | null>(null);
   const [addingRace, setAddingRace] = useState(false);
   const [editingRace, setEditingRace] = useState(false);
   const [editingActual, setEditingActual] = useState<string | null>(null);
 
   const isPast = date < today;
   const isFuture = date > today;
-  const prescribed = entries.filter((e) => e.kind === "prescribed_run");
   const race = planned.find((p) => p.is_race) ?? null;
   const designations = planned.filter((p) => !p.is_race);
   const linkedActual = new Set(actual.map((a) => a.planned_run_id));
@@ -143,15 +135,13 @@ export function DayDetail({
       : null;
 
   const startDesignation = (from?: {
-    calendarRunId?: string | null;
     run_type: RunType | null;
     planned_distance_km: number | null;
     planned_duration_min: number | null;
   }) =>
     setDesignating({
-      calendarRunId: from?.calendarRunId ?? null,
       run_type:
-        from?.run_type && from.run_type !== "race" ? from.run_type : "long",
+        from?.run_type && from.run_type !== "race" ? from.run_type : "easy",
       planned_distance_km: from?.planned_distance_km ?? null,
       planned_duration_min: from?.planned_duration_min ?? null,
     });
@@ -191,96 +181,43 @@ export function DayDetail({
         </Card>
       )}
 
-      {/* Training plan + calendar entries (training only) */}
-      <Card className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="metric-label">Training plan</span>
-          {!addingTraining ? (
-            <Button type="button" variant="ghost" onClick={() => setAddingTraining(true)}>
-              Add training run
-            </Button>
-          ) : null}
-        </div>
-        {prescribed.length === 0 && calendarRuns.length === 0 && !addingTraining ? (
-          <p className="text-text-muted text-sm">Nothing on the plan for this day.</p>
-        ) : null}
-        {prescribed.map((entry) => (
-          <Row key={entry.id}>
-            <div>
-              <p className="text-sm font-semibold">
-                {entry.run_type ? runTypeLabel(entry.run_type) : "Run"} · {runSummary(entry)}
-              </p>
-              <p className="text-text-muted text-xs">Prescribed · {entry.label}</p>
-            </div>
-            {!isPast && designations.length === 0 ? (
-              <Button type="button" variant="ghost" onClick={() => startDesignation(entry)}>
-                Plan fuel
-              </Button>
-            ) : null}
-          </Row>
-        ))}
-        {calendarRuns.map((entry) =>
-          editingTraining === entry.id ? (
-            <TrainingRunForm
-              key={entry.id}
-              date={date}
-              initial={entry}
-              onDone={() => setEditingTraining(null)}
-            />
-          ) : (
-            <Row key={entry.id}>
-              <div>
-                <p className="text-sm font-semibold">
-                  {runTypeLabel(entry.run_type)} · {runSummary(entry)}
-                </p>
-                <p className="text-text-muted text-xs">
-                  {entry.notes ? `${entry.notes} · ` : ""}
-                  {entry.planned_run_id ? "Fuel planned" : "Training only"}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                {!isPast && !entry.planned_run_id ? (
+      {/* Planned run — putting it on the calendar is the nutrition designation */}
+      {!race ? (
+        <Card className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="metric-label">Planned run</span>
+            {!designating && !isPast ? (
+              <div className="flex flex-wrap gap-1">
+                {nextPlanRun && designations.length === 0 ? (
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() => startDesignation({ ...entry, calendarRunId: entry.id })}
+                    onClick={() =>
+                      startDesignation({
+                        run_type: nextPlanRun.run_type,
+                        planned_distance_km: nextPlanRun.distance_km,
+                        planned_duration_min: nextPlanRun.duration_min,
+                      })
+                    }
                   >
-                    Plan fuel
+                    Add next run ({runTypeLabel(nextPlanRun.run_type)}
+                    {nextPlanRun.distance_km != null
+                      ? ` ${formatDistance(nextPlanRun.distance_km)}`
+                      : ""}
+                    )
                   </Button>
                 ) : null}
-                <Button type="button" variant="ghost" onClick={() => setEditingTraining(entry.id)}>
-                  Edit
+                <Button type="button" variant="ghost" onClick={() => startDesignation()}>
+                  Add run
                 </Button>
-                <IconButton
-                  label="Delete calendar entry"
-                  disabled={pending}
-                  onClick={() => run(() => deleteCalendarRunAction(entry.id))}
-                />
               </div>
-            </Row>
-          ),
-        )}
-        {addingTraining ? (
-          <TrainingRunForm date={date} onDone={() => setAddingTraining(false)} />
-        ) : null}
-      </Card>
-
-      {/* Mode 2 — nutrition designation */}
-      {!race ? (
-        <Card className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <span className="metric-label">Fueling run</span>
-            {!designating && designations.length === 0 && !isPast ? (
-              <Button type="button" variant="ghost" onClick={() => startDesignation()}>
-                Plan a fueling run
-              </Button>
             ) : null}
           </div>
           {designations.length === 0 && !designating ? (
             <p className="text-text-muted text-sm">
               {isPast
-                ? "No run was designated for nutrition."
-                : "Designate the run you intend to do. Runs over 75 min (or tempo/intervals over 60) get extra carbs."}
+                ? "No run was planned for this day."
+                : "Put the run you intend to do on the calendar. Runs over 75 min (or tempo/intervals over 60) add carbs; shorter runs don't change targets."}
             </p>
           ) : null}
           {designations.map((plan) =>
@@ -332,7 +269,7 @@ export function DayDetail({
                     </>
                   ) : null}
                   <IconButton
-                    label="Remove designation"
+                    label="Remove planned run"
                     disabled={pending}
                     onClick={() => run(() => deletePlannedRunAction(plan.id))}
                   />
@@ -344,7 +281,6 @@ export function DayDetail({
             <DesignationForm
               date={date}
               paceMinPerKm={paceMinPerKm}
-              calendarRunId={designating.calendarRunId}
               initial={{
                 run_type: designating.run_type,
                 planned_distance_km: designating.planned_distance_km,

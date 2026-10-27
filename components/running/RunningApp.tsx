@@ -6,10 +6,11 @@ import { Check, ChevronLeft, ChevronRight, Flag } from "lucide-react";
 import { setRunFuelRateAction } from "@/app/(dashboard)/running/actions";
 import { DayDetail } from "@/components/running/DayDetail";
 import { FormError, useRunAction } from "@/components/running/RunForms";
+import { NextRunCard } from "@/components/running/TrainingPlan";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
-import type { RunningRange } from "@/lib/data/running";
+import type { RunningRange, TrainingPlanView } from "@/lib/data/running";
 import type { DailyTotals } from "@/lib/nutrition";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import {
@@ -18,7 +19,7 @@ import {
   MAX_CARBS_PER_HOUR,
   MIN_CARBS_PER_HOUR,
 } from "@/lib/run-fuel";
-import { monthGridRange, weekStart } from "@/lib/training-plan";
+import { monthGridRange, weekStart } from "@/lib/run-calendar";
 import { addDays, cn, formatIsoDateLabel } from "@/lib/utils";
 import type { CalendarEntry, CalendarNutritionStatus } from "@/types";
 
@@ -53,6 +54,7 @@ export function RunningApp({
   totals,
   pace,
   carbsPerHour,
+  plan,
 }: {
   today: string;
   selected: string;
@@ -62,6 +64,7 @@ export function RunningApp({
   totals: DailyTotals;
   pace: { pace_min_per_km: number; source: "runs" | "oura" | "default" };
   carbsPerHour: number;
+  plan: TrainingPlanView;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -98,6 +101,8 @@ export function RunningApp({
 
   return (
     <div className="space-y-6">
+      <NextRunCard plan={plan} />
+
       <Card className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1">
@@ -202,9 +207,6 @@ export function RunningApp({
 
         <div className="text-text-muted flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
           <span className="flex items-center gap-1.5">
-            <span className="border-border-strong size-2 rounded-full border" /> Prescribed
-          </span>
-          <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-white" /> Planned
           </span>
           <span className="flex items-center gap-1.5">
@@ -224,11 +226,10 @@ export function RunningApp({
       <DayDetail
         date={selected}
         today={today}
-        entries={entriesByDate.get(selected) ?? []}
         planned={range.planned.filter((p) => p.date === selected)}
         actual={range.actual.filter((a) => a.date === selected)}
         intakes={range.intakes.filter((i) => i.date === selected)}
-        calendarRuns={range.calendarRuns.filter((c) => c.date === selected)}
+        nextPlanRun={plan.next}
         adjustment={range.adjustments.find((a) => a.date === selected) ?? null}
         goals={goals}
         totals={totals}
@@ -247,12 +248,7 @@ function EntryChip({ entry, compact }: { entry: CalendarEntry; compact: boolean 
     ) : entry.kind === "completed_run" ? (
       <Check className="size-3 shrink-0" />
     ) : (
-      <span
-        className={cn(
-          "size-1.5 shrink-0 rounded-full",
-          entry.kind === "prescribed_run" ? "border-border-strong border" : "bg-white",
-        )}
-      />
+      <span className="size-1.5 shrink-0 rounded-full bg-white" />
     );
   const text =
     entry.kind === "race"
@@ -264,7 +260,7 @@ function EntryChip({ entry, compact }: { entry: CalendarEntry; compact: boolean 
     <span
       className={cn(
         "flex min-w-0 items-center gap-1 text-[10px] leading-tight",
-        entry.kind === "prescribed_run" ? "text-text-muted" : "text-text-secondary",
+        "text-text-secondary",
         entry.kind === "race" && "font-semibold text-text-primary",
       )}
     >

@@ -623,7 +623,9 @@ create table if not exists oura_profile (
 -- actual_runs   — completed runs (manual now; Garmin sync later, deduped on external_id).
 -- run_fuel_adjustments — one per day, recomputed by the app, never hand-edited.
 -- mid_run_intakes — gels/chews/drink mix logged against a run; counts as intake.
--- calendar_runs — training-only calendar entries (never change nutrition alone).
+-- training_plan_runs — ordered queue of upcoming runs (type + mileage, no dates).
+--                 Edited by hand or by Muse; logging a run completes the head.
+-- calendar_runs — RETIRED: a run on the calendar is now a planned_runs row.
 -- Distances are canonical km; durations are minutes.
 -- ---------------------------------------------------------------------------
 create table if not exists planned_runs (
@@ -694,6 +696,22 @@ create table if not exists mid_run_intakes (
 );
 
 create index if not exists mid_run_intakes_date_idx on mid_run_intakes (date);
+
+create table if not exists training_plan_runs (
+  id                    uuid primary key default gen_random_uuid(),
+  position              int not null,      -- queue order (ascending)
+  run_type              text not null default 'easy'
+                        check (run_type in ('easy', 'long', 'tempo', 'intervals')),
+  distance_km           float,
+  duration_min          float,
+  notes                 text,
+  actual_run_id         uuid references actual_runs (id) on delete set null, -- set = done
+  completed_at          timestamptz,
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create index if not exists training_plan_runs_position_idx on training_plan_runs (position);
 
 create table if not exists calendar_runs (
   id                    uuid primary key default gen_random_uuid(),
@@ -832,3 +850,4 @@ alter table actual_runs       enable row level security;
 alter table run_fuel_adjustments enable row level security;
 alter table mid_run_intakes   enable row level security;
 alter table calendar_runs     enable row level security;
+alter table training_plan_runs enable row level security;
