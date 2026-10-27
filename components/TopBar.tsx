@@ -1,18 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
-import {
-  dayHydrationUnits,
-  getDayLog,
-  loadWater,
-  setDayLog,
-  targetUnits,
-  waterDateKey,
-  WATER_CHANGED_EVENT,
-} from "@/lib/water";
-import { commitWaterState, refreshWaterFromServer } from "@/lib/water-sync";
+import { TOP_BAR_REFRESH_EVENT } from "@/lib/top-bar-events";
 
 type Progress = { done: number; total: number };
 type Status = "idle" | "good" | "warn" | "miss";
@@ -80,115 +71,82 @@ function WeightPill({ weight }: { weight: WeightSnap }) {
   );
 }
 
+type Summary = { calories: Progress; supplements: Progress; weight: WeightSnap };
+
+const EMPTY: Progress = { done: 0, total: 0 };
+
+function toProgress(raw: unknown): Progress {
+  const r = raw as { done?: unknown; total?: unknown } | null | undefined;
+  return { done: Number(r?.done) || 0, total: Number(r?.total) || 0 };
+}
+
+/** Fetch the quick-stats snapshot; null when offline / failed. */
+async function loadSummary(): Promise<Summary | null> {
+  try {
+    const res = await fetch("/api/today/summary", { cache: "no-store" });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return {
+      calories: toProgress(json?.calories),
+      supplements: toProgress(json?.supplements),
+      weight: json?.weight ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function TopBar() {
-  const [mounted, setMounted] = useState(false);
-  const [water, setWater] = useState<Progress>({ done: 0, total: 0 });
-  const [calories, setCalories] = useState<Progress>({ done: 0, total: 0 });
-  const [weight, setWeight] = useState<WeightSnap>(null);
-  const [flash, setFlash] = useState(false);
+  const pathname = usePathname();
+  const [summary, setSummary] = useState<Summary>({
+    calories: EMPTY,
+    supplements: EMPTY,
+    weight: null,
+  });
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  function readLocal() {
-    const w = loadWater();
-    const key = waterDateKey(new Date());
-    setWater({
-      done: Math.round(dayHydrationUnits(w, key) * 10) / 10,
-      total: targetUnits(w, key),
-    });
-  }
-
-  async function pullRemote() {
-    await refreshWaterFromServer();
-    readLocal();
-  }
-
-  async function fetchSummary() {
-    try {
-      const res = await fetch("/api/today/summary", { cache: "no-store" });
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json?.calories) {
-        setCalories({
-          done: Number(json.calories.done) || 0,
-          total: Number(json.calories.total) || 0,
-        });
-      }
-      setWeight(json?.weight ?? null);
-    } catch {
-      /* offline — keep the last known counts */
-    }
-  }
-
+  // Refetch when the app regains focus or a page signals a change.
   useEffect(() => {
-    setMounted(true);
-    readLocal();
-    void pullRemote();
-    void fetchSummary();
-
-    const onLocal = () => readLocal();
-    const onFocus = () => {
-      readLocal();
-      void pullRemote();
-      void fetchSummary();
-    };
+    const bump = () => setRefreshKey((k) => k + 1);
     const onVisible = () => {
-      if (!document.hidden) onFocus();
+      if (!document.hidden) bump();
     };
-    window.addEventListener(WATER_CHANGED_EVENT, onLocal);
-    window.addEventListener("storage", onLocal);
-    window.addEventListener("focus", onFocus);
+    window.addEventListener(TOP_BAR_REFRESH_EVENT, bump);
+    window.addEventListener("focus", bump);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
-      window.removeEventListener(WATER_CHANGED_EVENT, onLocal);
-      window.removeEventListener("storage", onLocal);
-      window.removeEventListener("focus", onFocus);
+      window.removeEventListener(TOP_BAR_REFRESH_EVENT, bump);
+      window.removeEventListener("focus", bump);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
-  function addWater() {
-    const w = loadWater();
-    const key = waterDateKey(new Date());
-    const day = getDayLog(w, key);
-    const next = setDayLog(w, key, { ...day, servings: day.servings + 1 });
-    commitWaterState(next);
-    const done = Math.round(dayHydrationUnits(next, key) * 10) / 10;
-    setWater({ done, total: targetUnits(next, key) });
-    setFlash(true);
-    window.setTimeout(() => setFlash(false), 220);
-  }
-
-  const display = mounted ? { calories, weight, water } : null;
+  // Also refetch on navigation so logging elsewhere (meals, weight) shows here.
+  // Offline / failed fetches keep the last known counts.
+  useEffect(() => {
+    let cancelled = false;
+    void loadSummary().then((next) => {
+      if (!cancelled && next) setSummary(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, refreshKey]);
 
   return (
     <header className="topbar" aria-label="Quick stats">
       <ProgressPill
         href="/nutrition"
         label="Cals"
-        progress={display ? calories : { done: 0, total: 0 }}
+        progress={summary.calories}
         accent="var(--color-nutrition)"
       />
-      <WeightPill weight={display ? weight : null} />
-      <div className="topbar-water-wrap">
-        <Link
-          href="/water"
-          className="topbar-pill topbar-water-pill"
-          aria-label="Water"
-        >
-          <span className="topbar-dot" style={{ background: "var(--color-sleep)" }} />
-          <span className="topbar-pill-label">Water</span>
-          <span className="topbar-pill-count">
-            {display ? water.done : 0}/{display ? water.total : 0}
-          </span>
-        </Link>
-        <button
-          type="button"
-          className={flash ? "topbar-water-add flash" : "topbar-water-add"}
-          aria-label="Log one drink"
-          onClick={addWater}
-        >
-          <Plus size={16} strokeWidth={2.5} />
-        </button>
-      </div>
+      <WeightPill weight={summary.weight} />
+      <ProgressPill
+        href="/supplements"
+        label="Supps"
+        progress={summary.supplements}
+      />
     </header>
   );
 }

@@ -1,19 +1,10 @@
 import type { Meal, NutrientProfile } from "@/types";
 
-export const DEFAULT_GOALS = {
-  calories: 2000,
-  protein_g: 150,
-  carbs_g: 200,
-  fat_g: 65,
-  water_ml: 3000,
-} as const;
-
 export type NutritionGoals = {
   calories: number;
   protein_g: number;
   carbs_g: number;
   fat_g: number;
-  water_ml: number;
 };
 
 export type NutrientKey = keyof Omit<

@@ -1,14 +1,11 @@
 import { createServiceClient } from "@/lib/supabase/server";
-import { getOuraProfile, getTimezone, getUserSettings } from "@/lib/data/oura";
-import { getLatestWeight, upsertWeight } from "@/lib/data/tracking";
+import { getOuraProfile, getUserSettings } from "@/lib/data/oura";
+import { getLatestWeight } from "@/lib/data/tracking";
 import {
   kgToLbs,
   parseActivityLevel,
   type ActivityLevel,
 } from "@/lib/nutrition-goals";
-import { profileSexToWater, waterSexToProfile, applyProfileToWater } from "@/lib/profile";
-import { normalizeWater, type WaterState } from "@/lib/water";
-import { todayInTimezone } from "@/lib/utils";
 import type { UserProfile } from "@/types";
 
 export type ProfilePatch = {
@@ -87,7 +84,7 @@ export async function saveUserProfile(patch: ProfilePatch): Promise<void> {
   const db = createServiceClient();
   const { data: row } = await db
     .from("user_settings")
-    .select("id, water_state")
+    .select("id")
     .limit(1)
     .maybeSingle();
   if (!row) throw new Error("Settings not found");
@@ -105,72 +102,6 @@ export async function saveUserProfile(patch: ProfilePatch): Promise<void> {
   }
 
   await db.from("user_settings").update(update).eq("id", row.id);
-
-  if (row.water_state && typeof row.water_state === "object") {
-    const profile = await getUserProfile();
-    const water = normalizeWater(row.water_state as Partial<WaterState>);
-    const weightDisplay =
-      profile.weight_lbs != null
-        ? water.weightUnit === "lb"
-          ? Math.round(profile.weight_lbs * 10) / 10
-          : Math.round((profile.weight_lbs / 2.204_622_621_8) * 10) / 10
-        : water.profile.weightKg;
-
-    const next = normalizeWater({
-      ...water,
-      profile: {
-        ...water.profile,
-        age: profile.age ?? water.profile.age,
-        sex:
-          profile.biological_sex != null
-            ? profileSexToWater(profile.biological_sex)
-            : water.profile.sex,
-        weightKg: weightDisplay,
-      },
-    });
-
-    await db.from("user_settings").update({ water_state: next }).eq("id", row.id);
-  }
-}
-
-/** Push age, sex, and weight edits from the water tracker into canonical profile. */
-export async function syncWaterProfileToCanonical(state: WaterState): Promise<void> {
-  const db = createServiceClient();
-  const { data: row } = await db
-    .from("user_settings")
-    .select("id")
-    .limit(1)
-    .maybeSingle();
-  if (!row) return;
-
-  const age = state.profile.age > 0 ? state.profile.age : null;
-  const biological_sex = waterSexToProfile(state.profile.sex);
-
-  await db
-    .from("user_settings")
-    .update({ age, biological_sex })
-    .eq("id", row.id);
-
-  const weight_lbs =
-    state.profile.weightKg > 0
-      ? state.weightUnit === "lb"
-        ? Math.round(state.profile.weightKg * 10) / 10
-        : Math.round(kgToLbs(state.profile.weightKg) * 10) / 10
-      : null;
-
-  if (weight_lbs != null) {
-    const timezone = await getTimezone();
-    const today = todayInTimezone(timezone);
-    const latest = await getLatestWeight();
-    if (latest?.weight_lbs !== weight_lbs) {
-      await upsertWeight({
-        date: today,
-        weight_lbs,
-        body_fat_pct: latest?.body_fat_pct ?? null,
-        notes: null,
-      });
-    }
-  }
 }
 
 /** Backfill empty user_settings profile fields from Oura after sync. */
@@ -190,5 +121,3 @@ export async function seedProfileFromOuraIfEmpty(): Promise<void> {
 
   await db.from("user_settings").update(patch).eq("id", settings.id);
 }
-
-export { applyProfileToWater } from "@/lib/profile";

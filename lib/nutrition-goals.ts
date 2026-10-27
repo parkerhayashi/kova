@@ -1,6 +1,6 @@
 import { rollingAverageWeight, type WeightEntry } from "@/lib/coach-composition";
 import { applyDietBreakCalories } from "@/lib/diet-break";
-import { DEFAULT_GOALS, type NutritionGoals } from "@/lib/nutrition";
+import type { NutritionGoals } from "@/lib/nutrition";
 import { applyReverseDietCalories } from "@/lib/reverse-diet";
 import { addDays } from "@/lib/utils";
 import type { DietBreakState, ReverseDietState } from "@/types";
@@ -125,7 +125,6 @@ export type GoalInputs = {
   biological_sex: string | null;
   activity_level?: ActivityLevel | null;
   adaptive?: AdaptiveEnergySnapshot | null;
-  water_goal_ml: number | null;
   reverseDiet?: ReverseDietState | null;
   dietBreak?: DietBreakState | null;
 };
@@ -612,7 +611,6 @@ export function computeNutritionGoals(input: GoalInputs): ComputedNutritionGoals
     protein_g,
     carbs_g,
     fat_g,
-    water_ml: input.water_goal_ml ?? DEFAULT_GOALS.water_ml,
     meta: {
       current_weight_lbs: input.weight_lbs,
       current_body_fat_pct: input.body_fat_pct,

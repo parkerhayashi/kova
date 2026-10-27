@@ -8,5 +8,4 @@ export async function updateProfile(patch: ProfilePatch): Promise<void> {
   revalidatePath("/settings/profile");
   revalidatePath("/nutrition");
   revalidatePath("/");
-  revalidatePath("/water");
 }

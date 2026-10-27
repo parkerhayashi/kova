@@ -545,13 +545,6 @@ export interface Meal {
   logged_at: string;
 }
 
-export interface WaterLog {
-  id: string;
-  date: string;
-  amount_ml: number;
-  logged_at: string;
-}
-
 export interface WeightLog {
   id: string;
   date: string;
@@ -662,6 +655,7 @@ export interface UserSettings {
   protein_goal_g: number | null;
   carbs_goal_g: number | null;
   fat_goal_g: number | null;
+  /** Retired — hydration tracking was removed (column kept for history). */
   water_goal_ml: number | null;
   step_goal: number | null;
   timezone: string | null;
@@ -669,6 +663,7 @@ export interface UserSettings {
   oura_refresh_token: string | null;
   hevy_api_key: string | null;
   totp_secret: string | null;
+  /** Retired — old water/caffeine tracker history (no longer read). */
   water_state: Record<string, unknown> | null;
   client_sync: ClientSyncPayload | null;
   cut_coach_cache: Record<string, unknown> | null;
@@ -688,7 +683,7 @@ export interface UserSettings {
   updated_at: string;
 }
 
-/** Resolved body profile used across nutrition, water, and calculations. */
+/** Resolved body profile used across nutrition and calculations. */
 export interface UserProfile {
   age: number | null;
   height_m: number | null;

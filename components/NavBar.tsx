@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import {
   Apple,
   ChevronDown,
-  Droplet,
   Dumbbell,
   Flame,
   HeartPulse,
@@ -61,7 +60,6 @@ const TRAINING_CHILDREN: NavLeaf[] = [
 
 const NUTRITION_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
-  { type: "link", href: "/water", label: "Water", icon: Droplet },
   { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
 ];
 

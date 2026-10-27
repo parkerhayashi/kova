@@ -60,11 +60,6 @@ export async function HealthSnapshot() {
       })
     : "log on Weight";
 
-  const waterCaption =
-    data.water.ml > 0
-      ? `${data.water.ml} / ${data.water.goalMl} ml`
-      : "tap to log";
-
   const activityIsStale =
     data.oura.activityAsOf != null && data.oura.activityAsOf !== data.todayIso;
 
@@ -166,7 +161,7 @@ export async function HealthSnapshot() {
         </Link>
       </div>
 
-      <div className="snapshot-grid snapshot-grid-2">
+      <div className="snapshot-grid">
         <Link href="/nutrition" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Nutrition</span>
@@ -201,19 +196,6 @@ export async function HealthSnapshot() {
             <span className="snapshot-caption">
               Goal {data.nutrition.goalCalories} ({data.nutrition.burnLabel})
             </span>
-          </div>
-        </Link>
-        <Link href="/water" className="snapshot-link-card">
-          <div className="snapshot-metric dash-card snapshot-metric-rings">
-            <span className="metric-label">Water</span>
-            <ProgressRing
-              value={data.water.ml > 0 ? data.water.ml : null}
-              max={data.water.goalMl}
-              unit="ml"
-              accent="sleep"
-              size={80}
-              caption={waterCaption}
-            />
           </div>
         </Link>
       </div>

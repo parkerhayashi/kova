@@ -6,9 +6,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
-  // Habits was removed (Oct 2026); alcohol logging lives on Nutrition.
+  // Habits and Water were removed (Oct 2026); send old links somewhere useful.
   async redirects() {
-    return [{ source: "/habits", destination: "/nutrition", permanent: false }];
+    return [
+      { source: "/habits", destination: "/nutrition", permanent: false },
+      { source: "/water", destination: "/nutrition", permanent: false },
+    ];
   },
   images: {
     remotePatterns: [

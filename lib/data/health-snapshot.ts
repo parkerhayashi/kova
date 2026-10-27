@@ -9,7 +9,6 @@ import {
 import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
 import { getTodayWorkoutSummary } from "@/lib/data/workouts";
 import { maybeSyncHevyOnOpen } from "@/lib/data/hevy";
-import { getWaterState } from "@/lib/data/water";
 import {
   getLatestWeight,
   getSupplementLogs,
@@ -18,7 +17,6 @@ import {
 import { getTrendsPayload } from "@/lib/data/trends";
 import { maintenanceSourceLabel } from "@/lib/nutrition-goals";
 import { describeCorrelation } from "@/lib/trends/correlation";
-import { computeTargetMl, dayHydrationMl, normalizeWater } from "@/lib/water";
 import { unstable_noStore } from "next/cache";
 import { latestRowWith, todayInTimezone } from "@/lib/utils";
 import type { WeightLog, WorkoutTodaySummary } from "@/types";
@@ -86,7 +84,6 @@ export type HealthSnapshotData = {
     goalProtein_g: number;
     burnLabel: string;
   };
-  water: { ml: number; goalMl: number };
   workout: WorkoutTodaySummary;
   weight: WeightLog | null;
   supplements: { done: number; total: number };
@@ -126,16 +123,11 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
   const readinessScore =
     readiness.value != null ? Number(readiness.value) : null;
 
-  const [mealTotals, nutritionGoals, waterState, workout] = await Promise.all([
+  const [mealTotals, nutritionGoals, workout] = await Promise.all([
     getDailyTotals(todayIso),
     getNutritionGoals(todayIso),
-    getWaterState(),
     getTodayWorkoutSummary(readinessScore),
   ]);
-
-  const water = normalizeWater(waterState);
-  const waterMl = Math.round(dayHydrationMl(water, todayIso));
-  const waterGoalMl = Math.round(computeTargetMl(water, todayIso).total);
 
   const todayLabel = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -196,7 +188,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       goalProtein_g: nutritionGoals.protein_g,
       burnLabel: maintenanceSourceLabel(nutritionGoals.meta.maintenance_source).toLowerCase(),
     },
-    water: { ml: waterMl, goalMl: waterGoalMl },
     workout,
     weight,
     supplements: { done: supplementsTaken, total: supplements.length },

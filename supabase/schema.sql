@@ -375,7 +375,9 @@ create table if not exists saved_meals (
 );
 
 -- ---------------------------------------------------------------------------
--- Hydration
+-- Hydration — RETIRED (Oct 2026). Water/caffeine tracking was removed; the app
+-- no longer reads or writes water_logs, user_settings.water_state, or
+-- user_settings.water_goal_ml. Kept so logged history isn't lost.
 -- ---------------------------------------------------------------------------
 create table if not exists water_logs (
   id          uuid primary key default gen_random_uuid(),
@@ -500,14 +502,14 @@ create table if not exists user_settings (
   protein_goal_g          int,
   carbs_goal_g            int,
   fat_goal_g              int,
-  water_goal_ml           int default 3000,
+  water_goal_ml           int default 3000,  -- retired (hydration removed)
   step_goal               int default 10000,
   timezone                text default 'America/New_York', -- IANA tz; auto-detected from the browser
   oura_access_token       text,   -- encrypted
   oura_refresh_token      text,   -- encrypted
   hevy_api_key            text,   -- encrypted
   totp_secret             text,   -- encrypted; TOTP MFA seed (null = disabled)
-  water_state             jsonb,  -- synced water tracker state (lib/water.ts shape)
+  water_state             jsonb,  -- retired: old water/caffeine tracker history
   client_sync             jsonb,  -- goals, coach, finances localStorage snapshots
   oura_last_synced_at     timestamptz,  -- last successful Oura API sync
   updated_at              timestamptz default now()

@@ -200,7 +200,6 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
     biological_sex: profile.biological_sex,
     activity_level,
     adaptive: snapshot,
-    water_goal_ml: settings?.water_goal_ml ?? null,
     reverseDiet,
     dietBreak,
   };
@@ -621,7 +620,6 @@ export async function getCalorieTrend(
     age: profile.age,
     biological_sex: profile.biological_sex,
     activity_level,
-    water_goal_ml: settings?.water_goal_ml ?? null,
   };
 
   const start = addDays(todayInTimezone(timezone), -(days - 1));

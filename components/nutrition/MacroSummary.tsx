@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
 import { Card } from "@/components/ui/Card";
 import { fmtNutrient, macroCalories, type DailyTotals, type NutritionGoals } from "@/lib/nutrition";
@@ -122,16 +121,6 @@ export function MacroSummary({
           </span>
         </div>
       </Card>
-
-      <Link href="/water" className="block">
-        <Card className="card-interactive flex items-center justify-between gap-3">
-          <div>
-            <span className="metric-label">Hydration</span>
-            <p className="body-copy text-sm">Water tracking lives on its own page.</p>
-          </div>
-          <span className="text-text-muted text-sm">Open →</span>
-        </Card>
-      </Link>
     </section>
   );
 }

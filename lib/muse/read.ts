@@ -40,7 +40,6 @@ import {
 } from "@/lib/data/tracking";
 import { getBodyFatEstimate } from "@/lib/data/body-fat";
 import { getUserProfile } from "@/lib/data/profile";
-import { getWaterState } from "@/lib/data/water";
 import {
   getHevyLastSyncedAt,
   isHevyConnected,
@@ -61,7 +60,6 @@ import {
   isPlaidConnected,
 } from "@/lib/data/finance";
 import { isMfaEnabled } from "@/lib/data/auth";
-import { computeTargetMl, dayHydrationMl, normalizeWater } from "@/lib/water";
 import { computeWeightInsights } from "@/lib/weight-stats";
 import { addDays, todayInTimezone } from "@/lib/utils";
 import { mapToRecord } from "@/lib/muse/auth";
@@ -128,7 +126,6 @@ export async function readMuseToday() {
     reverse,
     dietBreak,
     coach,
-    water,
     latestWeight,
     supplements,
     supplementLogs,
@@ -149,7 +146,6 @@ export async function readMuseToday() {
     getReverseDietStatus(),
     getDietBreakStatus(),
     getCutCoachBundle(),
-    getWaterState(),
     getLatestWeight(),
     getSupplements(true),
     getSupplementLogsForDate(today),
@@ -158,9 +154,6 @@ export async function readMuseToday() {
     getHevyLastSyncedAt(),
     isPlaidConnected(),
   ]);
-
-  const waterNorm = normalizeWater(water);
-  const waterGoal = computeTargetMl(waterNorm, today).total;
 
   return {
     today,
@@ -181,11 +174,6 @@ export async function readMuseToday() {
       alcohol,
       reverse,
       diet_break: dietBreak,
-    },
-    water: {
-      ml: dayHydrationMl(waterNorm, today),
-      goal_ml: waterGoal,
-      unit: waterNorm.unit,
     },
     body: {
       latest_weight: latestWeight,

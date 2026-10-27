@@ -36,7 +36,7 @@ export function museOpenApi() {
           operationId: "getToday",
           summary: "Full picture of today",
           description:
-            "Sleep, readiness, activity, meals, macros remaining, alcohol, water, supplements, workout, diet break / reverse, and cut coach.",
+            "Sleep, readiness, activity, meals, macros remaining, alcohol, supplements, workout, diet break / reverse, and cut coach.",
           security: bearer,
           responses: { "200": { description: "Today snapshot" } },
         },
@@ -162,7 +162,7 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 
 | Path | What it contains |
 |---|---|
-| \`GET /api/muse/today\` | Sleep, readiness, activity, meals, remaining macros, alcohol, water, supplements, workout, diet break / reverse, cut coach |
+| \`GET /api/muse/today\` | Sleep, readiness, activity, meals, remaining macros, alcohol, supplements, workout, diet break / reverse, cut coach |
 | \`GET /api/muse/oura?days=30\` | Sleep / readiness / activity history, Oura workouts, sessions, tags. Add \`samples=1\` only if you need waveforms |
 | \`GET /api/muse/nutrition?days=14\` | Every logged meal, daily calories/protein, goals, supplements, saved meals, alcohol. Optional \`date=YYYY-MM-DD\` |
 | \`GET /api/muse/body?days=90\` | Weight log, rates, body-fat estimate, profile |

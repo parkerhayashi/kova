@@ -88,7 +88,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
         <div>
           <span className="metric-label">Body profile</span>
           <p className="body-copy mt-1 text-sm">
-            Used for calorie targets, water needs, BMR, and protein goals across
+            Used for calorie targets, BMR, and protein goals across
             Kova. Weight comes from your daily log under Workouts → Body weight.
           </p>
         </div>

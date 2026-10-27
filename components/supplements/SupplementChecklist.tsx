@@ -5,6 +5,7 @@ import { Check, ChevronDown, Flame } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
+import { notifyTopBar } from "@/lib/top-bar-events";
 import { cn } from "@/lib/utils";
 import {
   logSupplementDetail,
@@ -46,6 +47,7 @@ function DetailPanel({ row, logDate }: { row: SupplementRow; logDate: string }) 
         time_taken: time || null,
         notes: notes.trim() || null,
       });
+      notifyTopBar();
     });
   }
 
@@ -101,6 +103,7 @@ export function SupplementChecklist({
     setTaken((t) => ({ ...t, [id]: next }));
     startTransition(async () => {
       await toggleSupplement(id, logDate, next);
+      notifyTopBar();
     });
   }
 
