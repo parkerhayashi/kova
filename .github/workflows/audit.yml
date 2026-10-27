@@ -8,11 +8,11 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # v7 of both actions run natively on Node 24 (Node 20 runners are
+      # deprecated), so no FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 workaround.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
