@@ -36,7 +36,7 @@ export function museOpenApi() {
           operationId: "getToday",
           summary: "Full picture of today",
           description:
-            "Sleep, readiness, activity, meals, macros remaining, alcohol, water, habits, supplements, workout, diet break / reverse, and cut coach.",
+            "Sleep, readiness, activity, meals, macros remaining, alcohol, water, supplements, workout, diet break / reverse, and cut coach.",
           security: bearer,
           responses: { "200": { description: "Today snapshot" } },
         },
@@ -143,7 +143,7 @@ export function museOpenApi() {
 export function museConnectorDocs(origin: string): string {
   return `# Kova × Muse
 
-Kova is Parker's personal health OS (Oura, Hevy, nutrition, weight, habits, finances).
+Kova is Parker's personal health OS (Oura, Hevy, nutrition, weight, finances).
 This API is **read-only**. Do not attempt writes, syncs, or login.
 
 ## Auth
@@ -162,12 +162,12 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 
 | Path | What it contains |
 |---|---|
-| \`GET /api/muse/today\` | Sleep, readiness, activity, meals, remaining macros, alcohol, water, habits, supplements, workout, diet break / reverse, cut coach |
+| \`GET /api/muse/today\` | Sleep, readiness, activity, meals, remaining macros, alcohol, water, supplements, workout, diet break / reverse, cut coach |
 | \`GET /api/muse/oura?days=30\` | Sleep / readiness / activity history, Oura workouts, sessions, tags. Add \`samples=1\` only if you need waveforms |
 | \`GET /api/muse/nutrition?days=14\` | Every logged meal, daily calories/protein, goals, supplements, saved meals, alcohol. Optional \`date=YYYY-MM-DD\` |
 | \`GET /api/muse/body?days=90\` | Weight log, rates, body-fat estimate, profile |
 | \`GET /api/muse/training?days=30&hevy_limit=40\` | Hevy workouts with sets, native sessions, routines, lifting dashboard |
-| \`GET /api/muse/trends?range=30\` | Correlations + habit logs. \`range\` is 7, 30, or 90 |
+| \`GET /api/muse/trends?range=30\` | Correlations (incl. alcohol → next-day sleep/readiness/HRV/lifting). \`range\` is 7, 30, or 90 |
 | \`GET /api/muse/life?days=30\` | Profile, MFA flag, connection status, Plaid accounts + transactions |
 
 OpenAPI: \`${origin}/api/muse/openapi.json\`

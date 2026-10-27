@@ -14,6 +14,7 @@ import {
   addMeal,
   deleteMeal,
 } from "@/lib/data/nutrition";
+import { setAlcoholDrinks } from "@/lib/data/alcohol";
 import {
   deleteSavedMeal,
   getSavedMeals,
@@ -33,8 +34,17 @@ import type {
 function refresh() {
   revalidatePath("/nutrition");
   revalidatePath("/");
-  revalidatePath("/habits");
   revalidatePath("/trends");
+}
+
+/** Log the day's standard drinks (null / 0 clears it). */
+export async function setAlcoholDrinksAction(
+  date: string,
+  drinks: number | null,
+): Promise<void> {
+  if (!date) throw new Error("Date is required");
+  await setAlcoholDrinks(date, drinks);
+  refresh();
 }
 
 export async function logMeal(

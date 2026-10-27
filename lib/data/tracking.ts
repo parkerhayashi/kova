@@ -1,6 +1,6 @@
 /**
- * Server-side data layer for manual tracking (blueprint Phase 3): weight,
- * habits, and supplements. Single-user app with no sign-in yet, so these read
+ * Server-side data layer for manual tracking (blueprint Phase 3): weight
+ * and supplements. Single-user app with no sign-in yet, so these read
  * and write through the service client. Import only from Server Components and
  * Server Actions — never a client component.
  */
@@ -8,9 +8,6 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { catalogNutrientsForName } from "@/lib/supplementCatalog";
 import { addDays, DEFAULT_TIMEZONE, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type {
-  Habit,
-  HabitKind,
-  HabitLog,
   Supplement,
   SupplementLog,
   WeightLog,
@@ -109,67 +106,9 @@ export async function getAllWeightLogs(): Promise<WeightLog[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Habits
+// Supplements
 // ---------------------------------------------------------------------------
-export async function getHabits(activeOnly = true): Promise<Habit[]> {
-  const db = createServiceClient();
-  let query = db
-    .from("habits")
-    .select("*")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
-  if (activeOnly) query = query.eq("is_active", true);
-  const { data } = await query;
-  return ((data as Habit[]) ?? []).map((h) => ({
-    ...h,
-    kind: h.kind ?? "positive",
-  }));
-}
-
-function asHabitLog(row: HabitLog): HabitLog {
-  const date = normalizeIsoDate(row.date) ?? row.date;
-  return { ...row, date };
-}
-
-export async function getHabitLogs(
-  sinceDays: number,
-  timezone?: string,
-): Promise<HabitLog[]> {
-  const db = createServiceClient();
-  const { data } = await db
-    .from("habit_logs")
-    .select("*")
-    .gte("date", addDays(todayInTimezone(timezone), -sinceDays));
-  return ((data as HabitLog[]) ?? []).map(asHabitLog);
-}
-
-export async function getHabitLogsForDate(date: string): Promise<HabitLog[]> {
-  const day = normalizeIsoDate(date) ?? date;
-  const db = createServiceClient();
-  const { data } = await db.from("habit_logs").select("*").eq("date", day);
-  return ((data as HabitLog[]) ?? []).map(asHabitLog);
-}
-
-export async function setHabitCompletion(
-  habitId: string,
-  date: string,
-  completed: boolean,
-  amountTier?: string | null,
-): Promise<void> {
-  const day = normalizeIsoDate(date) ?? date;
-  const db = createServiceClient();
-  const row: Record<string, unknown> = {
-    habit_id: habitId,
-    date: day,
-    completed,
-    amount_tier: completed && amountTier ? amountTier : null,
-  };
-  await db
-    .from("habit_logs")
-    .upsert(row, { onConflict: "habit_id,date" });
-}
-
-async function nextSortOrder(table: "habits" | "supplements"): Promise<number> {
+async function nextSortOrder(table: "supplements"): Promise<number> {
   const db = createServiceClient();
   const { data } = await db
     .from(table)
@@ -180,34 +119,6 @@ async function nextSortOrder(table: "habits" | "supplements"): Promise<number> {
   return ((data as { sort_order: number } | null)?.sort_order ?? -1) + 1;
 }
 
-export async function addHabit(
-  name: string,
-  kind: HabitKind = "positive",
-): Promise<void> {
-  const db = createServiceClient();
-  await db.from("habits").insert({
-    name,
-    kind,
-    sort_order: await nextSortOrder("habits"),
-  });
-}
-
-export async function updateHabit(
-  id: string,
-  fields: Partial<Pick<Habit, "name" | "kind" | "is_active" | "sort_order">>,
-): Promise<void> {
-  const db = createServiceClient();
-  await db.from("habits").update(fields).eq("id", id);
-}
-
-export async function deleteHabit(id: string): Promise<void> {
-  const db = createServiceClient();
-  await db.from("habits").delete().eq("id", id);
-}
-
-// ---------------------------------------------------------------------------
-// Supplements
-// ---------------------------------------------------------------------------
 export async function getSupplements(activeOnly = true): Promise<Supplement[]> {
   const db = createServiceClient();
   let query = db

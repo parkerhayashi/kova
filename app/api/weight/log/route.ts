@@ -16,7 +16,6 @@ function refreshWeightPaths() {
   revalidatePath("/");
   revalidatePath("/weight");
   revalidatePath("/workouts");
-  revalidatePath("/habits");
 }
 
 /**

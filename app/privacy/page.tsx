@@ -47,7 +47,7 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong className="text-text-primary">Manual tracking</strong>{" "}
-                — habits, supplements, weight, water, and nutrition logs
+                — supplements, weight, water, alcohol, and nutrition logs
               </li>
               <li>
                 <strong className="text-text-primary">Finances</strong> — manual

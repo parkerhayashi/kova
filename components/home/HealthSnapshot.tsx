@@ -218,7 +218,7 @@ export async function HealthSnapshot() {
         </Link>
       </div>
 
-      <div className="snapshot-grid snapshot-grid-4">
+      <div className="snapshot-grid snapshot-grid-3">
         <Link href="/workouts" className="snapshot-link-card">
           <SnapshotMetric
             label="Workout"
@@ -248,26 +248,6 @@ export async function HealthSnapshot() {
               data.supplements.total ? "taken today" : "add supplements"
             }
             accent="var(--color-nutrition)"
-          />
-        </Link>
-        <Link href="/habits" className="snapshot-link-card">
-          <SnapshotMetric
-            label="Habits"
-            value={
-              data.habits.positiveTotal
-                ? `${data.habits.positiveDone}/${data.habits.positiveTotal}`
-                : null
-            }
-            caption={
-              data.habits.positiveTotal
-                ? data.habits.tagTotal
-                  ? data.habits.tagsLogged
-                    ? `${data.habits.tagsLogged} tag${data.habits.tagsLogged === 1 ? "" : "s"} logged`
-                    : `${data.habits.tagTotal} day tag${data.habits.tagTotal === 1 ? "" : "s"}`
-                  : "done today"
-                : "add habits or tags"
-            }
-            accent="var(--color-recovery)"
           />
         </Link>
       </div>

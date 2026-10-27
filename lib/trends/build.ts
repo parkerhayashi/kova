@@ -11,8 +11,7 @@ import type {
   TrendsPayload,
   TrendRange,
 } from "@/lib/trends/types";
-import { drinkCountNumeric } from "@/lib/habit-drinks";
-import type { Activity, Habit, HabitLog, Readiness, Sleep } from "@/types";
+import type { Activity, Readiness, Sleep } from "@/types";
 
 function indexByDate<T extends { date: string }>(rows: T[]): Map<string, T> {
   return new Map(rows.map((r) => [r.date, r]));
@@ -28,23 +27,6 @@ function workoutVolumeByDay(
     map.set(w.day, vol);
   }
   return map;
-}
-
-function habitRateByDay(
-  logs: TrendsInput["habitLogs"],
-  habitCount: number,
-): Map<string, number> {
-  if (habitCount === 0) return new Map();
-  const done = new Map<string, number>();
-  for (const log of logs) {
-    if (!log.completed) continue;
-    done.set(log.date, (done.get(log.date) ?? 0) + 1);
-  }
-  const rates = new Map<string, number>();
-  for (const [date, count] of done) {
-    rates.set(date, Math.round((count / habitCount) * 100));
-  }
-  return rates;
 }
 
 function supplementRateByDay(
@@ -72,30 +54,13 @@ function buildCorrelation(
   return { ...base, points, r };
 }
 
-function findTrackTag(habits: Habit[], pattern: RegExp): Habit | null {
-  return habits.find((h) => h.kind === "track" && pattern.test(h.name)) ?? null;
-}
-
-function tagLogByDate(logs: HabitLog[], habitId: string): Map<string, HabitLog> {
-  const map = new Map<string, HabitLog>();
-  for (const log of logs) {
-    if (log.habit_id === habitId) map.set(log.date, log);
-  }
-  return map;
-}
-
-function drinkAmountOnDate(log: HabitLog | undefined): number {
-  if (!log?.completed) return 0;
-  return drinkCountNumeric(log.amount_tier) ?? 1;
-}
-
-/** Day tag on D vs a metric on D+1. X uses drink estimate when tier is set. */
-function tagVsNextDay(
+/** Drinks on day D vs a metric on D+1 (days with no log count as 0). */
+function drinksVsNextDay(
   id: string,
   title: string,
   subtitle: string,
   xLabel: string,
-  tagLogs: Map<string, HabitLog>,
+  drinksByDay: Map<string, number>,
   rows: { date: string; value: number | null }[],
   yLabel: string,
   yAccent: CorrelationView["yAccent"],
@@ -104,10 +69,10 @@ function tagVsNextDay(
 
   for (const row of rows) {
     if (row.value == null) continue;
-    const tagDate = addDays(row.date, -1);
+    const drinkDate = addDays(row.date, -1);
     pairs.push({
-      label: shortDate(tagDate),
-      x: drinkAmountOnDate(tagLogs.get(tagDate)),
+      label: shortDate(drinkDate),
+      x: drinksByDay.get(drinkDate) ?? 0,
       y: row.value,
     });
   }
@@ -128,53 +93,50 @@ function tagVsNextDay(
 }
 
 function alcoholCorrelations(
-  alcohol: Habit,
-  logs: HabitLog[],
+  drinksByDay: Map<string, number>,
   sleep: Sleep[],
   readiness: Readiness[],
   liftingVolumeByDay: TrendsInput["liftingVolumeByDay"],
 ): CorrelationView[] {
-  const tagLogs = tagLogByDate(logs, alcohol.id);
-  const tagName = alcohol.name;
   const xLabel = "Drinks (est.)";
 
   return [
-    tagVsNextDay(
+    drinksVsNextDay(
       "alcohol-readiness",
-      `${tagName} → Next-Day Readiness`,
+      `Alcohol → Next-Day Readiness`,
       `Evening drinks logged vs. readiness the following morning`,
       xLabel,
-      tagLogs,
+      drinksByDay,
       readiness.map((r) => ({ date: r.date, value: r.score })),
       "Readiness",
       "recovery",
     ),
-    tagVsNextDay(
+    drinksVsNextDay(
       "alcohol-sleep",
-      `${tagName} → Next-Night Sleep`,
+      `Alcohol → Next-Night Sleep`,
       `Drinks logged vs. sleep score the following night`,
       xLabel,
-      tagLogs,
+      drinksByDay,
       sleep.map((s) => ({ date: s.date, value: s.score })),
       "Sleep score",
       "sleep",
     ),
-    tagVsNextDay(
+    drinksVsNextDay(
       "alcohol-hrv",
-      `${tagName} → Next-Day HRV`,
+      `Alcohol → Next-Day HRV`,
       `Drinks logged vs. HRV balance the following morning`,
       xLabel,
-      tagLogs,
+      drinksByDay,
       readiness.map((r) => ({ date: r.date, value: r.hrv_balance })),
       "HRV balance",
       "recovery",
     ),
-    tagVsNextDay(
+    drinksVsNextDay(
       "alcohol-lifting",
-      `${tagName} → Next-Day Lifting`,
+      `Alcohol → Next-Day Lifting`,
       `Drinks logged vs. lifting volume the following day`,
       xLabel,
-      tagLogs,
+      drinksByDay,
       liftingVolumeRows(liftingVolumeByDay),
       "Volume (lb)",
       "activity",
@@ -503,13 +465,10 @@ export function buildTrendsPayload(
   range: TrendRange,
   ouraConnected: boolean,
 ): TrendsPayload {
-  const habitRates = habitRateByDay(input.habitLogs, input.habitCount);
   const supplementRates = supplementRateByDay(
     input.supplementLogs,
     input.supplementCount,
   );
-
-  const alcohol = findTrackTag(input.habits, /alcohol/i);
 
   return {
     range,
@@ -523,15 +482,6 @@ export function buildTrendsPayload(
       readinessVsLifting(input.readiness, input.liftingVolumeByDay),
       sleepVsNextLifting(input.sleep, input.liftingVolumeByDay),
       rateVsReadiness(
-        "habits-readiness",
-        "Habits vs. Readiness",
-        "Daily habit completion rate vs. readiness score",
-        "Habits %",
-        habitRates,
-        input.readiness,
-        "activity",
-      ),
-      rateVsReadiness(
         "supplements-readiness",
         "Supplements vs. Readiness",
         "Supplement stack adherence vs. readiness score",
@@ -540,15 +490,12 @@ export function buildTrendsPayload(
         input.readiness,
         "nutrition",
       ),
-      ...(alcohol
-        ? alcoholCorrelations(
-            alcohol,
-            input.allHabitLogs,
-            input.sleep,
-            input.readiness,
-            input.liftingVolumeByDay,
-          )
-        : []),
+      ...alcoholCorrelations(
+        input.alcoholDrinksByDay,
+        input.sleep,
+        input.readiness,
+        input.liftingVolumeByDay,
+      ),
     ],
     dualTrends: [
       buildNutritionCaloriesVsWeight(input.caloriesByDay, input.weight),

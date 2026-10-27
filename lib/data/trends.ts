@@ -5,9 +5,8 @@ import {
   getSleepHistory,
   isOuraConnected,
 } from "@/lib/data/oura";
+import { getAlcoholDrinksByDay } from "@/lib/data/alcohol";
 import {
-  getHabitLogs,
-  getHabits,
   getSupplementLogs,
   getSupplements,
   getWeightLogs,
@@ -29,8 +28,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     readiness,
     activity,
     weight,
-    habits,
-    habitLogs,
+    alcoholDrinksByDay,
     supplements,
     supplementLogs,
     workouts,
@@ -42,8 +40,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     getReadinessHistory(range),
     getActivityHistory(range),
     getWeightLogs(range),
-    getHabits(true),
-    getHabitLogs(range),
+    getAlcoholDrinksByDay(range),
     getSupplements(true),
     getSupplementLogs(range),
     getOuraWorkouts(range),
@@ -58,21 +55,12 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     liftingDashboard.volume_by_day.map((row) => [row.date, row.volume_lbs]),
   );
 
-  const positiveHabits = habits.filter((h) => (h.kind ?? "positive") === "positive");
-  const positiveLogs = habitLogs.filter((log) => {
-    const habit = habits.find((h) => h.id === log.habit_id);
-    return (habit?.kind ?? "positive") === "positive";
-  });
-
   const input: TrendsInput = {
     sleep,
     readiness,
     activity,
     weight,
-    habits,
-    habitLogs: positiveLogs,
-    habitCount: positiveHabits.length,
-    allHabitLogs: habitLogs,
+    alcoholDrinksByDay,
     supplementLogs,
     supplementCount: supplements.length,
     workouts,

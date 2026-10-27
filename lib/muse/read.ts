@@ -32,9 +32,6 @@ import {
 } from "@/lib/alcohol-nutrition";
 import { getSavedMeals } from "@/lib/data/saved-meals";
 import {
-  getHabitLogs,
-  getHabitLogsForDate,
-  getHabits,
   getLatestWeight,
   getSupplementLogs,
   getSupplementLogsForDate,
@@ -133,8 +130,6 @@ export async function readMuseToday() {
     coach,
     water,
     latestWeight,
-    habits,
-    habitLogs,
     supplements,
     supplementLogs,
     workout,
@@ -156,8 +151,6 @@ export async function readMuseToday() {
     getCutCoachBundle(),
     getWaterState(),
     getLatestWeight(),
-    getHabits(true),
-    getHabitLogsForDate(today),
     getSupplements(true),
     getSupplementLogsForDate(today),
     getTodayWorkoutSummary(),
@@ -196,10 +189,6 @@ export async function readMuseToday() {
     },
     body: {
       latest_weight: latestWeight,
-    },
-    habits: {
-      definitions: habits,
-      today: habitLogs,
     },
     supplements: {
       catalog: supplements,
@@ -397,21 +386,13 @@ export async function readMuseTrends(rangeRaw: string | undefined) {
   const range = parseTrendRange(rangeRaw);
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
-  const [trends, habits, habitLogs] = await Promise.all([
-    getTrendsPayload(range),
-    getHabits(true),
-    getHabitLogs(range, timezone),
-  ]);
+  const trends = await getTrendsPayload(range);
 
   return {
     today,
     timezone,
     range,
     trends,
-    habits: {
-      definitions: habits,
-      logs: habitLogs,
-    },
   };
 }
 

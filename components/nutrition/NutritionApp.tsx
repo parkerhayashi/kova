@@ -34,7 +34,6 @@ export function NutritionApp({
   dietBreak,
   calorieTrend,
   nutritionWeightTrends,
-  alcoholHabitId,
   alcoholDrinks,
   alcoholCalories,
 }: {
@@ -48,7 +47,6 @@ export function NutritionApp({
   dietBreak: DietBreakView;
   calorieTrend: { date: string; calories: number; goal: number }[];
   nutritionWeightTrends: DualTrendView[];
-  alcoholHabitId: string | null;
   alcoholDrinks: number | null;
   alcoholCalories: number;
 }) {
@@ -72,7 +70,6 @@ export function NutritionApp({
       />
       <AlcoholLog
         logDate={logDate}
-        habitId={alcoholHabitId}
         initialDrinks={alcoholDrinks}
       />
 

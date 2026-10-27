@@ -74,7 +74,6 @@ export default async function NutritionPage({
         dietBreak={dietBreak}
         calorieTrend={calorieTrend}
         nutritionWeightTrends={nutritionWeightTrends}
-        alcoholHabitId={alcohol.habitId}
         alcoholDrinks={alcohol.drinks}
         alcoholCalories={alcohol.calories}
       />

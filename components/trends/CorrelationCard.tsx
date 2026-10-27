@@ -34,8 +34,8 @@ export function CorrelationCard({ view }: { view: CorrelationView }) {
         />
       ) : (
         <p className="body-copy text-sm">
-          Need at least {view.minPairs} paired days — sync Oura or log habits to
-          populate this view.
+          Need at least {view.minPairs} paired days — sync Oura and keep logging
+          to populate this view.
         </p>
       )}
 

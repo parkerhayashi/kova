@@ -1,87 +1,32 @@
+import { drinkCalories } from "@/lib/alcohol-drinks";
 import {
-  getHabits,
-  getHabitLogs,
-  getHabitLogsForDate,
-} from "@/lib/data/tracking";
-import {
-  drinkCountCalories,
-  isDrinkQuantityHabit,
-  normalizeDrinkCount,
-} from "@/lib/habit-drinks";
+  getAlcoholDrinksByDay,
+  getAlcoholDrinksForDate,
+} from "@/lib/data/alcohol";
 
-function alcoholHabitIds(habits: Awaited<ReturnType<typeof getHabits>>): Set<string> {
-  return new Set(
-    habits.filter(isDrinkQuantityHabit).map((habit) => habit.id),
-  );
-}
-
-function sumAlcoholCalories(
-  habits: Awaited<ReturnType<typeof getHabits>>,
-  logs: { habit_id: string; completed: boolean; amount_tier: string | null }[],
-): number {
-  const ids = alcoholHabitIds(habits);
-  if (ids.size === 0) return 0;
-
-  let total = 0;
-  for (const log of logs) {
-    if (!ids.has(log.habit_id) || !log.completed) continue;
-    total += drinkCountCalories(log.amount_tier);
-  }
-  return total;
-}
-
-/** Estimated alcohol calories keyed by date from habit tag logs. */
+/** Estimated alcohol calories keyed by date. */
 export async function getAlcoholCaloriesByDay(
   days: number,
   timezone?: string,
 ): Promise<Map<string, number>> {
-  const [habits, logs] = await Promise.all([
-    getHabits(true),
-    getHabitLogs(days, timezone),
-  ]);
-  const ids = alcoholHabitIds(habits);
-  if (ids.size === 0) return new Map();
-
+  const drinksByDay = await getAlcoholDrinksByDay(days, timezone);
   const map = new Map<string, number>();
-  for (const log of logs) {
-    if (!ids.has(log.habit_id) || !log.completed) continue;
-    const calories = drinkCountCalories(log.amount_tier);
-    if (calories <= 0) continue;
-    map.set(log.date, (map.get(log.date) ?? 0) + calories);
+  for (const [date, drinks] of drinksByDay) {
+    const calories = drinkCalories(drinks);
+    if (calories > 0) map.set(date, calories);
   }
   return map;
 }
 
 export async function getAlcoholCaloriesForDate(date: string): Promise<number> {
-  const [habits, logs] = await Promise.all([
-    getHabits(true),
-    getHabitLogsForDate(date),
-  ]);
-  return sumAlcoholCalories(habits, logs);
+  return drinkCalories(await getAlcoholDrinksForDate(date));
 }
 
-/** Alcohol day-tag habit + drink count for a date (shared by Habits + Nutrition UI). */
+/** Drink count + estimated calories for a date (Nutrition UI, Muse API). */
 export async function getAlcoholLogForDate(date: string): Promise<{
-  habitId: string | null;
   drinks: number | null;
   calories: number;
 }> {
-  const [habits, logs] = await Promise.all([
-    getHabits(true),
-    getHabitLogsForDate(date),
-  ]);
-  const alcoholHabit = habits.find(isDrinkQuantityHabit) ?? null;
-  if (!alcoholHabit) {
-    return { habitId: null, drinks: null, calories: 0 };
-  }
-
-  const log = logs.find((row) => row.habit_id === alcoholHabit.id) ?? null;
-  const drinks =
-    log?.completed ? normalizeDrinkCount(log.amount_tier) : null;
-
-  return {
-    habitId: alcoholHabit.id,
-    drinks,
-    calories: drinkCountCalories(drinks),
-  };
+  const drinks = await getAlcoholDrinksForDate(date);
+  return { drinks, calories: drinkCalories(drinks) };
 }

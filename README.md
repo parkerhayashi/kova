@@ -49,7 +49,7 @@ than hitting third-party APIs on each load.
 ```
 app/
   (dashboard)/        Today, sleep, recovery, workouts, nutrition,
-                      supplements, habits, weight, trends
+                      supplements, weight, trends
   api/                sync/*, auth/*, food/*, and native CRUD routes (later phases)
 components/           UI primitives, MetricCard, charts, NavBar
 lib/                  supabase clients + source-agnostic integrations
@@ -62,7 +62,7 @@ supabase/schema.sql   full Postgres schema
 
 - [x] **Phase 1** — Setup & infrastructure
 - [x] **Phase 2** — Oura integration + daily summary (home snapshot)
-- [x] **Phase 3** — Habits, supplements, weight
+- [x] **Phase 3** — Habits, supplements, weight (Habits later removed; alcohol moved to Nutrition)
 - [x] **Phase 4** — Hevy integration
 - [x] **Phase 5** — Nutrition logging (USDA, Open Food Facts, capture, restaurants)
 - [x] **Phase 6** — Trends & correlations

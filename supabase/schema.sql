@@ -399,7 +399,9 @@ create table if not exists weight_log (
 );
 
 -- ---------------------------------------------------------------------------
--- Habits
+-- Habits — RETIRED (Oct 2026). The Habits feature was removed; the app no
+-- longer reads or writes these tables. Kept so history isn't lost and so the
+-- alcohol_logs backfill below can run. Alcohol now lives in alcohol_logs.
 -- ---------------------------------------------------------------------------
 create table if not exists habits (
   id          uuid primary key default gen_random_uuid(),
@@ -423,6 +425,38 @@ create table if not exists habit_logs (
 alter table habit_logs add column if not exists amount_tier text;
 -- Alcohol: exact drink count as a numeric string ("3"). Legacy buckets ("1-3", "4-6", "6+") still parse.
 update habit_logs set amount_tier = '4-6' where amount_tier = '3-6';
+
+-- ---------------------------------------------------------------------------
+-- Alcohol — standard drinks per day (logged from Nutrition; ~100 kcal/drink)
+-- ---------------------------------------------------------------------------
+create table if not exists alcohol_logs (
+  id          uuid primary key default gen_random_uuid(),
+  date        date unique not null,
+  -- 0 = explicitly cleared. Cleared days are kept as rows (not deleted) so the
+  -- one-time backfill below can never resurrect them.
+  drinks      int not null default 0 check (drinks between 0 and 20),
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+
+-- One-time backfill from the retired "Alcohol" habit day tag. Legacy range
+-- buckets map to the same midpoints the app always used (1-3→2, 4-6→5, 6+→8).
+-- `on conflict do nothing` keeps this idempotent and never overwrites a day
+-- already edited in alcohol_logs.
+insert into alcohol_logs (date, drinks)
+select hl.date,
+       max(least(20, case
+         when hl.amount_tier ~ '^\d+$' then hl.amount_tier::int
+         when hl.amount_tier = '1-3' then 2
+         when hl.amount_tier in ('3-6', '4-6') then 5
+         when hl.amount_tier = '6+' then 8
+         else 1
+       end))
+from habit_logs hl
+join habits h on h.id = hl.habit_id
+where h.kind = 'track' and h.name ~* 'alcohol' and hl.completed
+group by hl.date
+on conflict (date) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- Supplements
@@ -755,6 +789,7 @@ alter table water_logs        enable row level security;
 alter table weight_log        enable row level security;
 alter table habits            enable row level security;
 alter table habit_logs        enable row level security;
+alter table alcohol_logs      enable row level security;
 alter table supplements       enable row level security;
 alter table supplement_logs   enable row level security;
 alter table user_settings     enable row level security;

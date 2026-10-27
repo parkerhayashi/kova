@@ -11,8 +11,6 @@ import { getTodayWorkoutSummary } from "@/lib/data/workouts";
 import { maybeSyncHevyOnOpen } from "@/lib/data/hevy";
 import { getWaterState } from "@/lib/data/water";
 import {
-  getHabitLogs,
-  getHabits,
   getLatestWeight,
   getSupplementLogs,
   getSupplements,
@@ -91,12 +89,6 @@ export type HealthSnapshotData = {
   water: { ml: number; goalMl: number };
   workout: WorkoutTodaySummary;
   weight: WeightLog | null;
-  habits: {
-    positiveDone: number;
-    positiveTotal: number;
-    tagsLogged: number;
-    tagTotal: number;
-  };
   supplements: { done: number; total: number };
   trends: SnapshotTrend[];
 };
@@ -112,8 +104,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     activityRows,
     connected,
     ouraLastSyncedAt,
-    habits,
-    habitLogs,
     supplements,
     supplementLogs,
     weight,
@@ -124,8 +114,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     getActivityHistory(400),
     isOuraConnected(),
     getOuraLastSyncedAt(),
-    getHabits(true),
-    getHabitLogs(1, timezone),
     getSupplements(true),
     getSupplementLogs(1, timezone),
     getLatestWeight(),
@@ -156,15 +144,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     timeZone: timezone,
   });
 
-  const positiveHabits = habits.filter((h) => (h.kind ?? "positive") === "positive");
-  const trackHabits = habits.filter((h) => h.kind === "track");
-  const completedToday = new Set(
-    habitLogs
-      .filter((l) => l.date === todayIso && l.completed)
-      .map((l) => l.habit_id),
-  );
-  const positiveDone = positiveHabits.filter((h) => completedToday.has(h.id)).length;
-  const tagsLogged = trackHabits.filter((h) => completedToday.has(h.id)).length;
   const supplementsTaken = supplementLogs.filter(
     (l) => l.date === todayIso && l.taken,
   ).length;
@@ -220,12 +199,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     water: { ml: waterMl, goalMl: waterGoalMl },
     workout,
     weight,
-    habits: {
-      positiveDone,
-      positiveTotal: positiveHabits.length,
-      tagsLogged,
-      tagTotal: trackHabits.length,
-    },
     supplements: { done: supplementsTaken, total: supplements.length },
     trends: rankedTrends,
   };

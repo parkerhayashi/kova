@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Apple,
-  CalendarCheck,
   ChevronDown,
   Droplet,
   Dumbbell,
@@ -66,11 +65,6 @@ const NUTRITION_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
 ];
 
-const HABITS_CHILDREN: NavLeaf[] = [
-  { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
-  { type: "link", href: "/trends", label: "Trends", icon: TrendingUp },
-];
-
 const NAV_ALL: NavItem[] = [
   { type: "link", href: "/", label: "Home", icon: LayoutDashboard },
   {
@@ -94,13 +88,7 @@ const NAV_ALL: NavItem[] = [
     icon: Apple,
     children: NUTRITION_CHILDREN,
   },
-  {
-    type: "group",
-    id: "habits",
-    label: "Habits",
-    icon: CalendarCheck,
-    children: HABITS_CHILDREN,
-  },
+  { type: "link", href: "/trends", label: "Trends", icon: TrendingUp },
   { type: "link", href: "/finances", label: "Finances", icon: Wallet },
 ];
 
@@ -114,7 +102,7 @@ const MOBILE_PRIMARY: NavLeaf[] = [
   { type: "link", href: "/", label: "Home", icon: LayoutDashboard },
   { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
   { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
-  { type: "link", href: "/habits", label: "Habits", icon: CalendarCheck },
+  { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
 ];
 
 /** More sheet: groups plus any leftover top-level links (e.g. Finances). */

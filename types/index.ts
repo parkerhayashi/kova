@@ -613,27 +613,17 @@ export type DietBreakState = {
   completed_at: string | null;
 };
 
-export type HabitKind = "positive" | "track";
-
-export interface Habit {
+/**
+ * One row per day of standard drinks (alcohol_logs). drinks = 0 means the day
+ * was explicitly cleared. The retired habits / habit_logs tables are kept in
+ * the schema for history only — the app no longer reads them.
+ */
+export interface AlcoholLog {
   id: string;
-  name: string;
-  kind: HabitKind;
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-}
-
-export interface HabitLog {
-  id: string;
-  habit_id: string;
   date: string;
-  completed: boolean;
-  /**
-   * Alcohol drink amount when set.
-   * Stored as a numeric string ("3"); legacy buckets ("1-3", "4-6", "6+") still parse.
-   */
-  amount_tier: string | null;
+  drinks: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Supplement {
