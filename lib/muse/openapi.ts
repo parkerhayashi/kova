@@ -17,7 +17,7 @@ export function museOpenApi() {
       title: "Kova Muse API",
       version: "1.0.0",
       description:
-        "Personal health OS for Parker. Read-only except one write: replacing the upcoming running plan (PUT /api/muse/running-plan). Bearer token required on every data path. Never sync or request secrets.",
+        "Personal health OS for Parker. Read-only except running writes: replacing the upcoming running plan (PUT /api/muse/running-plan) and logging / undoing manual runs (POST, DELETE /api/muse/runs). Bearer token required on every data path. Never sync or request secrets.",
     },
     servers: [{ url: SERVER_URL }],
     security: bearer,
@@ -162,6 +162,59 @@ export function museOpenApi() {
           },
         },
       },
+      "/api/muse/runs": {
+        post: {
+          operationId: "logRun",
+          summary: "Log a completed run",
+          description:
+            "Manual run log — same as Parker logging it on the Running page. Matches that day's planned run, reconciles the day's run fuel, and completes the next run in the training plan. Only log runs Parker tells you he did.",
+          security: bearer,
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["duration_min"],
+                  properties: {
+                    date: {
+                      type: "string",
+                      format: "date",
+                      description: "Day the run started (default today). Not in the future.",
+                    },
+                    duration_min: { type: "number", exclusiveMinimum: 0 },
+                    distance_mi: { type: "number", exclusiveMinimum: 0 },
+                    run_type: {
+                      type: "string",
+                      enum: ["easy", "long", "tempo", "intervals", "race"],
+                      description: "Optional; defaults to the planned run's type, else easy.",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": { description: "Logged run, completed plan run, next run, day's run fuel" },
+            "400": { description: "Invalid payload — nothing was logged" },
+          },
+        },
+        delete: {
+          operationId: "deleteLoggedRun",
+          summary: "Undo a mistaken manual run log",
+          description:
+            "Deletes a manually logged run by id (from logged_runs in GET /api/muse/running-plan). Its plan run goes back to upcoming and the day's fuel re-reconciles. Garmin runs can't be deleted.",
+          security: bearer,
+          parameters: [
+            { name: "id", in: "query", required: true, schema: { type: "string", format: "uuid" } },
+          ],
+          responses: {
+            "200": { description: "Deleted" },
+            "400": { description: "Bad id or not a manual run" },
+            "404": { description: "Run not found" },
+          },
+        },
+      },
       "/api/muse/trends": {
         get: {
           operationId: "getTrends",
@@ -197,8 +250,9 @@ export function museConnectorDocs(origin: string): string {
   return `# Kova × Muse
 
 Kova is Parker's personal health OS (Oura, Hevy, nutrition, weight, finances).
-This API is **read-only except one write**: \`PUT /api/muse/running-plan\`
-replaces the upcoming running plan. Do not attempt any other writes, syncs, or login.
+This API is **read-only except running writes**: \`PUT /api/muse/running-plan\`
+replaces the upcoming running plan, and \`POST\` / \`DELETE /api/muse/runs\` log or
+undo a manual run. Do not attempt any other writes, syncs, or login.
 
 ## Auth
 
@@ -223,6 +277,8 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 | \`GET /api/muse/training?days=30&hevy_limit=40\` | Hevy workouts with sets, lifting dashboard, composition snapshot |
 | \`GET /api/muse/running-plan?days=30\` | Running plan queue (\`next\`, \`upcoming\`, \`completed\`) + runs logged in the window |
 | \`PUT /api/muse/running-plan\` | Replace the upcoming queue: \`{ "runs": [{ "run_type": "easy", "distance_mi": 3, "notes": "…" }] }\` |
+| \`POST /api/muse/runs\` | Log a run Parker did: \`{ "date": "YYYY-MM-DD", "duration_min": 32, "distance_mi": 3.1, "run_type": "easy" }\` (date defaults to today) |
+| \`DELETE /api/muse/runs?id=<run id>\` | Undo a mistaken manual log (ids are in \`logged_runs\`) |
 | \`GET /api/muse/trends?range=30\` | Correlations (incl. alcohol → next-day sleep/readiness/HRV/lifting). \`range\` is 7, 30, or 90 |
 | \`GET /api/muse/life?days=30\` | Profile, MFA flag, connection status, Plaid accounts + transactions |
 
@@ -235,6 +291,7 @@ OpenAPI: \`${origin}/api/muse/openapi.json\`
 - If \`diet_break.active\` is true, the calorie target is maintenance.
 - If \`reverse.active\` is true, the calorie target is the reverse ramp, not the cut deficit.
 - Running plan: runs are dateless (type + miles). Logging a run completes \`next\` automatically, so after Parker logs runs, re-check the plan and PUT the adjusted queue. The plan never changes nutrition.
+- Logging runs: only log a run Parker says he actually did, once. Check \`logged_runs\` first so you don't log it twice. Duration is required; ask for it if he didn't say.
 - Never request or echo secrets, tokens, passwords, or TOTP.
 `;
 }

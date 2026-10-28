@@ -1193,3 +1193,10 @@ export async function getRecentActualRuns(days: number): Promise<ActualRun[]> {
   if (error) throw new Error(error.message);
   return ((data as ActualRun[]) ?? []).map(withDate);
 }
+
+export async function getActualRun(id: string): Promise<ActualRun | null> {
+  const db = createServiceClient();
+  const { data, error } = await db.from("actual_runs").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? withDate(data as ActualRun) : null;
+}
