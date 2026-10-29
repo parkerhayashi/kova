@@ -1,18 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Minus, Plus } from "lucide-react";
 import { setAlcoholDrinksAction } from "@/app/(dashboard)/nutrition/actions";
 import { Card } from "@/components/ui/Card";
 import {
   CALORIES_PER_DRINK,
   MAX_DRINKS,
+  clampDrinks,
   drinkCalories,
-  formatDrinkCount,
 } from "@/lib/alcohol-drinks";
 import { cn } from "@/lib/utils";
 
+const STEP_BUTTON = cn(
+  "flex size-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-40",
+  "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
+);
+
+/** One-row drink counter: −/+ to step, or type the number directly. */
 export function AlcoholLog({
   logDate,
   initialDrinks,
@@ -22,18 +28,20 @@ export function AlcoholLog({
 }) {
   const router = useRouter();
   const [drinks, setDrinks] = useState<number | null>(initialDrinks);
+  const [draft, setDraft] = useState(String(initialDrinks ?? 0));
   const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
+  // Resync when the server value changes (NutritionApp remounts per date).
+  const [source, setSource] = useState(initialDrinks);
+  if (source !== initialDrinks) {
+    setSource(initialDrinks);
     setDrinks(initialDrinks);
-  }, [logDate, initialDrinks]);
-
-  const calories = drinkCalories(drinks);
-  const label = formatDrinkCount(drinks);
+    setDraft(String(initialDrinks ?? 0));
+  }
 
   function commit(next: number | null) {
-    const normalized =
-      next == null || next <= 0 ? null : Math.min(MAX_DRINKS, next);
+    const normalized = clampDrinks(next);
+    setDraft(String(normalized ?? 0));
+    if (normalized === drinks) return;
     setDrinks(normalized);
     startTransition(async () => {
       await setAlcoholDrinksAction(logDate, normalized);
@@ -41,75 +49,58 @@ export function AlcoholLog({
     });
   }
 
+  const calories = drinkCalories(drinks);
+
   return (
-    <Card className="space-y-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <span className="metric-label">Alcohol</span>
-          <p className="text-text-muted mt-1 text-xs">
-            {CALORIES_PER_DRINK} kcal per drink toward this day&apos;s calorie
-            total.
-          </p>
-        </div>
-        {drinks ? (
-          <span
-            className="text-sm font-semibold tabular-nums"
-            style={{ color: "var(--color-nutrition)" }}
-          >
-            +{calories} kcal
-          </span>
-        ) : null}
+    <Card className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="min-w-0">
+        <span className="metric-label">Alcohol</span>
+        <p className="text-text-muted text-xs">
+          {drinks ? (
+            <span className="tabular-nums" style={{ color: "var(--color-nutrition)" }}>
+              +{calories} kcal
+            </span>
+          ) : (
+            `${CALORIES_PER_DRINK} kcal per drink`
+          )}
+        </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-1.5">
         <button
           type="button"
           disabled={pending || !drinks}
-          aria-label="Fewer drinks"
+          aria-label="One fewer drink"
           onClick={() => commit((drinks ?? 1) - 1)}
-          className={cn(
-            "flex size-9 items-center justify-center rounded-lg border transition-colors disabled:opacity-40",
-            "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
-          )}
+          className={STEP_BUTTON}
         >
-          <Minus className="size-4" />
+          <Minus className="size-3.5" />
         </button>
-        <div className="min-w-[4.5rem] text-center">
-          <p className="text-2xl font-semibold tabular-nums text-text-primary">
-            {drinks ?? 0}
-          </p>
-          <p className="text-text-muted text-[10px] uppercase tracking-wide">
-            drinks
-          </p>
-        </div>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={MAX_DRINKS}
+          value={draft}
+          aria-label="Drinks"
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => commit(draft.trim() === "" ? null : Number(draft))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          className="field-input w-12 px-1 py-1.5 text-center tabular-nums"
+        />
         <button
           type="button"
           disabled={pending || (drinks ?? 0) >= MAX_DRINKS}
-          aria-label="More drinks"
+          aria-label="One more drink"
           onClick={() => commit((drinks ?? 0) + 1)}
-          className={cn(
-            "flex size-9 items-center justify-center rounded-lg border transition-colors disabled:opacity-40",
-            "border-border text-text-secondary hover:border-border-strong hover:text-text-primary hover:bg-[rgba(255,255,255,0.04)]",
-          )}
+          className={STEP_BUTTON}
         >
-          <Plus className="size-4" />
+          <Plus className="size-3.5" />
         </button>
-        {drinks ? (
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => commit(null)}
-            className="text-text-muted hover:text-text-primary ml-1 text-xs underline-offset-2 hover:underline disabled:opacity-50"
-          >
-            Clear
-          </button>
-        ) : null}
       </div>
-      <p className="text-text-muted text-xs">
-        {label
-          ? `${label} logged for this day.`
-          : "No drinks logged — tap + if you drank."}
-      </p>
     </Card>
   );
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import {
   bumpReverseDietNow,
@@ -12,7 +13,9 @@ import {
   stopDietBreak as persistStopDietBreak,
   stopReverseDiet as persistStopReverse,
   addMeal,
+  addMeals,
   deleteMeal,
+  deleteMealGroup,
 } from "@/lib/data/nutrition";
 import { setAlcoholDrinks } from "@/lib/data/alcohol";
 import {
@@ -21,7 +24,6 @@ import {
   saveSavedMeal,
 } from "@/lib/data/saved-meals";
 import { buildMealRow } from "@/lib/nutrition";
-import { sumSavedMealComponents } from "@/lib/saved-meals";
 import type { DietBreakDurationDays } from "@/lib/diet-break";
 import type {
   DietBreakState,
@@ -69,16 +71,27 @@ export async function logMealItems(input: {
   if (!date) throw new Error("Date is required");
   if (items.length === 0) throw new Error("Add at least one item");
 
-  for (const profile of items) {
-    const row = buildMealRow(profile, date, 1, mealName?.trim() || profile.name);
-    await addMeal(row);
-  }
+  // Each item keeps its own name and macros; a multi-item (or named) meal
+  // groups them so the log can expand it and drop single ingredients.
+  const name = mealName?.trim();
+  const group =
+    items.length > 1 || name
+      ? { id: randomUUID(), name: name || "Captured meal" }
+      : undefined;
+  await addMeals(items.map((profile) => buildMealRow(profile, date, 1, profile.name, group)));
   refresh();
 }
 
 export async function removeMeal(id: string): Promise<void> {
   if (!id) throw new Error("Meal id is required");
   await deleteMeal(id);
+  refresh();
+}
+
+/** Delete a whole logged meal (all of its ingredient rows). */
+export async function removeMealGroup(groupId: string): Promise<void> {
+  if (!groupId) throw new Error("Meal group id is required");
+  await deleteMealGroup(groupId);
   refresh();
 }
 
@@ -161,15 +174,25 @@ export async function logSavedMealAction(
   const saved = meals.find((m) => m.id === savedMealId);
   if (!saved) throw new Error("Saved meal not found");
 
-  const totals = sumSavedMealComponents(saved.components);
-  const profile: NutrientProfile = {
-    food_id: saved.id,
-    source: "saved_meal",
-    name: saved.name,
-    serving_size_g: 100,
-    nutrients: totals,
-  };
-  const row = buildMealRow(profile, date, 1, saved.name);
-  await addMeal(row);
+  // One row per ingredient (same totals as before), grouped under the meal.
+  if (saved.components.length === 0) throw new Error("Saved meal has no items");
+  const group = { id: randomUUID(), name: saved.name };
+  await addMeals(
+    saved.components.map((component) =>
+      buildMealRow(
+        {
+          food_id: component.food_id ?? saved.id,
+          source: component.source ?? "saved_meal",
+          name: component.name,
+          serving_size_g: component.serving_size_g ?? 100,
+          nutrients: component.nutrients,
+        },
+        date,
+        component.servings,
+        component.name,
+        group,
+      ),
+    ),
+  );
   refresh();
 }

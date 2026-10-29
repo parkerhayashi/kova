@@ -3,15 +3,48 @@ import { Card } from "@/components/ui/Card";
 import { fmtNutrient, macroCalories, type DailyTotals, type NutritionGoals } from "@/lib/nutrition";
 import { maintenanceSourceLabel, type NutritionGoalMeta } from "@/lib/nutrition-goals";
 
+/** How the day's calorie goal is built — shown inside the Daily targets panel. */
+export function GoalBreakdown({ meta }: { meta: NutritionGoalMeta }) {
+  return (
+    <div className="space-y-1 rounded-xl bg-[rgba(255,255,255,0.03)] px-3 py-3">
+      <span className="metric-label">How today&apos;s goal is calculated</span>
+      <p className="text-text-muted text-xs">
+        {meta.maintenance_calories} kcal{" "}
+        {maintenanceSourceLabel(meta.maintenance_source).toLowerCase()}
+        {meta.adaptive_adjustment !== 0
+          ? ` · ${meta.adaptive_adjustment > 0 ? "+" : ""}${meta.adaptive_adjustment} kcal from intake/weight`
+          : ""}
+        {meta.calorie_adjustment !== 0
+          ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} kcal goal adjustment`
+          : ""}
+        {meta.diet_break_active
+          ? " · diet break (at maintenance)"
+          : meta.reverse_diet_active
+            ? ` · reverse diet (+${meta.reverse_diet_added_kcal} kcal ramped)`
+            : ""}
+        {meta.adjustment_reason ? ` (${meta.adjustment_reason})` : ""}
+        {meta.adaptive_reason && meta.adaptive_adjustment !== 0
+          ? ` · ${meta.adaptive_reason}`
+          : ""}
+        {meta.run_day?.fuel
+          ? meta.run_day.fuel.kind === "carb_load"
+            ? ` · carb-load day (${meta.run_day.fuel.added_kcal > 0 ? "+" : ""}${meta.run_day.fuel.added_kcal} kcal, outside the cut)`
+            : ` · +${meta.run_day.fuel.added_kcal} kcal run fuel (${meta.run_day.fuel.basis === "actual" ? "actual" : "estimated"})`
+          : ""}
+        {" · "}
+        protein from lean mass
+      </p>
+    </div>
+  );
+}
+
 export function MacroSummary({
   totals,
   goals,
-  meta,
   alcoholCalories = 0,
 }: {
   totals: DailyTotals;
   goals: NutritionGoals;
-  meta?: NutritionGoalMeta;
   alcoholCalories?: number;
 }) {
   const calories = totals.calories ?? 0;
@@ -53,38 +86,6 @@ export function MacroSummary({
           accent="stress"
         />
       </div>
-
-      {meta ? (
-        <Card className="space-y-1">
-          <span className="metric-label">How today&apos;s goal is calculated</span>
-          <p className="text-text-muted text-xs">
-            {meta.maintenance_calories} kcal{" "}
-            {maintenanceSourceLabel(meta.maintenance_source).toLowerCase()}
-            {meta.adaptive_adjustment !== 0
-              ? ` · ${meta.adaptive_adjustment > 0 ? "+" : ""}${meta.adaptive_adjustment} kcal from intake/weight`
-              : ""}
-            {meta.calorie_adjustment !== 0
-              ? ` · ${meta.calorie_adjustment > 0 ? "+" : ""}${meta.calorie_adjustment} kcal goal adjustment`
-              : ""}
-            {meta.diet_break_active
-              ? " · diet break (at maintenance)"
-              : meta.reverse_diet_active
-                ? ` · reverse diet (+${meta.reverse_diet_added_kcal} kcal ramped)`
-                : ""}
-            {meta.adjustment_reason ? ` (${meta.adjustment_reason})` : ""}
-            {meta.adaptive_reason && meta.adaptive_adjustment !== 0
-              ? ` · ${meta.adaptive_reason}`
-              : ""}
-            {meta.run_day?.fuel
-              ? meta.run_day.fuel.kind === "carb_load"
-                ? ` · carb-load day (${meta.run_day.fuel.added_kcal > 0 ? "+" : ""}${meta.run_day.fuel.added_kcal} kcal, outside the cut)`
-                : ` · +${meta.run_day.fuel.added_kcal} kcal run fuel (${meta.run_day.fuel.basis === "actual" ? "actual" : "estimated"})`
-              : ""}
-            {" · "}
-            protein from lean mass
-          </p>
-        </Card>
-      ) : null}
 
       <Card className="space-y-3">
         <span className="metric-label">Macro breakdown</span>

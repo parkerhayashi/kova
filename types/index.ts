@@ -321,6 +321,8 @@ export interface SavedMealComponent {
       | "id"
       | "date"
       | "meal_name"
+      | "meal_group_id"
+      | "meal_group_name"
       | "food_id"
       | "source"
       | "serving_size_g"
@@ -342,6 +344,10 @@ export interface Meal {
   id: string;
   date: string;
   meal_name: string | null;
+  /** Shared by every ingredient row of one logged meal (saved meal / AI capture). */
+  meal_group_id: string | null;
+  /** The meal's name when this row is one ingredient of it. */
+  meal_group_name: string | null;
   food_id: string | null;
   source: MealSource | null;
   serving_size_g: number | null;
@@ -614,6 +620,8 @@ export interface NutrientProfile {
       | "id"
       | "date"
       | "meal_name"
+      | "meal_group_id"
+      | "meal_group_name"
       | "food_id"
       | "source"
       | "serving_size_g"

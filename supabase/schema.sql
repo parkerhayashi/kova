@@ -292,6 +292,12 @@ create table if not exists meals (
 create index if not exists meals_date_idx on meals (date);
 
 -- Saved multi-item meal templates (yogurt bowl, Chipotle order, BYO pasta, etc.)
+-- Multi-item meals (saved meals, AI captures) log one row per ingredient,
+-- tied together so the log can expand a meal and delete single ingredients.
+alter table meals add column if not exists meal_group_id   uuid;
+alter table meals add column if not exists meal_group_name text;
+create index if not exists meals_group_idx on meals (meal_group_id);
+
 create table if not exists saved_meals (
   id          uuid primary key default gen_random_uuid(),
   name        text not null,

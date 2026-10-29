@@ -612,6 +612,25 @@ export async function addMeal(
   return asMeal(data as Meal);
 }
 
+/** Insert several rows in one statement (one meal's ingredients). */
+export async function addMeals(
+  rows: Omit<Meal, "id" | "logged_at">[],
+): Promise<void> {
+  if (rows.length === 0) return;
+  const db = createServiceClient();
+  const { error } = await db
+    .from("meals")
+    .insert(rows.map((row) => ({ ...row, date: normalizeIsoDate(row.date) ?? row.date })));
+  if (error) throw new Error(error.message);
+}
+
+/** Remove every ingredient row of one logged meal. */
+export async function deleteMealGroup(groupId: string): Promise<void> {
+  const db = createServiceClient();
+  const { error } = await db.from("meals").delete().eq("meal_group_id", groupId);
+  if (error) throw new Error(error.message);
+}
+
 export async function deleteMeal(id: string): Promise<void> {
   const db = createServiceClient();
   const { error } = await db.from("meals").delete().eq("id", id);

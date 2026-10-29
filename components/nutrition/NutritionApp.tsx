@@ -24,6 +24,12 @@ import type { DietBreakView } from "@/lib/diet-break";
 import type { ReverseDietView } from "@/lib/reverse-diet";
 import type { Meal, MidRunIntake, SavedMeal } from "@/types";
 
+/**
+ * Archived tools — AI meal maker, rest-of-day planner, barcode entry. Code and
+ * API routes stay in place; flip to true to bring them back.
+ */
+const ARCHIVED_NUTRITION_TOOLS_ENABLED = false;
+
 export function NutritionApp({
   logDate,
   today,
@@ -68,7 +74,6 @@ export function NutritionApp({
       <MacroSummary
         totals={totals}
         goals={goals}
-        meta={goals.meta}
         alcoholCalories={alcoholCalories}
       />
       <RunFuelCard
@@ -84,8 +89,14 @@ export function NutritionApp({
         initialDrinks={alcoholDrinks}
       />
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
+      <section className={ARCHIVED_NUTRITION_TOOLS_ENABLED ? "grid gap-4 lg:grid-cols-3" : undefined}>
+        <Card
+          className={
+            ARCHIVED_NUTRITION_TOOLS_ENABLED
+              ? "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch"
+              : "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          }
+        >
           <div>
             <span className="metric-label">AI meal capture</span>
             <p className="text-text-muted mt-1 text-sm">
@@ -98,38 +109,42 @@ export function NutritionApp({
           </Button>
         </Card>
 
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
-          <div>
-            <span className="metric-label">AI meal maker</span>
-            <p className="text-text-muted mt-1 text-sm">
-              Pick Duke Dining or a restaurant, set targets, get a menu meal to save.
-            </p>
-          </div>
-          <Button type="button" variant="primary" onClick={() => openOnly("maker")}>
-            <Utensils className="size-4" />
-            Make a meal
-          </Button>
-        </Card>
+        {ARCHIVED_NUTRITION_TOOLS_ENABLED ? (
+          <>
+            <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
+              <div>
+                <span className="metric-label">AI meal maker</span>
+                <p className="text-text-muted mt-1 text-sm">
+                  Pick Duke Dining or a restaurant, set targets, get a menu meal to save.
+                </p>
+              </div>
+              <Button type="button" variant="primary" onClick={() => openOnly("maker")}>
+                <Utensils className="size-4" />
+                Make a meal
+              </Button>
+            </Card>
 
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
-          <div>
-            <span className="metric-label">Rest of day</span>
-            <p className="text-text-muted mt-1 text-sm">
-              Split remaining macros across the meals you still need.
-            </p>
-          </div>
-          <Button type="button" variant="primary" onClick={() => openOnly("dayPlan")}>
-            <MessageSquare className="size-4" />
-            Plan the day
-          </Button>
-        </Card>
+            <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-stretch">
+              <div>
+                <span className="metric-label">Rest of day</span>
+                <p className="text-text-muted mt-1 text-sm">
+                  Split remaining macros across the meals you still need.
+                </p>
+              </div>
+              <Button type="button" variant="primary" onClick={() => openOnly("dayPlan")}>
+                <MessageSquare className="size-4" />
+                Plan the day
+              </Button>
+            </Card>
+          </>
+        ) : null}
       </section>
 
       {captureOpen ? (
         <MealCaptureFlow date={logDate} onClose={() => setCaptureOpen(false)} />
       ) : null}
 
-      {makerOpen ? (
+      {ARCHIVED_NUTRITION_TOOLS_ENABLED && makerOpen ? (
         <MealMakerFlow
           date={logDate}
           totals={totals}
@@ -138,7 +153,7 @@ export function NutritionApp({
         />
       ) : null}
 
-      {dayPlanOpen ? (
+      {ARCHIVED_NUTRITION_TOOLS_ENABLED && dayPlanOpen ? (
         <DayPlanFlow
           date={logDate}
           totals={totals}
@@ -147,10 +162,14 @@ export function NutritionApp({
         />
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      {ARCHIVED_NUTRITION_TOOLS_ENABLED ? (
+        <section className="grid gap-4 lg:grid-cols-2">
+          <FoodSearch date={logDate} />
+          <BarcodeEntry date={logDate} />
+        </section>
+      ) : (
         <FoodSearch date={logDate} />
-        <BarcodeEntry date={logDate} />
-      </section>
+      )}
 
       <DukeDiningSearch date={logDate} />
 

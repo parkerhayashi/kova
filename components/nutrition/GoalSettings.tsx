@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
+import { GoalBreakdown } from "@/components/nutrition/MacroSummary";
 import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import {
   activityLevelLabel,
@@ -447,6 +448,8 @@ export function GoalSettings({
             {reset ? <span className="timestamp">TDEE nudge reset</span> : null}
             {message ? <span className="timestamp">{message}</span> : null}
           </div>
+
+          <GoalBreakdown meta={meta} />
         </div>
       ) : null}
     </Card>

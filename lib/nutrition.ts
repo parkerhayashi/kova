@@ -9,7 +9,16 @@ export type NutritionGoals = {
 
 export type NutrientKey = keyof Omit<
   Meal,
-  "id" | "date" | "meal_name" | "food_id" | "source" | "serving_size_g" | "servings" | "logged_at"
+  | "id"
+  | "date"
+  | "meal_name"
+  | "meal_group_id"
+  | "meal_group_name"
+  | "food_id"
+  | "source"
+  | "serving_size_g"
+  | "servings"
+  | "logged_at"
 >;
 
 export type DailyTotals = Partial<Record<NutrientKey, number>>;
@@ -95,11 +104,15 @@ export function buildMealRow(
   date: string,
   servings: number,
   mealName?: string,
+  /** Set when this row is one ingredient of a multi-item meal. */
+  group?: { id: string; name: string },
 ): Omit<Meal, "id" | "logged_at"> {
   const scaled = scaleNutrients(profile.nutrients, servings);
   const row: Record<string, unknown> = {
     date,
     meal_name: mealName?.trim() || profile.name,
+    meal_group_id: group?.id ?? null,
+    meal_group_name: group?.name ?? null,
     food_id: profile.food_id,
     source: profile.source,
     serving_size_g: profile.serving_size_g,
