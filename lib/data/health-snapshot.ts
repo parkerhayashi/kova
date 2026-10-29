@@ -10,18 +10,13 @@ import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
 import { getRunningSnapshot, type RunningSnapshot } from "@/lib/data/running";
 import { getTodayWorkoutSummary } from "@/lib/data/workouts";
 import { maybeSyncHevyOnOpen } from "@/lib/data/hevy";
-import {
-  getLatestWeight,
-  getSupplementLogs,
-  getSupplements,
-} from "@/lib/data/tracking";
 import { getTrendsPayload } from "@/lib/data/trends";
 import { maintenanceSourceLabel } from "@/lib/nutrition-goals";
 import type { RunFuelMeta } from "@/lib/run-fuel";
 import { describeCorrelation } from "@/lib/trends/correlation";
 import { unstable_noStore } from "next/cache";
 import { latestRowWith, todayInTimezone } from "@/lib/utils";
-import type { WeightLog, WorkoutTodaySummary } from "@/types";
+import type { WorkoutTodaySummary } from "@/types";
 
 function valueForDate<T extends { date: string }, K extends keyof T>(
   rows: T[],
@@ -91,8 +86,6 @@ export type HealthSnapshotData = {
   };
   running: RunningSnapshot;
   workout: WorkoutTodaySummary;
-  weight: WeightLog | null;
-  supplements: { done: number; total: number };
 };
 
 export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
@@ -109,9 +102,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     activityRows,
     connected,
     ouraLastSyncedAt,
-    supplements,
-    supplementLogs,
-    weight,
     mealTotals,
     nutritionGoals,
     running,
@@ -121,9 +111,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     getActivityHistory(400),
     isOuraConnected(),
     getOuraLastSyncedAt(),
-    getSupplements(true),
-    getSupplementLogs(1, timezone),
-    getLatestWeight(),
     getDailyTotals(todayIso),
     getNutritionGoals(todayIso),
     getRunningSnapshot(todayIso),
@@ -142,10 +129,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     day: "numeric",
     timeZone: timezone,
   });
-
-  const supplementsTaken = supplementLogs.filter(
-    (l) => l.date === todayIso && l.taken,
-  ).length;
 
   const hasOuraData =
     sleepRows.length > 0 || readinessRows.length > 0 || activityRows.length > 0;
@@ -188,8 +171,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     },
     running,
     workout,
-    weight,
-    supplements: { done: supplementsTaken, total: supplements.length },
   };
 }
 

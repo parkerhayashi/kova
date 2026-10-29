@@ -201,6 +201,30 @@ export async function setSupplementTaken(input: {
     .upsert(row, { onConflict: "supplement_id,date" });
 }
 
+/**
+ * Mark every active supplement taken on `date` in one upsert. Only `taken`
+ * is written, so dose / time / notes already logged that day are kept.
+ * Returns how many supplements are now marked taken.
+ */
+export async function setAllSupplementsTaken(date: string): Promise<number> {
+  const day = normalizeIsoDate(date);
+  if (!day) throw new Error("A valid date is required");
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("supplements")
+    .select("id")
+    .eq("is_active", true);
+  if (error) throw new Error(error.message);
+  const ids = ((data as { id: string }[]) ?? []).map((s) => s.id);
+  if (ids.length === 0) return 0;
+  const { error: upsertError } = await db.from("supplement_logs").upsert(
+    ids.map((supplement_id) => ({ supplement_id, date: day, taken: true })),
+    { onConflict: "supplement_id,date" },
+  );
+  if (upsertError) throw new Error(upsertError.message);
+  return ids.length;
+}
+
 export async function addSupplement(input: {
   name: string;
   default_dose: number | null;

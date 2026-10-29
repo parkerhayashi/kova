@@ -113,13 +113,6 @@ export async function HealthSnapshot() {
       ? `${data.workout.volume_lbs?.toLocaleString() ?? "—"} lb · ${formatDuration(data.workout.duration_seconds ?? 0)}`
       : "log in Hevy");
 
-  const weightCaption = data.weight
-    ? new Date(`${data.weight.date}T12:00:00`).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })
-    : "log on Weight";
-
   const asOfLabel = (iso: string | null) =>
     iso
       ? new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {
@@ -261,7 +254,8 @@ export async function HealthSnapshot() {
         </Link>
       </div>
 
-      <div className="snapshot-grid snapshot-grid-4">
+      {/* Weight and supplements live in the top bar, so Home skips them. */}
+      <div className="snapshot-grid snapshot-grid-2">
         <Link href="/running" className="snapshot-link-card">
           <SnapshotMetric
             label="Running"
@@ -276,29 +270,6 @@ export async function HealthSnapshot() {
             value={workoutValue}
             caption={workoutCaption}
             accent="var(--color-activity)"
-          />
-        </Link>
-        <Link href="/weight" className="snapshot-link-card">
-          <SnapshotMetric
-            label="Weight"
-            value={data.weight?.weight_lbs ?? null}
-            unit={data.weight?.weight_lbs != null ? "lb" : undefined}
-            caption={weightCaption}
-            accent="var(--color-activity)"
-          />
-        </Link>
-        <Link href="/supplements" className="snapshot-link-card">
-          <SnapshotMetric
-            label="Supplements"
-            value={
-              data.supplements.total
-                ? `${data.supplements.done}/${data.supplements.total}`
-                : null
-            }
-            caption={
-              data.supplements.total ? "taken today" : "add supplements"
-            }
-            accent="var(--color-nutrition)"
           />
         </Link>
       </div>

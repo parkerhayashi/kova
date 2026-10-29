@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   addSupplement,
   deleteSupplement,
+  setAllSupplementsTaken,
   setSupplementTaken,
   updateSupplement,
 } from "@/lib/data/tracking";
@@ -22,6 +23,14 @@ export async function toggleSupplement(
 ): Promise<void> {
   await setSupplementTaken({ supplementId, date, taken });
   refresh();
+}
+
+/** One tap: mark every active supplement taken for the day. */
+export async function takeAllSupplements(date: string): Promise<number> {
+  if (!date) throw new Error("Date is required");
+  const count = await setAllSupplementsTaken(date);
+  refresh();
+  return count;
 }
 
 export async function logSupplementDetail(input: {

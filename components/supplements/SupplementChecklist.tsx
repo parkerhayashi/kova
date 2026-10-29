@@ -9,6 +9,7 @@ import { notifyTopBar } from "@/lib/top-bar-events";
 import { cn } from "@/lib/utils";
 import {
   logSupplementDetail,
+  takeAllSupplements,
   toggleSupplement,
 } from "@/app/(dashboard)/supplements/actions";
 
@@ -97,6 +98,27 @@ export function SupplementChecklist({
   );
   const [expanded, setExpanded] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [takingAll, startTakeAll] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const takenCount = supplements.filter((s) => taken[s.id]).length;
+  const allTaken = takenCount === supplements.length;
+
+  /** One tap for the whole stack; individual toggles below still work. */
+  function takeAll() {
+    const before = taken;
+    setError(null);
+    setTaken(Object.fromEntries(supplements.map((s) => [s.id, true])));
+    startTakeAll(async () => {
+      try {
+        await takeAllSupplements(logDate);
+        notifyTopBar();
+      } catch (err) {
+        setTaken(before);
+        setError(err instanceof Error ? err.message : "Couldn't log supplements");
+      }
+    });
+  }
 
   function toggle(id: string) {
     const next = !taken[id];
@@ -119,6 +141,23 @@ export function SupplementChecklist({
 
   return (
     <Card className="divide-border divide-y p-0">
+      <div className="flex items-center justify-between gap-3 px-5 py-3">
+        <span className="text-text-muted text-xs tabular-nums">
+          {takenCount} of {supplements.length} taken
+          {error ? (
+            <span className="ml-2 text-[color:var(--color-stress)]">{error}</span>
+          ) : null}
+        </span>
+        <Button
+          variant="solid"
+          onClick={takeAll}
+          disabled={allTaken || takingAll}
+          className="py-1.5"
+        >
+          <Check className="size-4" strokeWidth={2.5} />
+          {takingAll ? "Logging…" : allTaken ? "All taken" : "Take all"}
+        </Button>
+      </div>
       {supplements.map((s) => {
         const checked = taken[s.id];
         const dose = doseLabel(s.doseTaken ?? s.defaultDose, s.unit);
