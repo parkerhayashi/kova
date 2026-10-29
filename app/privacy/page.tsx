@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="flex min-h-dvh justify-center px-6 py-12">
+    <main className="flex min-h-dvh justify-center px-6 pb-12 pt-[max(3rem,calc(env(safe-area-inset-top)+1rem))]">
       <article className="w-full max-w-2xl">
         <header className="mb-8 text-center">
           <div className="metric-label mb-2">Personal Health OS</div>

@@ -132,7 +132,7 @@ export function MealCaptureFlow({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
-      <header className="border-border flex shrink-0 items-center justify-between border-b px-4 py-3">
+      <header className="border-border flex shrink-0 items-center justify-between border-b px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2">
           <Sparkles className="text-text-muted size-4" />
           <h2 className="text-text-primary text-sm font-semibold">Capture meal</h2>

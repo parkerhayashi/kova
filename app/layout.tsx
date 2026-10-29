@@ -26,7 +26,9 @@ export const metadata: Metadata = {
     // bar so the sticky TopBar pills don't sit inside the top safe-area inset,
     // which iOS 26/27 renders as a frosted "Liquid Glass" layer. The app is
     // pure black, so a solid black status bar looks identical, minus the glass.
-    statusBarStyle: "black",
+    // Translucent: the installed app draws under the status bar so the gray
+    // chrome shows through. Top-pinned layers pad env(safe-area-inset-top).
+    statusBarStyle: "black-translucent",
     title: "Kova",
   },
 };
