@@ -80,6 +80,7 @@ export type HealthSnapshotData = {
     goalCalories: number;
     goalProtein_g: number;
     goalCarbs_g: number;
+    goalFat_g: number;
     burnLabel: string;
     /** Today's run fuel / carb load (null on base-target days). */
     runFuel: RunFuelMeta | null;
@@ -166,6 +167,7 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       goalCalories: nutritionGoals.calories,
       goalProtein_g: nutritionGoals.protein_g,
       goalCarbs_g: nutritionGoals.carbs_g,
+      goalFat_g: nutritionGoals.fat_g,
       burnLabel: maintenanceSourceLabel(nutritionGoals.meta.maintenance_source).toLowerCase(),
       runFuel: nutritionGoals.meta.run_day?.fuel ?? null,
     },

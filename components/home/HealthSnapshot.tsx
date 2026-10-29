@@ -218,6 +218,7 @@ export async function HealthSnapshot() {
         <Link href="/nutrition" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Nutrition</span>
+            {/* Ring colors match the Nutrition page's macro breakdown. */}
             <div className="snapshot-rings-row">
               <ProgressRing
                 value={data.nutrition.calories}
@@ -225,7 +226,7 @@ export async function HealthSnapshot() {
                 label="Cal"
                 unit="kcal"
                 accent="nutrition"
-                size={72}
+                size={64}
               />
               <ProgressRing
                 value={data.nutrition.protein_g}
@@ -233,19 +234,25 @@ export async function HealthSnapshot() {
                 label="Protein"
                 unit="g"
                 accent="nutrition"
-                size={72}
+                size={64}
+              />
+              <ProgressRing
+                value={data.nutrition.carbs_g}
+                max={data.nutrition.goalCarbs_g}
+                label="Carbs"
+                unit="g"
+                accent="activity"
+                size={64}
+              />
+              <ProgressRing
+                value={data.nutrition.fat_g}
+                max={data.nutrition.goalFat_g}
+                label="Fat"
+                unit="g"
+                accent="stress"
+                size={64}
               />
             </div>
-            <span className="snapshot-caption">
-              C{" "}
-              {data.nutrition.carbs_g != null
-                ? `${Math.round(data.nutrition.carbs_g)}g`
-                : "—"}{" "}
-              · F{" "}
-              {data.nutrition.fat_g != null
-                ? `${Math.round(data.nutrition.fat_g)}g`
-                : "—"}
-            </span>
             <span className="snapshot-caption">
               Goal {data.nutrition.goalCalories} ({data.nutrition.burnLabel})
             </span>

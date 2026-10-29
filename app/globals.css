@@ -353,30 +353,8 @@ input[type="number"]::-webkit-outer-spin-button {
   letter-spacing: 0.06em;
 }
 
-.cut-coach-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 10px;
-  border: 1px solid var(--dash-border);
-  background: rgba(255, 255, 255, 0.03);
-}
 
-.cut-coach-tab {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--dash-tertiary);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
 
-.cut-coach-tab-active {
-  color: var(--dash-text);
-  background: rgba(255, 255, 255, 0.07);
-}
 
 .cut-coach-card {
   display: flex;

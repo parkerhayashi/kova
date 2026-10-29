@@ -1,4 +1,4 @@
-import { getCutCoachBundle } from "@/lib/data/cut-coach";
+import { getCutCoachDaily } from "@/lib/data/cut-coach";
 import {
   getActivityHistory,
   getHeartRateDay,
@@ -142,7 +142,7 @@ export async function readMuseToday() {
     getAlcoholLogForDate(today),
     getReverseDietStatus(),
     getDietBreakStatus(),
-    getCutCoachBundle(),
+    getCutCoachDaily(),
     getLatestWeight(),
     getSupplements(true),
     getSupplementLogsForDate(today),

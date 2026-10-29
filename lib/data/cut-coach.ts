@@ -7,7 +7,6 @@ import {
   generateCutCoachAi,
   generateCutCoachFallback,
   type CutCoachContext,
-  type CutCoachMode,
   type CutCoachResult,
   isCutCoachAiConfigured,
 } from "@/lib/cut-coach";
@@ -35,7 +34,6 @@ type CutCoachCacheEntry = {
 
 type CutCoachCache = {
   daily?: CutCoachCacheEntry;
-  weekly?: CutCoachCacheEntry;
 };
 
 type CoachGoalFingerprint = {
@@ -77,7 +75,6 @@ async function readCache(today: string): Promise<CutCoachCache> {
     if (!cache) return {};
     const out: CutCoachCache = {};
     if (isFreshEntry(cache.daily, today)) out.daily = cache.daily;
-    if (isFreshEntry(cache.weekly, today)) out.weekly = cache.weekly;
     return out;
   } catch (err) {
     console.error("[cut-coach] cache read failed", err);
@@ -87,7 +84,6 @@ async function readCache(today: string): Promise<CutCoachCache> {
 
 async function writeCache(
   today: string,
-  mode: CutCoachMode,
   result: CutCoachResult,
   goals: CoachGoalFingerprint,
 ): Promise<void> {
@@ -95,18 +91,14 @@ async function writeCache(
     const db = createServiceClient();
     const { data: row, error } = await db
       .from("user_settings")
-      .select("id, cut_coach_cache")
+      .select("id")
       .limit(1)
       .maybeSingle();
     if (error || !row) return;
 
-    const existing =
-      ((row as { cut_coach_cache?: CutCoachCache }).cut_coach_cache as CutCoachCache) ??
-      {};
-
+    // Daily only — rewriting the whole object also drops any old weekly entry.
     const next: CutCoachCache = {
-      ...existing,
-      [mode]: {
+      daily: {
         date: today,
         version: CACHE_VERSION,
         result,
@@ -124,7 +116,7 @@ async function writeCache(
   }
 }
 
-async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
+async function gatherContext(): Promise<CutCoachContext> {
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
 
@@ -185,7 +177,7 @@ async function gatherContext(mode: CutCoachMode): Promise<CutCoachContext> {
 
   return {
     phase,
-    mode,
+    mode: "daily",
     today,
     weight,
     nutrition: {
@@ -231,155 +223,46 @@ function fingerprintFromContext(ctx: CutCoachContext): CoachGoalFingerprint {
   };
 }
 
-async function finalizeCoachResult(
-  ctx: CutCoachContext,
-  aiConfigured: boolean,
-): Promise<CutCoachResult> {
-  return aiConfigured
-    ? generateCutCoachAi(ctx)
-    : generateCutCoachFallback(ctx);
-}
-
+/** Regenerate today's coach with AI after the response and cache it. */
 async function refreshCutCoachAiInBackground(
   today: string,
-  ctx: { daily?: CutCoachContext; weekly?: CutCoachContext },
+  ctx: CutCoachContext,
 ): Promise<void> {
   if (!isCutCoachAiConfigured()) return;
-
-  const tasks: Promise<void>[] = [];
-  if (ctx.daily) {
-    const goals = fingerprintFromContext(ctx.daily);
-    tasks.push(
-      generateCutCoachAi(ctx.daily).then((result) =>
-        writeCache(today, "daily", result, goals),
-      ),
-    );
-  }
-  if (ctx.weekly) {
-    const goals = fingerprintFromContext(ctx.weekly);
-    tasks.push(
-      generateCutCoachAi(ctx.weekly).then((result) =>
-        writeCache(today, "weekly", result, goals),
-      ),
-    );
-  }
-  await Promise.all(tasks);
+  const result = await generateCutCoachAi(ctx);
+  await writeCache(today, result, fingerprintFromContext(ctx));
 }
 
-/** Rules-only bundle — never calls AI or cache. Used when the main path fails. */
-export async function getCutCoachRulesBundle(): Promise<{
+/**
+ * Today's coach (Home + Muse). Fresh cache, else rules copy now and one AI
+ * refresh after the response. The weekly coach was removed to save AI calls.
+ */
+export async function getCutCoachDaily(): Promise<{
   daily: CutCoachResult;
-  weekly: CutCoachResult;
   aiConfigured: boolean;
 }> {
-  const [dailyCtx, weeklyCtx] = await Promise.all([
-    gatherContext("daily"),
-    gatherContext("weekly"),
-  ]);
-  return {
-    daily: generateCutCoachFallback(dailyCtx),
-    weekly: generateCutCoachFallback(weeklyCtx),
-    aiConfigured: isCutCoachAiConfigured(),
-  };
-}
-
-async function getCutCoachBundleInternal(): Promise<{
-  daily: CutCoachResult;
-  weekly: CutCoachResult;
-  aiConfigured: boolean;
-}> {
-  const timezone = await getTimezone();
-  const today = todayInTimezone(timezone);
-  const cache = await readCache(today);
+  unstable_noStore();
   const aiConfigured = isCutCoachAiConfigured();
-
-  const phaseCtx = await gatherContext("daily");
-  const currentPhase = phaseCtx.phase;
-  const goals = fingerprintFromContext(phaseCtx);
-
-  const needsDaily = !isFreshEntry(cache.daily, today, currentPhase, goals);
-  const needsWeekly = !isFreshEntry(cache.weekly, today, currentPhase, goals);
-
-  if (!needsDaily && !needsWeekly) {
-    return {
-      daily: cache.daily!.result,
-      weekly: cache.weekly!.result,
-      aiConfigured,
-    };
-  }
-
-  const [dailyCtx, weeklyCtx] = await Promise.all([
-    needsDaily ? Promise.resolve(phaseCtx) : null,
-    needsWeekly ? gatherContext("weekly") : null,
-  ]);
-
-  // Serve rules-based copy immediately so Home never blocks on Anthropic.
-  const daily = needsDaily
-    ? generateCutCoachFallback(dailyCtx!)
-    : cache.daily!.result;
-  const weekly = needsWeekly
-    ? generateCutCoachFallback(weeklyCtx!)
-    : cache.weekly!.result;
-
-  if (needsDaily) {
-    await writeCache(today, "daily", daily, fingerprintFromContext(dailyCtx!));
-  }
-  if (needsWeekly) {
-    await writeCache(
-      today,
-      "weekly",
-      weekly,
-      fingerprintFromContext(weeklyCtx!),
-    );
-  }
-
-  if (aiConfigured && (needsDaily || needsWeekly)) {
-    after(() =>
-      refreshCutCoachAiInBackground(today, {
-        daily: needsDaily ? dailyCtx! : undefined,
-        weekly: needsWeekly ? weeklyCtx! : undefined,
-      }).catch((err) =>
-        console.error("[cut-coach] background AI refresh failed", err),
-      ),
-    );
-  }
-
-  return { daily, weekly, aiConfigured };
-}
-
-export async function getCutCoachStatus(
-  mode: CutCoachMode,
-): Promise<{ result: CutCoachResult; aiConfigured: boolean }> {
-  unstable_noStore();
-
-  const timezone = await getTimezone();
-  const today = todayInTimezone(timezone);
-  const cache = await readCache(today);
-  const phaseCtx = await gatherContext("daily");
-  const goals = fingerprintFromContext(phaseCtx);
-  const cached = cache[mode];
-  if (isFreshEntry(cached, today, phaseCtx.phase, goals)) {
-    return { result: cached.result, aiConfigured: isCutCoachAiConfigured() };
-  }
-
-  const ctx = mode === "weekly" ? await gatherContext("weekly") : phaseCtx;
-  const result = await finalizeCoachResult(ctx, isCutCoachAiConfigured());
-
-  await writeCache(today, mode, result, fingerprintFromContext(ctx));
-  return { result, aiConfigured: isCutCoachAiConfigured() };
-}
-
-export async function getCutCoachBundle(): Promise<{
-  daily: CutCoachResult;
-  weekly: CutCoachResult;
-  aiConfigured: boolean;
-}> {
-  unstable_noStore();
-
   try {
-    return await getCutCoachBundleInternal();
+    const timezone = await getTimezone();
+    const today = todayInTimezone(timezone);
+    const [cache, ctx] = await Promise.all([readCache(today), gatherContext()]);
+    const goals = fingerprintFromContext(ctx);
+    if (isFreshEntry(cache.daily, today, ctx.phase, goals)) {
+      return { daily: cache.daily.result, aiConfigured };
+    }
+    const daily = generateCutCoachFallback(ctx);
+    await writeCache(today, daily, goals);
+    if (aiConfigured) {
+      after(() =>
+        refreshCutCoachAiInBackground(today, ctx).catch((err) =>
+          console.error("[cut-coach] background AI refresh failed", err),
+        ),
+      );
+    }
+    return { daily, aiConfigured };
   } catch (err) {
-    console.error("[cut-coach] bundle failed, using rules fallback", err);
-    return getCutCoachRulesBundle();
+    console.error("[cut-coach] daily failed, using rules fallback", err);
+    return { daily: generateCutCoachFallback(await gatherContext()), aiConfigured };
   }
 }

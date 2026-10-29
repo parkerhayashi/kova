@@ -1,16 +1,9 @@
 import { CutStatusCoach } from "@/components/home/CutStatusCoach";
-import { getCutCoachBundle } from "@/lib/data/cut-coach";
+import { getCutCoachDaily } from "@/lib/data/cut-coach";
 
 export async function CutStatusCoachLoader() {
-  const bundle = await getCutCoachBundle();
-
-  return (
-    <CutStatusCoach
-      daily={bundle.daily}
-      weekly={bundle.weekly}
-      aiConfigured={bundle.aiConfigured}
-    />
-  );
+  const { daily, aiConfigured } = await getCutCoachDaily();
+  return <CutStatusCoach daily={daily} aiConfigured={aiConfigured} />;
 }
 
 export function CutStatusCoachFallback() {

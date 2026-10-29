@@ -1,7 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import type { CutCoachMode, CutCoachResult, CutPhase } from "@/lib/cut-coach";
+import type { CutCoachResult } from "@/lib/cut-coach";
 import { coachPhaseLabel, coachSectionTitle } from "@/lib/cut-coach";
 import { cn } from "@/lib/utils";
 
@@ -11,52 +8,23 @@ const STATUS_LABEL: Record<CutCoachResult["status"], string> = {
   insufficient_data: "Need data",
 };
 
-function resolvePhase(daily: CutCoachResult, weekly: CutCoachResult): CutPhase {
-  return daily.phase;
-}
-
+/** Home's coach card — today's read only (the weekly view lives in Muse). */
 export function CutStatusCoach({
   daily,
-  weekly,
   aiConfigured,
 }: {
   daily: CutCoachResult;
-  weekly: CutCoachResult;
   aiConfigured: boolean;
 }) {
-  const [mode, setMode] = useState<CutCoachMode>("daily");
-  const result = mode === "daily" ? daily : weekly;
-  const phase = resolvePhase(daily, weekly);
-
   return (
     <section className="cut-coach-section section">
       <div className="cut-coach-header">
         <div>
-          <h2 className="section-title">{coachSectionTitle(phase)}</h2>
+          <h2 className="section-title">{coachSectionTitle(daily.phase)}</h2>
           <span className="cut-coach-meta">
-            {coachPhaseLabel(phase)}
+            {coachPhaseLabel(daily.phase)}
             {aiConfigured ? " · AI" : " · rules"}
           </span>
-        </div>
-        <div className="cut-coach-tabs" role="tablist" aria-label="Coach view">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "daily"}
-            className={cn("cut-coach-tab", mode === "daily" && "cut-coach-tab-active")}
-            onClick={() => setMode("daily")}
-          >
-            Today
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "weekly"}
-            className={cn("cut-coach-tab", mode === "weekly" && "cut-coach-tab-active")}
-            onClick={() => setMode("weekly")}
-          >
-            This week
-          </button>
         </div>
       </div>
 
@@ -65,19 +33,19 @@ export function CutStatusCoach({
           <span
             className={cn(
               "cut-coach-status",
-              result.status === "on_track" && "cut-coach-status-on",
-              result.status === "adjust" && "cut-coach-status-adjust",
-              result.status === "insufficient_data" && "cut-coach-status-muted",
+              daily.status === "on_track" && "cut-coach-status-on",
+              daily.status === "adjust" && "cut-coach-status-adjust",
+              daily.status === "insufficient_data" && "cut-coach-status-muted",
             )}
           >
-            {STATUS_LABEL[result.status]}
+            {STATUS_LABEL[daily.status]}
           </span>
-          <h3 className="cut-coach-headline">{result.headline}</h3>
+          <h3 className="cut-coach-headline">{daily.headline}</h3>
         </div>
-        <p className="cut-coach-summary">{result.summary}</p>
+        <p className="cut-coach-summary">{daily.summary}</p>
         <p className="cut-coach-action">
           <span className="metric-label">Next step</span>
-          {result.action}
+          {daily.action}
         </p>
       </div>
     </section>

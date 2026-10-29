@@ -11,7 +11,8 @@ import { addDays } from "@/lib/utils";
 export const COACH_MODEL = "claude-sonnet-4-6";
 
 export type CutPhase = "cut" | "bulk" | "maintain" | "reverse" | "diet_break";
-export type CutCoachMode = "daily" | "weekly";
+/** Daily only — the weekly coach was removed to save AI calls (Oct 2026). */
+export type CutCoachMode = "daily";
 export type CutCoachStatus = "on_track" | "adjust" | "insufficient_data";
 
 export type CutCoachContext = {
@@ -305,7 +306,6 @@ function formatRate(lbs: number | null): string {
 export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
   const now = new Date().toISOString();
   const phase = ctx.phase;
-  const isWeekly = ctx.mode === "weekly";
 
   if (!hasEnoughData(ctx)) {
     const copy = insufficientDataCopy(phase);
@@ -364,7 +364,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (rebounding && !strengthSlipping) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Rebound week — hold the line" : "Scale up this week",
+        headline: "Scale up this week",
         summary: `Up ${formatRate(scaleWeek)} vs last week, but the 14-day trend is still ${formatRate(rate)}/wk. Likely water/glycogen — not fat regain.`,
         action: "Don't slash calories. Hit protein, keep logging weight, reassess in 5–7 days.",
         mode: ctx.mode,
@@ -390,11 +390,9 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (losing && !strengthSlipping && !lowProtein) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Solid cut week" : "Cut on track",
+        headline: "Cut on track",
         summary: `Weight ${formatRate(rate)}/wk (7-day pace). Protein hit ${proteinHit}/7 days${strengthPct != null ? ` · strength ${strengthPct >= 0 ? "+" : ""}${strengthPct.toFixed(0)}%` : ""}.`,
-        action: isWeekly
-          ? "Keep calories and protein steady next week."
-          : "Stay the course — hit protein and log weight tomorrow.",
+        action: "Stay the course — hit protein and log weight tomorrow.",
         mode: ctx.mode,
         phase,
         generated_at: now,
@@ -477,11 +475,9 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (leanGain && !strengthDown && !lowProtein) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Solid lean bulk week" : "Lean bulk on track",
+        headline: "Lean bulk on track",
         summary: `Weight ${formatRate(rate)}/wk (target ~0.25–0.75). Protein ${proteinHit}/7 days${strengthPct != null ? ` · strength ${strengthPct >= 0 ? "+" : ""}${strengthPct.toFixed(0)}%` : ""}.`,
-        action: isWeekly
-          ? "Keep the modest surplus — small bumps only if weight stalls next week."
-          : "Stay the course — hit protein and log weight tomorrow.",
+        action: "Stay the course — hit protein and log weight tomorrow.",
         mode: ctx.mode,
         phase,
         generated_at: now,
@@ -557,7 +553,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (leanGain && strengthUp) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Strong lean bulk week" : "Lean bulk on track",
+        headline: "Lean bulk on track",
         summary: `Weight ${formatRate(rate)}/wk · strength +${strengthPct!.toFixed(0)}%.`,
         action: "Keep the same modest surplus — this is the pace you want.",
         mode: ctx.mode,
@@ -573,7 +569,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (flat && proteinHit >= 5) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Weight holding steady" : "Maintain on track",
+        headline: "Maintain on track",
         summary: `Weight ${formatRate(rate)}/wk · ~${avgCal ?? "—"} kcal avg · protein ${proteinHit}/7 days.`,
         action: "Hold current intake unless your goal changes.",
         mode: ctx.mode,
@@ -590,12 +586,8 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     return {
       status: drifting ? "adjust" : "on_track",
       headline: drifting
-        ? isWeekly
-          ? "Scale moving on the break"
-          : "Watch the scale this break"
-        : isWeekly
-          ? "Holding maintenance this week"
-          : "Diet break at maintenance",
+        ? "Watch the scale this break"
+        : "Diet break at maintenance",
       summary: steady
         ? `Goal ${goalCal} (maintenance ~${ctx.nutrition.maintenance_calories}) with pace ${formatRate(rate)}/wk.`
         : `Goal ${goalCal} at maintenance ~${ctx.nutrition.maintenance_calories}. Pace ${formatRate(rate)}/wk.`,
@@ -619,7 +611,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (risingFast) {
       return {
         status: "adjust",
-        headline: isWeekly ? "Scale climbing — hold the ramp" : "Hold this reverse step",
+        headline: "Hold this reverse step",
         summary: `Up ${formatRate(rate)}/wk while reversing. Goal ${goalCal} · maintenance ~${ctx.nutrition.maintenance_calories}.`,
         action: "Don't add calories this week. Keep protein high and reassess in 5–7 days.",
         mode: ctx.mode,
@@ -632,7 +624,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (gap <= 50 && stable) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Near maintenance — looking stable" : "Reverse nearly done",
+        headline: "Reverse nearly done",
         summary: `At ~${goalCal} kcal (maintenance ${ctx.nutrition.maintenance_calories}) with pace ${formatRate(rate)}/wk.`,
         action: "Hold here a few more days. If still flat, end reverse and set a maintain goal.",
         mode: ctx.mode,
@@ -645,11 +637,9 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
     if (stillLosing || (stable && gap > 50)) {
       return {
         status: "on_track",
-        headline: isWeekly ? "Reverse diet progressing" : "Reverse on track",
+        headline: "Reverse on track",
         summary: `${Math.max(0, Math.round(gap))} kcal below maintenance · pace ${formatRate(rate)}/wk · protein ${proteinHit}/7.`,
-        action: isWeekly
-          ? "Next weekly review can add ~100 kcal if the scale stays calm."
-          : "Hit today's calorie target — the weekly review handles the bump.",
+        action: "Hit today's calorie target — the weekly review handles the bump.",
         mode: ctx.mode,
         phase,
         generated_at: now,
@@ -660,7 +650,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
 
   return {
     status: "on_track",
-    headline: isWeekly ? "Week in review" : "Keep logging",
+    headline: "Keep logging",
     summary: `Weight ${formatRate(rate)}/wk · ~${avgCal ?? "—"} kcal avg · protein ${proteinHit}/7 days.`,
     action: "Log consistently so the coach can tighten recommendations.",
     mode: ctx.mode,
