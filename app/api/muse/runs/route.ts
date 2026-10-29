@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     return bad("run_type must be easy, long, tempo, intervals, or race");
   }
 
-  // Oura may already have detected this run — don't count it twice.
+  // Apple Health (via Oura) or Garmin may already have this run — don't count it twice.
   if (body.force !== true) {
     const existing = await findSameRun(date, { duration_min: duration });
     if (existing) {

@@ -664,7 +664,8 @@ create table if not exists actual_runs (
 
 create index if not exists actual_runs_date_idx on actual_runs (date);
 
--- Additive: Oura-detected runs are imported too (manual > garmin > oura on overlap).
+-- Additive: runs in Oura (Apple Health relays them) are imported too.
+-- Same run from two sources: garmin > manual > oura.
 alter table actual_runs drop constraint if exists actual_runs_source_check;
 alter table actual_runs
   add constraint actual_runs_source_check check (source in ('garmin', 'manual', 'oura'));

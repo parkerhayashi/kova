@@ -300,7 +300,7 @@ function FuelSettings({
         {pace.source === "runs"
           ? "your logged easy runs"
           : pace.source === "oura"
-            ? "Oura-detected runs"
+            ? "Apple Health runs via Oura"
             : "default until you log runs"}
         ). Changing the rate re-runs today and upcoming fuel days. Past days stay as they were.
       </p>

@@ -252,7 +252,7 @@ export interface SyncResult {
     sessions: number;
     tags: number;
     heart_rate_days: number;
-    /** New Oura-detected runs written to actual_runs. */
+    /** New runs (Apple Health via Oura) written to actual_runs. */
     runs_imported: number;
   };
 }
@@ -475,7 +475,8 @@ export async function syncOura(
 
   await markOuraSynced(settings.id);
 
-  // Oura-detected runs → actual_runs (deduped against manual / Garmin logs).
+  // Runs in Oura (Apple Health relays them) → actual_runs, deduped against
+  // manual and Garmin logs.
   // Lazy import: lib/data/running imports this module. Never fails the sync.
   let runsImported = 0;
   try {

@@ -192,7 +192,7 @@ export function museOpenApi() {
                     force: {
                       type: "boolean",
                       description:
-                        "Only for a genuinely separate second run that day. Without it, a run matching one already logged (e.g. Oura-detected) returns 409.",
+                        "Only for a genuinely separate second run that day. Without it, a run matching one already logged (e.g. imported from Apple Health) returns 409.",
                     },
                   },
                 },
@@ -297,7 +297,7 @@ OpenAPI: \`${origin}/api/muse/openapi.json\`
 - If \`diet_break.active\` is true, the calorie target is maintenance.
 - If \`reverse.active\` is true, the calorie target is the reverse ramp, not the cut deficit.
 - Running plan: runs are dateless (type + miles). Logging a run completes \`next\` automatically, so after Parker logs runs, re-check the plan and PUT the adjusted queue. The plan never changes nutrition.
-- Logging runs: Oura-detected runs import automatically (\`source: "oura"\` in \`logged_runs\`), so check \`logged_runs\` first and only log runs Oura missed. Duration is required; ask for it if he didn't say. A 409 means it's already logged — don't force it unless he did two separate runs.
+- Logging runs: runs recorded in Apple Health import automatically through Oura (\`source: "oura"\` in \`logged_runs\`), and Garmin runs (\`source: "garmin"\`) will once connected — Garmin replaces any matching log. Check \`logged_runs\` first and only log runs that are missing. Duration is required; ask for it if he didn't say. A 409 means it's already logged — don't force it unless he did two separate runs.
 - Never request or echo secrets, tokens, passwords, or TOTP.
 `;
 }

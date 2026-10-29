@@ -65,7 +65,7 @@ export function buildCalendarEntries(input: {
       nutrition_status: status(run.date),
       planned_run_id: run.planned_run_id,
       actual_run_id: run.id,
-      label: run.source === "manual" ? "Run" : `Run · ${run.source === "garmin" ? "Garmin" : "Oura"}`,
+      label: run.source === "manual" ? "Run" : `Run · ${run.source === "garmin" ? "Garmin" : "Apple Health"}`,
     });
   }
 

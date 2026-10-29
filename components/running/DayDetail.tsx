@@ -386,7 +386,7 @@ export function DayDetail({
                     {a.run_type ? ` · ${runTypeLabel(a.run_type)}` : ""}
                   </p>
                   <p className="text-text-muted text-xs">
-                    {a.source === "garmin" ? "Garmin" : a.source === "oura" ? "Oura-detected" : "Manual"} ·{" "}
+                    {a.source === "garmin" ? "Garmin" : a.source === "oura" ? "Apple Health" : "Manual"} ·{" "}
                     {a.planned_run_id ? "reconciled to plan" : "unplanned"}
                   </p>
                 </div>
@@ -416,8 +416,9 @@ export function DayDetail({
             />
           ) : null}
           <p className="text-text-muted text-xs">
-            Runs Oura detects are imported automatically. Log here if Oura missed one. Deleting an
-            imported run keeps it from coming back.
+            Runs recorded in Apple Health come in automatically through Oura, and Garmin will
+            replace them once it&apos;s connected. Log here if one is missing. Deleting an imported
+            run keeps it from coming back.
           </p>
         </Card>
       ) : null}

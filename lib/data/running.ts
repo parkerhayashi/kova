@@ -150,7 +150,7 @@ async function getPlannedRun(id: string): Promise<PlannedRun | null> {
 }
 
 /**
- * Median recent easy pace (min/km) from logged runs, then Oura-detected runs,
+ * Median recent easy pace (min/km) from logged runs, then Oura workouts,
  * then a 10:00/mi default. Used to estimate duration from distance.
  */
 export async function getRecentEasyPace(): Promise<{
@@ -928,8 +928,17 @@ export type IncomingRun = {
   run_type?: RunType | null;
 };
 
-/** When two records describe the same run, the higher one wins. */
-const SOURCE_PRIORITY: Record<ActualRunSource, number> = { manual: 3, garmin: 2, oura: 1 };
+/**
+ * When two records describe the same run, the higher one wins. Garmin has
+ * the most detail, so it beats even a hand-typed log; "oura" is Apple Health
+ * relayed through Oura (that's where runs are recorded today).
+ */
+const SOURCE_PRIORITY: Record<ActualRunSource, number> = { garmin: 3, manual: 2, oura: 1 };
+
+/** Should `incoming` replace `existing` as the record of the same run? */
+export function takesPriority(incoming: ActualRunSource, existing: ActualRunSource): boolean {
+  return SOURCE_PRIORITY[incoming] > SOURCE_PRIORITY[existing];
+}
 
 /**
  * Same run? Overlapping time windows when both have a start time; otherwise
@@ -970,7 +979,7 @@ export async function findSameRun(
  * Source-agnostic import used by wearable syncs. Idempotent:
  * - Known external_id → refreshed in place (only by the source that owns it).
  * - Overlaps a run already logged → the higher-priority record wins
- *   (manual > garmin > oura), so one run is never counted twice.
+ *   (garmin > manual > oura), so one run is never counted twice.
  * - Dismissed imports (deleted by the user) are never re-imported.
  * - Otherwise inserted, matched to the day's plan, and reconciled.
  */
@@ -1035,12 +1044,13 @@ export async function ingestActualRuns(
 
     const overlap = await findSameRun(date, { started_at: fields.started_at, duration_min: duration });
     if (overlap) {
-      if (SOURCE_PRIORITY[overlap.source] >= SOURCE_PRIORITY[source]) {
+      if (!takesPriority(source, overlap.source)) {
         skipped++;
         continue;
       }
-      // Better record of the same run (e.g. Garmin over Oura): take it over,
-      // keeping the row id so plan / fuel links stay intact.
+      // Better record of the same run (Garmin over a manual or Apple Health
+      // log): take it over, keeping the row id so plan / fuel links survive
+      // and the run type set by hand stays unless Garmin sends one.
       const { error } = await db
         .from("actual_runs")
         .update({ ...fields, run_type: incoming.run_type ?? overlap.run_type ?? null })
@@ -1074,7 +1084,8 @@ const OURA_RUN_ACTIVITY = /run|jog/i;
 const MIN_IMPORTED_RUN_MIN = 10;
 
 /**
- * Import Oura-detected runs from the synced oura_workouts table over the last
+ * Import runs from the synced oura_workouts table (Apple Health runs relayed
+ * through Oura, plus anything Oura detects itself) over the last
  * `sinceDays` (default two weeks). Safe to call on every Oura sync.
  */
 export async function importOuraRuns(
