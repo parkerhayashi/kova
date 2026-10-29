@@ -1,7 +1,11 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
 <!-- END:nextjs-agent-rules -->
 
 # Kova — project context
@@ -41,7 +45,7 @@ Don't "fix" these back to the blueprint's versions.
 
 **Logo usage:** Mark *or* Wordmark per surface — never both (`<KovaMark>` / `<KovaWordmark>` in `components/brand/`). Wordmark is custom letterforms; never re-type "Kova" in another font.
 
-**Colors (brand):** Kova Black `#000000`, Kova White `#FFFFFF`, Muted `#6B7280`, Border `#E5E7EB`, Surface `#F9FAFB` (light contexts). Dark app chrome uses black bg + white text; see `app/globals.css` `@theme`.
+**Colors (brand):** Kova Black `#000000`, Kova White `#FFFFFF`, Muted `#6B7280`, Border `#E5E7EB`, Surface `#F9FAFB` (light contexts). Dark app chrome uses **dark grays, not pure black** (Parker's call, Oct 2026): background `#161618`, cards `#1f1f22`, raised `#2a2a2e`, muted text `#8b909a` (brand muted lightened for contrast on gray). Tokens live in `app/globals.css` `@theme` — use them, don't hard-code blacks. Camera/photo viewers stay black.
 
 **Type:** Inter — Bold headings, SemiBold subheadings/labels, Regular body (`app/layout.tsx`).
 
@@ -51,7 +55,7 @@ Don't "fix" these back to the blueprint's versions.
 
 - Monochrome chrome per brand. **No colored chrome — ever.** Active nav: white text + `rgba(255,255,255,0.07)` fill, not an accent color.
 - Five semantic accent colors (`--color-recovery`, `--color-sleep`, `--color-activity`, `--color-stress`, `--color-nutrition`) apply **only to data**: metric values, chart lines, indicator dots. Never to buttons, borders, or nav.
-- Cards: brand border tokens, 16px radius, `#0a0a0a` surface. Use `.card` or `<Card>`.
+- Cards: brand border tokens, 16px radius, `--color-surface` (`#1f1f22`). Use `.card` or `<Card>`.
 - Charts (Recharts): no gridlines, colored line + soft gradient fill on dark surface, muted axis text.
 - Large numbers carry visual weight (`.metric-value`); labels are small, uppercase, muted (`.metric-label`).
 

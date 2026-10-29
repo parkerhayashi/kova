@@ -72,7 +72,7 @@ export function DualTrendChart({
         <Tooltip
           cursor={{ stroke: "rgba(255,255,255,0.12)" }}
           contentStyle={{
-            background: "#141923",
+            background: "var(--color-surface-raised)",
             border: "1px solid rgba(125,165,205,0.2)",
             borderRadius: 8,
             fontSize: 12,

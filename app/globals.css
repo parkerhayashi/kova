@@ -7,18 +7,19 @@
  */
 
 @theme {
-  /* Brand primaries (dark-app extension of guidelines) */
-  --color-background: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-raised: #141414;
+  /* Dark-gray app chrome (standard dark mode, not pure black) */
+  --color-background: #161618;
+  --color-surface: #1f1f22;
+  --color-surface-raised: #2a2a2e;
 
   /* Text */
   --color-text-primary: #ffffff;
   --color-text-secondary: rgba(255, 255, 255, 0.72);
-  --color-text-muted: #6b7280;
+  /* Brand muted #6B7280, lightened to stay legible on gray surfaces */
+  --color-text-muted: #8b909a;
   --color-text-mono: rgba(255, 255, 255, 0.25);
 
-  /* Borders — brand neutral #E5E7EB at low opacity on black */
+  /* Borders — brand neutral #E5E7EB at low opacity */
   --color-border: rgba(229, 231, 235, 0.1);
   --color-border-strong: rgba(229, 231, 235, 0.2);
 
@@ -66,7 +67,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
+  background: var(--color-background);
   transition: opacity 0.35s ease;
 }
 

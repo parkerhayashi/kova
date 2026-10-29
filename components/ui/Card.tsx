@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Card — surface panel. 0.5px border, 12px radius, #161616 bg (blueprint §4).
+ * Card — surface panel. 0.5px border, 12px radius, surface token bg (dark gray).
  * No colored chrome; accents live on the data inside.
  */
 export function Card({
