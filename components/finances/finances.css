@@ -42,8 +42,7 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font: var(--font-sans);
   color-scheme: dark;
 
   position: relative;
@@ -250,7 +249,7 @@
     border: none;
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     text-transform: uppercase;
   }
   .tag::before {
@@ -273,7 +272,7 @@
     color: var(--text-tertiary);
     text-align: center;
     padding: 16px 0;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -371,7 +370,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.16em;
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
 
   /* ===== Net Worth ===== */
@@ -386,7 +385,7 @@
   }
   .nw-amt {
     font-weight: 600; color: var(--text-primary); flex-shrink: 0;
-    font-variant-numeric: tabular-nums; font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums; font-family: var(--font);
     font-size: 12px; white-space: nowrap;
   }
   .nw-name-edit, .nw-amt-edit {
@@ -451,7 +450,7 @@
     font-weight: 800;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .nw-chart-label { color: var(--text-tertiary); }
   .nw-chart-delta { font-variant-numeric: tabular-nums; color: var(--text-tertiary); }
@@ -504,13 +503,13 @@
   .nw-stat-label {
     font-size: 9px; letter-spacing: 0.16em; font-weight: 800;
     text-transform: uppercase; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .nw-stat-val {
     font-size: 13px; font-weight: 700;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -610,7 +609,7 @@
   .nw-leg-name { color: var(--text-secondary); }
   .nw-leg-pct {
     color: var(--text-primary); font-weight: 700;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     font-size: 10.5px;
   }
 
@@ -630,7 +629,7 @@
     font-weight: 800;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .nw-activity-list {
     display: flex; flex-direction: column; gap: 6px;
@@ -667,21 +666,21 @@
   }
   .nw-activity-meta {
     font-size: 10.5px; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
   .nw-activity-amt {
     font-size: 13px; font-weight: 700;
     font-variant-numeric: tabular-nums;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     white-space: nowrap;
   }
   .nw-activity-amt.up   { color: #6BE3A4; }
   .nw-activity-amt.down { color: #FF8A8A; }
   .nw-activity-date {
     font-size: 10.5px; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
@@ -701,7 +700,7 @@
   .ord-add-eyebrow {
     font-size: 10px; letter-spacing: 0.18em; font-weight: 800;
     text-transform: uppercase; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     margin-bottom: 10px;
   }
   .ord-add-grid {
@@ -755,7 +754,7 @@
     border: 1px solid rgba(110,231,183,0.14);
     border-radius: 8px;
     font-size: 12px; color: var(--text-secondary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .ord-add-preview.warn { background: rgba(242,192,99,0.08); border-color: rgba(242,192,99,0.20); color: #F2C063; }
   .ord-add-preview.bad  { background: rgba(255,138,138,0.08); border-color: rgba(255,138,138,0.20); color: #FF8A8A; }
@@ -767,11 +766,11 @@
   .ord-section-label {
     font-size: 10px; letter-spacing: 0.18em; font-weight: 800;
     text-transform: uppercase; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .ord-section-count {
     font-size: 11px; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     font-variant-numeric: tabular-nums;
   }
 
@@ -801,7 +800,7 @@
     font-size: 17px; font-weight: 700;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     white-space: nowrap;
   }
   .ord-card-x {
@@ -816,7 +815,7 @@
     display: flex; flex-wrap: wrap; gap: 10px;
     margin-top: 8px;
     font-size: 11px;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     color: var(--text-tertiary);
   }
   .ord-meta-pill {
@@ -889,13 +888,13 @@
   .wish-hero-pct-label {
     font-size: 10px; letter-spacing: 0.16em; font-weight: 700;
     text-transform: uppercase; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     margin-bottom: 4px;
   }
   .wish-hero-pct-num {
     font-size: 22px; font-weight: 700;
     font-variant-numeric: tabular-nums;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     color: #B794F4;
   }
   .wish-hero-pct-num.warn { color: #F2C063; }
@@ -914,7 +913,7 @@
   .wish-hero-foot {
     font-size: 11.5px; color: var(--text-tertiary);
     margin-top: 10px; position: relative;
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
 
   .wish-add-card {
@@ -924,7 +923,7 @@
   .wish-add-eyebrow {
     font-size: 10px; letter-spacing: 0.18em; font-weight: 800;
     text-transform: uppercase; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     margin-bottom: 10px;
   }
   .wish-add-row {
@@ -978,11 +977,11 @@
   .wish-section-label {
     font-size: 10px; letter-spacing: 0.18em; font-weight: 800;
     text-transform: uppercase; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .wish-section-count {
     font-size: 11px; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     font-variant-numeric: tabular-nums;
   }
 
@@ -1026,19 +1025,19 @@
   .wish-row-meta {
     font-size: 11px; color: var(--text-tertiary);
     margin-top: 2px;
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .wish-row-amt-wrap { text-align: right; line-height: 1.1; }
   .wish-row-amt {
     font-size: 17px; font-weight: 700;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .wish-row-pct {
     font-size: 10.5px; font-weight: 700;
     margin-top: 3px;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
@@ -1078,7 +1077,7 @@
     background: linear-gradient(90deg, rgba(110,231,183,0.06), rgba(125,211,252,0.04));
     border: 1px solid rgba(110,231,183,0.14);
     border-radius: 12px;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     font-size: 12px;
     overflow: hidden;
     position: relative;
@@ -1185,7 +1184,7 @@
   .ord-deduct-btn:active { transform: scale(0.97); }
   .ord-deducted-pill {
     display: inline-flex; align-items: center; gap: 6px;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1224,7 +1223,7 @@
   .ord-deduct-chooser-title {
     font-size: 10px; letter-spacing: 0.18em; font-weight: 800;
     text-transform: uppercase; color: var(--text-tertiary);
-    font-family: var(--font-mono);
+    font-family: var(--font);
     margin-bottom: 8px;
   }
   .ord-deduct-options {
@@ -1250,7 +1249,7 @@
   .ord-deduct-opt small {
     display: block;
     font-size: 10px;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     color: var(--text-tertiary);
     margin-top: 2px;
     font-weight: 500;
@@ -1483,7 +1482,7 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     font-size: 9.5px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1512,7 +1511,7 @@
     background: rgba(125,211,252,0.10);
     border: 1px solid rgba(125,211,252,0.20);
     border-radius: 999px;
-    font-family: var(--font-mono);
+    font-family: var(--font);
     font-size: 10px;
     letter-spacing: 0.04em;
     color: #BFE3F8;

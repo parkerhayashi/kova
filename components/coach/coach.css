@@ -19,7 +19,6 @@
   --warn: var(--color-activity);
   --bad: var(--color-stress);
   --font: var(--font-sans);
-  --font-mono: var(--font-mono);
 
   position: relative;
   min-height: 100%;
@@ -165,7 +164,7 @@
   .wt-chart-yaxis span {
     font-size: 10px;
     color: var(--text-4);
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .wt-chart {
     height: 130px;
@@ -260,7 +259,7 @@
   .wt-comp-window {
     font-size: 10px;
     color: var(--text-4);
-    font-family: var(--font-mono);
+    font-family: var(--font);
   }
   .wt-comp-headline {
     font-size: 15px;

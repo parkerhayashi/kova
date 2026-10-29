@@ -254,7 +254,7 @@ export function FinanceLinked() {
                       </p>
                     </div>
                   </div>
-                  <span className="shrink-0 font-mono text-sm tabular-nums text-text-primary">
+                  <span className="shrink-0 text-sm tabular-nums text-text-primary">
                     {a.current_balance != null ? fmtUsd(a.current_balance) : "—"}
                   </span>
                 </li>
@@ -300,7 +300,7 @@ export function FinanceLinked() {
                         </p>
                       </div>
                       <span
-                        className="shrink-0 font-mono text-sm tabular-nums"
+                        className="shrink-0 text-sm tabular-nums"
                         style={{
                           color: isOut
                             ? "var(--color-stress)"

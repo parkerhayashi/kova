@@ -220,7 +220,7 @@ export function WeightInsights({
                     {formatWeightLbs(w.avg_lbs)}
                   </span>
                   <span
-                    className="text-right font-mono text-xs tabular-nums"
+                    className="text-right text-xs tabular-nums"
                     style={{ color: deltaColor(w.delta_lbs) }}
                   >
                     {formatDeltaLbs(w.delta_lbs)}

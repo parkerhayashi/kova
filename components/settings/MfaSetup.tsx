@@ -137,7 +137,7 @@ export function MfaSetup({ enabled: initialEnabled }: Props) {
             />
           ) : null}
           {secret ? (
-            <p className="break-all font-mono text-xs text-text-muted">
+            <p className="break-all text-xs tabular-nums tracking-wide text-text-muted">
               Manual key: {secret}
             </p>
           ) : null}
@@ -152,7 +152,7 @@ export function MfaSetup({ enabled: initialEnabled }: Props) {
               required
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              className="h-11 rounded-lg border border-border bg-surface-raised px-3 font-mono text-text-primary outline-none transition-colors focus:border-border-strong"
+              className="h-11 rounded-lg border border-border bg-surface-raised px-3 tabular-nums tracking-widest text-text-primary outline-none transition-colors focus:border-border-strong"
             />
           </label>
           <div className="flex gap-2">
@@ -222,7 +222,7 @@ export function MfaSetup({ enabled: initialEnabled }: Props) {
               required
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              className="h-11 rounded-lg border border-border bg-surface-raised px-3 font-mono text-text-primary outline-none transition-colors focus:border-border-strong"
+              className="h-11 rounded-lg border border-border bg-surface-raised px-3 tabular-nums tracking-widest text-text-primary outline-none transition-colors focus:border-border-strong"
             />
           </label>
           <div className="flex gap-2">

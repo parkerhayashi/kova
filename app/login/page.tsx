@@ -62,7 +62,7 @@ export default async function LoginPage({
                 maxLength={6}
                 required
                 autoFocus
-                className="field-input h-11 font-mono"
+                className="field-input h-11 tabular-nums tracking-widest"
               />
             </label>
           ) : null}

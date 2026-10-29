@@ -202,7 +202,7 @@ export function WeightHistory({
                   {formatWeightLbs(row.weight_lbs)}
                 </span>
                 <span
-                  className="text-right font-mono text-xs tabular-nums"
+                  className="text-right text-xs tabular-nums"
                   style={{ color: deltaColor(row.delta_lbs) }}
                 >
                   {formatDeltaLbs(row.delta_lbs)}
