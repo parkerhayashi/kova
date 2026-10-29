@@ -10,6 +10,7 @@
  * Import only from Server Components, Server Actions, and route handlers.
  * lib/data/nutrition imports this module, so it's only loaded lazily here.
  */
+import { cache } from "react";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getTimezone, getUserSettings } from "@/lib/data/oura";
 import { getLatestWeight } from "@/lib/data/tracking";
@@ -70,10 +71,10 @@ function dateInTimezone(iso: string, timezone: string): string {
   );
 }
 
-export async function getRunFuelCarbsPerHour(): Promise<number> {
+export const getRunFuelCarbsPerHour = cache(async function getRunFuelCarbsPerHour(): Promise<number> {
   const settings = await getUserSettings();
   return clampCarbsPerHour(settings?.run_fuel_carbs_per_hour);
-}
+});
 
 export async function setRunFuelCarbsPerHour(rate: number): Promise<number> {
   const value = clampCarbsPerHour(rate);
@@ -322,7 +323,7 @@ export async function recomputeDay(date: string): Promise<void> {
  * End-of-day rule: a plan with no actual run by the end of its day is
  * skipped and its estimate removed — never carried into the next day.
  */
-export async function sweepStalePlannedRuns(): Promise<void> {
+export const sweepStalePlannedRuns = cache(async function sweepStalePlannedRuns(): Promise<void> {
   const { today: now } = await today();
   const db = createServiceClient();
   const { data, error } = await db
@@ -356,7 +357,7 @@ export async function sweepStalePlannedRuns(): Promise<void> {
     dates.add(day(plan.date));
   }
   for (const date of dates) await recomputeDay(date);
-}
+});
 
 export type RunDayState = {
   adjustment: RunFuelAdjustment | null;
@@ -378,14 +379,14 @@ const MODE_1: RunDayState = {
  * Inputs for layering the day's run state onto nutrition goals. Fails soft to
  * Mode 1 (base targets) so nutrition never breaks on a running-table error.
  */
-export async function getRunDayState(date: string): Promise<RunDayState> {
+export const getRunDayState = cache(async function getRunDayState(date: string): Promise<RunDayState> {
   try {
     return await readRunDayState(day(date));
   } catch (err) {
     console.error("[running] run day state unavailable", err);
     return MODE_1;
   }
-}
+});
 
 async function readRunDayState(target: string): Promise<RunDayState> {
   await sweepStalePlannedRuns();
@@ -418,7 +419,7 @@ async function readRunDayState(target: string): Promise<RunDayState> {
 }
 
 /** Carb-load dates since `sinceDays` ago — exempt from adaptive TDEE / drift. */
-export async function getCarbLoadDates(sinceDays: number): Promise<Set<string>> {
+export const getCarbLoadDates = cache(async function getCarbLoadDates(sinceDays: number): Promise<Set<string>> {
   const { today: now } = await today();
   const db = createServiceClient();
   const { data } = await db
@@ -427,7 +428,7 @@ export async function getCarbLoadDates(sinceDays: number): Promise<Set<string>> 
     .eq("kind", "carb_load")
     .gte("date", addDays(now, -sinceDays));
   return new Set(((data as { date: string }[]) ?? []).map((r) => day(r.date)));
-}
+});
 
 /** Drop carb-load days from an intake map before adaptive / drift math. */
 export function withoutDates<V>(map: Map<string, V>, dates: Set<string>): Map<string, V> {
@@ -1348,3 +1349,40 @@ export async function getActualRun(id: string): Promise<ActualRun | null> {
   if (error) throw new Error(error.message);
   return data ? withDate(data as ActualRun) : null;
 }
+
+/** What Home's Running card needs: today's run (done or planned) and the next plan run. */
+export type RunningSnapshot = {
+  /** Runs logged today, summed (null when none). */
+  today_done: { distance_km: number | null; duration_min: number; source: ActualRunSource } | null;
+  /** Today's planned run or race that isn't done yet. */
+  today_planned: Pick<
+    PlannedRun,
+    "run_type" | "planned_distance_km" | "planned_duration_min" | "is_race" | "event_type"
+  > | null;
+  next: TrainingPlanRun | null;
+};
+
+export const getRunningSnapshot = cache(async function getRunningSnapshot(
+  date: string,
+): Promise<RunningSnapshot> {
+  const target = day(date);
+  const [planned, actual, plan] = await Promise.all([
+    plannedRunsOn(target),
+    actualRunsOn(target),
+    getTrainingPlan(0),
+  ]);
+  const distance = actual.reduce((sum, a) => sum + (a.actual_distance_km ?? 0), 0);
+  const linked = new Set(actual.map((a) => a.planned_run_id));
+  const open = planned.find((p) => p.status === "planned" && !linked.has(p.id)) ?? null;
+  return {
+    today_done: actual.length
+      ? {
+          distance_km: distance > 0 ? distance : null,
+          duration_min: actual.reduce((sum, a) => sum + a.actual_duration_min, 0),
+          source: actual[0]!.source,
+        }
+      : null,
+    today_planned: open,
+    next: plan.next,
+  };
+});

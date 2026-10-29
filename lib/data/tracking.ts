@@ -4,6 +4,7 @@
  * and write through the service client. Import only from Server Components and
  * Server Actions — never a client component.
  */
+import { cache } from "react";
 import { createServiceClient } from "@/lib/supabase/server";
 import { catalogNutrientsForName } from "@/lib/supplementCatalog";
 import { addDays, DEFAULT_TIMEZONE, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
@@ -38,7 +39,7 @@ async function settingsTimezone(): Promise<string> {
 // ---------------------------------------------------------------------------
 // Weight
 // ---------------------------------------------------------------------------
-export async function getWeightLogs(days: number): Promise<WeightLog[]> {
+export const getWeightLogs = cache(async function getWeightLogs(days: number): Promise<WeightLog[]> {
   const db = createServiceClient();
   const timezone = await settingsTimezone();
   const { data } = await db
@@ -47,9 +48,9 @@ export async function getWeightLogs(days: number): Promise<WeightLog[]> {
     .gte("date", addDays(todayInTimezone(timezone), -days))
     .order("date", { ascending: true });
   return ((data as WeightLog[]) ?? []).map(asWeightLog);
-}
+});
 
-export async function getLatestWeight(): Promise<WeightLog | null> {
+export const getLatestWeight = cache(async function getLatestWeight(): Promise<WeightLog | null> {
   const db = createServiceClient();
   const { data } = await db
     .from("weight_log")
@@ -58,7 +59,7 @@ export async function getLatestWeight(): Promise<WeightLog | null> {
     .limit(1)
     .maybeSingle();
   return data ? asWeightLog(data as WeightLog) : null;
-}
+});
 
 export async function getWeightForDate(date: string): Promise<WeightLog | null> {
   const day = normalizeIsoDate(date);
@@ -119,7 +120,7 @@ async function nextSortOrder(table: "supplements"): Promise<number> {
   return ((data as { sort_order: number } | null)?.sort_order ?? -1) + 1;
 }
 
-export async function getSupplements(activeOnly = true): Promise<Supplement[]> {
+export const getSupplements = cache(async function getSupplements(activeOnly = true): Promise<Supplement[]> {
   const db = createServiceClient();
   let query = db
     .from("supplements")
@@ -144,9 +145,9 @@ export async function getSupplements(activeOnly = true): Promise<Supplement[]> {
   );
 
   return supplements;
-}
+});
 
-export async function getSupplementLogs(
+export const getSupplementLogs = cache(async function getSupplementLogs(
   sinceDays: number,
   timezone?: string,
 ): Promise<SupplementLog[]> {
@@ -156,9 +157,9 @@ export async function getSupplementLogs(
     .select("*")
     .gte("date", addDays(todayInTimezone(timezone), -sinceDays));
   return (data as SupplementLog[]) ?? [];
-}
+});
 
-export async function getSupplementLogsForDate(date: string): Promise<SupplementLog[]> {
+export const getSupplementLogsForDate = cache(async function getSupplementLogsForDate(date: string): Promise<SupplementLog[]> {
   const db = createServiceClient();
   const { data } = await db
     .from("supplement_logs")
@@ -166,7 +167,7 @@ export async function getSupplementLogsForDate(date: string): Promise<Supplement
     .eq("date", date)
     .eq("taken", true);
   return (data as SupplementLog[]) ?? [];
-}
+});
 
 export async function getSupplementLogsSince(startDate: string): Promise<SupplementLog[]> {
   const db = createServiceClient();

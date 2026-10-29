@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServiceClient } from "@/lib/supabase/server";
 import {
   getTimezone,
@@ -222,7 +223,7 @@ async function gatherGoalInputs(date: string): Promise<GoalInputs> {
  * Base targets with no run fuel. Future days use today's base (adaptive state
  * can't be reviewed ahead of time).
  */
-export async function getBaseNutritionGoals(
+export const getBaseNutritionGoals = cache(async function getBaseNutritionGoals(
   date?: string,
 ): Promise<ComputedNutritionGoals> {
   const timezone = await getTimezone();
@@ -230,10 +231,10 @@ export async function getBaseNutritionGoals(
   const targetDate = date ?? today;
   const inputs = await gatherGoalInputs(targetDate > today ? today : targetDate);
   return computeNutritionGoals(inputs);
-}
+});
 
 /** The day's targets: base + any run-fuel / carb-load adjustment. */
-export async function getNutritionGoals(
+export const getNutritionGoals = cache(async function getNutritionGoals(
   date?: string,
 ): Promise<ComputedNutritionGoals> {
   const timezone = await getTimezone();
@@ -243,7 +244,7 @@ export async function getNutritionGoals(
     getRunDayState(targetDate),
   ]);
   return withRunDay(base, runDay);
-}
+});
 
 export async function getReverseDietStatus(): Promise<ReverseDietView> {
   const timezone = await getTimezone();
@@ -472,7 +473,7 @@ export async function setManualAdaptiveEnergyState(
   return value;
 }
 
-export async function getMealsForDate(date: string): Promise<Meal[]> {
+export const getMealsForDate = cache(async function getMealsForDate(date: string): Promise<Meal[]> {
   const day = normalizeIsoDate(date) ?? date;
   const db = createServiceClient();
   const { data, error } = await db
@@ -482,7 +483,7 @@ export async function getMealsForDate(date: string): Promise<Meal[]> {
     .order("logged_at", { ascending: true });
   if (error) throw new Error(error.message);
   return ((data as Meal[]) ?? []).map(asMeal);
-}
+});
 
 export async function getMealsSince(days: number): Promise<Meal[]> {
   const db = createServiceClient();
@@ -498,7 +499,7 @@ export async function getMealsSince(days: number): Promise<Meal[]> {
 }
 
 /** Daily nutrition totals keyed by date (meals + supplements). */
-export async function getNutritionByDay(days: number): Promise<{
+export const getNutritionByDay = cache(async function getNutritionByDay(days: number): Promise<{
   caloriesByDay: Map<string, number>;
   proteinByDay: Map<string, number>;
 }> {
@@ -568,7 +569,7 @@ export async function getNutritionByDay(days: number): Promise<{
   }
 
   return { caloriesByDay, proteinByDay };
-}
+});
 
 /** Daily protein totals keyed by date (meals + supplements). */
 export async function getProteinByDay(days: number): Promise<Map<string, number>> {
@@ -576,7 +577,7 @@ export async function getProteinByDay(days: number): Promise<Map<string, number>
   return proteinByDay;
 }
 
-export async function getDailyTotals(date: string): Promise<DailyTotals> {
+export const getDailyTotals = cache(async function getDailyTotals(date: string): Promise<DailyTotals> {
   const [meals, supplements, logs, alcoholCalories, runIntakes] = await Promise.all([
     getMealsForDate(date),
     getSupplements(true),
@@ -595,7 +596,7 @@ export async function getDailyTotals(date: string): Promise<DailyTotals> {
     totals = mergeDailyTotals(totals, { calories: fuel.kcal, carbs_g: fuel.carbs_g });
   }
   return totals;
-}
+});
 
 export async function addMeal(
   row: Omit<Meal, "id" | "logged_at">,

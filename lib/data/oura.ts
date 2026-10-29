@@ -4,6 +4,7 @@
  * functions must only be imported from Server Components / route handlers —
  * never a client component (they touch SUPABASE_SERVICE_ROLE_KEY).
  */
+import { cache } from "react";
 import { seedProfileFromOuraIfEmpty } from "@/lib/data/profile";
 import { decryptToken, encryptToken } from "@/lib/crypto";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -39,18 +40,18 @@ function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-export async function getUserSettings(): Promise<UserSettings | null> {
+export const getUserSettings = cache(async function getUserSettings(): Promise<UserSettings | null> {
   const db = createServiceClient();
   const { data } = await db.from("user_settings").select("*").limit(1).maybeSingle();
   return (data as UserSettings) ?? null;
-}
+});
 
 /**
  * The display timezone for clock times, auto-detected from the browser and
  * stored in user_settings. Falls back to Eastern before detection lands (or if
  * the column hasn't been migrated yet).
  */
-export async function getTimezone(): Promise<string> {
+export const getTimezone = cache(async function getTimezone(): Promise<string> {
   const db = createServiceClient();
   const { data } = await db
     .from("user_settings")
@@ -58,7 +59,7 @@ export async function getTimezone(): Promise<string> {
     .limit(1)
     .maybeSingle();
   return (data as { timezone?: string | null } | null)?.timezone ?? DEFAULT_TIMEZONE;
-}
+});
 
 /**
  * Persist the auto-detected display timezone. No-ops when it already matches so
@@ -85,10 +86,10 @@ export async function setTimezone(timezone: string): Promise<string | null> {
   return timezone;
 }
 
-export async function isOuraConnected(): Promise<boolean> {
+export const isOuraConnected = cache(async function isOuraConnected(): Promise<boolean> {
   const settings = await getUserSettings();
   return Boolean(settings?.oura_refresh_token || settings?.oura_access_token);
-}
+});
 
 /** Wipe stored Oura tokens so the UI can force a clean reconnect. */
 export async function clearOuraTokens(): Promise<void> {
@@ -263,7 +264,7 @@ export interface SyncResult {
 const SYNC_ON_OPEN_THROTTLE_MS = 5 * 60 * 1000;
 const SYNC_ON_OPEN_DAYS = 30;
 
-export async function getOuraLastSyncedAt(): Promise<string | null> {
+export const getOuraLastSyncedAt = cache(async function getOuraLastSyncedAt(): Promise<string | null> {
   const db = createServiceClient();
   const { data } = await db
     .from("user_settings")
@@ -272,7 +273,7 @@ export async function getOuraLastSyncedAt(): Promise<string | null> {
     .maybeSingle();
   return (data as { oura_last_synced_at?: string | null } | null)
     ?.oura_last_synced_at ?? null;
-}
+});
 
 async function markOuraSynced(settingsId: string): Promise<void> {
   const db = createServiceClient();

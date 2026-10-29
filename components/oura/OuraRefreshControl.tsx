@@ -9,9 +9,12 @@ import { formatSyncStatus } from "@/lib/utils";
 export function OuraRefreshControl({
   lastSyncedAt,
   timeZone,
+  showStatus = true,
 }: {
   lastSyncedAt: string | null;
   timeZone: string;
+  /** False when the page renders the "Oura <time>" line itself (Home header). */
+  showStatus?: boolean;
 }) {
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
@@ -45,8 +48,11 @@ export function OuraRefreshControl({
   return (
     <div className="flex flex-col items-end gap-1">
       <div className="flex items-center gap-2">
-        {status ? (
-          <span className="timestamp hidden sm:inline">Oura {status}</span>
+        {!showStatus ? null : status ? (
+          // "N minutes ago" is clock-relative; server and client can straddle a minute.
+          <span className="timestamp hidden sm:inline" suppressHydrationWarning>
+            Oura {status}
+          </span>
         ) : (
           <span className="timestamp hidden sm:inline">Oura not synced yet</span>
         )}
@@ -60,8 +66,10 @@ export function OuraRefreshControl({
           <RefreshCw className={`size-3.5 ${syncing ? "animate-spin" : ""}`} />
         </button>
       </div>
-      {status ? (
-        <span className="timestamp sm:hidden">Oura {status}</span>
+      {showStatus && status ? (
+        <span className="timestamp sm:hidden" suppressHydrationWarning>
+          Oura {status}
+        </span>
       ) : null}
       {error ? (
         <span className="max-w-[16rem] text-right text-xs text-[var(--color-stress)]">

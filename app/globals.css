@@ -470,6 +470,10 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-bottom: 0;
 }
 
+.snapshot-header .dash-title {
+  margin-bottom: 0;
+}
+
 .snapshot-date {
   font-family: var(--dash-mono);
   font-size: 11px;

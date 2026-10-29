@@ -2,9 +2,14 @@ import Link from "next/link";
 import { ProgressRing } from "@/components/charts/ProgressRing";
 import { ScoreRing } from "@/components/charts/ScoreRing";
 import { OuraRefreshControl } from "@/components/oura/OuraRefreshControl";
-import { getHealthSnapshot } from "@/lib/data/health-snapshot";
-import { formatDuration } from "@/lib/utils";
-import { formatR } from "@/lib/trends/correlation";
+import { getHealthSnapshot, type HealthSnapshotData } from "@/lib/data/health-snapshot";
+import {
+  formatDistance,
+  formatRunDuration,
+  raceEventLabel,
+  runTypeLabel,
+} from "@/lib/run-fuel";
+import { formatDuration, formatSyncStatus } from "@/lib/utils";
 
 function SnapshotMetric({
   label,
@@ -37,6 +42,64 @@ function SnapshotMetric({
   );
 }
 
+/** Running card: done today → planned today → next plan run → empty plan. */
+function runningCard(data: HealthSnapshotData): { value: string | null; caption: string } {
+  const { today_done, today_planned, next } = data.running;
+  if (today_done) {
+    return {
+      value:
+        today_done.distance_km != null
+          ? formatDistance(today_done.distance_km)
+          : formatRunDuration(today_done.duration_min),
+      caption: `done today · ${
+        today_done.source === "garmin"
+          ? "Garmin"
+          : today_done.source === "oura"
+            ? "Apple Health"
+            : "logged"
+      }`,
+    };
+  }
+  if (today_planned) {
+    const fuel = data.nutrition.runFuel;
+    const what = today_planned.is_race && today_planned.event_type
+      ? raceEventLabel(today_planned.event_type)
+      : runTypeLabel(today_planned.run_type);
+    return {
+      value:
+        today_planned.planned_distance_km != null
+          ? `${what} · ${formatDistance(today_planned.planned_distance_km)}`
+          : what,
+      caption:
+        fuel?.kind === "run_fuel"
+          ? `planned today · +${fuel.added_kcal} kcal fuel`
+          : "planned today",
+    };
+  }
+  if (next) {
+    return {
+      value:
+        next.distance_km != null
+          ? `${runTypeLabel(next.run_type)} · ${formatDistance(next.distance_km)}`
+          : next.duration_min != null
+            ? `${runTypeLabel(next.run_type)} · ${formatRunDuration(next.duration_min)}`
+            : runTypeLabel(next.run_type),
+      caption: "next run",
+    };
+  }
+  return { value: null, caption: "set up a plan" };
+}
+
+/** One line under the nutrition rings when the target includes run fuel / a carb load. */
+function runFuelLine(data: HealthSnapshotData): string | null {
+  const fuel = data.nutrition.runFuel;
+  if (!fuel) return null;
+  if (fuel.kind === "carb_load") {
+    return `Carb load day ${fuel.load_day_index ?? 1}/${fuel.load_day_count ?? 1} · ${data.nutrition.goalCarbs_g} g carbs`;
+  }
+  return `Includes +${fuel.added_kcal} kcal run fuel (${fuel.basis === "actual" ? "actual" : "estimated"})`;
+}
+
 export async function HealthSnapshot() {
   const data = await getHealthSnapshot();
 
@@ -57,23 +120,6 @@ export async function HealthSnapshot() {
       })
     : "log on Weight";
 
-  const activityIsStale =
-    data.oura.activityAsOf != null && data.oura.activityAsOf !== data.todayIso;
-
-  const activityAsOfLabel = activityIsStale
-    ? new Date(`${data.oura.activityAsOf}T12:00:00`).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        timeZone: data.timezone,
-      })
-    : null;
-
-  const readinessIsStale =
-    data.oura.readinessAsOf != null &&
-    data.oura.readinessAsOf !== data.todayIso;
-  const sleepIsStale =
-    data.oura.sleepAsOf != null && data.oura.sleepAsOf !== data.todayIso;
-
   const asOfLabel = (iso: string | null) =>
     iso
       ? new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {
@@ -82,18 +128,46 @@ export async function HealthSnapshot() {
           timeZone: data.timezone,
         })
       : null;
+  const staleLabel = (iso: string | null) =>
+    iso != null && iso !== data.todayIso ? asOfLabel(iso) : null;
+
+  const readinessStale = staleLabel(data.oura.readinessAsOf);
+  const sleepStale = staleLabel(data.oura.sleepAsOf);
+  const activityStale = staleLabel(data.oura.activityAsOf);
+
+  const readinessCaption = [
+    data.oura.stress != null ? `${data.oura.stress} min high stress` : null,
+    readinessStale ? `${readinessStale} reading` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const activityCaption = [
+    data.oura.steps != null ? `${data.oura.steps.toLocaleString()} steps` : null,
+    activityStale ? `${activityStale} ${data.oura.steps != null ? "score" : "reading"}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const running = runningCard(data);
+  const fuelLine = runFuelLine(data);
 
   return (
     <section className="snapshot-section section">
       <div className="snapshot-header">
-        <div>
-          <h2 className="section-title">Snapshot</h2>
-          <span className="snapshot-date">{data.todayLabel}</span>
+        <div className="min-w-0">
+          <h1 className="dash-title">{data.todayLabel}</h1>
+          {data.oura.connected ? (
+            <span className="snapshot-date">
+              Oura{" "}
+              {formatSyncStatus(data.oura.lastSyncedAt, data.timezone) ?? "not synced yet"}
+            </span>
+          ) : null}
         </div>
         {data.oura.connected ? (
           <OuraRefreshControl
             lastSyncedAt={data.oura.lastSyncedAt}
             timeZone={data.timezone}
+            showStatus={false}
           />
         ) : null}
       </div>
@@ -118,10 +192,8 @@ export async function HealthSnapshot() {
               accent="recovery"
               size={80}
             />
-            {readinessIsStale && asOfLabel(data.oura.readinessAsOf) ? (
-              <span className="snapshot-caption">
-                {asOfLabel(data.oura.readinessAsOf)} reading
-              </span>
+            {readinessCaption ? (
+              <span className="snapshot-caption">{readinessCaption}</span>
             ) : null}
           </div>
         </Link>
@@ -129,10 +201,8 @@ export async function HealthSnapshot() {
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Sleep</span>
             <ScoreRing value={data.oura.sleepScore} accent="sleep" size={80} />
-            {sleepIsStale && asOfLabel(data.oura.sleepAsOf) ? (
-              <span className="snapshot-caption">
-                {asOfLabel(data.oura.sleepAsOf)} reading
-              </span>
+            {sleepStale ? (
+              <span className="snapshot-caption">{sleepStale} reading</span>
             ) : null}
           </div>
         </Link>
@@ -144,15 +214,8 @@ export async function HealthSnapshot() {
               accent="activity"
               size={80}
             />
-            {data.oura.steps != null ? (
-              <span className="snapshot-caption">
-                {data.oura.steps.toLocaleString()} steps
-                {activityIsStale && activityAsOfLabel
-                  ? ` · ${activityAsOfLabel} score`
-                  : ""}
-              </span>
-            ) : activityIsStale && activityAsOfLabel ? (
-              <span className="snapshot-caption">{activityAsOfLabel} reading</span>
+            {activityCaption ? (
+              <span className="snapshot-caption">{activityCaption}</span>
             ) : null}
           </div>
         </Link>
@@ -193,11 +256,20 @@ export async function HealthSnapshot() {
             <span className="snapshot-caption">
               Goal {data.nutrition.goalCalories} ({data.nutrition.burnLabel})
             </span>
+            {fuelLine ? <span className="snapshot-caption">{fuelLine}</span> : null}
           </div>
         </Link>
       </div>
 
-      <div className="snapshot-grid snapshot-grid-3">
+      <div className="snapshot-grid snapshot-grid-4">
+        <Link href="/running" className="snapshot-link-card">
+          <SnapshotMetric
+            label="Running"
+            value={running.value}
+            caption={running.caption}
+            accent="var(--color-activity)"
+          />
+        </Link>
         <Link href="/workouts" className="snapshot-link-card">
           <SnapshotMetric
             label="Workout"
@@ -230,52 +302,6 @@ export async function HealthSnapshot() {
           />
         </Link>
       </div>
-
-      {(data.oura.stress != null ||
-        (data.oura.steps != null && data.oura.activityScore == null)) && (
-        <div className="snapshot-grid snapshot-grid-2">
-          {data.oura.steps != null && data.oura.activityScore == null ? (
-            <Link href="/activity" className="snapshot-link-card">
-              <SnapshotMetric
-                label="Steps"
-                value={data.oura.steps.toLocaleString()}
-                caption="from Oura"
-                accent="var(--color-activity)"
-              />
-            </Link>
-          ) : null}
-          {data.oura.stress != null ? (
-            <Link href="/recovery" className="snapshot-link-card">
-              <SnapshotMetric
-                label="Stress"
-                value={data.oura.stress}
-                unit="min"
-                caption="high-stress time"
-                accent="var(--color-stress)"
-              />
-            </Link>
-          ) : null}
-        </div>
-      )}
-
-      {data.trends.length > 0 && (
-        <Link href="/trends" className="snapshot-link-card">
-          <div className="dash-card snapshot-trends">
-            <span className="metric-label">Trends · 30 days</span>
-            <ul className="snapshot-trend-list">
-              {data.trends.map((t) => (
-                <li key={t.id} className="snapshot-trend-row">
-                  <span className="snapshot-trend-title">{t.title}</span>
-                  <span className="snapshot-trend-r">
-                    {formatR(t.r)}{" "}
-                    <span className="snapshot-trend-strength">({t.strength})</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Link>
-      )}
     </section>
   );
 }

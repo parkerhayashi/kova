@@ -1,20 +1,24 @@
 import type { ReactNode } from "react";
 
 /**
- * Home dashboard — title, cut coach, and health snapshot.
+ * Home dashboard — glanceable numbers first (date header, recovery rings,
+ * nutrition, running / workout / weight / supplements), then the coach,
+ * then 30-day trends. Each section streams on its own.
  */
 export function DashboardHome({
-  coach,
   snapshot,
+  coach,
+  trends,
 }: {
-  coach: ReactNode;
   snapshot: ReactNode;
+  coach: ReactNode;
+  trends: ReactNode;
 }) {
   return (
     <div className="home-dash">
-      <h1 className="dash-title">My Dashboard</h1>
-      {coach}
       {snapshot}
+      {coach}
+      {trends}
     </div>
   );
 }

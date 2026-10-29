@@ -5,20 +5,26 @@ import {
   CutStatusCoachLoader,
 } from "@/components/home/CutStatusCoachLoader";
 import { HealthSnapshot } from "@/components/home/HealthSnapshot";
+import { HomeTrends } from "@/components/home/HomeTrends";
 
 export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   return (
     <DashboardHome
+      snapshot={
+        <Suspense fallback={<HealthSnapshotFallback />}>
+          <HealthSnapshot />
+        </Suspense>
+      }
       coach={
         <Suspense fallback={<CutStatusCoachFallback />}>
           <CutStatusCoachLoader />
         </Suspense>
       }
-      snapshot={
-        <Suspense fallback={<HealthSnapshotFallback />}>
-          <HealthSnapshot />
+      trends={
+        <Suspense fallback={null}>
+          <HomeTrends />
         </Suspense>
       }
     />
@@ -28,8 +34,10 @@ export default function HomePage() {
 function HealthSnapshotFallback() {
   return (
     <section className="snapshot-section section">
-      <h2 className="section-title">Snapshot</h2>
-      <div className="dash-card snapshot-loading">Loading snapshot…</div>
+      <div className="snapshot-header">
+        <h1 className="dash-title">Today</h1>
+      </div>
+      <div className="dash-card snapshot-loading">Loading…</div>
     </section>
   );
 }

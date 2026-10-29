@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getOuraProfile, getUserSettings } from "@/lib/data/oura";
 import { getLatestWeight } from "@/lib/data/tracking";
@@ -16,7 +17,7 @@ export type ProfilePatch = {
 };
 
 /** Canonical profile: user_settings wins, then weight log / Oura. */
-export async function getUserProfile(): Promise<UserProfile> {
+export const getUserProfile = cache(async function getUserProfile(): Promise<UserProfile> {
   const [settings, weight, oura] = await Promise.all([
     getUserSettings(),
     getLatestWeight(),
@@ -78,7 +79,7 @@ export async function getUserProfile(): Promise<UserProfile> {
             : null,
     },
   };
-}
+});
 
 export async function saveUserProfile(patch: ProfilePatch): Promise<void> {
   const db = createServiceClient();

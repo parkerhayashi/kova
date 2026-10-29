@@ -7,6 +7,7 @@ import {
   isOuraConnected,
 } from "@/lib/data/oura";
 import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
+import { getRunningSnapshot, type RunningSnapshot } from "@/lib/data/running";
 import { getTodayWorkoutSummary } from "@/lib/data/workouts";
 import { maybeSyncHevyOnOpen } from "@/lib/data/hevy";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/lib/data/tracking";
 import { getTrendsPayload } from "@/lib/data/trends";
 import { maintenanceSourceLabel } from "@/lib/nutrition-goals";
+import type { RunFuelMeta } from "@/lib/run-fuel";
 import { describeCorrelation } from "@/lib/trends/correlation";
 import { unstable_noStore } from "next/cache";
 import { latestRowWith, todayInTimezone } from "@/lib/utils";
@@ -82,12 +84,15 @@ export type HealthSnapshotData = {
     fat_g: number | null;
     goalCalories: number;
     goalProtein_g: number;
+    goalCarbs_g: number;
     burnLabel: string;
+    /** Today's run fuel / carb load (null on base-target days). */
+    runFuel: RunFuelMeta | null;
   };
+  running: RunningSnapshot;
   workout: WorkoutTodaySummary;
   weight: WeightLog | null;
   supplements: { done: number; total: number };
-  trends: SnapshotTrend[];
 };
 
 export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
@@ -95,6 +100,9 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
   void maybeSyncHevyOnOpen();
 
   const timezone = await getTimezone();
+  const todayIso = todayInTimezone(timezone);
+  // One round of reads — everything here only needs today's date. (The Coach
+  // section shares these via request-scoped cache.)
   const [
     sleepRows,
     readinessRows,
@@ -104,7 +112,9 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     supplements,
     supplementLogs,
     weight,
-    trendsPayload,
+    mealTotals,
+    nutritionGoals,
+    running,
   ] = await Promise.all([
     getSleepHistory(400),
     getReadinessHistory(400),
@@ -114,20 +124,17 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     getSupplements(true),
     getSupplementLogs(1, timezone),
     getLatestWeight(),
-    getTrendsPayload(30),
+    getDailyTotals(todayIso),
+    getNutritionGoals(todayIso),
+    getRunningSnapshot(todayIso),
   ]);
 
-  const todayIso = todayInTimezone(timezone);
   const readiness = valueForTodayOrLatest(readinessRows, todayIso, "score");
   const sleep = valueForTodayOrLatest(sleepRows, todayIso, "score");
   const readinessScore =
     readiness.value != null ? Number(readiness.value) : null;
-
-  const [mealTotals, nutritionGoals, workout] = await Promise.all([
-    getDailyTotals(todayIso),
-    getNutritionGoals(todayIso),
-    getTodayWorkoutSummary(readinessScore),
-  ]);
+  // Only the workout insight depends on today's readiness.
+  const workout = await getTodayWorkoutSummary(readinessScore);
 
   const todayLabel = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -142,17 +149,6 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
 
   const hasOuraData =
     sleepRows.length > 0 || readinessRows.length > 0 || activityRows.length > 0;
-
-  const rankedTrends = [...trendsPayload.correlations]
-    .filter((c) => c.r !== null && c.points.length >= c.minPairs)
-    .sort((a, b) => Math.abs(b.r ?? 0) - Math.abs(a.r ?? 0))
-    .slice(0, 3)
-    .map((c) => ({
-      id: c.id,
-      title: c.title,
-      r: c.r as number,
-      strength: describeCorrelation(c.r),
-    }));
 
   const activityScore = valueForTodayOrLatest(
     activityRows,
@@ -186,11 +182,29 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
       fat_g: mealTotals.fat_g ?? null,
       goalCalories: nutritionGoals.calories,
       goalProtein_g: nutritionGoals.protein_g,
+      goalCarbs_g: nutritionGoals.carbs_g,
       burnLabel: maintenanceSourceLabel(nutritionGoals.meta.maintenance_source).toLowerCase(),
+      runFuel: nutritionGoals.meta.run_day?.fuel ?? null,
     },
+    running,
     workout,
     weight,
     supplements: { done: supplementsTaken, total: supplements.length },
-    trends: rankedTrends,
   };
+}
+
+/** Top 30-day correlations for Home — streamed separately (it's the heaviest read). */
+export async function getHomeTrends(): Promise<SnapshotTrend[]> {
+  unstable_noStore();
+  const payload = await getTrendsPayload(30);
+  return [...payload.correlations]
+    .filter((c) => c.r !== null && c.points.length >= c.minPairs)
+    .sort((a, b) => Math.abs(b.r ?? 0) - Math.abs(a.r ?? 0))
+    .slice(0, 3)
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      r: c.r as number,
+      strength: describeCorrelation(c.r),
+    }));
 }
