@@ -27,8 +27,8 @@ export function CalorieTrend({
       data={data}
       accent="nutrition"
       showAvg
-      current={todayGoal ? `${todayGoal} today` : null}
-      caption="Dashed line = daily goal (TDEE + intake/weight nudge + weight/body fat targets)"
+      current={todayGoal ? `${todayGoal} goal` : null}
+      caption="Dashed line = daily goal: today's target, plus run fuel or carb load on those days"
     />
   );
 }

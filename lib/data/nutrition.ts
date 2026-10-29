@@ -60,12 +60,13 @@ import {
 import {
   getCarbLoadDates,
   getMidRunIntakeByDay,
+  getRunFuelAdjustmentsBetween,
   getMidRunIntakesForDate,
   getRunDayState,
   sumIntakes,
   withoutDates,
 } from "@/lib/data/running";
-import { withRunDay } from "@/lib/run-fuel";
+import { applyRunFuelAdjustment, withRunDay } from "@/lib/run-fuel";
 
 function asMeal(row: Meal): Meal {
   const date = normalizeIsoDate(row.date) ?? row.date;
@@ -637,32 +638,28 @@ export async function deleteMeal(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Daily calories vs. the day's goal. Goal = today's real base target (same
+ * resolved TDEE nudge, diet break / reverse state the page uses) plus that
+ * day's stored run fuel or carb load. Past nudges aren't stored, so earlier
+ * days share today's base rather than a re-derived estimate.
+ */
 export async function getCalorieTrend(
   days: number,
 ): Promise<{ date: string; calories: number; goal: number }[]> {
   const timezone = await getTimezone();
-  const since = addDays(todayInTimezone(timezone), -(days - 1));
-  const [
-    meals,
-    settings,
-    profile,
-    supplements,
-    supplementLogs,
-    alcoholByDay,
-    weightLogs,
-    runIntakeByDay,
-    loadDays,
-  ] = await Promise.all([
-    getMealsSince(days),
-    getUserSettings(),
-    getUserProfile(),
-    getSupplements(true),
-    getSupplementLogsSince(since),
-    getAlcoholCaloriesByDay(days, timezone),
-    getWeightLogs(Math.max(days, 21)),
-    getMidRunIntakeByDay(since),
-    getCarbLoadDates(days),
-  ]);
+  const today = todayInTimezone(timezone);
+  const since = addDays(today, -(days - 1));
+  const [meals, supplements, supplementLogs, alcoholByDay, runIntakeByDay, base, adjustments] =
+    await Promise.all([
+      getMealsSince(days),
+      getSupplements(true),
+      getSupplementLogsSince(since),
+      getAlcoholCaloriesByDay(days, timezone),
+      getMidRunIntakeByDay(since),
+      getBaseNutritionGoals(today),
+      getRunFuelAdjustmentsBetween(since, today),
+    ]);
 
   const mealsByDate = new Map<string, Meal[]>();
   for (const meal of meals) {
@@ -678,77 +675,31 @@ export async function getCalorieTrend(
     supplementLogsByDate.set(log.date, list);
   }
 
-  const weightEntries = weightLogs.map((row) => ({
-    dateKey: row.date,
-    weight: row.weight_lbs,
-  }));
-
-  const body_fat_pct = bodyFatPctFromSources({
-    weightLogPct: profile.body_fat_pct,
-    visual: settings?.visual_body_fat_state,
-  });
-  const activity_level = parseActivityLevel(settings?.activity_level);
-
-  const baseInputs: Omit<GoalInputs, "adaptive"> = {
-    weight_lbs: profile.weight_lbs,
-    body_fat_pct,
-    weight_goal_lbs: settings?.weight_goal_lbs ?? null,
-    body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
-    height_m: profile.height_m,
-    age: profile.age,
-    biological_sex: profile.biological_sex,
-    activity_level,
+  const baseTargets = {
+    calories: base.calories,
+    protein_g: base.protein_g,
+    carbs_g: base.carbs_g,
+    fat_g: base.fat_g,
   };
 
-  const start = addDays(todayInTimezone(timezone), -(days - 1));
-  const today = todayInTimezone(timezone);
   const out: { date: string; calories: number; goal: number }[] = [];
-  const rollingCalories = new Map<string, number>();
-
   for (let i = 0; i < days; i++) {
-    const date = addDays(start, i);
-    const dayMeals = mealsByDate.get(date) ?? [];
-    const daySupplementLogs = supplementLogsByDate.get(date) ?? [];
+    const date = addDays(since, i);
     const dayTotals = mergeDailyTotals(
-      sumMeals(dayMeals),
-      sumTakenSupplements(supplements, daySupplementLogs),
+      sumMeals(mealsByDate.get(date) ?? []),
+      sumTakenSupplements(supplements, supplementLogsByDate.get(date) ?? []),
     );
-    const dayCalories = Math.round(
+    const calories = Math.round(
       (dayTotals.calories ?? 0) +
         (alcoholByDay.get(date) ?? 0) +
         (runIntakeByDay.get(date)?.kcal ?? 0),
     );
-    if (dayCalories > 0 && !loadDays.has(date)) rollingCalories.set(date, dayCalories);
-
-    const weight_lbs = baseInputs.weight_lbs ?? 170;
-    const weight_kg = weight_lbs / 2.2046226218;
-    const height_cm = (baseInputs.height_m ?? 1.75) * 100;
-    const age = baseInputs.age ?? 30;
-    const { bmr } = resolveBmr({
-      weightKg: weight_kg,
-      heightCm: height_cm,
-      age,
-      sex: baseInputs.biological_sex,
-      body_fat_pct: baseInputs.body_fat_pct,
-    });
-    const formulaTdee = estimateTdee(bmr, activity_level);
-    const goals = computeNutritionGoals({
-      ...baseInputs,
-      adaptive: computeAdaptiveEnergySnapshot({
-        caloriesByDay: rollingCalories,
-        weightEntries,
-        endDate: date,
-        formulaTdee,
-        excludeEndDate: date === today,
-      }),
-    });
-    out.push({
-      date,
-      calories: dayCalories,
-      goal: goals.calories,
-    });
+    const adjustment = adjustments.get(date);
+    const goal = adjustment
+      ? applyRunFuelAdjustment(baseTargets, adjustment).targets.calories
+      : baseTargets.calories;
+    out.push({ date, calories, goal });
   }
-
   return out;
 }
 

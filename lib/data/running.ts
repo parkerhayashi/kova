@@ -1386,3 +1386,24 @@ export const getRunningSnapshot = cache(async function getRunningSnapshot(
     next: plan.next,
   };
 });
+
+/** Run-fuel / carb-load rows dated in [start, end], keyed by date. */
+export async function getRunFuelAdjustmentsBetween(
+  start: string,
+  end: string,
+): Promise<Map<string, RunFuelAdjustment>> {
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("run_fuel_adjustments")
+    .select("*")
+    .gte("date", start)
+    .lte("date", end);
+  // Charts degrade to base targets rather than failing the page.
+  if (error) {
+    console.error("[running] adjustments unavailable", error.message);
+    return new Map();
+  }
+  return new Map(
+    ((data as RunFuelAdjustment[]) ?? []).map((row) => [day(row.date), withDate(row)]),
+  );
+}
