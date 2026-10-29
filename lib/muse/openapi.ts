@@ -189,6 +189,11 @@ export function museOpenApi() {
                       enum: ["easy", "long", "tempo", "intervals", "race"],
                       description: "Optional; defaults to the planned run's type, else easy.",
                     },
+                    force: {
+                      type: "boolean",
+                      description:
+                        "Only for a genuinely separate second run that day. Without it, a run matching one already logged (e.g. Oura-detected) returns 409.",
+                    },
                   },
                 },
               },
@@ -197,6 +202,7 @@ export function museOpenApi() {
           responses: {
             "200": { description: "Logged run, completed plan run, next run, day's run fuel" },
             "400": { description: "Invalid payload — nothing was logged" },
+            "409": { description: "A matching run is already logged that day — nothing was logged" },
           },
         },
         delete: {
@@ -291,7 +297,7 @@ OpenAPI: \`${origin}/api/muse/openapi.json\`
 - If \`diet_break.active\` is true, the calorie target is maintenance.
 - If \`reverse.active\` is true, the calorie target is the reverse ramp, not the cut deficit.
 - Running plan: runs are dateless (type + miles). Logging a run completes \`next\` automatically, so after Parker logs runs, re-check the plan and PUT the adjusted queue. The plan never changes nutrition.
-- Logging runs: only log a run Parker says he actually did, once. Check \`logged_runs\` first so you don't log it twice. Duration is required; ask for it if he didn't say.
+- Logging runs: Oura-detected runs import automatically (\`source: "oura"\` in \`logged_runs\`), so check \`logged_runs\` first and only log runs Oura missed. Duration is required; ask for it if he didn't say. A 409 means it's already logged — don't force it unless he did two separate runs.
 - Never request or echo secrets, tokens, passwords, or TOTP.
 `;
 }

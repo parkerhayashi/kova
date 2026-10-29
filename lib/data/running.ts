@@ -865,7 +865,7 @@ export async function saveActualRun(input: ActualRunInput): Promise<ActualRun> {
   const run = withDate(data as ActualRun);
 
   await markCompleted(run.planned_run_id);
-  if (!previous) await completeNextPlanRun(run.id);
+  if (!previous) await completeNextPlanRun(run.id, run.date);
   if (previous?.planned_run_id && previous.planned_run_id !== run.planned_run_id) {
     await reopenIfOrphaned(previous.planned_run_id);
   }
@@ -900,6 +900,12 @@ export async function deleteActualRun(id: string): Promise<void> {
   const { data } = await db.from("actual_runs").select("*").eq("id", id).maybeSingle();
   const run = data as ActualRun | null;
   if (!run) return;
+  // A deleted import stays deleted — later syncs must not bring it back.
+  if (run.external_id) {
+    await db
+      .from("dismissed_run_imports")
+      .upsert({ external_id: run.external_id }, { onConflict: "external_id" });
+  }
   // The plan item this run completed goes back to upcoming.
   await db
     .from("training_plan_runs")
@@ -911,7 +917,7 @@ export async function deleteActualRun(id: string): Promise<void> {
   await recomputeDay(day(run.date));
 }
 
-/** A completed run from a wearable sync (Garmin). */
+/** A completed run from a wearable sync (Garmin, Oura). */
 export type IncomingRun = {
   external_id: string;
   /** Date the run started, in the user's zone (runs crossing midnight stay here). */
@@ -922,24 +928,87 @@ export type IncomingRun = {
   run_type?: RunType | null;
 };
 
+/** When two records describe the same run, the higher one wins. */
+const SOURCE_PRIORITY: Record<ActualRunSource, number> = { manual: 3, garmin: 2, oura: 1 };
+
 /**
- * Source-agnostic import used by wearable syncs. Dedupes on external_id —
- * re-syncing the same activity updates it in place and never double-counts —
- * then matches by date and reconciles exactly like a manual entry.
+ * Same run? Overlapping time windows when both have a start time; otherwise
+ * same day with durations within max(10 min, 25%).
+ */
+export function sameRun(
+  a: { started_at: string | null; duration_min: number },
+  b: { started_at: string | null; duration_min: number },
+): boolean {
+  if (a.started_at && b.started_at) {
+    const aStart = Date.parse(a.started_at);
+    const bStart = Date.parse(b.started_at);
+    const aEnd = aStart + a.duration_min * 60_000;
+    const bEnd = bStart + b.duration_min * 60_000;
+    return aStart < bEnd && bStart < aEnd;
+  }
+  const diff = Math.abs(a.duration_min - b.duration_min);
+  return diff <= Math.max(10, 0.25 * Math.max(a.duration_min, b.duration_min));
+}
+
+/** An already-logged run on `date` that looks like this one, if any. */
+export async function findSameRun(
+  date: string,
+  run: { started_at?: string | null; duration_min: number },
+): Promise<ActualRun | null> {
+  const existing = await actualRunsOn(day(date));
+  return (
+    existing.find((e) =>
+      sameRun(
+        { started_at: e.started_at, duration_min: e.actual_duration_min },
+        { started_at: run.started_at ?? null, duration_min: run.duration_min },
+      ),
+    ) ?? null
+  );
+}
+
+/**
+ * Source-agnostic import used by wearable syncs. Idempotent:
+ * - Known external_id → refreshed in place (only by the source that owns it).
+ * - Overlaps a run already logged → the higher-priority record wins
+ *   (manual > garmin > oura), so one run is never counted twice.
+ * - Dismissed imports (deleted by the user) are never re-imported.
+ * - Otherwise inserted, matched to the day's plan, and reconciled.
  */
 export async function ingestActualRuns(
   source: Exclude<ActualRunSource, "manual">,
   runs: IncomingRun[],
-): Promise<{ inserted: number; updated: number }> {
+): Promise<{ inserted: number; updated: number; skipped: number }> {
   const db = createServiceClient();
   let inserted = 0;
   let updated = 0;
+  let skipped = 0;
   const touched = new Set<string>();
+
+  const ids = runs.map((r) => r.external_id).filter(Boolean);
+  const { data: dismissedRows } = ids.length
+    ? await db.from("dismissed_run_imports").select("external_id").in("external_id", ids)
+    : { data: [] };
+  const dismissed = new Set(
+    ((dismissedRows as { external_id: string }[]) ?? []).map((r) => r.external_id),
+  );
 
   for (const incoming of runs) {
     const date = normalizeIsoDate(incoming.date);
     const duration = positive(incoming.duration_min);
-    if (!date || duration == null || !incoming.external_id) continue;
+    if (!date || duration == null || !incoming.external_id || dismissed.has(incoming.external_id)) {
+      skipped++;
+      continue;
+    }
+
+    const fields = {
+      date,
+      started_at: incoming.started_at ?? null,
+      actual_duration_min: duration,
+      actual_distance_km: positive(incoming.distance_km),
+      source,
+      external_id: incoming.external_id,
+      updated_at: new Date().toISOString(),
+    };
 
     const { data: existing } = await db
       .from("actual_runs")
@@ -948,39 +1017,99 @@ export async function ingestActualRuns(
       .maybeSingle();
     const prev = existing as ActualRun | null;
 
-    const fields = {
-      date,
-      started_at: incoming.started_at ?? null,
-      actual_duration_min: duration,
-      actual_distance_km: positive(incoming.distance_km),
-      run_type: incoming.run_type ?? prev?.run_type ?? null,
-      source,
-      external_id: incoming.external_id,
-      updated_at: new Date().toISOString(),
-    };
-
     if (prev) {
-      const { error } = await db.from("actual_runs").update(fields).eq("id", prev.id);
+      if (prev.source !== source) {
+        skipped++;
+        continue;
+      }
+      const { error } = await db
+        .from("actual_runs")
+        .update({ ...fields, run_type: incoming.run_type ?? prev.run_type ?? null })
+        .eq("id", prev.id);
       if (error) throw new Error(error.message);
       updated++;
       if (day(prev.date) !== date) touched.add(day(prev.date));
-    } else {
-      const match = await matchPlannedRun(date);
-      const { data: created, error } = await db
-        .from("actual_runs")
-        .insert({ ...fields, planned_run_id: match?.id ?? null })
-        .select("id")
-        .single();
-      if (error) throw new Error(error.message);
-      await markCompleted(match?.id ?? null);
-      await completeNextPlanRun((created as { id: string }).id);
-      inserted++;
+      touched.add(date);
+      continue;
     }
+
+    const overlap = await findSameRun(date, { started_at: fields.started_at, duration_min: duration });
+    if (overlap) {
+      if (SOURCE_PRIORITY[overlap.source] >= SOURCE_PRIORITY[source]) {
+        skipped++;
+        continue;
+      }
+      // Better record of the same run (e.g. Garmin over Oura): take it over,
+      // keeping the row id so plan / fuel links stay intact.
+      const { error } = await db
+        .from("actual_runs")
+        .update({ ...fields, run_type: incoming.run_type ?? overlap.run_type ?? null })
+        .eq("id", overlap.id);
+      if (error) throw new Error(error.message);
+      updated++;
+      touched.add(date);
+      continue;
+    }
+
+    const match = await matchPlannedRun(date);
+    const { data: created, error } = await db
+      .from("actual_runs")
+      .insert({ ...fields, run_type: incoming.run_type ?? null, planned_run_id: match?.id ?? null })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    await markCompleted(match?.id ?? null);
+    await completeNextPlanRun((created as { id: string }).id, date);
+    inserted++;
     touched.add(date);
   }
 
   for (const date of touched) await recomputeDay(date);
-  return { inserted, updated };
+  return { inserted, updated, skipped };
+}
+
+/** Oura activity labels that count as runs. */
+const OURA_RUN_ACTIVITY = /run|jog/i;
+/** Oura sometimes logs a few minutes of jogging between sets — ignore blips. */
+const MIN_IMPORTED_RUN_MIN = 10;
+
+/**
+ * Import Oura-detected runs from the synced oura_workouts table over the last
+ * `sinceDays` (default two weeks). Safe to call on every Oura sync.
+ */
+export async function importOuraRuns(
+  sinceDays = 14,
+): Promise<{ inserted: number; updated: number; skipped: number }> {
+  const { today: now, timezone } = await today();
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("oura_workouts")
+    .select("oura_id, day, activity, distance, start_datetime, end_datetime")
+    .gte("day", addDays(now, -sinceDays))
+    .order("day", { ascending: true });
+  if (error) throw new Error(error.message);
+
+  const runs: IncomingRun[] = [];
+  for (const w of (data as {
+    oura_id: string;
+    day: string | null;
+    activity: string | null;
+    distance: number | null;
+    start_datetime: string | null;
+    end_datetime: string | null;
+  }[]) ?? []) {
+    if (!OURA_RUN_ACTIVITY.test(w.activity ?? "") || !w.start_datetime || !w.end_datetime) continue;
+    const minutes = (Date.parse(w.end_datetime) - Date.parse(w.start_datetime)) / 60_000;
+    if (!(minutes >= MIN_IMPORTED_RUN_MIN)) continue;
+    runs.push({
+      external_id: `oura:${w.oura_id}`,
+      date: w.day ? day(w.day) : dateInTimezone(w.start_datetime, timezone),
+      started_at: w.start_datetime,
+      duration_min: Math.round(minutes),
+      distance_km: w.distance && w.distance > 0 ? w.distance / 1000 : null,
+    });
+  }
+  return ingestActualRuns("oura", runs);
 }
 
 // ---------------------------------------------------------------------------
@@ -1022,21 +1151,29 @@ export async function getTrainingPlan(completedLimit = 10): Promise<TrainingPlan
 }
 
 /** Mark the head of the queue done by this logged run (no-op if empty). */
-async function completeNextPlanRun(actualRunId: string): Promise<void> {
+/**
+ * Mark the head of the queue done by this logged run (no-op if empty). A run
+ * only completes a plan item that already existed on the run's date, so
+ * importing older runs (e.g. an Oura backfill) never eats the current plan.
+ */
+async function completeNextPlanRun(actualRunId: string, runDate: string): Promise<void> {
   const db = createServiceClient();
   const { data } = await db
     .from("training_plan_runs")
-    .select("id")
+    .select("id, created_at")
     .is("actual_run_id", null)
     .order("position", { ascending: true })
     .limit(1)
     .maybeSingle();
   if (!data) return;
+  const { timezone } = await today();
+  const head = data as { id: string; created_at: string };
+  if (dateInTimezone(head.created_at, timezone) > runDate) return;
   const now = new Date().toISOString();
   await db
     .from("training_plan_runs")
     .update({ actual_run_id: actualRunId, completed_at: now, updated_at: now })
-    .eq("id", (data as { id: string }).id);
+    .eq("id", head.id);
 }
 
 export type PlanRunInput = {

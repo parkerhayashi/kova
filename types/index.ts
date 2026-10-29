@@ -632,7 +632,7 @@ export type RunType = "easy" | "long" | "tempo" | "intervals" | "race";
 /** Mode 3 events — races only. */
 export type RaceEventType = "ten_mile" | "half_marathon" | "marathon";
 export type PlannedRunStatus = "planned" | "completed" | "skipped";
-export type ActualRunSource = "garmin" | "manual";
+export type ActualRunSource = "garmin" | "manual" | "oura";
 export type RunFuelBasis = "planned" | "actual";
 export type RunFuelKind = "run_fuel" | "carb_load";
 

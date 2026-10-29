@@ -656,13 +656,24 @@ create table if not exists actual_runs (
   actual_distance_km    float,
   actual_duration_min   float not null,
   started_at            timestamptz,
-  source                text not null default 'manual' check (source in ('garmin', 'manual')),
-  external_id           text unique,       -- Garmin activity id
+  source                text not null default 'manual' check (source in ('garmin', 'manual', 'oura')),
+  external_id           text unique,       -- wearable activity id ("oura:<id>", Garmin id)
   created_at            timestamptz default now(),
   updated_at            timestamptz default now()
 );
 
 create index if not exists actual_runs_date_idx on actual_runs (date);
+
+-- Additive: Oura-detected runs are imported too (manual > garmin > oura on overlap).
+alter table actual_runs drop constraint if exists actual_runs_source_check;
+alter table actual_runs
+  add constraint actual_runs_source_check check (source in ('garmin', 'manual', 'oura'));
+
+-- Imported runs the user deleted — never re-imported on later syncs.
+create table if not exists dismissed_run_imports (
+  external_id           text primary key,
+  dismissed_at          timestamptz default now()
+);
 
 create table if not exists run_fuel_adjustments (
   id                    uuid primary key default gen_random_uuid(),
@@ -851,3 +862,4 @@ alter table run_fuel_adjustments enable row level security;
 alter table mid_run_intakes   enable row level security;
 alter table calendar_runs     enable row level security;
 alter table training_plan_runs enable row level security;
+alter table dismissed_run_imports enable row level security;

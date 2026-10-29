@@ -38,6 +38,7 @@ const TABLES = [
   "mid_run_intakes",
   "calendar_runs",
   "training_plan_runs",
+  "dismissed_run_imports",
 ];
 
 const supabase = createClient(url, serviceKey, {

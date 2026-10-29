@@ -3,6 +3,7 @@ import { isMuseAuthorized, museUnauthorized } from "@/lib/muse/auth";
 import { getTimezone } from "@/lib/data/oura";
 import {
   deleteActualRun,
+  findSameRun,
   getActualRun,
   getRunDayState,
   getTrainingPlan,
@@ -51,6 +52,28 @@ export async function POST(request: NextRequest) {
   if ((mi != null && mi <= 0) || (km != null && km <= 0)) return bad("distance must be > 0");
   if (body.run_type != null && !RUN_TYPES.has(String(body.run_type))) {
     return bad("run_type must be easy, long, tempo, intervals, or race");
+  }
+
+  // Oura may already have detected this run — don't count it twice.
+  if (body.force !== true) {
+    const existing = await findSameRun(date, { duration_min: duration });
+    if (existing) {
+      return NextResponse.json(
+        {
+          error:
+            "A matching run is already logged that day. Not logged again — resend with force: true only if this is a second, separate run.",
+          existing: {
+            id: existing.id,
+            date: existing.date,
+            source: existing.source,
+            duration_min: existing.actual_duration_min,
+            distance_mi:
+              existing.actual_distance_km != null ? round1(kmToMiles(existing.actual_distance_km)) : null,
+          },
+        },
+        { status: 409 },
+      );
+    }
   }
 
   try {

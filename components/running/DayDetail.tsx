@@ -386,7 +386,7 @@ export function DayDetail({
                     {a.run_type ? ` · ${runTypeLabel(a.run_type)}` : ""}
                   </p>
                   <p className="text-text-muted text-xs">
-                    {a.source === "garmin" ? "Garmin" : "Manual"} ·{" "}
+                    {a.source === "garmin" ? "Garmin" : a.source === "oura" ? "Oura-detected" : "Manual"} ·{" "}
                     {a.planned_run_id ? "reconciled to plan" : "unplanned"}
                   </p>
                 </div>
@@ -416,7 +416,8 @@ export function DayDetail({
             />
           ) : null}
           <p className="text-text-muted text-xs">
-            Manual entry until Garmin sync is connected. It writes the same record the sync will.
+            Runs Oura detects are imported automatically. Log here if Oura missed one. Deleting an
+            imported run keeps it from coming back.
           </p>
         </Card>
       ) : null}

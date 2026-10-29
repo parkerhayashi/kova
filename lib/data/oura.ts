@@ -252,6 +252,8 @@ export interface SyncResult {
     sessions: number;
     tags: number;
     heart_rate_days: number;
+    /** New Oura-detected runs written to actual_runs. */
+    runs_imported: number;
   };
 }
 
@@ -473,6 +475,16 @@ export async function syncOura(
 
   await markOuraSynced(settings.id);
 
+  // Oura-detected runs → actual_runs (deduped against manual / Garmin logs).
+  // Lazy import: lib/data/running imports this module. Never fails the sync.
+  let runsImported = 0;
+  try {
+    const { importOuraRuns } = await import("@/lib/data/running");
+    runsImported = (await importOuraRuns()).inserted;
+  } catch (err) {
+    console.warn("[oura] run import failed:", (err as Error).message);
+  }
+
   return {
     range,
     synced: {
@@ -484,6 +496,7 @@ export async function syncOura(
       sessions: data.sessions.length,
       tags: data.tags.length,
       heart_rate_days: heartRateDays.length,
+      runs_imported: runsImported,
     },
   };
 }
