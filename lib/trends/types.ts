@@ -1,6 +1,7 @@
 import type { Accent } from "@/lib/utils";
 import type { ScatterPoint } from "@/lib/trends/correlation";
 import type {
+  ActualRun,
   Activity,
   OuraWorkout,
   Readiness,
@@ -27,6 +28,9 @@ export interface TrendsInput {
   proteinByDay: Map<string, number>;
   /** Daily calorie totals (meals + supplements), keyed by date. */
   caloriesByDay: Map<string, number>;
+  /** Logged / imported runs in the range. */
+  runs: ActualRun[];
+  today: string;
 }
 
 export interface CorrelationView {
@@ -53,12 +57,26 @@ export interface DualTrendView {
   secondaryLabel: string;
   primaryAccent: Accent;
   secondaryAccent: Accent;
+  primaryAsBars?: boolean;
   emptyHint?: string;
+}
+
+export interface RunningTrends {
+  summary: {
+    runs: number;
+    miles: number;
+    avg_pace_min_per_mile: number | null;
+    longest_miles: number | null;
+    longest_date: string | null;
+  };
+  trends: DualTrendView[];
+  correlations: CorrelationView[];
 }
 
 export interface TrendsPayload {
   range: TrendRange;
   ouraConnected: boolean;
+  running: RunningTrends;
   correlations: CorrelationView[];
   dualTrends: DualTrendView[];
   comingSoon: { title: string; reason: string }[];

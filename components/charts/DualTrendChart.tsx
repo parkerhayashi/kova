@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bar,
   ComposedChart,
   Line,
   ResponsiveContainer,
@@ -18,6 +19,8 @@ interface DualTrendChartProps {
   secondaryLabel: string;
   primaryAccent?: Accent;
   secondaryAccent?: Accent;
+  /** Draw the primary series as bars (counts / totals per bin). */
+  primaryAsBars?: boolean;
   height?: number;
 }
 
@@ -33,6 +36,7 @@ export function DualTrendChart({
   secondaryLabel,
   primaryAccent = "activity",
   secondaryAccent = "nutrition",
+  primaryAsBars = false,
   height = 200,
 }: DualTrendChartProps) {
   const primaryColor = accentColor[primaryAccent];
@@ -79,17 +83,29 @@ export function DualTrendChart({
           }}
           labelStyle={{ color: "rgba(231,240,250,0.55)" }}
         />
-        <Line
-          yAxisId="left"
-          type="monotone"
-          dataKey="primary"
-          name={primaryLabel}
-          stroke={primaryColor}
-          strokeWidth={2}
-          dot={false}
-          connectNulls
-          style={{ filter: `drop-shadow(0 0 5px ${primaryColor})` }}
-        />
+        {primaryAsBars ? (
+          <Bar
+            yAxisId="left"
+            dataKey="primary"
+            name={primaryLabel}
+            fill={primaryColor}
+            fillOpacity={0.75}
+            radius={[4, 4, 0, 0]}
+            maxBarSize={28}
+          />
+        ) : (
+          <Line
+            yAxisId="left"
+            type="monotone"
+            dataKey="primary"
+            name={primaryLabel}
+            stroke={primaryColor}
+            strokeWidth={2}
+            dot={false}
+            connectNulls
+            style={{ filter: `drop-shadow(0 0 5px ${primaryColor})` }}
+          />
+        )}
         <Line
           yAxisId="right"
           type="monotone"

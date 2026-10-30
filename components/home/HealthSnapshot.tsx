@@ -9,7 +9,14 @@ import {
   raceEventLabel,
   runTypeLabel,
 } from "@/lib/run-fuel";
-import { formatDuration, formatSyncStatus } from "@/lib/utils";
+import type { UpcomingRace } from "@/lib/data/running";
+import {
+  addDays,
+  daysBetween,
+  formatDuration,
+  formatIsoDateLabel,
+  formatSyncStatus,
+} from "@/lib/utils";
 
 function SnapshotMetric({
   label,
@@ -90,6 +97,72 @@ function runningCard(data: HealthSnapshotData): { value: string | null; caption:
   return { value: null, caption: "set up a plan" };
 }
 
+/**
+ * Race countdown. `alert` is the time-sensitive line (load starts tomorrow,
+ * load day, race day) — when set, the card moves to the top of Home.
+ */
+function raceCard(race: UpcomingRace, today: string) {
+  const name = race.event_type ? raceEventLabel(race.event_type, race.distance_km) : "Race";
+  const fmt = (iso: string) => formatIsoDateLabel(iso);
+  const carbs = race.load_carbs_g != null ? ` · ${Math.round(race.load_carbs_g)} g carbs` : "";
+  let alert: string | null = null;
+  let note: string | null = null;
+
+  if (race.days_until === 0) {
+    alert = "Race day. Fuel plan is on the Running tab.";
+  } else if (race.load_start) {
+    const loadEnd = addDays(race.date, -1);
+    const untilLoad = daysBetween(race.load_start, today);
+    if (untilLoad === 1) {
+      alert = `Carb load starts tomorrow${carbs}/day`;
+    } else if (untilLoad > 1) {
+      note = `Carb load ${fmt(race.load_start)}${race.load_days > 1 ? `–${formatIsoDateLabel(loadEnd, { month: "short", day: "numeric" })}` : ""} (${race.load_days} day${race.load_days === 1 ? "" : "s"})`;
+    } else if (today <= loadEnd) {
+      const index = daysBetween(today, race.load_start) + 1;
+      alert = `Carb load day ${index} of ${race.load_days} today${carbs}`;
+    }
+  } else {
+    note = "Race-day fueling only, no carb load";
+  }
+
+  return {
+    name,
+    dateLabel: fmt(race.date),
+    value: race.days_until === 0 ? "Today" : race.days_until === 1 ? "Tomorrow" : String(race.days_until),
+    unit: race.days_until > 1 ? "days" : null,
+    alert,
+    note,
+  };
+}
+
+function RaceCountdown({ race }: { race: ReturnType<typeof raceCard> }) {
+  return (
+    <Link href="/running" className="snapshot-link-card race-countdown-link">
+      <div className="snapshot-metric dash-card race-countdown">
+        <div className="race-countdown-main">
+          <div className="min-w-0">
+            <span className="metric-label">Next race</span>
+            <p className="race-countdown-name">{race.name}</p>
+            <span className="snapshot-caption">{race.dateLabel}</span>
+          </div>
+          <span className="snapshot-value" style={{ color: "var(--color-activity)" }}>
+            {race.value}
+            {race.unit ? <span className="snapshot-unit">{race.unit}</span> : null}
+          </span>
+        </div>
+        {race.alert ? (
+          <span className="race-countdown-alert">
+            <span className="race-countdown-dot" aria-hidden />
+            {race.alert}
+          </span>
+        ) : race.note ? (
+          <span className="snapshot-caption">{race.note}</span>
+        ) : null}
+      </div>
+    </Link>
+  );
+}
+
 /** One line under the nutrition rings when the target includes run fuel / a carb load. */
 function runFuelLine(data: HealthSnapshotData): string | null {
   const fuel = data.nutrition.runFuel;
@@ -143,6 +216,7 @@ export async function HealthSnapshot() {
 
   const running = runningCard(data);
   const fuelLine = runFuelLine(data);
+  const race = data.running.next_race ? raceCard(data.running.next_race, data.todayIso) : null;
 
   return (
     <section className="snapshot-section section">
@@ -175,6 +249,8 @@ export async function HealthSnapshot() {
           </Link>
         </div>
       )}
+
+      {race?.alert ? <RaceCountdown race={race} /> : null}
 
       <div className="snapshot-grid snapshot-grid-3">
         <Link href="/recovery" className="snapshot-link-card">
@@ -260,6 +336,8 @@ export async function HealthSnapshot() {
           </div>
         </Link>
       </div>
+
+      {race && !race.alert ? <RaceCountdown race={race} /> : null}
 
       {/* Weight and supplements live in the top bar, so Home skips them. */}
       <div className="snapshot-grid snapshot-grid-2">

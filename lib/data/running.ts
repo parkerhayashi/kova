@@ -31,7 +31,7 @@ import {
   type FuelRun,
 } from "@/lib/run-fuel";
 import { buildCalendarEntries } from "@/lib/run-calendar";
-import { addDays, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
+import { addDays, daysBetween, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type {
   ActualRun,
   ActualRunSource,
@@ -1373,16 +1373,73 @@ export type RunningSnapshot = {
     "run_type" | "planned_distance_km" | "planned_duration_min" | "is_race" | "event_type"
   > | null;
   next: TrainingPlanRun | null;
+  /** The next race within RACE_HORIZON_DAYS, with its carb-load window. */
+  next_race: UpcomingRace | null;
 };
+
+/** Home shows the race countdown this far out. */
+const RACE_HORIZON_DAYS = 365;
+
+export type UpcomingRace = {
+  id: string;
+  date: string;
+  event_type: RaceEventType | null;
+  distance_km: number | null;
+  days_until: number;
+  /** First carb-load day (null when no load applies, e.g. designated too late). */
+  load_start: string | null;
+  load_days: number;
+  load_carbs_g: number | null;
+};
+
+/** Earliest planned race from `date` on, plus its stored carb-load days. */
+async function getUpcomingRace(date: string): Promise<UpcomingRace | null> {
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("planned_runs")
+    .select("*")
+    .eq("is_race", true)
+    .eq("status", "planned")
+    .gte("date", date)
+    .lte("date", addDays(date, RACE_HORIZON_DAYS))
+    .order("date", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("[running] upcoming race unavailable", error.message);
+    return null;
+  }
+  if (!data) return null;
+  const race = asPlanned(data as PlannedRun);
+  const { data: loads } = await db
+    .from("run_fuel_adjustments")
+    .select("date, target_carbs_g")
+    .eq("planned_run_id", race.id)
+    .eq("kind", "carb_load")
+    .order("date", { ascending: true });
+  const loadRows = (loads as { date: string; target_carbs_g: number | null }[]) ?? [];
+  const raceDate = race.event_date ?? race.date;
+  return {
+    id: race.id,
+    date: raceDate,
+    event_type: race.event_type,
+    distance_km: race.planned_distance_km,
+    days_until: daysBetween(raceDate, date),
+    load_start: loadRows[0] ? day(loadRows[0].date) : null,
+    load_days: loadRows.length,
+    load_carbs_g: loadRows[0]?.target_carbs_g ?? null,
+  };
+}
 
 export const getRunningSnapshot = cache(async function getRunningSnapshot(
   date: string,
 ): Promise<RunningSnapshot> {
   const target = day(date);
-  const [planned, actual, plan] = await Promise.all([
+  const [planned, actual, plan, next_race] = await Promise.all([
     plannedRunsOn(target),
     actualRunsOn(target),
     getTrainingPlan(0),
+    getUpcomingRace(target),
   ]);
   const distance = actual.reduce((sum, a) => sum + (a.actual_distance_km ?? 0), 0);
   const linked = new Set(actual.map((a) => a.planned_run_id));
@@ -1397,6 +1454,7 @@ export const getRunningSnapshot = cache(async function getRunningSnapshot(
       : null,
     today_planned: open,
     next: plan.next,
+    next_race,
   };
 });
 

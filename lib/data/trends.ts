@@ -3,6 +3,7 @@ import {
   getOuraWorkouts,
   getReadinessHistory,
   getSleepHistory,
+  getTimezone,
   isOuraConnected,
 } from "@/lib/data/oura";
 import { getAlcoholDrinksByDay } from "@/lib/data/alcohol";
@@ -13,6 +14,8 @@ import {
 } from "@/lib/data/tracking";
 import { getLiftingDashboard } from "@/lib/data/workouts";
 import { getNutritionByDay } from "@/lib/data/nutrition";
+import { getRecentActualRuns } from "@/lib/data/running";
+import { todayInTimezone } from "@/lib/utils";
 import { buildTrendsPayload } from "@/lib/trends/build";
 import type { TrendsInput, TrendsPayload, TrendRange } from "@/lib/trends/types";
 
@@ -35,6 +38,8 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     liftingDashboard,
     nutritionByDay,
     ouraConnected,
+    runs,
+    timezone,
   ] = await Promise.all([
     getSleepHistory(range),
     getReadinessHistory(range),
@@ -47,6 +52,9 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     getLiftingDashboard(range),
     getNutritionByDay(range),
     isOuraConnected(),
+    // Running is additive — Trends still renders if the runs table is unavailable.
+    getRecentActualRuns(range).catch(() => []),
+    getTimezone(),
   ]);
 
   const { proteinByDay, caloriesByDay } = nutritionByDay;
@@ -67,6 +75,8 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     liftingVolumeByDay,
     proteinByDay,
     caloriesByDay,
+    runs,
+    today: todayInTimezone(timezone),
   };
 
   return buildTrendsPayload(input, range, ouraConnected);

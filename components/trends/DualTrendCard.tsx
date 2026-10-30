@@ -27,6 +27,7 @@ export function DualTrendCard({ view }: { view: DualTrendView }) {
           secondaryLabel={view.secondaryLabel}
           primaryAccent={view.primaryAccent}
           secondaryAccent={view.secondaryAccent}
+          primaryAsBars={view.primaryAsBars}
         />
       ) : (
         <p className="body-copy text-sm">{emptyHint}</p>

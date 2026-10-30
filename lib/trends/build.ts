@@ -11,6 +11,7 @@ import type {
   TrendsPayload,
   TrendRange,
 } from "@/lib/trends/types";
+import { buildRunningTrends } from "@/lib/trends/running";
 import type { Activity, Readiness, Sleep } from "@/types";
 
 function indexByDate<T extends { date: string }>(rows: T[]): Map<string, T> {
@@ -473,6 +474,13 @@ export function buildTrendsPayload(
   return {
     range,
     ouraConnected,
+    running: buildRunningTrends({
+      runs: input.runs,
+      readiness: input.readiness,
+      sleep: input.sleep,
+      range,
+      today: input.today,
+    }),
     correlations: [
       sleepVsNextReadiness(input.sleep, input.readiness),
       stressVsHrv(input.activity, input.readiness),
