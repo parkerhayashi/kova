@@ -48,7 +48,7 @@ export function buildCalendarEntries(input: {
       actual_run_id: actualByPlan.get(plan.id) ?? null,
       label:
         plan.is_race && plan.event_type
-          ? raceEventLabel(plan.event_type)
+          ? raceEventLabel(plan.event_type, plan.planned_distance_km)
           : `${runTypeLabel(plan.run_type)} run`,
     });
   }

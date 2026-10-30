@@ -637,8 +637,9 @@ export interface NutrientProfile {
 // ---------------------------------------------------------------------------
 
 export type RunType = "easy" | "long" | "tempo" | "intervals" | "race";
-/** Mode 3 events — races only. */
-export type RaceEventType = "ten_mile" | "half_marathon" | "marathon";
+/** Mode 3 events — races only. "custom" carries its own distance. */
+export type RaceEventType = "ten_mile" | "half_marathon" | "marathon" | "custom";
+export type PresetRaceEventType = Exclude<RaceEventType, "custom">;
 export type PlannedRunStatus = "planned" | "completed" | "skipped";
 export type ActualRunSource = "garmin" | "manual" | "oura";
 export type RunFuelBasis = "planned" | "actual";

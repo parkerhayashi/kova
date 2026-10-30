@@ -13,6 +13,7 @@ import type {
   NutritionGoalMeta,
 } from "@/lib/nutrition-goals";
 import type {
+  PresetRaceEventType,
   RaceEventType,
   RunFuelAdjustment,
   RunFuelBasis,
@@ -42,17 +43,16 @@ export const DEFAULT_EASY_PACE_MIN_PER_KM = 10 / KM_PER_MILE;
 
 export const RUN_TYPES: RunType[] = ["easy", "long", "tempo", "intervals"];
 
-export const RACE_EVENTS: Record<
-  RaceEventType,
-  {
-    label: string;
-    distance_km: number;
-    /** Load window in days before the event. */
-    load_days: number;
-    /** g carbs per kg bodyweight per day — midpoint is the default. */
-    carbs_g_per_kg: { min: number; max: number; default: number };
-  }
-> = {
+export type RaceEventSpec = {
+  label: string;
+  distance_km: number;
+  /** Load window in days before the event. */
+  load_days: number;
+  /** g carbs per kg bodyweight per day — midpoint is the default. */
+  carbs_g_per_kg: { min: number; max: number; default: number };
+};
+
+export const RACE_EVENTS: Record<PresetRaceEventType, RaceEventSpec> = {
   ten_mile: {
     label: "10 mile",
     distance_km: 10 * KM_PER_MILE,
@@ -72,6 +72,22 @@ export const RACE_EVENTS: Record<
     carbs_g_per_kg: { min: 10, max: 12, default: 11 },
   },
 };
+
+/**
+ * Load rules for a race. Presets use their own; a custom distance borrows the
+ * longest preset it covers (14 mi → half marathon), never less than 10 mile.
+ */
+export function raceEventSpec(
+  type: RaceEventType,
+  distance_km?: number | null,
+): RaceEventSpec {
+  if (type !== "custom") return RACE_EVENTS[type];
+  const km = distance_km ?? 0;
+  const presets = Object.values(RACE_EVENTS).sort((a, b) => a.distance_km - b.distance_km);
+  // Small tolerance so "13.1" or "26.2" typed in miles still lands on the preset.
+  const rules = presets.filter((e) => e.distance_km <= km + 0.1).pop() ?? presets[0];
+  return { ...rules, label: raceEventLabel("custom", km || null), distance_km: km };
+}
 
 export function runTypeLabel(type: RunType): string {
   switch (type) {
@@ -237,10 +253,11 @@ export type CarbLoadPlan = {
  */
 export function planCarbLoad(input: {
   event_type: RaceEventType;
+  distance_km?: number | null;
   event_date: string;
   designated_on: string;
 }): CarbLoadPlan {
-  const window = RACE_EVENTS[input.event_type].load_days;
+  const window = raceEventSpec(input.event_type, input.distance_km).load_days;
   const lead = daysBetween(input.event_date, input.designated_on);
   if (lead <= 1) {
     return {
@@ -272,6 +289,7 @@ export function planCarbLoad(input: {
 /** Load-day targets: carbs from g/kg × weight; fat drops; protein fixed. */
 export function carbLoadTargets(input: {
   event_type: RaceEventType;
+  distance_km?: number | null;
   weight_kg: number;
   base: { carbs_g: number; fat_g: number };
   carbs_g_per_kg?: number;
@@ -284,7 +302,8 @@ export function carbLoadTargets(input: {
   added_kcal: number;
 } {
   const perKg =
-    input.carbs_g_per_kg ?? RACE_EVENTS[input.event_type].carbs_g_per_kg.default;
+    input.carbs_g_per_kg ??
+    raceEventSpec(input.event_type, input.distance_km).carbs_g_per_kg.default;
   const target_carbs_g = Math.round(perKg * input.weight_kg);
   const target_fat_g = Math.min(input.base.fat_g, LOAD_DAY_FAT_G);
   const added_carbs_g = target_carbs_g - input.base.carbs_g;
@@ -325,6 +344,15 @@ export type RunFuelMeta = {
   carbs_g_per_kg: number | null;
   event_type: RaceEventType | null;
   event_date: string | null;
+  /** Race distance — names custom-distance races. */
+  event_distance_km: number | null;
+};
+
+/** The race a day's adjustment belongs to. */
+export type RaceEventRef = {
+  event_type: RaceEventType | null;
+  event_date: string | null;
+  event_distance_km?: number | null;
 };
 
 /** Run context for a day — null means Mode 1 (nothing planned or run). */
@@ -353,7 +381,7 @@ export function applyRunFuelAdjustment(
     | "load_day_count"
     | "carbs_g_per_kg"
   >,
-  event?: { event_type: RaceEventType | null; event_date: string | null },
+  event?: RaceEventRef,
 ): { targets: MacroTargets; fuel: RunFuelMeta } {
   let targets: MacroTargets;
   if (adjustment.kind === "carb_load" && adjustment.target_carbs_g != null) {
@@ -392,6 +420,7 @@ export function applyRunFuelAdjustment(
       carbs_g_per_kg: adjustment.carbs_g_per_kg,
       event_type: event?.event_type ?? null,
       event_date: event?.event_date ?? null,
+      event_distance_km: event?.event_distance_km ?? null,
     },
   };
 }
@@ -401,7 +430,7 @@ export function withRunDay(
   goals: ComputedNutritionGoals,
   day: {
     adjustment: RunFuelAdjustment | null;
-    event: { event_type: RaceEventType | null; event_date: string | null } | null;
+    event: RaceEventRef | null;
     has_runs: boolean;
     adjustment_removed: boolean;
     unplanned: boolean;
@@ -447,6 +476,8 @@ export function overageLines(
   return out;
 }
 
-export function raceEventLabel(type: RaceEventType): string {
-  return RACE_EVENTS[type].label;
+/** "Half marathon", or "14 mi race" for a custom distance ("Race" without one). */
+export function raceEventLabel(type: RaceEventType, distance_km?: number | null): string {
+  if (type !== "custom") return RACE_EVENTS[type].label;
+  return distance_km ? `${formatDistance(distance_km)} race` : "Race";
 }

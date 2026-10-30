@@ -25,7 +25,9 @@ import {
   planCarbLoad,
   qualifiesForFueling,
   RACE_EVENTS,
+  raceEventSpec,
   type CarbLoadPlan,
+  type RaceEventRef,
   type FuelRun,
 } from "@/lib/run-fuel";
 import { buildCalendarEntries } from "@/lib/run-calendar";
@@ -361,7 +363,7 @@ export const sweepStalePlannedRuns = cache(async function sweepStalePlannedRuns(
 
 export type RunDayState = {
   adjustment: RunFuelAdjustment | null;
-  event: { event_type: RaceEventType | null; event_date: string | null } | null;
+  event: RaceEventRef | null;
   has_runs: boolean;
   adjustment_removed: boolean;
   unplanned: boolean;
@@ -396,15 +398,18 @@ async function readRunDayState(target: string): Promise<RunDayState> {
     actualRunsOn(target),
   ]);
 
-  let event: { event_type: RaceEventType | null; event_date: string | null } | null =
-    null;
+  let event: RaceEventRef | null = null;
   const race =
     (adjustment?.planned_run_id
       ? planned.find((p) => p.id === adjustment.planned_run_id) ??
         (await getPlannedRun(adjustment.planned_run_id))
       : null) ?? planned.find((p) => p.is_race);
   if (race?.is_race) {
-    event = { event_type: race.event_type, event_date: race.event_date ?? race.date };
+    event = {
+      event_type: race.event_type,
+      event_date: race.event_date ?? race.date,
+      event_distance_km: race.planned_distance_km,
+    };
   }
 
   return {
@@ -682,6 +687,7 @@ async function regenerateRaceLoad(
 
   const plan = planCarbLoad({
     event_type: race.event_type,
+    distance_km: race.planned_distance_km,
     event_date: race.event_date,
     designated_on: designatedOn,
   });
@@ -696,6 +702,7 @@ async function regenerateRaceLoad(
     if (!weight) throw new Error("Log a weigh-in first — the carb load is set per kg.");
     const loads = carbLoadTargets({
       event_type: race.event_type,
+      distance_km: race.planned_distance_km,
       weight_kg: lbsToKg(weight.weight_lbs),
       base,
     });
@@ -737,13 +744,19 @@ export async function saveRace(
 ): Promise<{ race: PlannedRun; load: CarbLoadPlan }> {
   const eventDate = normalizeIsoDate(input.event_date);
   if (!eventDate) throw new Error("A valid race date is required");
-  const event = RACE_EVENTS[input.event_type];
-  if (!event) throw new Error("Pick 10 mile, half marathon, or marathon");
+  const customKm = positive(input.planned_distance_km);
+  if (input.event_type === "custom" && customKm == null) {
+    throw new Error("Enter the race distance");
+  }
+  if (input.event_type !== "custom" && !RACE_EVENTS[input.event_type]) {
+    throw new Error("Pick 10 mile, half marathon, marathon, or a custom distance");
+  }
+  const event = raceEventSpec(input.event_type, customKm);
 
   const previous = input.id ? await getPlannedRun(input.id) : null;
   if (input.id && !previous?.is_race) throw new Error("Race not found");
 
-  const distance = positive(input.planned_distance_km) ?? event.distance_km;
+  const distance = customKm ?? event.distance_km;
   let duration = positive(input.planned_duration_min);
   let estimated = false;
   if (duration == null) {

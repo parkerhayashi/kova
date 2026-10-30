@@ -642,7 +642,7 @@ create table if not exists planned_runs (
   planned_distance_km   float,
   planned_duration_min  float,
   duration_estimated    boolean not null default false, -- true when derived from recent easy pace
-  event_type            text check (event_type in ('ten_mile', 'half_marathon', 'marathon')),
+  event_type            text check (event_type in ('ten_mile', 'half_marathon', 'marathon', 'custom')),
   is_race               boolean not null default false,
   event_date            date,
   designated_at         timestamptz,
@@ -669,6 +669,12 @@ create table if not exists actual_runs (
 );
 
 create index if not exists actual_runs_date_idx on actual_runs (date);
+
+-- Custom-distance races (distance lives in planned_distance_km).
+alter table planned_runs drop constraint if exists planned_runs_event_type_check;
+alter table planned_runs
+  add constraint planned_runs_event_type_check
+  check (event_type in ('ten_mile', 'half_marathon', 'marathon', 'custom'));
 
 -- Additive: runs in Oura (Apple Health relays them) are imported too.
 -- Same run from two sources: garmin > manual > oura.

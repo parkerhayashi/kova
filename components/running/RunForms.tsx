@@ -19,10 +19,11 @@ import {
   milesToKm,
   qualifiesForFueling,
   RACE_EVENTS,
+  raceEventSpec,
   RUN_TYPES,
   runTypeLabel,
 } from "@/lib/run-fuel";
-import type { RaceEventType, RunType } from "@/types";
+import type { PresetRaceEventType, RaceEventType, RunType } from "@/types";
 
 /** Run a server action, refresh the route, surface errors inline. */
 export function useRunAction() {
@@ -364,6 +365,7 @@ export function RaceForm({
     id: string;
     event_type: RaceEventType;
     event_date: string;
+    planned_distance_km: number | null;
     planned_duration_min: number | null;
     duration_estimated: boolean;
   };
@@ -374,6 +376,14 @@ export function RaceForm({
     initial?.event_type ?? "ten_mile",
   );
   const [eventDate, setEventDate] = useState(initial?.event_date ?? date);
+  const [customMiles, setCustomMiles] = useState(
+    initial?.event_type === "custom" && initial.planned_distance_km != null
+      ? String(Math.round(kmToMiles(initial.planned_distance_km) * 10) / 10)
+      : "",
+  );
+  const isCustom = eventType === "custom";
+  const customKm = isCustom ? milesToKm(parseNum(customMiles) ?? 0) || null : null;
+  const spec = raceEventSpec(eventType, customKm);
   const [goal, setGoal] = useState(
     initial?.planned_duration_min != null && !initial.duration_estimated
       ? String(Math.round(initial.planned_duration_min))
@@ -388,6 +398,7 @@ export function RaceForm({
           id: initial?.id,
           event_type: eventType,
           event_date: eventDate,
+          planned_distance_km: customKm,
           planned_duration_min: parseNum(goal),
         }),
       (res) => {
@@ -402,19 +413,30 @@ export function RaceForm({
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className={`grid gap-3 ${isCustom ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <Field label="Event">
           <Select
             value={eventType}
             onChange={(e) => setEventType(e.target.value as RaceEventType)}
           >
-            {(Object.keys(RACE_EVENTS) as RaceEventType[]).map((t) => (
+            {(Object.keys(RACE_EVENTS) as PresetRaceEventType[]).map((t) => (
               <option key={t} value={t}>
                 {RACE_EVENTS[t].label}
               </option>
             ))}
+            <option value="custom">Custom distance</option>
           </Select>
         </Field>
+        {isCustom ? (
+          <Field label="Distance (mi)">
+            <Input
+              inputMode="decimal"
+              value={customMiles}
+              onChange={(e) => setCustomMiles(e.target.value)}
+              placeholder="e.g. 14"
+            />
+          </Field>
+        ) : null}
         <Field label="Race date">
           <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
         </Field>
@@ -428,13 +450,18 @@ export function RaceForm({
         </Field>
       </div>
       <p className="text-text-muted text-xs">
-        {RACE_EVENTS[eventType].load_days}-day carb load at{" "}
-        {RACE_EVENTS[eventType].carbs_g_per_kg.min}–{RACE_EVENTS[eventType].carbs_g_per_kg.max} g/kg
-        (default {RACE_EVENTS[eventType].carbs_g_per_kg.default}), from your latest
-        weigh-in. Designate 3+ days out for the full load.
+        {spec.load_days}-day carb load at {spec.carbs_g_per_kg.min}–
+        {spec.carbs_g_per_kg.max} g/kg (default {spec.carbs_g_per_kg.default}), from your
+        latest weigh-in{isCustom ? ", using the rules of the longest standard race it covers" : ""}.
+        Designate 3+ days out for the full load.
       </p>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="primary" disabled={pending || !eventDate} onClick={submit}>
+        <Button
+          type="button"
+          variant="primary"
+          disabled={pending || !eventDate || (isCustom && customKm == null)}
+          onClick={submit}
+        >
           {pending ? "Saving…" : initial ? "Update race" : "Add race"}
         </Button>
         {onDone ? (

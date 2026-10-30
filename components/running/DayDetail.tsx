@@ -343,6 +343,7 @@ export function DayDetail({
               id: race.id,
               event_type: race.event_type,
               event_date: race.event_date ?? race.date,
+              planned_distance_km: race.planned_distance_km,
               planned_duration_min: race.planned_duration_min,
               duration_estimated: race.duration_estimated,
             }}
