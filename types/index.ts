@@ -708,8 +708,22 @@ export interface MidRunIntake {
   label: string;
   carbs_g: number;
   kcal: number;
+  caffeine_mg: number | null;
+  /** The saved product it was logged from (numbers are copied at log time). */
+  product_id: string | null;
   taken_at_min: number | null;
   logged_at: string;
+}
+
+/** A saved gel / chew / drink mix — one tap logs it as a MidRunIntake. */
+export interface FuelProduct {
+  id: string;
+  name: string;
+  carbs_g: number;
+  kcal: number;
+  caffeine_mg: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 /** One run in the training plan queue — type + mileage, no date. */

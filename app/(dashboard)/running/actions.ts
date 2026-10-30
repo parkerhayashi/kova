@@ -5,12 +5,14 @@ import { getBaseNutritionGoals } from "@/lib/data/nutrition";
 import {
   addMidRunIntake,
   deleteActualRun,
+  deleteFuelProduct,
   deleteMidRunIntake,
   deletePlannedRun,
   deleteTrainingPlanRun,
   moveTrainingPlanRun,
   saveActualRun,
   savePlannedRun,
+  saveFuelProduct,
   saveRace,
   saveTrainingPlanRun,
   setPlannedRunStatus,
@@ -21,6 +23,7 @@ import {
   type RaceInput,
 } from "@/lib/data/running";
 import type { LeadTimeStatus } from "@/lib/run-fuel";
+import type { FuelProduct } from "@/types";
 
 function refresh() {
   revalidatePath("/running");
@@ -75,16 +78,23 @@ export async function deleteActualRunAction(id: string): Promise<void> {
   refresh();
 }
 
-export async function addMidRunIntakeAction(input: {
-  date: string;
-  planned_run_id?: string | null;
-  actual_run_id?: string | null;
-  label?: string;
-  carbs_g?: number;
-  kcal?: number;
-  taken_at_min?: number | null;
-}): Promise<void> {
+export async function addMidRunIntakeAction(
+  input: Parameters<typeof addMidRunIntake>[0],
+): Promise<void> {
   await addMidRunIntake(input);
+  refresh();
+}
+
+export async function saveFuelProductAction(
+  input: Parameters<typeof saveFuelProduct>[0],
+): Promise<FuelProduct> {
+  const product = await saveFuelProduct(input);
+  refresh();
+  return product;
+}
+
+export async function deleteFuelProductAction(id: string): Promise<void> {
+  await deleteFuelProduct(id);
   refresh();
 }
 

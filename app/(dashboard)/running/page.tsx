@@ -3,6 +3,7 @@ import { RunningApp } from "@/components/running/RunningApp";
 import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
 import { getTimezone } from "@/lib/data/oura";
 import {
+  getFuelProducts,
   getRecentEasyPace,
   getRunFuelCarbsPerHour,
   getRunningRange,
@@ -27,12 +28,13 @@ export default async function RunningPage({
 
   // Range first: it sweeps stale plans so the day's targets read clean.
   const range = await getRunningRange(start, end);
-  const [goals, totals, pace, rate, plan] = await Promise.all([
+  const [goals, totals, pace, rate, plan, fuelProducts] = await Promise.all([
     getNutritionGoals(selected),
     selected <= today ? getDailyTotals(selected) : Promise.resolve({}),
     getRecentEasyPace(),
     getRunFuelCarbsPerHour(),
     getTrainingPlan(5),
+    getFuelProducts(),
   ]);
 
   return (
@@ -52,6 +54,7 @@ export default async function RunningPage({
         pace={pace}
         carbsPerHour={rate}
         plan={plan}
+        fuelProducts={fuelProducts}
       />
     </div>
   );

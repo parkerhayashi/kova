@@ -36,6 +36,7 @@ const TABLES = [
   "actual_runs",
   "run_fuel_adjustments",
   "mid_run_intakes",
+  "fuel_products",
   "calendar_runs",
   "training_plan_runs",
   "dismissed_run_imports",

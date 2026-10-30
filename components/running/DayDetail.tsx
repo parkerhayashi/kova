@@ -31,6 +31,7 @@ import {
 import { daysBetween, formatIsoDateLabel } from "@/lib/utils";
 import type {
   ActualRun,
+  FuelProduct,
   MidRunIntake,
   PlannedRun,
   RunFuelAdjustment,
@@ -90,6 +91,7 @@ export function DayDetail({
   goals,
   totals,
   paceMinPerKm,
+  fuelProducts,
 }: {
   date: string;
   today: string;
@@ -101,6 +103,7 @@ export function DayDetail({
   goals: ComputedNutritionGoals;
   totals: DailyTotals;
   paceMinPerKm: number;
+  fuelProducts: FuelProduct[];
 }) {
   const { pending, error, run } = useRunAction();
   const [designating, setDesignating] = useState<
@@ -433,6 +436,7 @@ export function DayDetail({
             <Row key={i.id}>
               <p className="text-sm tabular-nums">
                 {i.label} · {Math.round(i.carbs_g)} g carbs · {Math.round(i.kcal)} kcal
+                {i.caffeine_mg ? ` · ${Math.round(i.caffeine_mg)} mg caffeine` : ""}
                 {i.taken_at_min != null ? ` · min ${Math.round(i.taken_at_min)}` : ""}
               </p>
               <IconButton
@@ -442,7 +446,7 @@ export function DayDetail({
               />
             </Row>
           ))}
-          <MidRunIntakeForm date={date} runRef={fuelRunRef} />
+          <MidRunIntakeForm date={date} runRef={fuelRunRef} products={fuelProducts} />
           <p className="text-text-muted text-xs">
             Counts toward the day&apos;s carbs and calories. It doesn&apos;t change targets.
           </p>

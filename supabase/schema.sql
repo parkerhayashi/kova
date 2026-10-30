@@ -710,6 +710,20 @@ create table if not exists run_fuel_adjustments (
   computed_at           timestamptz default now()
 );
 
+-- fuel_products — Parker's saved gels / chews / drink mixes. Logging one copies
+-- its numbers into mid_run_intakes, so editing a product never rewrites history.
+create table if not exists fuel_products (
+  id                    uuid primary key default gen_random_uuid(),
+  name                  text not null,
+  carbs_g               float not null check (carbs_g >= 0),
+  kcal                  float not null check (kcal >= 0),
+  caffeine_mg           float check (caffeine_mg >= 0),
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create unique index if not exists fuel_products_name_idx on fuel_products (lower(name));
+
 create table if not exists mid_run_intakes (
   id                    uuid primary key default gen_random_uuid(),
   date                  date not null,
@@ -723,6 +737,10 @@ create table if not exists mid_run_intakes (
 );
 
 create index if not exists mid_run_intakes_date_idx on mid_run_intakes (date);
+
+alter table mid_run_intakes
+  add column if not exists product_id uuid references fuel_products (id) on delete set null;
+alter table mid_run_intakes add column if not exists caffeine_mg float;
 
 create table if not exists training_plan_runs (
   id                    uuid primary key default gen_random_uuid(),
@@ -876,6 +894,7 @@ alter table planned_runs      enable row level security;
 alter table actual_runs       enable row level security;
 alter table run_fuel_adjustments enable row level security;
 alter table mid_run_intakes   enable row level security;
+alter table fuel_products     enable row level security;
 alter table calendar_runs     enable row level security;
 alter table training_plan_runs enable row level security;
 alter table dismissed_run_imports enable row level security;

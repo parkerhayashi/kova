@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   addMidRunIntakeAction,
+  deleteFuelProductAction,
   designateRunAction,
   saveActualRunAction,
+  saveFuelProductAction,
   saveRaceAction,
   saveTrainingPlanRunAction,
 } from "@/app/(dashboard)/running/actions";
@@ -23,7 +25,7 @@ import {
   RUN_TYPES,
   runTypeLabel,
 } from "@/lib/run-fuel";
-import type { PresetRaceEventType, RaceEventType, RunType } from "@/types";
+import type { FuelProduct, PresetRaceEventType, RaceEventType, RunType } from "@/types";
 
 /** Run a server action, refresh the route, surface errors inline. */
 export function useRunAction() {
@@ -578,89 +580,280 @@ export function PlanRunForm({
 // Mid-run intake
 // ---------------------------------------------------------------------------
 
+function fuelSummary(f: { carbs_g: number; kcal: number; caffeine_mg: number | null }): string {
+  return [
+    `${Math.round(f.carbs_g)} g carbs`,
+    `${Math.round(f.kcal)} kcal`,
+    f.caffeine_mg ? `${Math.round(f.caffeine_mg)} mg caffeine` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function MidRunIntakeForm({
   date,
   runRef,
+  products,
 }: {
   date: string;
   runRef: { planned_run_id?: string | null; actual_run_id?: string | null };
+  products: FuelProduct[];
 }) {
   const { pending, error, run } = useRunAction();
-  const [custom, setCustom] = useState(false);
-  const [label, setLabel] = useState("Chews");
+  const [panel, setPanel] = useState<"none" | "other" | "manage">("none");
+  const [label, setLabel] = useState("");
   const [carbs, setCarbs] = useState("");
   const [kcal, setKcal] = useState("");
+  const [caffeine, setCaffeine] = useState("");
+  const [saveProduct, setSaveProduct] = useState(true);
   const [minute, setMinute] = useState("");
+
+  const log = (fuel: Omit<Parameters<typeof addMidRunIntakeAction>[0], "date">) =>
+    run(() => addMidRunIntakeAction({ date, ...runRef, ...fuel, taken_at_min: parseNum(minute) }));
+
+  function logOther() {
+    const carbsG = parseNum(carbs) ?? 0;
+    const fuel = {
+      label: label.trim() || "Fuel",
+      carbs_g: carbsG,
+      kcal: parseNum(kcal) ?? Math.round(carbsG * 4),
+      caffeine_mg: parseNum(caffeine),
+    };
+    run(
+      async () => {
+        // Saving first means the log links to the new product.
+        const product =
+          saveProduct && label.trim()
+            ? await saveFuelProductAction({ name: label, ...fuel })
+            : null;
+        await addMidRunIntakeAction({
+          date,
+          ...runRef,
+          ...(product ? { product_id: product.id } : fuel),
+          taken_at_min: parseNum(minute),
+        });
+      },
+      () => {
+        setLabel("");
+        setCarbs("");
+        setKcal("");
+        setCaffeine("");
+        setPanel("none");
+      },
+    );
+  }
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
+        {products.length > 0 ? (
+          products.map((p) => (
+            <Button
+              key={p.id}
+              type="button"
+              variant="solid"
+              disabled={pending}
+              onClick={() => log({ product_id: p.id })}
+            >
+              + {p.name} ({Math.round(p.carbs_g)} g)
+            </Button>
+          ))
+        ) : (
+          <Button
+            type="button"
+            variant="solid"
+            disabled={pending}
+            onClick={() =>
+              log({ label: GEL_DEFAULT.label, carbs_g: GEL_DEFAULT.carbs_g, kcal: GEL_DEFAULT.kcal })
+            }
+          >
+            + Gel ({GEL_DEFAULT.carbs_g} g · {GEL_DEFAULT.kcal} kcal)
+          </Button>
+        )}
         <Button
           type="button"
-          variant="solid"
-          disabled={pending}
-          onClick={() =>
-            run(() =>
-              addMidRunIntakeAction({
-                date,
-                ...runRef,
-                label: GEL_DEFAULT.label,
-                carbs_g: GEL_DEFAULT.carbs_g,
-                kcal: GEL_DEFAULT.kcal,
-                taken_at_min: parseNum(minute),
-              }),
-            )
-          }
+          variant="ghost"
+          onClick={() => setPanel((v) => (v === "other" ? "none" : "other"))}
         >
-          + Gel ({GEL_DEFAULT.carbs_g} g · {GEL_DEFAULT.kcal} kcal)
+          {panel === "other" ? "Hide" : "Other fuel"}
         </Button>
-        <Button type="button" variant="ghost" onClick={() => setCustom((v) => !v)}>
-          {custom ? "Hide custom" : "Other fuel"}
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setPanel((v) => (v === "manage" ? "none" : "manage"))}
+        >
+          {panel === "manage" ? "Done" : "My fuels"}
         </Button>
       </div>
       <Field label="Minutes into run (optional)" className="max-w-[12rem]">
         <Input inputMode="numeric" value={minute} onChange={(e) => setMinute(e.target.value)} />
       </Field>
-      {custom ? (
-        <div className="grid gap-3 sm:grid-cols-4">
-          <Field label="Item">
-            <Input value={label} onChange={(e) => setLabel(e.target.value)} />
-          </Field>
-          <Field label="Carbs (g)">
-            <Input inputMode="decimal" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
-          </Field>
-          <Field label="Calories">
-            <Input inputMode="decimal" value={kcal} onChange={(e) => setKcal(e.target.value)} />
-          </Field>
-          <div className="flex items-end">
+
+      {panel === "other" ? (
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-4">
+            <Field label="Item">
+              <Input
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="e.g. Maurten 100"
+              />
+            </Field>
+            <Field label="Carbs (g)">
+              <Input inputMode="decimal" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
+            </Field>
+            <Field label="Calories">
+              <Input
+                inputMode="decimal"
+                value={kcal}
+                onChange={(e) => setKcal(e.target.value)}
+                placeholder="carbs × 4"
+              />
+            </Field>
+            <Field label="Caffeine (mg)">
+              <Input
+                inputMode="decimal"
+                value={caffeine}
+                onChange={(e) => setCaffeine(e.target.value)}
+                placeholder="optional"
+              />
+            </Field>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
               variant="solid"
-              className="w-full"
               disabled={pending || parseNum(carbs) == null}
-              onClick={() =>
-                run(
-                  () =>
-                    addMidRunIntakeAction({
-                      date,
-                      ...runRef,
-                      label,
-                      carbs_g: parseNum(carbs) ?? 0,
-                      kcal: parseNum(kcal) ?? Math.round((parseNum(carbs) ?? 0) * 4),
-                      taken_at_min: parseNum(minute),
-                    }),
-                  () => {
-                    setCarbs("");
-                    setKcal("");
-                  },
-                )
-              }
+              onClick={logOther}
             >
               Log
             </Button>
+            <label className="text-text-secondary flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={saveProduct}
+                onChange={(e) => setSaveProduct(e.target.checked)}
+                className="accent-white"
+              />
+              Save to my fuels
+            </label>
           </div>
         </div>
       ) : null}
+
+      {panel === "manage" ? <FuelProductManager products={products} /> : null}
+      <FormError error={error} />
+    </div>
+  );
+}
+
+/** Add, edit, and delete saved fuel products. */
+function FuelProductManager({ products }: { products: FuelProduct[] }) {
+  const [editing, setEditing] = useState<string | "new" | null>(null);
+  return (
+    <div className="border-border space-y-2 rounded-lg border p-3">
+      <span className="metric-label">My fuels</span>
+      {products.length === 0 && editing !== "new" ? (
+        <p className="text-text-muted text-xs">
+          Save the gels and chews you use so each is one tap, with its own carbs and caffeine.
+        </p>
+      ) : null}
+      {products.map((p) =>
+        editing === p.id ? (
+          <FuelProductForm key={p.id} initial={p} onDone={() => setEditing(null)} />
+        ) : (
+          <div key={p.id} className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm">{p.name}</p>
+              <p className="text-text-muted text-xs tabular-nums">{fuelSummary(p)}</p>
+            </div>
+            <Button type="button" variant="ghost" onClick={() => setEditing(p.id)}>
+              Edit
+            </Button>
+          </div>
+        ),
+      )}
+      {editing === "new" ? (
+        <FuelProductForm onDone={() => setEditing(null)} />
+      ) : (
+        <Button type="button" variant="ghost" onClick={() => setEditing("new")}>
+          Add product
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function FuelProductForm({ initial, onDone }: { initial?: FuelProduct; onDone: () => void }) {
+  const { pending, error, run } = useRunAction();
+  const [name, setName] = useState(initial?.name ?? "");
+  const [carbs, setCarbs] = useState(initial ? String(initial.carbs_g) : "");
+  const [kcal, setKcal] = useState(initial ? String(initial.kcal) : "");
+  const [caffeine, setCaffeine] = useState(
+    initial?.caffeine_mg != null ? String(initial.caffeine_mg) : "",
+  );
+
+  return (
+    <div className="space-y-2">
+      <div className="grid gap-2 sm:grid-cols-4">
+        <Field label="Name">
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Maurten 100" />
+        </Field>
+        <Field label="Carbs (g)">
+          <Input inputMode="decimal" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
+        </Field>
+        <Field label="Calories">
+          <Input
+            inputMode="decimal"
+            value={kcal}
+            onChange={(e) => setKcal(e.target.value)}
+            placeholder="carbs × 4"
+          />
+        </Field>
+        <Field label="Caffeine (mg)">
+          <Input
+            inputMode="decimal"
+            value={caffeine}
+            onChange={(e) => setCaffeine(e.target.value)}
+            placeholder="optional"
+          />
+        </Field>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="solid"
+          disabled={pending || !name.trim() || parseNum(carbs) == null}
+          onClick={() =>
+            run(
+              () =>
+                saveFuelProductAction({
+                  id: initial?.id,
+                  name,
+                  carbs_g: parseNum(carbs) ?? 0,
+                  kcal: parseNum(kcal),
+                  caffeine_mg: parseNum(caffeine),
+                }),
+              onDone,
+            )
+          }
+        >
+          {pending ? "Saving…" : "Save"}
+        </Button>
+        <Button type="button" variant="ghost" onClick={onDone} disabled={pending}>
+          Cancel
+        </Button>
+        {initial ? (
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => run(() => deleteFuelProductAction(initial.id), onDone)}
+          >
+            Delete
+          </Button>
+        ) : null}
+      </div>
       <FormError error={error} />
     </div>
   );

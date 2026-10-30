@@ -17,7 +17,7 @@ export function museOpenApi() {
       title: "Kova Muse API",
       version: "1.0.0",
       description:
-        "Personal health OS for Parker. Read-only except running writes: replacing the upcoming running plan (PUT /api/muse/running-plan) and logging / undoing manual runs (POST, DELETE /api/muse/runs). Bearer token required on every data path. Never sync or request secrets.",
+        "Personal health OS for Parker. Read-only except running writes: replacing the upcoming running plan (PUT /api/muse/running-plan), logging / undoing manual runs (POST, DELETE /api/muse/runs), and logging / undoing on-run fuel like gels (POST, DELETE /api/muse/run-fuel). Bearer token required on every data path. Never sync or request secrets.",
     },
     servers: [{ url: SERVER_URL }],
     security: bearer,
@@ -221,6 +221,70 @@ export function museOpenApi() {
           },
         },
       },
+      "/api/muse/run-fuel": {
+        get: {
+          operationId: "getRunFuel",
+          summary: "Saved fuel products + fuel logged on a day",
+          description:
+            "Parker's saved gels / chews / drink mixes (name, carbs, calories, caffeine) and the fuel already logged against that day's run. `has_run` is false when there's no run to attach fuel to.",
+          security: bearer,
+          parameters: [
+            {
+              name: "date",
+              in: "query",
+              required: false,
+              schema: { type: "string", format: "date" },
+              description: "Default today. Not in the future.",
+            },
+          ],
+          responses: { "200": { description: "Products and logged fuel" } },
+        },
+        post: {
+          operationId: "logRunFuel",
+          summary: "Log gels / chews taken on a run",
+          description:
+            "Logs fuel against that day's run (logged run first, else the planned run). Name a saved product in `product` to use its carbs, calories and caffeine. For something not saved, send `carbs_g` (and `kcal`, `caffeine_mg` if known). With several saved products and no `product`, returns 400 with the list — ask Parker which. Counts toward the day's intake; never changes targets.",
+          security: bearer,
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    date: { type: "string", format: "date", description: "Default today." },
+                    product: {
+                      type: "string",
+                      description: "Name of a saved product (case-insensitive; a unique partial match works).",
+                    },
+                    count: { type: "integer", minimum: 1, maximum: 10, default: 1 },
+                    carbs_g: { type: "number", minimum: 0, description: "Per item, when not using a saved product." },
+                    kcal: { type: "number", minimum: 0, description: "Per item; defaults to carbs × 4." },
+                    caffeine_mg: { type: "number", minimum: 0 },
+                    label: { type: "string", description: "Name for an unsaved item, e.g. \"Banana\"." },
+                    taken_at_min: { type: "number", minimum: 0, description: "Minutes into the run." },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": { description: "Logged items and the day's fuel totals" },
+            "400": { description: "Invalid payload or ambiguous fuel — nothing was logged" },
+            "404": { description: "Unknown product and no carbs_g given — nothing was logged" },
+            "409": { description: "No run that day — log the run first" },
+          },
+        },
+        delete: {
+          operationId: "deleteRunFuel",
+          summary: "Undo a mistaken fuel log",
+          security: bearer,
+          parameters: [
+            { name: "id", in: "query", required: true, schema: { type: "string", format: "uuid" } },
+          ],
+          responses: { "200": { description: "Deleted" }, "400": { description: "Bad id" } },
+        },
+      },
       "/api/muse/trends": {
         get: {
           operationId: "getTrends",
@@ -257,8 +321,9 @@ export function museConnectorDocs(origin: string): string {
 
 Kova is Parker's personal health OS (Oura, Hevy, nutrition, weight, finances).
 This API is **read-only except running writes**: \`PUT /api/muse/running-plan\`
-replaces the upcoming running plan, and \`POST\` / \`DELETE /api/muse/runs\` log or
-undo a manual run. Do not attempt any other writes, syncs, or login.
+replaces the upcoming running plan, \`POST\` / \`DELETE /api/muse/runs\` log or
+undo a manual run, and \`POST\` / \`DELETE /api/muse/run-fuel\` log or undo gels and
+other on-run fuel. Do not attempt any other writes, syncs, or login.
 
 ## Auth
 
@@ -285,6 +350,9 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 | \`PUT /api/muse/running-plan\` | Replace the upcoming queue: \`{ "runs": [{ "run_type": "easy", "distance_mi": 3, "notes": "…" }] }\` |
 | \`POST /api/muse/runs\` | Log a run Parker did: \`{ "date": "YYYY-MM-DD", "duration_min": 32, "distance_mi": 3.1, "run_type": "easy" }\` (date defaults to today) |
 | \`DELETE /api/muse/runs?id=<run id>\` | Undo a mistaken manual log (ids are in \`logged_runs\`) |
+| \`GET /api/muse/run-fuel?date=YYYY-MM-DD\` | Parker's saved fuel products (carbs / kcal / caffeine) + fuel logged on that day's run |
+| \`POST /api/muse/run-fuel\` | Log fuel on a run: \`{ "product": "Maurten 100", "count": 2 }\`, or \`{ "label": "Banana", "carbs_g": 27 }\` for something unsaved |
+| \`DELETE /api/muse/run-fuel?id=<fuel id>\` | Undo a mistaken fuel log (ids are in \`logged\`) |
 | \`GET /api/muse/trends?range=30\` | Correlations (incl. alcohol → next-day sleep/readiness/HRV/lifting). \`range\` is 7, 30, or 90 |
 | \`GET /api/muse/life?days=30\` | Profile, MFA flag, connection status, Plaid accounts + transactions |
 
@@ -298,6 +366,7 @@ OpenAPI: \`${origin}/api/muse/openapi.json\`
 - If \`reverse.active\` is true, the calorie target is the reverse ramp, not the cut deficit.
 - Running plan: runs are dateless (type + miles). Logging a run completes \`next\` automatically, so after Parker logs runs, re-check the plan and PUT the adjusted queue. The plan never changes nutrition.
 - Logging runs: runs recorded in Apple Health import automatically through Oura (\`source: "oura"\` in \`logged_runs\`), and Garmin runs (\`source: "garmin"\`) will once connected — Garmin replaces any matching log. Check \`logged_runs\` first and only log runs that are missing. Duration is required; ask for it if he didn't say. A 409 means it's already logged — don't force it unless he did two separate runs.
+- Logging fuel: gels differ (carbs, calories, caffeine), so log by \`product\` name from \`GET /api/muse/run-fuel\`. If he names one that isn't saved, ask for its carbs (and caffeine) rather than guessing. Fuel attaches to that day's run, so log the run first if it's missing (409). Use \`count\` for several of the same gel.
 - Never request or echo secrets, tokens, passwords, or TOTP.
 `;
 }

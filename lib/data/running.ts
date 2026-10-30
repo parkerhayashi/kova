@@ -36,6 +36,7 @@ import type {
   ActualRun,
   ActualRunSource,
   CalendarEntry,
+  FuelProduct,
   MidRunIntake,
   PlannedRun,
   PlannedRunStatus,
@@ -496,21 +497,44 @@ export async function getMidRunIntakeByDay(
   return map;
 }
 
-export async function addMidRunIntake(input: {
-  date: string;
-  planned_run_id?: string | null;
-  actual_run_id?: string | null;
-  label?: string;
-  carbs_g?: number;
-  kcal?: number;
-  taken_at_min?: number | null;
-}): Promise<MidRunIntake> {
+export type RunRef = { planned_run_id?: string | null; actual_run_id?: string | null };
+
+/** What a day's fuel attaches to: the actual run once it exists, else the plan. */
+export async function fuelRunRefForDate(date: string): Promise<RunRef | null> {
+  const target = day(date);
+  const [planned, actual] = await Promise.all([plannedRunsOn(target), actualRunsOn(target)]);
+  if (actual[0]) {
+    return { actual_run_id: actual[0].id, planned_run_id: actual[0].planned_run_id };
+  }
+  const plan = planned.find((p) => p.status !== "skipped");
+  return plan ? { planned_run_id: plan.id } : null;
+}
+
+/**
+ * Log on-run fuel. With `product_id` the saved product's numbers are copied;
+ * otherwise label / carbs / kcal are taken as given (default: a generic gel).
+ */
+export async function addMidRunIntake(
+  input: RunRef & {
+    date: string;
+    product_id?: string | null;
+    label?: string;
+    carbs_g?: number;
+    kcal?: number;
+    caffeine_mg?: number | null;
+    taken_at_min?: number | null;
+  },
+): Promise<MidRunIntake> {
   if (!input.planned_run_id && !input.actual_run_id) {
     throw new Error("Log fuel against a planned or actual run.");
   }
-  const carbs = input.carbs_g ?? GEL_DEFAULT.carbs_g;
-  const kcal = input.kcal ?? GEL_DEFAULT.kcal;
+  const product = input.product_id ? await getFuelProduct(input.product_id) : null;
+  if (input.product_id && !product) throw new Error("Fuel product not found");
+  const carbs = product?.carbs_g ?? input.carbs_g ?? GEL_DEFAULT.carbs_g;
+  const kcal = product?.kcal ?? input.kcal ?? GEL_DEFAULT.kcal;
+  const caffeine = product ? product.caffeine_mg : input.caffeine_mg ?? null;
   if (!(carbs >= 0) || !(kcal >= 0)) throw new Error("Carbs and calories must be ≥ 0");
+  if (caffeine != null && !(caffeine >= 0)) throw new Error("Caffeine must be ≥ 0");
   const db = createServiceClient();
   const { data, error } = await db
     .from("mid_run_intakes")
@@ -518,15 +542,92 @@ export async function addMidRunIntake(input: {
       date: day(input.date),
       planned_run_id: input.planned_run_id ?? null,
       actual_run_id: input.actual_run_id ?? null,
-      label: input.label?.trim() || GEL_DEFAULT.label,
+      product_id: product?.id ?? null,
+      label: product?.name ?? (input.label?.trim() || GEL_DEFAULT.label),
       carbs_g: carbs,
       kcal,
+      caffeine_mg: caffeine,
       taken_at_min: input.taken_at_min ?? null,
     })
     .select("*")
     .single();
   if (error) throw new Error(error.message);
   return withDate(data as MidRunIntake);
+}
+
+// ---------------------------------------------------------------------------
+// Fuel products — saved gels / chews / drink mixes
+// ---------------------------------------------------------------------------
+
+export async function getFuelProducts(): Promise<FuelProduct[]> {
+  const db = createServiceClient();
+  const { data, error } = await db.from("fuel_products").select("*").order("name");
+  // The fuel card still works with the generic gel if the table is missing.
+  if (error) {
+    console.error("[running] fuel products unavailable", error.message);
+    return [];
+  }
+  return (data as FuelProduct[]) ?? [];
+}
+
+async function getFuelProduct(id: string): Promise<FuelProduct | null> {
+  const db = createServiceClient();
+  const { data, error } = await db.from("fuel_products").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as FuelProduct | null) ?? null;
+}
+
+/** Match a product by name: exact (case-insensitive) first, then a unique partial match. */
+export function matchFuelProduct(
+  products: FuelProduct[],
+  query: string,
+): { product: FuelProduct | null; candidates: FuelProduct[] } {
+  const q = query.trim().toLowerCase();
+  const exact = products.find((p) => p.name.toLowerCase() === q);
+  if (exact) return { product: exact, candidates: [exact] };
+  const partial = products.filter(
+    (p) => p.name.toLowerCase().includes(q) || q.includes(p.name.toLowerCase()),
+  );
+  return { product: partial.length === 1 ? partial[0]! : null, candidates: partial };
+}
+
+export async function saveFuelProduct(input: {
+  id?: string;
+  name: string;
+  carbs_g: number;
+  kcal?: number | null;
+  caffeine_mg?: number | null;
+}): Promise<FuelProduct> {
+  const name = input.name.trim().slice(0, 60);
+  if (!name) throw new Error("Give the product a name");
+  if (!(input.carbs_g >= 0)) throw new Error("Carbs must be ≥ 0");
+  const kcal = input.kcal ?? Math.round(input.carbs_g * 4);
+  if (!(kcal >= 0)) throw new Error("Calories must be ≥ 0");
+  if (input.caffeine_mg != null && !(input.caffeine_mg >= 0)) {
+    throw new Error("Caffeine must be ≥ 0");
+  }
+  const row = {
+    name,
+    carbs_g: input.carbs_g,
+    kcal,
+    caffeine_mg: input.caffeine_mg ?? null,
+    updated_at: new Date().toISOString(),
+  };
+  const db = createServiceClient();
+  const { data, error } = input.id
+    ? await db.from("fuel_products").update(row).eq("id", input.id).select("*").single()
+    : await db.from("fuel_products").insert(row).select("*").single();
+  if (error) {
+    throw new Error(error.code === "23505" ? `You already have a product named "${name}"` : error.message);
+  }
+  return data as FuelProduct;
+}
+
+/** Past logs keep their copied numbers; only the link is cleared. */
+export async function deleteFuelProduct(id: string): Promise<void> {
+  const db = createServiceClient();
+  const { error } = await db.from("fuel_products").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function deleteMidRunIntake(id: string): Promise<void> {
