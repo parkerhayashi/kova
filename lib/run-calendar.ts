@@ -4,7 +4,7 @@
  * dateless queue and never appears here; see `training_plan_runs`.
  */
 import { addDays } from "@/lib/utils";
-import { raceEventLabel, runTypeLabel } from "@/lib/run-fuel";
+import { raceTitle, runTypeLabel } from "@/lib/run-fuel";
 import type {
   ActualRun,
   CalendarEntry,
@@ -47,8 +47,8 @@ export function buildCalendarEntries(input: {
       planned_run_id: plan.id,
       actual_run_id: actualByPlan.get(plan.id) ?? null,
       label:
-        plan.is_race && plan.event_type
-          ? raceEventLabel(plan.event_type, plan.planned_distance_km)
+        plan.is_race
+          ? raceTitle(plan, plan.planned_distance_km)
           : `${runTypeLabel(plan.run_type)} run`,
     });
   }

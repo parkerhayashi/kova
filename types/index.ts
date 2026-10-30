@@ -656,6 +656,8 @@ export interface PlannedRun {
   duration_estimated: boolean;
   event_type: RaceEventType | null;
   is_race: boolean;
+  /** Optional race title ("Shamrock Half"); falls back to the event label. */
+  race_name: string | null;
   event_date: string | null;
   designated_at: string | null;
   status: PlannedRunStatus;

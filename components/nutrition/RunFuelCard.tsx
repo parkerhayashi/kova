@@ -5,7 +5,7 @@ import {
   formatGelRange,
   formatRunDuration,
   overageLines,
-  raceEventLabel,
+  raceTitle,
   suggestedGels,
   type MacroTargets,
   type RunDayMeta,
@@ -78,7 +78,7 @@ export function RunFuelCard({
             {fmt(targets.fat_g)} g · Protein {fmt(targets.protein_g)} g
           </p>
           <p className="text-text-muted text-xs">
-            {fuel.event_type ? raceEventLabel(fuel.event_type, fuel.event_distance_km) : "Race"}
+            {raceTitle({ race_name: fuel.event_name, event_type: fuel.event_type }, fuel.event_distance_km)}
             {fuel.event_date ? ` on ${formatIsoDateLabel(fuel.event_date)}` : ""}.
             The calorie rise is intentional. It isn&apos;t an overage, and load days
             are exempt from the cut deficit and the adaptive TDEE review.

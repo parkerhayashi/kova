@@ -7,6 +7,7 @@ import {
   formatDistance,
   formatRunDuration,
   raceEventLabel,
+  raceTitle,
   runTypeLabel,
 } from "@/lib/run-fuel";
 import type { UpcomingRace } from "@/lib/data/running";
@@ -69,8 +70,8 @@ function runningCard(data: HealthSnapshotData): { value: string | null; caption:
   }
   if (today_planned) {
     const fuel = data.nutrition.runFuel;
-    const what = today_planned.is_race && today_planned.event_type
-      ? raceEventLabel(today_planned.event_type)
+    const what = today_planned.is_race
+      ? raceTitle(today_planned)
       : runTypeLabel(today_planned.run_type);
     return {
       value:
@@ -102,7 +103,9 @@ function runningCard(data: HealthSnapshotData): { value: string | null; caption:
  * load day, race day) — when set, the card moves to the top of Home.
  */
 function raceCard(race: UpcomingRace, today: string) {
-  const name = race.event_type ? raceEventLabel(race.event_type, race.distance_km) : "Race";
+  const kind = race.event_type ? raceEventLabel(race.event_type, race.distance_km) : "Race";
+  // A titled race shows its name, with the event ("14.2 mi race") in the caption.
+  const name = race.name?.trim() || kind;
   const fmt = (iso: string) => formatIsoDateLabel(iso);
   const carbs = race.load_carbs_g != null ? ` · ${Math.round(race.load_carbs_g)} g carbs` : "";
   let alert: string | null = null;
@@ -127,7 +130,7 @@ function raceCard(race: UpcomingRace, today: string) {
 
   return {
     name,
-    dateLabel: fmt(race.date),
+    dateLabel: name === kind ? fmt(race.date) : `${kind} · ${fmt(race.date)}`,
     value: race.days_until === 0 ? "Today" : race.days_until === 1 ? "Tomorrow" : String(race.days_until),
     unit: race.days_until > 1 ? "days" : null,
     alert,

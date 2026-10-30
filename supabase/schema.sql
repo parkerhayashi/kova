@@ -644,6 +644,7 @@ create table if not exists planned_runs (
   duration_estimated    boolean not null default false, -- true when derived from recent easy pace
   event_type            text check (event_type in ('ten_mile', 'half_marathon', 'marathon', 'custom')),
   is_race               boolean not null default false,
+  race_name             text,              -- optional title, e.g. "Shamrock Half"
   event_date            date,
   designated_at         timestamptz,
   status                text not null default 'planned'
@@ -653,6 +654,8 @@ create table if not exists planned_runs (
 );
 
 create index if not exists planned_runs_date_idx on planned_runs (date);
+
+alter table planned_runs add column if not exists race_name text;
 
 create table if not exists actual_runs (
   id                    uuid primary key default gen_random_uuid(),

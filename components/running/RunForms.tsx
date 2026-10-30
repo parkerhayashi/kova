@@ -364,6 +364,7 @@ export function RaceForm({
   initial?: {
     id: string;
     event_type: RaceEventType;
+    race_name: string | null;
     event_date: string;
     planned_distance_km: number | null;
     planned_duration_min: number | null;
@@ -376,6 +377,7 @@ export function RaceForm({
     initial?.event_type ?? "ten_mile",
   );
   const [eventDate, setEventDate] = useState(initial?.event_date ?? date);
+  const [name, setName] = useState(initial?.race_name ?? "");
   const [customMiles, setCustomMiles] = useState(
     initial?.event_type === "custom" && initial.planned_distance_km != null
       ? String(Math.round(kmToMiles(initial.planned_distance_km) * 10) / 10)
@@ -397,6 +399,7 @@ export function RaceForm({
         saveRaceAction({
           id: initial?.id,
           event_type: eventType,
+          race_name: name.trim() || null,
           event_date: eventDate,
           planned_distance_km: customKm,
           planned_duration_min: parseNum(goal),
@@ -413,6 +416,14 @@ export function RaceForm({
 
   return (
     <div className="space-y-3">
+      <Field label="Race name (optional)">
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={80}
+          placeholder="e.g. Shamrock Half"
+        />
+      </Field>
       <div className={`grid gap-3 ${isCustom ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
         <Field label="Event">
           <Select

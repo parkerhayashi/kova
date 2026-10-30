@@ -409,6 +409,7 @@ async function readRunDayState(target: string): Promise<RunDayState> {
       event_type: race.event_type,
       event_date: race.event_date ?? race.date,
       event_distance_km: race.planned_distance_km,
+      event_name: race.race_name,
     };
   }
 
@@ -573,6 +574,7 @@ export async function savePlannedRun(
     planned_duration_min: duration,
     duration_estimated: estimated,
     event_type: null,
+    race_name: null,
     is_race: false,
     event_date: null,
     status: previous?.status === "completed" ? "completed" : "planned",
@@ -635,6 +637,7 @@ function positive(value: number | null | undefined): number | null {
 export type RaceInput = {
   id?: string;
   event_type: RaceEventType;
+  race_name?: string | null;
   event_date: string;
   planned_distance_km?: number | null;
   planned_duration_min?: number | null;
@@ -781,6 +784,7 @@ export async function saveRace(
     planned_duration_min: duration,
     duration_estimated: estimated,
     event_type: input.event_type,
+    race_name: input.race_name?.trim().slice(0, 80) || null,
     is_race: true,
     event_date: eventDate,
     designated_at,
@@ -1370,7 +1374,7 @@ export type RunningSnapshot = {
   /** Today's planned run or race that isn't done yet. */
   today_planned: Pick<
     PlannedRun,
-    "run_type" | "planned_distance_km" | "planned_duration_min" | "is_race" | "event_type"
+    "run_type" | "planned_distance_km" | "planned_duration_min" | "is_race" | "event_type" | "race_name"
   > | null;
   next: TrainingPlanRun | null;
   /** The next race within RACE_HORIZON_DAYS, with its carb-load window. */
@@ -1383,6 +1387,7 @@ const RACE_HORIZON_DAYS = 365;
 export type UpcomingRace = {
   id: string;
   date: string;
+  name: string | null;
   event_type: RaceEventType | null;
   distance_km: number | null;
   days_until: number;
@@ -1422,6 +1427,7 @@ async function getUpcomingRace(date: string): Promise<UpcomingRace | null> {
   return {
     id: race.id,
     date: raceDate,
+    name: race.race_name,
     event_type: race.event_type,
     distance_km: race.planned_distance_km,
     days_until: daysBetween(raceDate, date),

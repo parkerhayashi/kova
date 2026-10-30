@@ -25,7 +25,7 @@ import {
   formatDistance,
   formatRunDuration,
   qualifiesForFueling,
-  raceEventLabel,
+  raceTitle,
   runTypeLabel,
 } from "@/lib/run-fuel";
 import { daysBetween, formatIsoDateLabel } from "@/lib/utils";
@@ -309,7 +309,7 @@ export function DayDetail({
             <Row>
               <div>
                 <p className="text-sm font-semibold">
-                  {race.event_type ? raceEventLabel(race.event_type) : "Race"} ·{" "}
+                  {raceTitle(race)} ·{" "}
                   {runSummary(race)}
                   {race.duration_estimated ? " (est.)" : ""}
                 </p>
@@ -342,6 +342,7 @@ export function DayDetail({
             initial={{
               id: race.id,
               event_type: race.event_type,
+              race_name: race.race_name,
               event_date: race.event_date ?? race.date,
               planned_distance_km: race.planned_distance_km,
               planned_duration_min: race.planned_duration_min,
@@ -374,7 +375,7 @@ export function DayDetail({
                   .filter((p) => p.id === a.planned_run_id || !linkedActual.has(p.id))
                   .map((p) => ({
                     id: p.id,
-                    label: `${p.is_race && p.event_type ? raceEventLabel(p.event_type) : runTypeLabel(p.run_type)} · ${runSummary(p)}`,
+                    label: `${p.is_race ? raceTitle(p) : runTypeLabel(p.run_type)} · ${runSummary(p)}`,
                   }))}
                 onDone={() => setEditingActual(null)}
               />
@@ -412,7 +413,7 @@ export function DayDetail({
               date={date}
               plannedOptions={openPlans.map((p) => ({
                 id: p.id,
-                label: `${p.is_race && p.event_type ? raceEventLabel(p.event_type) : runTypeLabel(p.run_type)} · ${runSummary(p)}`,
+                label: `${p.is_race ? raceTitle(p) : runTypeLabel(p.run_type)} · ${runSummary(p)}`,
               }))}
             />
           ) : null}

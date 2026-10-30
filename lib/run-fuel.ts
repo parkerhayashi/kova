@@ -346,6 +346,7 @@ export type RunFuelMeta = {
   event_date: string | null;
   /** Race distance — names custom-distance races. */
   event_distance_km: number | null;
+  event_name: string | null;
 };
 
 /** The race a day's adjustment belongs to. */
@@ -353,6 +354,7 @@ export type RaceEventRef = {
   event_type: RaceEventType | null;
   event_date: string | null;
   event_distance_km?: number | null;
+  event_name?: string | null;
 };
 
 /** Run context for a day — null means Mode 1 (nothing planned or run). */
@@ -421,6 +423,7 @@ export function applyRunFuelAdjustment(
       event_type: event?.event_type ?? null,
       event_date: event?.event_date ?? null,
       event_distance_km: event?.event_distance_km ?? null,
+      event_name: event?.event_name ?? null,
     },
   };
 }
@@ -474,6 +477,16 @@ export function overageLines(
   check("Fat", totals.fat_g, targets.fat_g, " g");
   check("Protein", totals.protein_g, targets.protein_g, " g");
   return out;
+}
+
+/** A race's display name: its title when set, else the event label. */
+export function raceTitle(
+  race: { race_name?: string | null; event_type: RaceEventType | null },
+  distance_km?: number | null,
+): string {
+  const name = race.race_name?.trim();
+  if (name) return name;
+  return race.event_type ? raceEventLabel(race.event_type, distance_km) : "Race";
 }
 
 /** "Half marathon", or "14 mi race" for a custom distance ("Race" without one). */
