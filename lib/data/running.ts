@@ -42,6 +42,8 @@ import type {
   PlannedRunStatus,
   RaceEventType,
   RunFuelAdjustment,
+  RunLap,
+  RunStreamPoints,
   RunType,
   TrainingPlanRun,
 } from "@/types";
@@ -1045,6 +1047,17 @@ export type IncomingRun = {
   duration_min: number;
   distance_km?: number | null;
   run_type?: RunType | null;
+  /** Garmin only: summary metrics, plus laps / trace from the .FIT file. */
+  detail?: IncomingRunDetail;
+};
+
+export type IncomingRunDetail = Pick<
+  ActualRun,
+  "avg_hr" | "max_hr" | "elevation_gain_m" | "avg_cadence_spm" | "calories" | "metrics"
+> & {
+  /** Omitted when the .FIT file wasn't fetched this sync — stored laps stay. */
+  laps?: Omit<RunLap, "id" | "actual_run_id">[];
+  stream?: RunStreamPoints | null;
 };
 
 /**
@@ -1128,6 +1141,7 @@ export async function ingestActualRuns(
       continue;
     }
 
+    const detail = incoming.detail;
     const fields = {
       date,
       started_at: incoming.started_at ?? null,
@@ -1135,6 +1149,16 @@ export async function ingestActualRuns(
       actual_distance_km: positive(incoming.distance_km),
       source,
       external_id: incoming.external_id,
+      ...(detail
+        ? {
+            avg_hr: detail.avg_hr,
+            max_hr: detail.max_hr,
+            elevation_gain_m: detail.elevation_gain_m,
+            avg_cadence_spm: detail.avg_cadence_spm,
+            calories: detail.calories,
+            metrics: detail.metrics,
+          }
+        : {}),
       updated_at: new Date().toISOString(),
     };
 
@@ -1155,6 +1179,7 @@ export async function ingestActualRuns(
         .update({ ...fields, run_type: incoming.run_type ?? prev.run_type ?? null })
         .eq("id", prev.id);
       if (error) throw new Error(error.message);
+      if (detail) await saveRunExtras(prev.id, detail);
       updated++;
       if (day(prev.date) !== date) touched.add(day(prev.date));
       touched.add(date);
@@ -1175,6 +1200,7 @@ export async function ingestActualRuns(
         .update({ ...fields, run_type: incoming.run_type ?? overlap.run_type ?? null })
         .eq("id", overlap.id);
       if (error) throw new Error(error.message);
+      if (detail) await saveRunExtras(overlap.id, detail);
       updated++;
       touched.add(date);
       continue;
@@ -1187,14 +1213,77 @@ export async function ingestActualRuns(
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    const createdId = (created as { id: string }).id;
+    if (detail) await saveRunExtras(createdId, detail);
     await markCompleted(match?.id ?? null);
-    await completeNextPlanRun((created as { id: string }).id, date);
+    await completeNextPlanRun(createdId, date);
     inserted++;
     touched.add(date);
   }
 
   for (const date of touched) await recomputeDay(date);
   return { inserted, updated, skipped };
+}
+
+/** Replace a run's laps and trace when the sync brought them. */
+async function saveRunExtras(runId: string, detail: IncomingRunDetail): Promise<void> {
+  const db = createServiceClient();
+  if (detail.laps) {
+    const { error: delError } = await db.from("run_laps").delete().eq("actual_run_id", runId);
+    if (delError) throw new Error(delError.message);
+    if (detail.laps.length > 0) {
+      const { error } = await db
+        .from("run_laps")
+        .insert(detail.laps.map((lap) => ({ ...lap, actual_run_id: runId })));
+      if (error) throw new Error(error.message);
+    }
+  }
+  if (detail.stream) {
+    const { error } = await db
+      .from("run_streams")
+      .upsert({ actual_run_id: runId, points: detail.stream }, { onConflict: "actual_run_id" });
+    if (error) throw new Error(error.message);
+  }
+}
+
+/** External ids (of `ids`) whose run already has laps stored — no need to re-fetch the .FIT. */
+export async function externalIdsWithLaps(ids: string[]): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("actual_runs")
+    .select("external_id, run_laps(count)")
+    .in("external_id", ids);
+  if (error) throw new Error(error.message);
+  return new Set(
+    ((data as { external_id: string; run_laps: { count: number }[] }[]) ?? [])
+      .filter((r) => (r.run_laps[0]?.count ?? 0) > 0)
+      .map((r) => r.external_id),
+  );
+}
+
+/** Laps and trace for the given runs (the Running day view's detail panel). */
+export async function getRunExtras(
+  runIds: string[],
+): Promise<Record<string, { laps: RunLap[]; stream: RunStreamPoints | null }>> {
+  const out: Record<string, { laps: RunLap[]; stream: RunStreamPoints | null }> = {};
+  if (runIds.length === 0) return out;
+  for (const id of runIds) out[id] = { laps: [], stream: null };
+  const db = createServiceClient();
+  const [laps, streams] = await Promise.all([
+    db.from("run_laps").select("*").in("actual_run_id", runIds).order("lap_index"),
+    db.from("run_streams").select("actual_run_id, points").in("actual_run_id", runIds),
+  ]);
+  // Detail is extra — the day view still renders if these tables are unavailable.
+  if (laps.error || streams.error) {
+    console.error("[running] run detail unavailable", laps.error?.message ?? streams.error?.message);
+    return out;
+  }
+  for (const lap of (laps.data as RunLap[]) ?? []) out[lap.actual_run_id]?.laps.push(lap);
+  for (const row of (streams.data as { actual_run_id: string; points: RunStreamPoints }[]) ?? []) {
+    if (out[row.actual_run_id]) out[row.actual_run_id]!.stream = row.points;
+  }
+  return out;
 }
 
 /** Oura activity labels that count as runs. */
@@ -1471,7 +1560,13 @@ export async function getActualRun(id: string): Promise<ActualRun | null> {
 /** What Home's Running card needs: today's run (done or planned) and the next plan run. */
 export type RunningSnapshot = {
   /** Runs logged today, summed (null when none). */
-  today_done: { distance_km: number | null; duration_min: number; source: ActualRunSource } | null;
+  today_done: {
+    distance_km: number | null;
+    duration_min: number;
+    source: ActualRunSource;
+    /** Average heart rate when a Garmin run reported one. */
+    avg_hr: number | null;
+  } | null;
   /** Today's planned run or race that isn't done yet. */
   today_planned: Pick<
     PlannedRun,
@@ -1557,6 +1652,7 @@ export const getRunningSnapshot = cache(async function getRunningSnapshot(
           distance_km: distance > 0 ? distance : null,
           duration_min: actual.reduce((sum, a) => sum + a.actual_duration_min, 0),
           source: actual[0]!.source,
+          avg_hr: actual.find((a) => a.avg_hr != null)?.avg_hr ?? null,
         }
       : null,
     today_planned: open,

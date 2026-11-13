@@ -2,13 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { clampDays, isMuseAuthorized, museJson, museUnauthorized } from "@/lib/muse/auth";
 import {
   getRecentActualRuns,
+  getRunExtras,
   getTrainingPlan,
   replaceUpcomingPlan,
   type PlanRunInput,
   type TrainingPlanView,
 } from "@/lib/data/running";
-import { kmToMiles, milesToKm } from "@/lib/run-fuel";
-import type { ActualRun, TrainingPlanRun } from "@/types";
+import { formatPace, kmToMiles, milesToKm, runPaceMinPerKm } from "@/lib/run-fuel";
+import type { ActualRun, RunLap, TrainingPlanRun } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -26,14 +27,38 @@ function planRunOut(run: TrainingPlanRun) {
   };
 }
 
-function actualOut(run: ActualRun) {
+const M_TO_FT = 3.28084;
+
+function lapOut(lap: RunLap) {
+  return {
+    lap: lap.lap_index,
+    distance_mi: round1(lap.distance_km != null ? kmToMiles(lap.distance_km) : null),
+    duration_min: lap.duration_min,
+    pace: lap.duration_min != null && lap.distance_km ? formatPace(lap.duration_min / lap.distance_km) : null,
+    avg_hr: lap.avg_hr,
+    avg_cadence_spm: lap.avg_cadence_spm,
+    elevation_gain_ft: lap.elevation_gain_m != null ? Math.round(lap.elevation_gain_m * M_TO_FT) : null,
+  };
+}
+
+function actualOut(run: ActualRun, laps: RunLap[] = []) {
+  const pace = runPaceMinPerKm(run);
   return {
     id: run.id,
     date: run.date,
     run_type: run.run_type,
     distance_mi: round1(run.actual_distance_km != null ? kmToMiles(run.actual_distance_km) : null),
     duration_min: run.actual_duration_min,
+    pace: pace != null ? formatPace(pace) : null,
     source: run.source,
+    // Garmin runs only (null otherwise).
+    avg_hr: run.avg_hr,
+    max_hr: run.max_hr,
+    elevation_gain_ft: run.elevation_gain_m != null ? Math.round(run.elevation_gain_m * M_TO_FT) : null,
+    avg_cadence_spm: run.avg_cadence_spm,
+    calories: run.calories,
+    garmin_metrics: run.metrics,
+    laps: laps.length ? laps.map(lapOut) : undefined,
   };
 }
 
@@ -50,7 +75,11 @@ export async function GET(request: NextRequest) {
   const days = clampDays(request.nextUrl.searchParams.get("days"), 30, 120);
   return museJson(request, async () => {
     const [plan, logged] = await Promise.all([getTrainingPlan(20), getRecentActualRuns(days)]);
-    return { ...planOut(plan), logged_runs: logged.map(actualOut) };
+    const extras = await getRunExtras(logged.filter((r) => r.source === "garmin").map((r) => r.id));
+    return {
+      ...planOut(plan),
+      logged_runs: logged.map((r) => actualOut(r, extras[r.id]?.laps)),
+    };
   });
 }
 

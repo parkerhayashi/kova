@@ -675,8 +675,80 @@ export interface ActualRun {
   started_at: string | null;
   source: ActualRunSource;
   external_id: string | null;
+  /** Garmin detail — null for manual and Apple Health runs. */
+  avg_hr: number | null;
+  max_hr: number | null;
+  elevation_gain_m: number | null;
+  avg_cadence_spm: number | null;
+  calories: number | null;
+  metrics: RunMetrics | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Everything else Garmin reports for a run (actual_runs.metrics jsonb). */
+export interface RunMetrics {
+  activity_name?: string | null;
+  activity_type?: string | null;
+  moving_duration_min?: number | null;
+  elapsed_duration_min?: number | null;
+  elevation_loss_m?: number | null;
+  min_elevation_m?: number | null;
+  max_elevation_m?: number | null;
+  max_cadence_spm?: number | null;
+  avg_speed_mps?: number | null;
+  max_speed_mps?: number | null;
+  /** Grade-adjusted speed — pace as if the course were flat. */
+  avg_grade_adjusted_speed_mps?: number | null;
+  avg_power_w?: number | null;
+  max_power_w?: number | null;
+  aerobic_te?: number | null;
+  anaerobic_te?: number | null;
+  te_label?: string | null;
+  training_load?: number | null;
+  vo2max?: number | null;
+  /** Minutes in Garmin heart-rate zones 1–5. */
+  hr_zone_min?: number[] | null;
+  avg_stride_m?: number | null;
+  avg_ground_contact_ms?: number | null;
+  avg_vertical_oscillation_cm?: number | null;
+  avg_vertical_ratio?: number | null;
+  avg_respiration?: number | null;
+  steps?: number | null;
+  body_battery_delta?: number | null;
+  moderate_intensity_min?: number | null;
+  vigorous_intensity_min?: number | null;
+  /** Fastest efforts within the run, minutes. */
+  fastest_1k_min?: number | null;
+  fastest_mile_min?: number | null;
+  fastest_5k_min?: number | null;
+  fastest_10k_min?: number | null;
+  is_pr?: boolean | null;
+}
+
+/** One lap / split of a Garmin run. */
+export interface RunLap {
+  id: string;
+  actual_run_id: string;
+  lap_index: number;
+  distance_km: number | null;
+  duration_min: number | null;
+  avg_hr: number | null;
+  max_hr: number | null;
+  avg_cadence_spm: number | null;
+  elevation_gain_m: number | null;
+  elevation_loss_m: number | null;
+  avg_power_w: number | null;
+}
+
+/** Down-sampled trace for the run chart (parallel arrays). */
+export interface RunStreamPoints {
+  /** Seconds from the start. */
+  t: number[];
+  hr: (number | null)[];
+  speed: (number | null)[];
+  alt: (number | null)[];
+  dist: (number | null)[];
 }
 
 /** One per day, recomputed by the app — never hand-edited. */

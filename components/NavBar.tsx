@@ -16,6 +16,7 @@ import {
   Moon,
   Pill,
   Scale,
+  Plug,
   Shield,
   TrendingUp,
   User,
@@ -284,6 +285,12 @@ export function NavBar() {
             icon={Shield}
             active={pathname.startsWith("/settings/security")}
           />
+          <NavLink
+            href="/settings/connections"
+            label="Connections"
+            icon={Plug}
+            active={pathname.startsWith("/settings/connections")}
+          />
           <form action="/api/logout" method="post">
             <button
               type="submit"
@@ -409,6 +416,13 @@ export function NavBar() {
                   label="Security"
                   icon={Shield}
                   active={pathname.startsWith("/settings/security")}
+                  onNavigate={() => setMoreOpen(false)}
+                />
+                <NavLink
+                  href="/settings/connections"
+                  label="Connections"
+                  icon={Plug}
+                  active={pathname.startsWith("/settings/connections")}
                   onNavigate={() => setMoreOpen(false)}
                 />
               </div>

@@ -21,7 +21,13 @@ import {
 } from "@/lib/run-fuel";
 import { monthGridRange, weekStart } from "@/lib/run-calendar";
 import { addDays, cn, formatIsoDateLabel } from "@/lib/utils";
-import type { CalendarEntry, CalendarNutritionStatus, FuelProduct } from "@/types";
+import type {
+  CalendarEntry,
+  CalendarNutritionStatus,
+  FuelProduct,
+  RunLap,
+  RunStreamPoints,
+} from "@/types";
 
 type View = "week" | "month";
 
@@ -56,6 +62,7 @@ export function RunningApp({
   carbsPerHour,
   plan,
   fuelProducts,
+  runExtras,
 }: {
   today: string;
   selected: string;
@@ -67,6 +74,7 @@ export function RunningApp({
   carbsPerHour: number;
   plan: TrainingPlanView;
   fuelProducts: FuelProduct[];
+  runExtras: Record<string, { laps: RunLap[]; stream: RunStreamPoints | null }>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -237,6 +245,7 @@ export function RunningApp({
         totals={totals}
         paceMinPerKm={pace.pace_min_per_km}
         fuelProducts={fuelProducts}
+        runExtras={runExtras}
       />
 
       <FuelSettings carbsPerHour={carbsPerHour} pace={pace} />

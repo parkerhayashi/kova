@@ -68,6 +68,8 @@ export interface RunningTrends {
     avg_pace_min_per_mile: number | null;
     longest_miles: number | null;
     longest_date: string | null;
+    /** Mean of runs' average heart rate (Garmin runs only). */
+    avg_hr: number | null;
   };
   trends: DualTrendView[];
   correlations: CorrelationView[];

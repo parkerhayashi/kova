@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { syncGarmin } from "@/lib/data/garmin";
 import { getBaseNutritionGoals } from "@/lib/data/nutrition";
 import {
   addMidRunIntake,
@@ -128,4 +129,11 @@ export async function setRunFuelRateAction(rate: number): Promise<number> {
   const value = await setRunFuelCarbsPerHour(rate);
   refresh();
   return value;
+}
+
+export async function syncGarminAction(): Promise<{ inserted: number; updated: number; runs_found: number }> {
+  const result = await syncGarmin();
+  refresh();
+  revalidatePath("/settings/connections");
+  return result;
 }

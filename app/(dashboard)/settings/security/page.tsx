@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 const LINKS = [
   { href: "/settings/profile", label: "Profile" },
   { href: "/settings/security", label: "Security" },
+  { href: "/settings/connections", label: "Connections" },
 ] as const;
 
 export default async function SecuritySettingsPage() {

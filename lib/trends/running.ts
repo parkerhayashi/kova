@@ -108,6 +108,30 @@ function paceAndDistance(runs: ActualRun[]): DualTrendView {
   };
 }
 
+/**
+ * Pace and average heart rate per run (Garmin runs). Faster pace at the same
+ * or lower heart rate over weeks is aerobic fitness improving.
+ */
+function paceAndHeartRate(runs: ActualRun[]): DualTrendView {
+  const withHr = runs
+    .filter((r) => r.avg_hr != null && paceMinPerMile(r) != null)
+    .sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? -1 : 1));
+  return {
+    id: "running-pace-hr",
+    title: "Pace & Heart Rate",
+    subtitle:
+      "Each run's pace (min/mi) and average heart rate. Faster pace at the same heart rate means fitter",
+    labels: withHr.map((r) => shortDate(r.date)),
+    primary: withHr.map((r) => Math.round((paceMinPerMile(r) ?? 0) * 100) / 100),
+    secondary: withHr.map((r) => Math.round(r.avg_hr ?? 0)),
+    primaryLabel: "Pace (min/mi)",
+    secondaryLabel: "Avg HR",
+    primaryAccent: "activity",
+    secondaryAccent: "stress",
+    emptyHint: "Garmin runs with heart rate show up here.",
+  };
+}
+
 /** Miles on day D vs readiness the next morning (run days only). */
 function runVsNextReadiness(
   byDay: ReturnType<typeof runsByDay>,
@@ -193,10 +217,15 @@ export function buildRunningTrends(input: {
       longest_miles:
         longest?.actual_distance_km != null ? round1(kmToMiles(longest.actual_distance_km)) : null,
       longest_date: longest?.date ?? null,
+      avg_hr: (() => {
+        const hr = runs.filter((r) => r.avg_hr != null);
+        return hr.length ? Math.round(hr.reduce((s, r) => s + r.avg_hr!, 0) / hr.length) : null;
+      })(),
     },
     trends: [
       mileageVsReadiness(runs, input.readiness, input.range, input.today),
       paceAndDistance(runs),
+      paceAndHeartRate(runs),
     ],
     correlations: [
       runVsNextReadiness(byDay, input.readiness),

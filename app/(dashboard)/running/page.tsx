@@ -1,10 +1,13 @@
+import { after } from "next/server";
 import { PageHeader } from "@/components/PageHeader";
 import { RunningApp } from "@/components/running/RunningApp";
 import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
+import { syncGarminIfStale } from "@/lib/data/garmin";
 import { getTimezone } from "@/lib/data/oura";
 import {
   getFuelProducts,
   getRecentEasyPace,
+  getRunExtras,
   getRunFuelCarbsPerHour,
   getRunningRange,
   getTrainingPlan,
@@ -20,6 +23,7 @@ export default async function RunningPage({
   searchParams: Promise<{ date?: string; view?: string }>;
 }) {
   const { date: dateParam, view: viewParam } = await searchParams;
+  after(syncGarminIfStale);
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
   const selected = normalizeIsoDate(dateParam) ?? today;
@@ -28,13 +32,14 @@ export default async function RunningPage({
 
   // Range first: it sweeps stale plans so the day's targets read clean.
   const range = await getRunningRange(start, end);
-  const [goals, totals, pace, rate, plan, fuelProducts] = await Promise.all([
+  const [goals, totals, pace, rate, plan, fuelProducts, runExtras] = await Promise.all([
     getNutritionGoals(selected),
     selected <= today ? getDailyTotals(selected) : Promise.resolve({}),
     getRecentEasyPace(),
     getRunFuelCarbsPerHour(),
     getTrainingPlan(5),
     getFuelProducts(),
+    getRunExtras(range.actual.filter((a) => a.date === selected).map((a) => a.id)),
   ]);
 
   return (
@@ -55,6 +60,7 @@ export default async function RunningPage({
         carbsPerHour={rate}
         plan={plan}
         fuelProducts={fuelProducts}
+        runExtras={runExtras}
       />
     </div>
   );

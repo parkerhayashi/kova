@@ -86,6 +86,7 @@ export default async function TrendsPage({
               ? formatPace(running.summary.avg_pace_min_per_mile).replace(" /mi", "")
               : "—"}
             unit={running.summary.avg_pace_min_per_mile != null ? "/mi" : undefined}
+            caption={running.summary.avg_hr != null ? `${running.summary.avg_hr} bpm avg` : undefined}
           />
           <RunStat
             label="Longest"

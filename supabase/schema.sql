@@ -466,6 +466,10 @@ alter table user_settings
 alter table user_settings
   add column if not exists hevy_last_synced_at timestamptz;
 
+-- Garmin Personal API (key in GARMIN_API_KEY; pull-only, so Kova polls).
+alter table user_settings add column if not exists garmin_last_synced_at timestamptz;
+alter table user_settings add column if not exists garmin_last_error text;
+
 alter table user_settings
   add column if not exists body_fat_goal_pct float;
 
@@ -685,6 +689,38 @@ alter table actual_runs drop constraint if exists actual_runs_source_check;
 alter table actual_runs
   add constraint actual_runs_source_check check (source in ('garmin', 'manual', 'oura'));
 
+-- Garmin run detail. Null for manual / Apple Health runs. The full metric set
+-- (training effect, zones, VO2 max, running dynamics…) lives in `metrics`.
+alter table actual_runs add column if not exists avg_hr          float;
+alter table actual_runs add column if not exists max_hr          float;
+alter table actual_runs add column if not exists elevation_gain_m float;
+alter table actual_runs add column if not exists avg_cadence_spm float;
+alter table actual_runs add column if not exists calories        float;
+alter table actual_runs add column if not exists metrics         jsonb;
+
+-- Laps / splits from the run's .FIT file (auto-lap is usually every mile).
+create table if not exists run_laps (
+  id                    uuid primary key default gen_random_uuid(),
+  actual_run_id         uuid not null references actual_runs (id) on delete cascade,
+  lap_index             int not null,
+  distance_km           float,
+  duration_min          float,
+  avg_hr                float,
+  max_hr                float,
+  avg_cadence_spm       float,
+  elevation_gain_m      float,
+  elevation_loss_m      float,
+  avg_power_w           float,
+  unique (actual_run_id, lap_index)
+);
+
+-- Down-sampled heart rate / pace / elevation trace for the run chart.
+create table if not exists run_streams (
+  actual_run_id         uuid primary key references actual_runs (id) on delete cascade,
+  points                jsonb not null,    -- { t: s[], hr: bpm[], speed: m/s[], alt: m[], dist: km[] }
+  created_at            timestamptz default now()
+);
+
 -- Imported runs the user deleted — never re-imported on later syncs.
 create table if not exists dismissed_run_imports (
   external_id           text primary key,
@@ -898,3 +934,5 @@ alter table fuel_products     enable row level security;
 alter table calendar_runs     enable row level security;
 alter table training_plan_runs enable row level security;
 alter table dismissed_run_imports enable row level security;
+alter table run_laps          enable row level security;
+alter table run_streams       enable row level security;

@@ -5,6 +5,7 @@ import { OuraRefreshControl } from "@/components/oura/OuraRefreshControl";
 import { getHealthSnapshot, type HealthSnapshotData } from "@/lib/data/health-snapshot";
 import {
   formatDistance,
+  formatPace,
   formatRunDuration,
   raceEventLabel,
   raceTitle,
@@ -59,13 +60,21 @@ function runningCard(data: HealthSnapshotData): { value: string | null; caption:
         today_done.distance_km != null
           ? formatDistance(today_done.distance_km)
           : formatRunDuration(today_done.duration_min),
-      caption: `done today · ${
+      // Quick view: pace and heart rate when known, then the source.
+      caption: [
+        "done today",
+        today_done.distance_km != null
+          ? formatPace(today_done.duration_min / today_done.distance_km)
+          : null,
+        today_done.avg_hr != null ? `${Math.round(today_done.avg_hr)} bpm` : null,
         today_done.source === "garmin"
           ? "Garmin"
           : today_done.source === "oura"
             ? "Apple Health"
-            : "logged"
-      }`,
+            : "logged",
+      ]
+        .filter(Boolean)
+        .join(" · "),
     };
   }
   if (today_planned) {

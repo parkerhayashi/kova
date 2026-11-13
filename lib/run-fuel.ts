@@ -188,10 +188,34 @@ export function formatRunDuration(min: number | null | undefined): string {
 
 export function formatPace(minPerKm: number | null | undefined): string {
   if (minPerKm == null || !Number.isFinite(minPerKm)) return "—";
-  const perMile = minPerKm * KM_PER_MILE;
-  const m = Math.floor(perMile);
-  const s = Math.round((perMile - m) * 60);
-  return `${m}:${String(s === 60 ? 0 : s).padStart(2, "0")}/mi`;
+  const total = Math.round(minPerKm * KM_PER_MILE * 60);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}/mi`;
+}
+
+/** Average pace of a run (min per km), or null without a distance. */
+export function runPaceMinPerKm(run: {
+  actual_duration_min: number;
+  actual_distance_km: number | null;
+}): number | null {
+  return run.actual_distance_km && run.actual_distance_km > 0
+    ? run.actual_duration_min / run.actual_distance_km
+    : null;
+}
+
+/** One-line quick view under a run: pace · avg HR · elevation gain. */
+export function runQuickStats(run: {
+  actual_duration_min: number;
+  actual_distance_km: number | null;
+  avg_hr: number | null;
+  elevation_gain_m: number | null;
+}): string | null {
+  const pace = runPaceMinPerKm(run);
+  const parts = [
+    pace != null ? formatPace(pace) : null,
+    run.avg_hr != null ? `${Math.round(run.avg_hr)} bpm avg` : null,
+    run.elevation_gain_m != null ? `${Math.round(run.elevation_gain_m * 3.28084)} ft gain` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 /** A run that feeds the day's fuel calculation. */

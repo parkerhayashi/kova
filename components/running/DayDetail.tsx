@@ -17,6 +17,7 @@ import {
   RaceForm,
   useRunAction,
 } from "@/components/running/RunForms";
+import { RunDetail } from "@/components/running/RunDetail";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { DailyTotals } from "@/lib/nutrition";
@@ -26,6 +27,7 @@ import {
   formatRunDuration,
   qualifiesForFueling,
   raceTitle,
+  runQuickStats,
   runTypeLabel,
 } from "@/lib/run-fuel";
 import { daysBetween, formatIsoDateLabel } from "@/lib/utils";
@@ -33,6 +35,8 @@ import type {
   ActualRun,
   FuelProduct,
   MidRunIntake,
+  RunLap,
+  RunStreamPoints,
   PlannedRun,
   RunFuelAdjustment,
   RunType,
@@ -92,6 +96,7 @@ export function DayDetail({
   totals,
   paceMinPerKm,
   fuelProducts,
+  runExtras,
 }: {
   date: string;
   today: string;
@@ -104,6 +109,8 @@ export function DayDetail({
   totals: DailyTotals;
   paceMinPerKm: number;
   fuelProducts: FuelProduct[];
+  /** Laps and trace for this day's Garmin runs. */
+  runExtras: Record<string, { laps: RunLap[]; stream: RunStreamPoints | null }>;
 }) {
   const { pending, error, run } = useRunAction();
   const [designating, setDesignating] = useState<
@@ -383,31 +390,41 @@ export function DayDetail({
                 onDone={() => setEditingActual(null)}
               />
             ) : (
-              <Row key={a.id}>
-                <div>
-                  <p className="text-sm font-semibold">
-                    {formatRunDuration(a.actual_duration_min)}
-                    {a.actual_distance_km != null ? ` · ${formatDistance(a.actual_distance_km)}` : ""}
-                    {a.run_type ? ` · ${runTypeLabel(a.run_type)}` : ""}
-                  </p>
-                  <p className="text-text-muted text-xs">
-                    {a.source === "garmin" ? "Garmin" : a.source === "oura" ? "Apple Health" : "Manual"} ·{" "}
-                    {a.planned_run_id ? "reconciled to plan" : "unplanned"}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  {a.source === "manual" ? (
-                    <Button type="button" variant="ghost" onClick={() => setEditingActual(a.id)}>
-                      Edit
-                    </Button>
-                  ) : null}
-                  <IconButton
-                    label="Delete run"
-                    disabled={pending}
-                    onClick={() => run(() => deleteActualRunAction(a.id))}
-                  />
-                </div>
-              </Row>
+              <div key={a.id} className="space-y-2">
+                <Row>
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {formatRunDuration(a.actual_duration_min)}
+                      {a.actual_distance_km != null ? ` · ${formatDistance(a.actual_distance_km)}` : ""}
+                      {a.run_type ? ` · ${runTypeLabel(a.run_type)}` : ""}
+                    </p>
+                    {runQuickStats(a) ? (
+                      <p className="text-text-secondary text-xs tabular-nums">{runQuickStats(a)}</p>
+                    ) : null}
+                    <p className="text-text-muted text-xs">
+                      {a.source === "garmin" ? "Garmin" : a.source === "oura" ? "Apple Health" : "Manual"} ·{" "}
+                      {a.planned_run_id ? "reconciled to plan" : "unplanned"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {a.source === "manual" ? (
+                      <Button type="button" variant="ghost" onClick={() => setEditingActual(a.id)}>
+                        Edit
+                      </Button>
+                    ) : null}
+                    <IconButton
+                      label="Delete run"
+                      disabled={pending}
+                      onClick={() => run(() => deleteActualRunAction(a.id))}
+                    />
+                  </div>
+                </Row>
+                <RunDetail
+                  run={a}
+                  laps={runExtras[a.id]?.laps ?? []}
+                  stream={runExtras[a.id]?.stream ?? null}
+                />
+              </div>
             ),
           )}
           {actual.length === 0 || editingActual == null ? (
@@ -421,8 +438,8 @@ export function DayDetail({
             />
           ) : null}
           <p className="text-text-muted text-xs">
-            Runs recorded in Apple Health come in automatically through Oura, and Garmin will
-            replace them once it&apos;s connected. Log here if one is missing. Deleting an imported
+            Garmin runs come in automatically with heart rate and splits, and replace any Apple
+            Health or manual copy of the same run. Log here if one is missing. Deleting an imported
             run keeps it from coming back.
           </p>
         </Card>
