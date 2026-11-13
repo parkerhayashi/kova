@@ -5,8 +5,9 @@ import { ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { hevyVolumeLbs } from "@/lib/hevy";
 import { hevyWeightToLbs } from "@/lib/lifting-unified";
+import { strengthGarminLine } from "@/lib/training-format";
 import { formatDuration } from "@/lib/utils";
-import type { Workout } from "@/types";
+import type { GarminActivity, Workout } from "@/types";
 
 function formatDay(date: string, timezone: string): string {
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
@@ -32,9 +33,12 @@ function formatSetLabel(
 export function HevyHistory({
   workouts,
   timezone,
+  garmin = {},
 }: {
   workouts: Workout[];
   timezone: string;
+  /** Garmin strength sessions recorded alongside, keyed by workout id. */
+  garmin?: Record<string, GarminActivity>;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -67,6 +71,11 @@ export function HevyHistory({
                     {workout.date ? formatDay(workout.date, timezone) : "—"}
                     {exerciseCount ? ` · ${exerciseCount} exercises` : ""}
                   </p>
+                  {garmin[workout.id] && strengthGarminLine(garmin[workout.id]!) ? (
+                    <p className="text-text-secondary text-xs tabular-nums">
+                      {strengthGarminLine(garmin[workout.id]!)} · Garmin
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-2 text-right text-xs text-text-secondary">
                   <div>

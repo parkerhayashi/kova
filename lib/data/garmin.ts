@@ -1,16 +1,25 @@
 import { cache } from "react";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getTimezone } from "@/lib/data/oura";
-import { externalIdsWithLaps, ingestActualRuns, type IncomingRun } from "@/lib/data/running";
 import {
+  externalIdsWithLaps,
+  ingestActualRuns,
+  recomputeDay,
+  type IncomingRun,
+} from "@/lib/data/running";
+import {
+  activityKind,
   downloadActivityFit,
   GarminAuthError,
   isGarminConfigured,
-  listRunActivities,
-  parseRunFit,
+  listActivities,
+  parseActivityFit,
+  toGarminActivityRow,
   toIncomingRun,
+  type GarminApiActivity,
 } from "@/lib/garmin";
 import { addDays, todayInTimezone } from "@/lib/utils";
+import type { GarminActivity, RunStreamPoints, Workout } from "@/types";
 
 /** First sync (or a manual "sync all") looks back this far. */
 const FIRST_SYNC_DAYS = 30;
@@ -51,11 +60,75 @@ async function recordSync(patch: { garmin_last_synced_at?: string; garmin_last_e
 
 export type GarminSyncResult = {
   runs_found: number;
+  rides_found: number;
+  strength_found: number;
   fit_files: number;
   inserted: number;
   updated: number;
   skipped: number;
 };
+
+/** Download + parse an activity's .FIT; failures are logged and retried next sync. */
+async function fetchFit(activityId: number) {
+  try {
+    return parseActivityFit(await downloadActivityFit(activityId));
+  } catch (err) {
+    if (err instanceof GarminAuthError) throw err;
+    console.error(`[garmin] FIT for ${activityId} failed`, err);
+    return null;
+  }
+}
+
+/**
+ * Upsert rides / strength sessions. A ride's trace is fetched once (its
+ * .FIT file); summary fields refresh every sync. Ride days are re-run
+ * through the fuel calculation — long rides add carbs like long runs.
+ */
+async function syncOtherActivities(activities: GarminApiActivity[]): Promise<number> {
+  if (activities.length === 0) return 0;
+  const db = createServiceClient();
+  const ids = activities.map((a) => `garmin:${a.activityId}`);
+  const { data: existing, error } = await db
+    .from("garmin_activities")
+    .select("external_id, date, has_stream:stream->t")
+    .in("external_id", ids);
+  if (error) throw new Error(error.message);
+  const known = new Map(
+    ((existing as { external_id: string; date: string; has_stream: unknown }[]) ?? []).map((r) => [
+      r.external_id,
+      r,
+    ]),
+  );
+
+  let fitFiles = 0;
+  const touched = new Set<string>();
+  for (const activity of activities) {
+    const sport = activityKind(activity);
+    if (sport !== "cycling" && sport !== "strength") continue;
+    const row = toGarminActivityRow(activity, sport);
+    if (!row) continue;
+    const prev = known.get(row.external_id);
+    let stream: RunStreamPoints | null = null;
+    if (sport === "cycling" && !prev?.has_stream) {
+      const fit = await fetchFit(activity.activityId);
+      if (fit) fitFiles++;
+      stream = fit?.stream ?? null;
+    }
+    const { error: upsertError } = await db
+      .from("garmin_activities")
+      .upsert(
+        { ...row, ...(stream ? { stream } : {}), updated_at: new Date().toISOString() },
+        { onConflict: "external_id" },
+      );
+    if (upsertError) throw new Error(upsertError.message);
+    if (sport === "cycling") {
+      touched.add(row.date);
+      if (prev && prev.date !== row.date) touched.add(prev.date);
+    }
+  }
+  for (const date of touched) await recomputeDay(date);
+  return fitFiles;
+}
 
 /**
  * Pull Garmin runs into actual_runs. Summary metrics refresh on every sync;
@@ -75,30 +148,31 @@ export async function syncGarmin(opts: { days?: number } = {}): Promise<GarminSy
       : addDays(today, -FIRST_SYNC_DAYS);
 
   try {
-    const activities = await listRunActivities(since, today);
-    const haveLaps = await externalIdsWithLaps(activities.map((a) => `garmin:${a.activityId}`));
+    const activities = await listActivities(since, today);
+    const runActivities = activities.filter((a) => activityKind(a) === "run");
+    const others = activities.filter((a) => activityKind(a) !== "run");
+    const haveLaps = await externalIdsWithLaps(runActivities.map((a) => `garmin:${a.activityId}`));
 
     const runs: IncomingRun[] = [];
     let fitFiles = 0;
-    for (const activity of activities) {
-      let fit: ReturnType<typeof parseRunFit> | null = null;
-      if (!haveLaps.has(`garmin:${activity.activityId}`)) {
-        try {
-          fit = parseRunFit(await downloadActivityFit(activity.activityId));
-          fitFiles++;
-        } catch (err) {
-          if (err instanceof GarminAuthError) throw err;
-          // Summary metrics still import; laps are retried next sync.
-          console.error(`[garmin] FIT for ${activity.activityId} failed`, err);
-        }
-      }
+    for (const activity of runActivities) {
+      // Summary metrics always import; laps are fetched once (retried next sync on failure).
+      const fit = haveLaps.has(`garmin:${activity.activityId}`) ? null : await fetchFit(activity.activityId);
+      if (fit) fitFiles++;
       const run = toIncomingRun(activity, fit);
       if (run) runs.push(run);
     }
 
     const result = await ingestActualRuns("garmin", runs);
+    fitFiles += await syncOtherActivities(others);
     await recordSync({ garmin_last_synced_at: new Date().toISOString(), garmin_last_error: null });
-    return { runs_found: activities.length, fit_files: fitFiles, ...result };
+    return {
+      runs_found: runActivities.length,
+      rides_found: others.filter((a) => activityKind(a) === "cycling").length,
+      strength_found: others.filter((a) => activityKind(a) === "strength").length,
+      fit_files: fitFiles,
+      ...result,
+    };
   } catch (err) {
     await recordSync({ garmin_last_error: err instanceof Error ? err.message : "Garmin sync failed" });
     throw err;
@@ -115,4 +189,80 @@ export async function syncGarminIfStale(): Promise<void> {
   } catch (err) {
     console.error("[garmin] background sync failed", err);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Reads: rides and strength sessions
+// ---------------------------------------------------------------------------
+
+/** Rides / strength sessions dated in [start, end] (no trace — see getGarminActivityStreams). */
+export async function getGarminActivitiesBetween(
+  start: string,
+  end: string,
+  sport?: GarminActivity["sport"],
+): Promise<GarminActivity[]> {
+  const db = createServiceClient();
+  let query = db
+    .from("garmin_activities")
+    .select(
+      "id, external_id, sport, activity_type, name, date, started_at, duration_min, distance_km, avg_hr, max_hr, calories, elevation_gain_m, avg_power_w, avg_cadence_rpm, training_load, aerobic_te, anaerobic_te, metrics, created_at, updated_at",
+    )
+    .gte("date", start)
+    .lte("date", end)
+    .order("started_at", { ascending: false });
+  if (sport) query = query.eq("sport", sport);
+  const { data, error } = await query;
+  // Garmin extras are additive — pages still render without them.
+  if (error) {
+    console.error("[garmin] activities unavailable", error.message);
+    return [];
+  }
+  return (data as GarminActivity[]) ?? [];
+}
+
+/** Traces for the given rides, keyed by id. */
+export async function getGarminActivityStreams(ids: string[]): Promise<Record<string, RunStreamPoints>> {
+  if (ids.length === 0) return {};
+  const db = createServiceClient();
+  const { data, error } = await db.from("garmin_activities").select("id, stream").in("id", ids);
+  if (error) {
+    console.error("[garmin] streams unavailable", error.message);
+    return {};
+  }
+  const out: Record<string, RunStreamPoints> = {};
+  for (const row of (data as { id: string; stream: RunStreamPoints | null }[]) ?? []) {
+    if (row.stream) out[row.id] = row.stream;
+  }
+  return out;
+}
+
+/** Overlap tolerance when pairing a Hevy workout with a Garmin strength session. */
+const STRENGTH_MATCH_SLACK_MS = 15 * 60_000;
+
+/**
+ * Pair Hevy workouts with Garmin strength sessions recorded at the same time
+ * (sets come from Hevy, heart rate and training load from Garmin).
+ */
+export function matchStrengthSessions(
+  workouts: Pick<Workout, "id" | "start_time" | "end_time" | "duration">[],
+  sessions: GarminActivity[],
+): Record<string, GarminActivity> {
+  const out: Record<string, GarminActivity> = {};
+  const used = new Set<string>();
+  for (const w of workouts) {
+    if (!w.start_time) continue;
+    const wStart = Date.parse(w.start_time);
+    const wEnd = w.end_time ? Date.parse(w.end_time) : wStart + (w.duration ?? 3600) * 1000;
+    const match = sessions.find((s) => {
+      if (s.sport !== "strength" || !s.started_at || used.has(s.id)) return false;
+      const sStart = Date.parse(s.started_at);
+      const sEnd = sStart + s.duration_min * 60_000;
+      return sStart < wEnd + STRENGTH_MATCH_SLACK_MS && wStart < sEnd + STRENGTH_MATCH_SLACK_MS;
+    });
+    if (match) {
+      used.add(match.id);
+      out[w.id] = match;
+    }
+  }
+  return out;
 }

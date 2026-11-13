@@ -721,6 +721,35 @@ create table if not exists run_streams (
   created_at            timestamptz default now()
 );
 
+-- Garmin rides (indoor + outdoor) and strength sessions. Runs live in
+-- actual_runs; strength sessions are paired with Hevy workouts by time.
+create table if not exists garmin_activities (
+  id                    uuid primary key default gen_random_uuid(),
+  external_id           text unique not null,   -- "garmin:<activityId>"
+  sport                 text not null check (sport in ('cycling', 'strength')),
+  activity_type         text,                   -- Garmin typeKey, e.g. indoor_cycling
+  name                  text,
+  date                  date not null,          -- local start date
+  started_at            timestamptz,
+  duration_min          float not null,
+  distance_km           float,
+  avg_hr                float,
+  max_hr                float,
+  calories              float,
+  elevation_gain_m      float,
+  avg_power_w           float,
+  avg_cadence_rpm       float,
+  training_load         float,
+  aerobic_te            float,
+  anaerobic_te          float,
+  metrics               jsonb,
+  stream                jsonb,                  -- rides: down-sampled HR / power / speed trace
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create index if not exists garmin_activities_date_idx on garmin_activities (date);
+
 -- Imported runs the user deleted — never re-imported on later syncs.
 create table if not exists dismissed_run_imports (
   external_id           text primary key,
@@ -777,6 +806,9 @@ create index if not exists mid_run_intakes_date_idx on mid_run_intakes (date);
 alter table mid_run_intakes
   add column if not exists product_id uuid references fuel_products (id) on delete set null;
 alter table mid_run_intakes add column if not exists caffeine_mg float;
+-- Fuel taken on a ride attaches to the Garmin ride.
+alter table mid_run_intakes
+  add column if not exists activity_id uuid references garmin_activities (id) on delete set null;
 
 create table if not exists training_plan_runs (
   id                    uuid primary key default gen_random_uuid(),
@@ -936,3 +968,4 @@ alter table training_plan_runs enable row level security;
 alter table dismissed_run_imports enable row level security;
 alter table run_laps          enable row level security;
 alter table run_streams       enable row level security;
+alter table garmin_activities enable row level security;

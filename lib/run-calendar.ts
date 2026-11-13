@@ -9,8 +9,10 @@ import type {
   ActualRun,
   CalendarEntry,
   CalendarNutritionStatus,
+  GarminActivity,
   PlannedRun,
   RunFuelAdjustment,
+  Workout,
 } from "@/types";
 
 /**
@@ -70,6 +72,41 @@ export function buildCalendarEntries(input: {
   }
 
   return entries.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** Lifts (Hevy) and rides (Garmin) as calendar entries next to the runs. */
+export function buildActivityEntries(input: {
+  lifts: Pick<Workout, "id" | "date" | "title" | "duration">[];
+  rides: GarminActivity[];
+}): CalendarEntry[] {
+  const base = {
+    run_type: null,
+    event_type: null,
+    nutrition_status: "none" as const,
+    planned_run_id: null,
+    actual_run_id: null,
+  };
+  const lifts: CalendarEntry[] = input.lifts
+    .filter((w) => w.date)
+    .map((w) => ({
+      ...base,
+      id: w.id,
+      date: w.date!,
+      kind: "lift",
+      planned_distance_km: null,
+      planned_duration_min: w.duration != null ? w.duration / 60 : null,
+      label: w.title ?? "Lift",
+    }));
+  const rides: CalendarEntry[] = input.rides.map((r) => ({
+    ...base,
+    id: r.id,
+    date: r.date,
+    kind: "ride",
+    planned_distance_km: r.distance_km,
+    planned_duration_min: r.duration_min,
+    label: "Ride",
+  }));
+  return [...lifts, ...rides];
 }
 
 /** Monday = 0 … Sunday = 6 for an ISO date. */

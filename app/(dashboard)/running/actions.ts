@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { syncGarmin } from "@/lib/data/garmin";
+import { syncGarmin, type GarminSyncResult } from "@/lib/data/garmin";
 import { getBaseNutritionGoals } from "@/lib/data/nutrition";
 import {
   addMidRunIntake,
@@ -28,6 +28,8 @@ import type { FuelProduct } from "@/types";
 
 function refresh() {
   revalidatePath("/running");
+  revalidatePath("/training");
+  revalidatePath("/cycling");
   revalidatePath("/nutrition");
   revalidatePath("/");
 }
@@ -131,7 +133,7 @@ export async function setRunFuelRateAction(rate: number): Promise<number> {
   return value;
 }
 
-export async function syncGarminAction(): Promise<{ inserted: number; updated: number; runs_found: number }> {
+export async function syncGarminAction(): Promise<GarminSyncResult> {
   const result = await syncGarmin();
   refresh();
   revalidatePath("/settings/connections");

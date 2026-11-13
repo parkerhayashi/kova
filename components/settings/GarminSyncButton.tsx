@@ -15,10 +15,15 @@ export function GarminSyncButton() {
     startTransition(async () => {
       try {
         const r = await syncGarminAction();
+        const found = [
+          r.runs_found ? `${r.runs_found} run${r.runs_found === 1 ? "" : "s"}` : null,
+          r.rides_found ? `${r.rides_found} ride${r.rides_found === 1 ? "" : "s"}` : null,
+          r.strength_found ? `${r.strength_found} strength session${r.strength_found === 1 ? "" : "s"}` : null,
+        ].filter(Boolean);
         setMessage(
-          r.runs_found === 0
-            ? "Synced — no runs on Garmin in this window yet."
-            : `Synced ${r.runs_found} run${r.runs_found === 1 ? "" : "s"} (${r.inserted} new, ${r.updated} updated).`,
+          found.length === 0
+            ? "Synced — nothing on Garmin in this window yet."
+            : `Synced ${found.join(", ")}.`,
         );
       } catch (err) {
         setMessage(err instanceof Error ? err.message : "Sync failed");

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Apple,
+  Bike,
+  CalendarDays,
   ChevronDown,
   Dumbbell,
   Flame,
@@ -15,8 +17,8 @@ import {
   Menu,
   Moon,
   Pill,
-  Scale,
   Plug,
+  Scale,
   Shield,
   TrendingUp,
   User,
@@ -56,8 +58,10 @@ const OURA_CHILDREN: NavLeaf[] = [
 ];
 
 const TRAINING_CHILDREN: NavLeaf[] = [
+  { type: "link", href: "/training", label: "Calendar", icon: CalendarDays },
   { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
   { type: "link", href: "/running", label: "Running", icon: Footprints },
+  { type: "link", href: "/cycling", label: "Cycling", icon: Bike },
   { type: "link", href: "/weight", label: "Weight", icon: Scale },
 ];
 
@@ -103,7 +107,7 @@ const MOBILE_PRIMARY: NavLeaf[] = [
   { type: "link", href: "/", label: "Home", icon: LayoutDashboard },
   { type: "link", href: "/nutrition", label: "Nutrition", icon: Apple },
   { type: "link", href: "/supplements", label: "Supplements", icon: Pill },
-  { type: "link", href: "/running", label: "Running", icon: Footprints },
+  { type: "link", href: "/training", label: "Training", icon: CalendarDays },
 ];
 
 /** More sheet: groups plus any leftover top-level links (e.g. Finances). */

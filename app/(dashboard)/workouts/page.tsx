@@ -10,6 +10,7 @@ import {
   listHevyWorkouts,
   maybeSyncHevyOnOpen,
 } from "@/lib/data/hevy";
+import { getGarminActivitiesBetween, matchStrengthSessions } from "@/lib/data/garmin";
 import { getTimezone } from "@/lib/data/oura";
 import { getLiftingDashboard } from "@/lib/data/workouts";
 
@@ -25,6 +26,13 @@ export default async function WorkoutsPage() {
     getHevyLastSyncedAt(),
     getTimezone(),
   ]);
+  const dates = workouts.map((w) => w.date).filter((d): d is string => d != null).sort();
+  const garmin = dates.length
+    ? matchStrengthSessions(
+        workouts,
+        await getGarminActivitiesBetween(dates[0]!, dates.at(-1)!, "strength"),
+      )
+    : {};
 
   return (
     <div className="space-y-6">
@@ -52,7 +60,7 @@ export default async function WorkoutsPage() {
 
       {/* Show already-synced history even if the API key is missing. */}
       {workouts.length > 0 ? (
-        <HevyHistory workouts={workouts} timezone={timezone} />
+        <HevyHistory workouts={workouts} timezone={timezone} garmin={garmin} />
       ) : !connected ? (
         <Card>
           <p className="body-copy text-sm">

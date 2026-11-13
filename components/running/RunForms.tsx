@@ -596,7 +596,7 @@ export function MidRunIntakeForm({
   products,
 }: {
   date: string;
-  runRef: { planned_run_id?: string | null; actual_run_id?: string | null };
+  runRef: { planned_run_id?: string | null; actual_run_id?: string | null; activity_id?: string | null };
   products: FuelProduct[];
 }) {
   const { pending, error, run } = useRunAction();

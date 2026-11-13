@@ -1,4 +1,5 @@
 import { getCutCoachDaily } from "@/lib/data/cut-coach";
+import { getGarminActivitiesBetween, matchStrengthSessions } from "@/lib/data/garmin";
 import {
   getActivityHistory,
   getHeartRateDay,
@@ -331,7 +332,7 @@ export async function readMuseBody(days: number) {
 export async function readMuseTraining(days: number, hevyLimit: number) {
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
-  const [summary, dashboard, composition, hevy, hevyConnected, hevyLastSynced] =
+  const [summary, dashboard, composition, hevy, hevyConnected, hevyLastSynced, garmin] =
     await Promise.all([
       getTodayWorkoutSummary(),
       getLiftingDashboard(days),
@@ -339,7 +340,10 @@ export async function readMuseTraining(days: number, hevyLimit: number) {
       listHevyWorkouts(hevyLimit),
       isHevyConnected(),
       getHevyLastSyncedAt(),
+      getGarminActivitiesBetween(addDays(today, -(days - 1)), today),
     ]);
+  const strength = garmin.filter((a) => a.sport === "strength");
+  const paired = matchStrengthSessions(hevy, strength);
 
   return {
     today,
@@ -350,7 +354,12 @@ export async function readMuseTraining(days: number, hevyLimit: number) {
     today_summary: summary,
     dashboard,
     composition,
-    hevy_workouts: hevy,
+    // Garmin heart rate / training load recorded alongside a Hevy workout.
+    hevy_workouts: hevy.map((w) => ({ ...w, garmin: paired[w.id] ?? null })),
+    garmin_rides: garmin.filter((a) => a.sport === "cycling"),
+    garmin_strength_unpaired: strength.filter(
+      (s) => !Object.values(paired).some((p) => p.id === s.id),
+    ),
   };
 }
 

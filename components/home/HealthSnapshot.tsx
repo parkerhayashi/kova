@@ -139,6 +139,7 @@ function raceCard(race: UpcomingRace, today: string) {
 
   return {
     name,
+    date: race.date,
     dateLabel: name === kind ? fmt(race.date) : `${kind} · ${fmt(race.date)}`,
     value: race.days_until === 0 ? "Today" : race.days_until === 1 ? "Tomorrow" : String(race.days_until),
     unit: race.days_until > 1 ? "days" : null,
@@ -149,7 +150,7 @@ function raceCard(race: UpcomingRace, today: string) {
 
 function RaceCountdown({ race }: { race: ReturnType<typeof raceCard> }) {
   return (
-    <Link href="/running" className="snapshot-link-card race-countdown-link">
+    <Link href={`/training?date=${race.date}`} className="snapshot-link-card race-countdown-link">
       <div className="snapshot-metric dash-card race-countdown">
         <div className="race-countdown-main">
           <div className="min-w-0">

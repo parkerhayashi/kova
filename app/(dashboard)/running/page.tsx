@@ -1,67 +1,146 @@
+import Link from "next/link";
 import { after } from "next/server";
 import { PageHeader } from "@/components/PageHeader";
-import { RunningApp } from "@/components/running/RunningApp";
-import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
+import { RunDetail } from "@/components/running/RunDetail";
+import { NextRunCard } from "@/components/running/TrainingPlan";
+import { Card } from "@/components/ui/Card";
 import { syncGarminIfStale } from "@/lib/data/garmin";
 import { getTimezone } from "@/lib/data/oura";
 import {
-  getFuelProducts,
-  getRecentEasyPace,
+  getRecentActualRuns,
   getRunExtras,
-  getRunFuelCarbsPerHour,
-  getRunningRange,
   getTrainingPlan,
+  getUpcomingRace,
 } from "@/lib/data/running";
-import { monthGridRange } from "@/lib/run-calendar";
-import { normalizeIsoDate, todayInTimezone } from "@/lib/utils";
+import {
+  formatDistance,
+  formatPace,
+  formatRunDuration,
+  raceTitle,
+  runQuickStats,
+  runTypeLabel,
+} from "@/lib/run-fuel";
+import { buildRunningTrends } from "@/lib/trends/running";
+import { formatIsoDateLabel, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function RunningPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ date?: string; view?: string }>;
-}) {
-  const { date: dateParam, view: viewParam } = await searchParams;
-  after(syncGarminIfStale);
-  const timezone = await getTimezone();
-  const today = todayInTimezone(timezone);
-  const selected = normalizeIsoDate(dateParam) ?? today;
-  const view = viewParam === "week" ? "week" : "month";
-  const { start, end } = monthGridRange(selected);
+const RECENT_DAYS = 30;
 
-  // Range first: it sweeps stale plans so the day's targets read clean.
-  const range = await getRunningRange(start, end);
-  const [goals, totals, pace, rate, plan, fuelProducts, runExtras] = await Promise.all([
-    getNutritionGoals(selected),
-    selected <= today ? getDailyTotals(selected) : Promise.resolve({}),
-    getRecentEasyPace(),
-    getRunFuelCarbsPerHour(),
+function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <div className="space-y-1">
+      <span className="metric-label">{label}</span>
+      <p className="text-2xl font-bold tabular-nums" style={{ color: "var(--color-activity)" }}>
+        {value}
+        {unit ? <span className="text-text-muted ml-1 text-sm font-normal">{unit}</span> : null}
+      </p>
+    </div>
+  );
+}
+
+/** Running: the plan queue, next race, and recent runs. Planning by date lives on Training. */
+export default async function RunningPage() {
+  after(syncGarminIfStale);
+  const today = todayInTimezone(await getTimezone());
+  const [plan, runs, race] = await Promise.all([
     getTrainingPlan(5),
-    getFuelProducts(),
-    getRunExtras(range.actual.filter((a) => a.date === selected).map((a) => a.id)),
+    getRecentActualRuns(RECENT_DAYS),
+    getUpcomingRace(today),
   ]);
+  const extras = await getRunExtras(runs.filter((r) => r.source === "garmin").map((r) => r.id));
+  const { summary } = buildRunningTrends({ runs, readiness: [], sleep: [], range: 30, today });
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Running"
-        subtitle="Plan Calendar, run fuel, and race carb loads."
-      />
-      <RunningApp
-        key={selected}
-        today={today}
-        selected={selected}
-        view={view}
-        range={range}
-        goals={goals}
-        totals={totals}
-        pace={pace}
-        carbsPerHour={rate}
-        plan={plan}
-        fuelProducts={fuelProducts}
-        runExtras={runExtras}
-      />
+      <PageHeader title="Running" subtitle="Your plan queue, next race, and recent runs." />
+
+      <NextRunCard plan={plan} />
+
+      {race ? (
+        <Card className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <span className="metric-label">Next race</span>
+            <p className="text-sm font-semibold">
+              {raceTitle({ race_name: race.name, event_type: race.event_type }, race.distance_km)}
+            </p>
+            <p className="text-text-muted text-xs">
+              {formatIsoDateLabel(race.date)} · {race.days_until} day{race.days_until === 1 ? "" : "s"}
+            </p>
+          </div>
+          <Link
+            href={`/training?date=${race.date}`}
+            className="text-text-secondary hover:text-text-primary shrink-0 text-xs"
+          >
+            Race day →
+          </Link>
+        </Card>
+      ) : null}
+
+      <Card className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Stat label={`Miles · ${RECENT_DAYS}d`} value={summary.miles.toString()} />
+        <Stat label="Runs" value={summary.runs.toString()} />
+        <Stat
+          label="Avg pace"
+          value={
+            summary.avg_pace_min_per_mile != null
+              ? formatPace(summary.avg_pace_min_per_mile / 1.609344).replace("/mi", "")
+              : "—"
+          }
+          unit={summary.avg_pace_min_per_mile != null ? "/mi" : undefined}
+        />
+        <Stat
+          label="Avg HR"
+          value={summary.avg_hr != null ? String(summary.avg_hr) : "—"}
+          unit={summary.avg_hr != null ? "bpm" : undefined}
+        />
+      </Card>
+
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between">
+          <span className="metric-label">Recent runs</span>
+          <Link href="/training" className="text-text-secondary hover:text-text-primary text-xs">
+            Plan or log on the calendar →
+          </Link>
+        </div>
+        {runs.length === 0 ? (
+          <Card>
+            <p className="body-copy text-sm">No runs in the last {RECENT_DAYS} days.</p>
+          </Card>
+        ) : (
+          runs.map((run) => (
+            <Card key={run.id} className="space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">
+                    {formatRunDuration(run.actual_duration_min)}
+                    {run.actual_distance_km != null ? ` · ${formatDistance(run.actual_distance_km)}` : ""}
+                    {run.run_type ? ` · ${runTypeLabel(run.run_type)}` : ""}
+                  </p>
+                  {runQuickStats(run) ? (
+                    <p className="text-text-secondary text-xs tabular-nums">{runQuickStats(run)}</p>
+                  ) : null}
+                  <p className="text-text-muted text-xs">
+                    {formatIsoDateLabel(run.date)} ·{" "}
+                    {run.source === "garmin" ? "Garmin" : run.source === "oura" ? "Apple Health" : "Manual"}
+                  </p>
+                </div>
+                <Link
+                  href={`/training?date=${run.date}`}
+                  className="text-text-secondary hover:text-text-primary shrink-0 text-xs"
+                >
+                  Day →
+                </Link>
+              </div>
+              <RunDetail
+                run={run}
+                laps={extras[run.id]?.laps ?? []}
+                stream={extras[run.id]?.stream ?? null}
+              />
+            </Card>
+          ))
+        )}
+      </section>
     </div>
   );
 }

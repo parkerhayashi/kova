@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Flag } from "lucide-react";
+import { Bike, Check, ChevronLeft, ChevronRight, Dumbbell, Flag } from "lucide-react";
 import { setRunFuelRateAction } from "@/app/(dashboard)/running/actions";
 import { DayDetail } from "@/components/running/DayDetail";
 import { FormError, useRunAction } from "@/components/running/RunForms";
@@ -16,6 +16,7 @@ import type { ComputedNutritionGoals } from "@/lib/nutrition-goals";
 import {
   formatDistance,
   formatPace,
+  formatRunDuration,
   MAX_CARBS_PER_HOUR,
   MIN_CARBS_PER_HOUR,
 } from "@/lib/run-fuel";
@@ -25,9 +26,17 @@ import type {
   CalendarEntry,
   CalendarNutritionStatus,
   FuelProduct,
+  GarminActivity,
   RunLap,
   RunStreamPoints,
+  Workout,
 } from "@/types";
+
+/** A Hevy workout with the Garmin strength session recorded alongside it. */
+export type TrainingLift = {
+  workout: Pick<Workout, "id" | "date" | "title" | "duration" | "volume_kg">;
+  garmin: GarminActivity | null;
+};
 
 type View = "week" | "month";
 
@@ -51,7 +60,8 @@ function datesBetween(start: string, end: string): string[] {
   return out;
 }
 
-export function RunningApp({
+/** Training calendar: runs and races (with run fuel), lifts and rides. */
+export function TrainingApp({
   today,
   selected,
   view: initialView,
@@ -63,6 +73,9 @@ export function RunningApp({
   plan,
   fuelProducts,
   runExtras,
+  lifts,
+  rides,
+  rideStreams,
 }: {
   today: string;
   selected: string;
@@ -75,6 +88,10 @@ export function RunningApp({
   plan: TrainingPlanView;
   fuelProducts: FuelProduct[];
   runExtras: Record<string, { laps: RunLap[]; stream: RunStreamPoints | null }>;
+  /** The selected day's lifts and rides (the calendar entries cover the whole range). */
+  lifts: TrainingLift[];
+  rides: GarminActivity[];
+  rideStreams: Record<string, RunStreamPoints>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -223,7 +240,13 @@ export function RunningApp({
             <Flag className="size-3" /> Race
           </span>
           <span className="flex items-center gap-1.5">
-            <Check className="size-3" /> Completed
+            <Check className="size-3" /> Run
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Dumbbell className="size-3" /> Lift
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Bike className="size-3" /> Ride
           </span>
           {Object.values(NUTRITION_DOT).map((d) => (
             <span key={d.label} className="flex items-center gap-1.5">
@@ -246,6 +269,9 @@ export function RunningApp({
         paceMinPerKm={pace.pace_min_per_km}
         fuelProducts={fuelProducts}
         runExtras={runExtras}
+        lifts={lifts}
+        rides={rides}
+        rideStreams={rideStreams}
       />
 
       <FuelSettings carbsPerHour={carbsPerHour} pace={pace} />
@@ -259,12 +285,18 @@ function EntryChip({ entry, compact }: { entry: CalendarEntry; compact: boolean 
       <Flag className="size-3 shrink-0" />
     ) : entry.kind === "completed_run" ? (
       <Check className="size-3 shrink-0" />
+    ) : entry.kind === "lift" ? (
+      <Dumbbell className="size-3 shrink-0" />
+    ) : entry.kind === "ride" ? (
+      <Bike className="size-3 shrink-0" />
     ) : (
       <span className="size-1.5 shrink-0 rounded-full bg-white" />
     );
   const text =
-    entry.kind === "race"
+    entry.kind === "race" || entry.kind === "lift"
       ? entry.label
+      : entry.kind === "ride" && entry.planned_distance_km == null
+        ? formatRunDuration(entry.planned_duration_min)
       : entry.planned_distance_km != null
         ? formatDistance(entry.planned_distance_km)
         : entry.label;
@@ -293,7 +325,7 @@ function FuelSettings({
   const [rate, setRate] = useState(String(carbsPerHour));
   return (
     <Card className="space-y-3">
-      <span className="metric-label">Run fuel settings</span>
+      <span className="metric-label">Run & ride fuel settings</span>
       <div className="flex flex-wrap items-end gap-3">
         <Field label={`Carbs per hour beyond the first (${MIN_CARBS_PER_HOUR}–${MAX_CARBS_PER_HOUR} g)`} className="w-64">
           <Input inputMode="numeric" value={rate} onChange={(e) => setRate(e.target.value)} />

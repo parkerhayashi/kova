@@ -42,6 +42,7 @@ const TABLES = [
   "dismissed_run_imports",
   "run_laps",
   "run_streams",
+  "garmin_activities",
 ];
 
 const supabase = createClient(url, serviceKey, {

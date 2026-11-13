@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "No run on that day to attach fuel to. Log the run first (POST /api/muse/runs), then log the fuel.",
+            "No run or ride on that day to attach fuel to. Log the run first (POST /api/muse/runs), then log the fuel.",
         },
         { status: 409 },
       );

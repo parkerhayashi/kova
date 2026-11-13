@@ -43,6 +43,7 @@ import type {
   RaceEventType,
   RunFuelAdjustment,
   RunLap,
+  RunMetrics,
   RunStreamPoints,
   RunType,
   TrainingPlanRun,
@@ -242,13 +243,36 @@ function median(values: number[]): number | null {
  * - Below threshold / skipped / nothing → the row is removed.
  * Carb-load days are left alone (no stacking; load days don't reconcile).
  */
+/** Garmin training-effect labels that make a ride a hard session (60-min fuel threshold). */
+const HARD_RIDE_LABELS = /TEMPO|THRESHOLD|VO2|ANAEROBIC|SPEED/i;
+
+/** A day's Garmin rides as fuel inputs: hard rides count like tempo runs, the rest like easy ones. */
+async function ridesOn(date: string): Promise<FuelRun[]> {
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("garmin_activities")
+    .select("duration_min, anaerobic_te, metrics")
+    .eq("sport", "cycling")
+    .eq("date", date);
+  // Ride fuel is additive — without the table the day falls back to runs only.
+  if (error) return [];
+  return ((data as { duration_min: number; anaerobic_te: number | null; metrics: RunMetrics | null }[]) ?? []).map(
+    (r) => ({
+      run_type:
+        HARD_RIDE_LABELS.test(r.metrics?.te_label ?? "") || (r.anaerobic_te ?? 0) >= 2 ? "tempo" : "easy",
+      duration_min: r.duration_min,
+    }),
+  );
+}
+
 export async function recomputeDay(date: string): Promise<void> {
   const target = day(date);
-  const [existing, planned, actual, rate] = await Promise.all([
+  const [existing, planned, actual, rate, rides] = await Promise.all([
     adjustmentOn(target),
     plannedRunsOn(target),
     actualRunsOn(target),
     getRunFuelCarbsPerHour(),
+    ridesOn(target),
   ]);
   if (existing?.kind === "carb_load") return;
 
@@ -273,9 +297,10 @@ export async function recomputeDay(date: string): Promise<void> {
   const pendingQualifies = pendingRuns.some((r) =>
     qualifiesForFueling(r.run_type, r.duration_min),
   );
+  // Long rides fuel like long runs; they're always actual (rides aren't planned ahead).
   const computed = computeRunFuel({
-    runs: [...actualRuns, ...pendingRuns],
-    basis: actual.length > 0 && !pendingQualifies ? "actual" : "planned",
+    runs: [...actualRuns, ...rides, ...pendingRuns],
+    basis: actual.length + rides.length > 0 && !pendingQualifies ? "actual" : "planned",
     carbsPerHour: rate,
   });
 
@@ -499,17 +524,29 @@ export async function getMidRunIntakeByDay(
   return map;
 }
 
-export type RunRef = { planned_run_id?: string | null; actual_run_id?: string | null };
+export type RunRef = {
+  planned_run_id?: string | null;
+  actual_run_id?: string | null;
+  /** A Garmin ride, when the day has no run. */
+  activity_id?: string | null;
+};
 
-/** What a day's fuel attaches to: the actual run once it exists, else the plan. */
+/** What a day's fuel attaches to: the actual run, else the plan, else the day's ride. */
 export async function fuelRunRefForDate(date: string): Promise<RunRef | null> {
   const target = day(date);
-  const [planned, actual] = await Promise.all([plannedRunsOn(target), actualRunsOn(target)]);
+  const db = createServiceClient();
+  const [planned, actual, rides] = await Promise.all([
+    plannedRunsOn(target),
+    actualRunsOn(target),
+    db.from("garmin_activities").select("id").eq("sport", "cycling").eq("date", target).limit(1),
+  ]);
   if (actual[0]) {
     return { actual_run_id: actual[0].id, planned_run_id: actual[0].planned_run_id };
   }
   const plan = planned.find((p) => p.status !== "skipped");
-  return plan ? { planned_run_id: plan.id } : null;
+  if (plan) return { planned_run_id: plan.id };
+  const ride = (rides.data as { id: string }[] | null)?.[0];
+  return ride ? { activity_id: ride.id } : null;
 }
 
 /**
@@ -527,8 +564,8 @@ export async function addMidRunIntake(
     taken_at_min?: number | null;
   },
 ): Promise<MidRunIntake> {
-  if (!input.planned_run_id && !input.actual_run_id) {
-    throw new Error("Log fuel against a planned or actual run.");
+  if (!input.planned_run_id && !input.actual_run_id && !input.activity_id) {
+    throw new Error("Log fuel against a run or a ride.");
   }
   const product = input.product_id ? await getFuelProduct(input.product_id) : null;
   if (input.product_id && !product) throw new Error("Fuel product not found");
@@ -544,6 +581,7 @@ export async function addMidRunIntake(
       date: day(input.date),
       planned_run_id: input.planned_run_id ?? null,
       actual_run_id: input.actual_run_id ?? null,
+      activity_id: input.activity_id ?? null,
       product_id: product?.id ?? null,
       label: product?.name ?? (input.label?.trim() || GEL_DEFAULT.label),
       carbs_g: carbs,
@@ -1594,7 +1632,7 @@ export type UpcomingRace = {
 };
 
 /** Earliest planned race from `date` on, plus its stored carb-load days. */
-async function getUpcomingRace(date: string): Promise<UpcomingRace | null> {
+export async function getUpcomingRace(date: string): Promise<UpcomingRace | null> {
   const db = createServiceClient();
   const { data, error } = await db
     .from("planned_runs")

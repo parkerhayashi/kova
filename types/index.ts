@@ -724,6 +724,43 @@ export interface RunMetrics {
   fastest_5k_min?: number | null;
   fastest_10k_min?: number | null;
   is_pr?: boolean | null;
+  /** Cycling. */
+  normalized_power_w?: number | null;
+  training_stress_score?: number | null;
+  intensity_factor?: number | null;
+  max_cadence_rpm?: number | null;
+  /** Strength. */
+  total_sets?: number | null;
+  total_reps?: number | null;
+}
+
+export type GarminSport = "cycling" | "strength";
+
+/** A Garmin ride or strength session (garmin_activities). Runs are ActualRun. */
+export interface GarminActivity {
+  id: string;
+  external_id: string;
+  sport: GarminSport;
+  activity_type: string | null;
+  name: string | null;
+  date: string;
+  started_at: string | null;
+  duration_min: number;
+  distance_km: number | null;
+  avg_hr: number | null;
+  max_hr: number | null;
+  calories: number | null;
+  elevation_gain_m: number | null;
+  avg_power_w: number | null;
+  avg_cadence_rpm: number | null;
+  training_load: number | null;
+  aerobic_te: number | null;
+  anaerobic_te: number | null;
+  metrics: RunMetrics | null;
+  /** Only loaded for the detail view. */
+  stream?: RunStreamPoints | null;
+  created_at: string;
+  updated_at: string;
 }
 
 /** One lap / split of a Garmin run. */
@@ -749,6 +786,10 @@ export interface RunStreamPoints {
   speed: (number | null)[];
   alt: (number | null)[];
   dist: (number | null)[];
+  /** Rides with a power meter / smart trainer. */
+  power?: (number | null)[];
+  /** Cadence (rpm for rides). */
+  cad?: (number | null)[];
 }
 
 /** One per day, recomputed by the app — never hand-edited. */
@@ -781,6 +822,8 @@ export interface MidRunIntake {
   carbs_g: number;
   kcal: number;
   caffeine_mg: number | null;
+  /** Set when the fuel was taken on a Garmin ride. */
+  activity_id: string | null;
   /** The saved product it was logged from (numbers are copied at log time). */
   product_id: string | null;
   taken_at_min: number | null;
@@ -813,7 +856,8 @@ export interface TrainingPlanRun {
   updated_at: string;
 }
 
-export type CalendarEntryKind = "planned_run" | "race" | "completed_run";
+/** Runs and races, plus lifts (Hevy) and rides (Garmin) on the Training calendar. */
+export type CalendarEntryKind = "planned_run" | "race" | "completed_run" | "lift" | "ride";
 export type CalendarNutritionStatus = "none" | "fueling" | "carb_load";
 
 /** One rendered calendar item — derived from the records above + the plan. */

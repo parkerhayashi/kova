@@ -53,7 +53,7 @@ export function RunFuelCard({
         </span>
         {showRunningLink ? (
           <Link
-            href={`/running?date=${date}`}
+            href={`/training?date=${date}`}
             className="text-text-muted hover:text-text-primary text-xs underline-offset-2 hover:underline"
           >
             Running →

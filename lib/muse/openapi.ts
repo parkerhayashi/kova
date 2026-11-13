@@ -345,7 +345,7 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 | \`GET /api/muse/oura?days=30\` | Sleep / readiness / activity history, Oura workouts, sessions, tags. Add \`samples=1\` only if you need waveforms |
 | \`GET /api/muse/nutrition?days=14\` | Every logged meal, daily calories/protein, goals, supplements, saved meals, alcohol. Optional \`date=YYYY-MM-DD\` |
 | \`GET /api/muse/body?days=90\` | Weight log, rates, body-fat estimate, profile |
-| \`GET /api/muse/training?days=30&hevy_limit=40\` | Hevy workouts with sets, lifting dashboard, composition snapshot |
+| \`GET /api/muse/training?days=30&hevy_limit=40\` | Hevy workouts with sets (plus Garmin heart rate / training load when recorded together), lifting dashboard, composition snapshot, Garmin rides (power, HR, training load) |
 | \`GET /api/muse/running-plan?days=30\` | Running plan queue (\`next\`, \`upcoming\`, \`completed\`) + runs logged in the window (Garmin runs include heart rate, splits and training metrics) |
 | \`PUT /api/muse/running-plan\` | Replace the upcoming queue: \`{ "runs": [{ "run_type": "easy", "distance_mi": 3, "notes": "…" }] }\` |
 | \`POST /api/muse/runs\` | Log a run Parker did: \`{ "date": "YYYY-MM-DD", "duration_min": 32, "distance_mi": 3.1, "run_type": "easy" }\` (date defaults to today) |

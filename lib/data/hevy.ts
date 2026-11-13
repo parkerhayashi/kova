@@ -136,6 +136,21 @@ export async function listHevyWorkoutsSince(sinceDate: string): Promise<Workout[
   return (data as Workout[]) ?? [];
 }
 
+/** Workouts dated in [start, end] without the exercise detail (calendar use). */
+export async function listHevyWorkoutsBetween(
+  start: string,
+  end: string,
+): Promise<Pick<Workout, "id" | "date" | "title" | "duration" | "volume_kg" | "start_time" | "end_time">[]> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("workouts")
+    .select("id, date, title, duration, volume_kg, start_time, end_time")
+    .gte("date", start)
+    .lte("date", end)
+    .order("start_time", { ascending: true });
+  return (data as Pick<Workout, "id" | "date" | "title" | "duration" | "volume_kg" | "start_time" | "end_time">[]) ?? [];
+}
+
 export async function listHevyWorkouts(limit = 20): Promise<Workout[]> {
   const db = createServiceClient();
   const { data } = await db

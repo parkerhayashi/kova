@@ -11,7 +11,7 @@
 import { Decoder, Stream } from "@garmin/fitsdk";
 import { unzipSync } from "fflate";
 import type { IncomingRun, IncomingRunDetail } from "@/lib/data/running";
-import type { RunLap, RunMetrics, RunStreamPoints } from "@/types";
+import type { GarminActivity, GarminSport, RunLap, RunMetrics, RunStreamPoints } from "@/types";
 
 const BASE = "https://personal.connectapi.garmin.com";
 const TOKEN_PATH = "/personalapitoken-service/personal-api/personal-api-key/token";
@@ -78,7 +78,7 @@ async function garminFetch(path: string): Promise<Response> {
 // ---------------------------------------------------------------------------
 
 /** The activity-search fields Kova reads (the API returns many more). */
-export type GarminActivity = {
+export type GarminApiActivity = {
   activityId: number;
   activityName?: string | null;
   startTimeLocal?: string | null;
@@ -126,28 +126,37 @@ export type GarminActivity = {
   hrTimeInZone_4?: number | null;
   hrTimeInZone_5?: number | null;
   isPR?: boolean | null;
+  normPower?: number | null;
+  trainingStressScore?: number | null;
+  intensityFactor?: number | null;
+  averageBikingCadenceInRevPerMinute?: number | null;
+  maxBikingCadenceInRevPerMinute?: number | null;
+  totalSets?: number | null;
+  totalReps?: number | null;
 };
 
-/** Running, treadmill, trail, track, virtual… anything Garmin files as a run. */
-export function isRunActivity(a: GarminActivity): boolean {
-  return /run/i.test(a.activityType?.typeKey ?? "");
+/**
+ * What Kova does with a Garmin activity, by its typeKey: runs (running,
+ * treadmill, trail, track…), rides (cycling, indoor_cycling, virtual_ride,
+ * road / gravel / mountain biking…), strength. Everything else is ignored.
+ */
+export function activityKind(a: GarminApiActivity): "run" | GarminSport | null {
+  const key = (a.activityType?.typeKey ?? "").toLowerCase();
+  if (/run/.test(key)) return "run";
+  if (/cycl|bik|ride|spin/.test(key)) return "cycling";
+  if (/strength/.test(key)) return "strength";
+  return null;
 }
 
-/** Run activities that started between the two local dates (inclusive). */
-export async function listRunActivities(startDate: string, endDate: string): Promise<GarminActivity[]> {
-  const out: GarminActivity[] = [];
+/** Runs, rides and strength sessions that started between the two local dates (inclusive). */
+export async function listActivities(startDate: string, endDate: string): Promise<GarminApiActivity[]> {
+  const out: GarminApiActivity[] = [];
   for (let start = 0; ; start += PAGE_SIZE) {
-    const qs = new URLSearchParams({
-      start: String(start),
-      limit: String(PAGE_SIZE),
-      activityType: "running",
-      startDate,
-      endDate,
-    });
+    const qs = new URLSearchParams({ start: String(start), limit: String(PAGE_SIZE), startDate, endDate });
     const page = (await (
       await garminFetch(`/activitylist-service/activities/search/activities?${qs}`)
-    ).json()) as GarminActivity[];
-    out.push(...page.filter(isRunActivity));
+    ).json()) as GarminApiActivity[];
+    out.push(...page.filter((a) => activityKind(a) != null));
     if (page.length < PAGE_SIZE) break;
   }
   return out;
@@ -188,6 +197,8 @@ type FitLap = {
 type FitRecord = {
   timestamp?: Date;
   heartRate?: number;
+  power?: number;
+  cadence?: number;
   enhancedSpeed?: number;
   speed?: number;
   enhancedAltitude?: number;
@@ -216,7 +227,7 @@ function sample<T>(rows: T[], max: number): T[] {
   return out;
 }
 
-export function parseRunFit(bytes: Uint8Array): {
+export function parseActivityFit(bytes: Uint8Array): {
   laps: NonNullable<IncomingRunDetail["laps"]>;
   stream: RunStreamPoints | null;
 } {
@@ -249,6 +260,9 @@ export function parseRunFit(bytes: Uint8Array): {
       alt: points.map((r) => round(num(r.enhancedAltitude) ?? num(r.altitude), 1)),
       dist: points.map((r) => round(num(r.distance) != null ? r.distance! / 1000 : null, 3)),
     };
+    // Power / cadence only when the file has them (rides with a power meter or trainer).
+    if (points.some((r) => num(r.power) != null)) stream.power = points.map((r) => num(r.power));
+    if (points.some((r) => num(r.cadence) != null)) stream.cad = points.map((r) => num(r.cadence));
   }
   return { laps, stream };
 }
@@ -267,7 +281,7 @@ function gmtToIso(value: string | null | undefined): string | null {
   return /Z|[+-]\d{2}:?\d{2}$/.test(iso) ? iso : `${iso}Z`;
 }
 
-export function garminRunMetrics(a: GarminActivity): RunMetrics {
+export function garminRunMetrics(a: GarminApiActivity): RunMetrics {
   const zones = [a.hrTimeInZone_1, a.hrTimeInZone_2, a.hrTimeInZone_3, a.hrTimeInZone_4, a.hrTimeInZone_5];
   return {
     activity_name: a.activityName ?? null,
@@ -303,13 +317,19 @@ export function garminRunMetrics(a: GarminActivity): RunMetrics {
     fastest_5k_min: minutes(a.fastestSplit_5000),
     fastest_10k_min: minutes(a.fastestSplit_10000),
     is_pr: a.isPR ?? null,
+    normalized_power_w: num(a.normPower),
+    training_stress_score: num(a.trainingStressScore),
+    intensity_factor: num(a.intensityFactor),
+    max_cadence_rpm: num(a.maxBikingCadenceInRevPerMinute),
+    total_sets: num(a.totalSets),
+    total_reps: num(a.totalReps),
   };
 }
 
 /** Activity summary (+ parsed .FIT when fetched) → the source-agnostic import record. */
 export function toIncomingRun(
-  a: GarminActivity,
-  fit?: ReturnType<typeof parseRunFit> | null,
+  a: GarminApiActivity,
+  fit?: ReturnType<typeof parseActivityFit> | null,
 ): IncomingRun | null {
   const date = a.startTimeLocal?.slice(0, 10);
   const durationMin = minutes(a.duration);
@@ -329,5 +349,35 @@ export function toIncomingRun(
       metrics: garminRunMetrics(a),
       ...(fit ? { laps: fit.laps, stream: fit.stream } : {}),
     },
+  };
+}
+
+/** A ride or strength session → its garmin_activities row (without the trace). */
+export function toGarminActivityRow(
+  a: GarminApiActivity,
+  sport: GarminSport,
+): Omit<GarminActivity, "id" | "created_at" | "updated_at" | "stream"> | null {
+  const date = a.startTimeLocal?.slice(0, 10);
+  const durationMin = minutes(a.duration);
+  if (!date || durationMin == null || durationMin <= 0) return null;
+  return {
+    external_id: `garmin:${a.activityId}`,
+    sport,
+    activity_type: a.activityType?.typeKey ?? null,
+    name: a.activityName ?? null,
+    date,
+    started_at: gmtToIso(a.startTimeGMT),
+    duration_min: durationMin,
+    distance_km: num(a.distance) && a.distance! > 0 ? a.distance! / 1000 : null,
+    avg_hr: num(a.averageHR),
+    max_hr: num(a.maxHR),
+    calories: num(a.calories),
+    elevation_gain_m: num(a.elevationGain),
+    avg_power_w: num(a.avgPower),
+    avg_cadence_rpm: num(a.averageBikingCadenceInRevPerMinute),
+    training_load: num(a.activityTrainingLoad),
+    aerobic_te: num(a.aerobicTrainingEffect),
+    anaerobic_te: num(a.anaerobicTrainingEffect),
+    metrics: garminRunMetrics(a),
   };
 }

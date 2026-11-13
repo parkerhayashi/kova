@@ -83,9 +83,10 @@ export default async function ConnectionsSettingsPage() {
             ) : null}
             <GarminSyncButton />
             <p className="text-text-muted text-xs">
-              Runs come in with heart rate, splits, elevation, cadence and training effect. Kova
-              checks Garmin when you open Home or Running (at most every 15 minutes) and once a
-              day. A Garmin run replaces the Apple Health or manual copy of the same run.
+              Runs, rides and strength sessions come in with heart rate, training effect and load
+              (runs add splits, rides add power). Kova checks Garmin when you open Home, Training,
+              Running or Cycling (at most every 15 minutes) and once a day. A Garmin run replaces
+              the Apple Health or manual copy; a strength session pairs with its Hevy workout.
             </p>
             <p className="text-text-muted text-xs">
               Personal API keys expire (at most a year). When this card says the key was rejected,

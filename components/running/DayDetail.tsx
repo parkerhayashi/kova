@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Check, Flag, Trash2 } from "lucide-react";
 import {
@@ -17,7 +18,9 @@ import {
   RaceForm,
   useRunAction,
 } from "@/components/running/RunForms";
+import { RideDetail } from "@/components/cycling/RideDetail";
 import { RunDetail } from "@/components/running/RunDetail";
+import type { TrainingLift } from "@/components/training/TrainingApp";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { DailyTotals } from "@/lib/nutrition";
@@ -30,10 +33,13 @@ import {
   runQuickStats,
   runTypeLabel,
 } from "@/lib/run-fuel";
+import { hevyVolumeLbs } from "@/lib/hevy";
+import { strengthGarminLine } from "@/lib/training-format";
 import { daysBetween, formatIsoDateLabel } from "@/lib/utils";
 import type {
   ActualRun,
   FuelProduct,
+  GarminActivity,
   MidRunIntake,
   RunLap,
   RunStreamPoints,
@@ -97,6 +103,9 @@ export function DayDetail({
   paceMinPerKm,
   fuelProducts,
   runExtras,
+  lifts = [],
+  rides = [],
+  rideStreams = {},
 }: {
   date: string;
   today: string;
@@ -111,6 +120,9 @@ export function DayDetail({
   fuelProducts: FuelProduct[];
   /** Laps and trace for this day's Garmin runs. */
   runExtras: Record<string, { laps: RunLap[]; stream: RunStreamPoints | null }>;
+  lifts?: TrainingLift[];
+  rides?: GarminActivity[];
+  rideStreams?: Record<string, RunStreamPoints>;
 }) {
   const { pending, error, run } = useRunAction();
   const [designating, setDesignating] = useState<
@@ -137,12 +149,14 @@ export function DayDetail({
   };
   const runDay = goals.meta.run_day;
 
-  // Mid-run fuel attaches to the actual run once it exists, else the plan.
+  // Mid-run fuel attaches to the actual run once it exists, else the plan, else a ride.
   const fuelRunRef = actual[0]
     ? { actual_run_id: actual[0].id, planned_run_id: actual[0].planned_run_id }
     : planned.find((p) => p.status !== "skipped")
       ? { planned_run_id: planned.find((p) => p.status !== "skipped")!.id }
-      : null;
+      : rides[0]
+        ? { activity_id: rides[0].id }
+        : null;
 
   const startDesignation = (from?: {
     run_type: RunType | null;
@@ -441,6 +455,47 @@ export function DayDetail({
             Garmin runs come in automatically with heart rate and splits, and replace any Apple
             Health or manual copy of the same run. Log here if one is missing. Deleting an imported
             run keeps it from coming back.
+          </p>
+        </Card>
+      ) : null}
+
+      {/* Lifting — sets from Hevy, heart rate and load from Garmin */}
+      {lifts.length > 0 ? (
+        <Card className="space-y-3">
+          <span className="metric-label">Lifting</span>
+          {lifts.map(({ workout, garmin }) => (
+            <Row key={workout.id}>
+              <div>
+                <p className="text-sm font-semibold">{workout.title ?? "Workout"}</p>
+                <p className="text-text-secondary text-xs tabular-nums">
+                  {[
+                    workout.volume_kg != null ? `${hevyVolumeLbs(workout.volume_kg)?.toLocaleString()} lb` : null,
+                    workout.duration != null ? formatRunDuration(workout.duration / 60) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+                {garmin && strengthGarminLine(garmin) ? (
+                  <p className="text-text-muted text-xs tabular-nums">{strengthGarminLine(garmin)} · Garmin</p>
+                ) : null}
+              </div>
+              <Link href="/workouts" className="text-text-secondary hover:text-text-primary text-xs">
+                Sets →
+              </Link>
+            </Row>
+          ))}
+        </Card>
+      ) : null}
+
+      {/* Cycling — Garmin rides */}
+      {rides.length > 0 ? (
+        <Card className="space-y-3">
+          <span className="metric-label">Cycling</span>
+          {rides.map((ride) => (
+            <RideDetail key={ride.id} ride={ride} stream={rideStreams[ride.id] ?? null} />
+          ))}
+          <p className="text-text-muted text-xs">
+            Rides over 75 minutes (60 if hard) add carbs to the day&apos;s target, same as runs.
           </p>
         </Card>
       ) : null}
