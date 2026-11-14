@@ -332,6 +332,15 @@ create table if not exists weight_log (
   created_at    timestamptz default now()
 );
 
+-- Garmin weigh-ins import into the same log (one row per day). The later
+-- weigh-in wins a day: `measured_at` is the scale / entry time.
+alter table weight_log add column if not exists source      text not null default 'kova';
+alter table weight_log add column if not exists external_id text;
+alter table weight_log add column if not exists measured_at timestamptz;
+alter table weight_log add column if not exists metrics     jsonb;  -- Garmin body composition
+alter table weight_log drop constraint if exists weight_log_source_check;
+alter table weight_log add constraint weight_log_source_check check (source in ('kova', 'garmin'));
+
 -- ---------------------------------------------------------------------------
 -- Habits — RETIRED (Oct 2026). The Habits feature was removed; the app no
 -- longer reads or writes these tables. Kept so history isn't lost and so the
@@ -750,7 +759,7 @@ create table if not exists garmin_activities (
 
 create index if not exists garmin_activities_date_idx on garmin_activities (date);
 
--- Imported runs the user deleted — never re-imported on later syncs.
+-- Imported records the user deleted (runs, Garmin weigh-ins) — never re-imported.
 create table if not exists dismissed_run_imports (
   external_id           text primary key,
   dismissed_at          timestamptz default now()

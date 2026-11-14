@@ -82,8 +82,16 @@ export async function upsertWeight(input: {
   const day = normalizeIsoDate(input.date);
   if (!day) throw new Error(`Invalid weight date: ${input.date}`);
   const db = createServiceClient();
+  // A Kova entry is the latest weigh-in for the day, so it replaces a Garmin one.
   const { error } = await db.from("weight_log").upsert(
-    { ...input, date: day },
+    {
+      ...input,
+      date: day,
+      source: "kova",
+      external_id: null,
+      measured_at: new Date().toISOString(),
+      metrics: null,
+    },
     { onConflict: "date" },
   );
   if (error) throw new Error(error.message);
@@ -93,8 +101,20 @@ export async function deleteWeight(date: string): Promise<void> {
   const day = normalizeIsoDate(date);
   if (!day) throw new Error(`Invalid weight date: ${date}`);
   const db = createServiceClient();
+  const { data: row } = await db
+    .from("weight_log")
+    .select("source, external_id")
+    .eq("date", day)
+    .maybeSingle();
   const { error } = await db.from("weight_log").delete().eq("date", day);
   if (error) throw new Error(error.message);
+  // A deleted Garmin weigh-in stays deleted — the next sync won't bring it back.
+  const imported = row as { source?: string; external_id?: string | null } | null;
+  if (imported?.source === "garmin" && imported.external_id) {
+    await db
+      .from("dismissed_run_imports")
+      .upsert({ external_id: imported.external_id }, { onConflict: "external_id" });
+  }
 }
 
 export async function getAllWeightLogs(): Promise<WeightLog[]> {

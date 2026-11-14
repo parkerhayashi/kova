@@ -4,6 +4,7 @@ import type { WeightLog } from "@/types";
 export type WeightHistoryRange = "30d" | "90d" | "all";
 
 export type WeightHistoryRow = {
+  source: WeightLog["source"];
   date: string;
   weight_lbs: number;
   body_fat_pct: number | null;
@@ -53,6 +54,7 @@ export function buildWeightHistoryRows(logs: WeightLog[]): WeightHistoryRow[] {
       weight_lbs: row.weight_lbs,
       body_fat_pct: row.body_fat_pct,
       notes: row.notes,
+      source: row.source,
       delta_lbs:
         prior != null
           ? Math.round((row.weight_lbs - prior.weight_lbs) * 10) / 10

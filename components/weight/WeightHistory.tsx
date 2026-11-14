@@ -59,6 +59,7 @@ export function WeightHistory({
           weight_lbs: number;
           body_fat_pct: number | null;
           notes: string | null;
+          source?: WeightLog["source"];
         }[];
       };
       setLogs(
@@ -72,6 +73,10 @@ export function WeightHistory({
               weight_lbs: e.weight_lbs,
               body_fat_pct: e.body_fat_pct,
               notes: e.notes,
+              source: e.source ?? "kova",
+              external_id: null,
+              measured_at: null,
+              metrics: null,
               created_at: "",
             },
           ];
@@ -189,9 +194,14 @@ export function WeightHistory({
                   <span className="block font-medium text-text-primary">
                     {formatDayLabel(row.date)}
                   </span>
-                  {row.body_fat_pct != null ? (
+                  {row.body_fat_pct != null || row.source === "garmin" ? (
                     <span className="text-text-muted text-xs">
-                      {row.body_fat_pct.toFixed(1)}% body fat
+                      {[
+                        row.body_fat_pct != null ? `${row.body_fat_pct.toFixed(1)}% body fat` : null,
+                        row.source === "garmin" ? "Garmin" : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   ) : null}
                 </Link>

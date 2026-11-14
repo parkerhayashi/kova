@@ -19,6 +19,7 @@ export function GarminSyncButton() {
           r.runs_found ? `${r.runs_found} run${r.runs_found === 1 ? "" : "s"}` : null,
           r.rides_found ? `${r.rides_found} ride${r.rides_found === 1 ? "" : "s"}` : null,
           r.strength_found ? `${r.strength_found} strength session${r.strength_found === 1 ? "" : "s"}` : null,
+          r.weigh_ins ? `${r.weigh_ins} weigh-in${r.weigh_ins === 1 ? "" : "s"}` : null,
         ].filter(Boolean);
         setMessage(
           found.length === 0

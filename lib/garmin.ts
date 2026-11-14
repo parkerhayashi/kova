@@ -11,7 +11,14 @@
 import { Decoder, Stream } from "@garmin/fitsdk";
 import { unzipSync } from "fflate";
 import type { IncomingRun, IncomingRunDetail } from "@/lib/data/running";
-import type { GarminActivity, GarminSport, RunLap, RunMetrics, RunStreamPoints } from "@/types";
+import type {
+  GarminActivity,
+  GarminSport,
+  RunLap,
+  RunMetrics,
+  RunStreamPoints,
+  WeightMetrics,
+} from "@/types";
 
 const BASE = "https://personal.connectapi.garmin.com";
 const TOKEN_PATH = "/personalapitoken-service/personal-api/personal-api-key/token";
@@ -380,4 +387,87 @@ export function toGarminActivityRow(
     anaerobic_te: num(a.anaerobicTrainingEffect),
     metrics: garminRunMetrics(a),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Weight
+// ---------------------------------------------------------------------------
+
+const LBS_PER_KG = 2.20462;
+
+type GarminWeight = {
+  calendarDate?: string | null;
+  date?: string | number | null;
+  weight?: number | null;
+  bmi?: number | null;
+  bodyFat?: number | null;
+  bodyWater?: number | null;
+  boneMass?: number | null;
+  muscleMass?: number | null;
+  visceralFat?: number | null;
+  metabolicAge?: number | null;
+  timestampGMT?: string | number | null;
+};
+
+/** Garmin documents kilograms; older payloads used grams. Anything over 1000 is grams. */
+function massToKg(value: number | null | undefined): number | null {
+  const v = num(value);
+  if (v == null || v <= 0) return null;
+  return v > 1000 ? v / 1000 : v;
+}
+
+const kgToLbs = (kg: number | null) => (kg == null ? null : Math.round(kg * LBS_PER_KG * 10) / 10);
+
+/** Timestamp as ISO — Garmin sends either an ISO-ish string or epoch milliseconds. */
+function weighInTime(w: GarminWeight): string | null {
+  const raw = w.timestampGMT ?? w.date;
+  if (typeof raw === "number") return new Date(raw).toISOString();
+  if (typeof raw === "string" && raw.length > 10) {
+    const parsed = Date.parse(/Z|[+-]\d{2}:?\d{2}$/.test(raw) ? raw : `${raw}Z`);
+    return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+  }
+  return null;
+}
+
+export type GarminWeighIn = {
+  external_id: string;
+  date: string;
+  weight_lbs: number;
+  body_fat_pct: number | null;
+  measured_at: string | null;
+  metrics: WeightMetrics | null;
+};
+
+/** The latest weigh-in for each day between the two local dates (inclusive). */
+export async function listWeighIns(startDate: string, endDate: string): Promise<GarminWeighIn[]> {
+  const body = (await (
+    await garminFetch(`/weight-service/weight/range/${startDate}/${endDate}`)
+  ).json()) as { dailyWeightSummaries?: { summaryDate?: string; latestWeight?: GarminWeight | null }[] };
+
+  const out: GarminWeighIn[] = [];
+  for (const day of body.dailyWeightSummaries ?? []) {
+    const w = day.latestWeight;
+    const date = (day.summaryDate ?? w?.calendarDate ?? "").slice(0, 10);
+    const lbs = kgToLbs(massToKg(w?.weight));
+    if (!w || !date || lbs == null) continue;
+    const measuredAt = weighInTime(w);
+    const metrics: WeightMetrics = {
+      bmi: num(w.bmi),
+      body_water_pct: num(w.bodyWater),
+      muscle_mass_lbs: kgToLbs(massToKg(w.muscleMass)),
+      bone_mass_lbs: kgToLbs(massToKg(w.boneMass)),
+      visceral_fat: num(w.visceralFat),
+      metabolic_age: num(w.metabolicAge),
+    };
+    out.push({
+      // Per weigh-in, so deleting one in Kova doesn't block a later weigh-in that day.
+      external_id: `garmin-weight:${date}:${measuredAt ?? "latest"}`,
+      date,
+      weight_lbs: lbs,
+      body_fat_pct: num(w.bodyFat),
+      measured_at: measuredAt,
+      metrics: Object.values(metrics).some((v) => v != null) ? metrics : null,
+    });
+  }
+  return out;
 }

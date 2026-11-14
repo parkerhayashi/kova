@@ -13,10 +13,12 @@ import {
   GarminAuthError,
   isGarminConfigured,
   listActivities,
+  listWeighIns,
   parseActivityFit,
   toGarminActivityRow,
   toIncomingRun,
   type GarminApiActivity,
+  type GarminWeighIn,
 } from "@/lib/garmin";
 import { addDays, todayInTimezone } from "@/lib/utils";
 import type { GarminActivity, RunStreamPoints, Workout } from "@/types";
@@ -62,6 +64,7 @@ export type GarminSyncResult = {
   runs_found: number;
   rides_found: number;
   strength_found: number;
+  weigh_ins: number;
   fit_files: number;
   inserted: number;
   updated: number;
@@ -77,6 +80,64 @@ async function fetchFit(activityId: number) {
     console.error(`[garmin] FIT for ${activityId} failed`, err);
     return null;
   }
+}
+
+type WeightRow = { date: string; source: string; measured_at: string | null; created_at: string; weight_lbs: number; external_id: string | null };
+
+/** Should the Garmin weigh-in replace what Kova has for that day? The later weigh-in wins. */
+export function garminWeighInWins(incoming: GarminWeighIn, existing: WeightRow | null): boolean {
+  if (!existing) return true;
+  if (existing.source === "garmin") {
+    return existing.external_id !== incoming.external_id || existing.weight_lbs !== incoming.weight_lbs;
+  }
+  const kovaAt = Date.parse(existing.measured_at ?? existing.created_at);
+  const garminAt = incoming.measured_at ? Date.parse(incoming.measured_at) : NaN;
+  // Without a Garmin time we can't tell which came later — keep the Kova entry.
+  return Number.isFinite(garminAt) && Number.isFinite(kovaAt) && garminAt > kovaAt;
+}
+
+/**
+ * Import Garmin weigh-ins into weight_log (one row per day). Deleted
+ * imports stay deleted; a later Kova entry on the same day is kept.
+ */
+async function syncWeighIns(since: string, today: string): Promise<number> {
+  const weighIns = await listWeighIns(since, today);
+  if (weighIns.length === 0) return 0;
+  const db = createServiceClient();
+  const [{ data: existingRows, error }, { data: dismissedRows }] = await Promise.all([
+    db
+      .from("weight_log")
+      .select("date, source, measured_at, created_at, weight_lbs, external_id")
+      .in("date", weighIns.map((w) => w.date)),
+    db
+      .from("dismissed_run_imports")
+      .select("external_id")
+      .in("external_id", weighIns.map((w) => w.external_id)),
+  ]);
+  if (error) throw new Error(error.message);
+  const existing = new Map(((existingRows as WeightRow[]) ?? []).map((r) => [r.date, r]));
+  const dismissed = new Set(((dismissedRows as { external_id: string }[]) ?? []).map((r) => r.external_id));
+
+  let imported = 0;
+  for (const w of weighIns) {
+    if (dismissed.has(w.external_id) || !garminWeighInWins(w, existing.get(w.date) ?? null)) continue;
+    const { error: upsertError } = await db.from("weight_log").upsert(
+      {
+        date: w.date,
+        weight_lbs: w.weight_lbs,
+        body_fat_pct: w.body_fat_pct,
+        notes: null,
+        source: "garmin",
+        external_id: w.external_id,
+        measured_at: w.measured_at,
+        metrics: w.metrics,
+      },
+      { onConflict: "date" },
+    );
+    if (upsertError) throw new Error(upsertError.message);
+    imported++;
+  }
+  return imported;
 }
 
 /**
@@ -165,11 +226,13 @@ export async function syncGarmin(opts: { days?: number } = {}): Promise<GarminSy
 
     const result = await ingestActualRuns("garmin", runs);
     fitFiles += await syncOtherActivities(others);
+    const weighIns = await syncWeighIns(since, today);
     await recordSync({ garmin_last_synced_at: new Date().toISOString(), garmin_last_error: null });
     return {
       runs_found: runActivities.length,
       rides_found: others.filter((a) => activityKind(a) === "cycling").length,
       strength_found: others.filter((a) => activityKind(a) === "strength").length,
+      weigh_ins: weighIns,
       fit_files: fitFiles,
       ...result,
     };

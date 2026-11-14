@@ -399,7 +399,23 @@ export interface WeightLog {
   weight_lbs: number;
   body_fat_pct: number | null;
   notes: string | null;
+  /** Entered in Kova, or imported from a Garmin weigh-in. */
+  source: "kova" | "garmin";
+  external_id: string | null;
+  /** When the weigh-in happened — the later one wins a day. */
+  measured_at: string | null;
+  /** Garmin body composition (smart scale), when present. */
+  metrics: WeightMetrics | null;
   created_at: string;
+}
+
+export interface WeightMetrics {
+  bmi?: number | null;
+  body_water_pct?: number | null;
+  muscle_mass_lbs?: number | null;
+  bone_mass_lbs?: number | null;
+  visceral_fat?: number | null;
+  metabolic_age?: number | null;
 }
 
 /** Answers from the Weight-page visual body-fat eye test. */

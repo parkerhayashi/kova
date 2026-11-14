@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
       weight_lbs: row.weight_lbs,
       body_fat_pct: row.body_fat_pct,
       notes: row.notes,
+      source: row.source,
     };
   });
   return NextResponse.json({ entries, unit });

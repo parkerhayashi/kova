@@ -137,5 +137,6 @@ export async function syncGarminAction(): Promise<GarminSyncResult> {
   const result = await syncGarmin();
   refresh();
   revalidatePath("/settings/connections");
+  revalidatePath("/weight");
   return result;
 }

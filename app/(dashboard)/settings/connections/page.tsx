@@ -87,6 +87,8 @@ export default async function ConnectionsSettingsPage() {
               (runs add splits, rides add power). Kova checks Garmin when you open Home, Training,
               Running or Cycling (at most every 15 minutes) and once a day. A Garmin run replaces
               the Apple Health or manual copy; a strength session pairs with its Hevy workout.
+              Weigh-ins logged in Garmin land in your weight log; if you also log in Kova the same
+              day, the later weigh-in wins.
             </p>
             <p className="text-text-muted text-xs">
               Personal API keys expire (at most a year). When this card says the key was rejected,
