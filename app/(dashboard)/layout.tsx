@@ -5,7 +5,7 @@ import { ScrollReset } from "@/components/ScrollReset";
 import { SyncBootstrap } from "@/components/SyncBootstrap";
 import { TimezoneProvider } from "@/components/TimezoneProvider";
 import { TopBar } from "@/components/TopBar";
-import { maybeSyncOuraOnOpen } from "@/lib/data/oura";
+import { syncGarminIfStale } from "@/lib/data/garmin";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +14,10 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Oura refresh is best-effort and must not block the shell from rendering.
-  after(() => {
-    maybeSyncOuraOnOpen().catch((err) => {
-      console.warn("[layout] oura sync-on-open failed:", (err as Error).message);
-    });
-  });
+  // Garmin is pull-only: opening Kova pulls new data after the page is sent
+  // (throttled to every 15 min). Oura is retired — its history stays, it no
+  // longer syncs.
+  after(syncGarminIfStale);
 
   return (
     <div className="min-h-full">

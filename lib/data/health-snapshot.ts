@@ -1,11 +1,5 @@
-import {
-  getActivityHistory,
-  getOuraLastSyncedAt,
-  getReadinessHistory,
-  getSleepHistory,
-  getTimezone,
-  isOuraConnected,
-} from "@/lib/data/oura";
+import { getGarminDailyHistory, getGarminStatus } from "@/lib/data/garmin";
+import { getActivityHistory, getSleepHistory, getTimezone } from "@/lib/data/oura";
 import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
 import { getRunningSnapshot, type RunningSnapshot } from "@/lib/data/running";
 import { getTodayWorkoutSummary } from "@/lib/data/workouts";
@@ -59,18 +53,25 @@ export type HealthSnapshotData = {
   todayLabel: string;
   todayIso: string;
   timezone: string;
-  oura: {
-    connected: boolean;
-    hasData: boolean;
+  /** Sleep, Body Battery, HRV, steps — Garmin (Oura history before the switch). */
+  wellness: {
+    garminConfigured: boolean;
     lastSyncedAt: string | null;
-    readinessScore: number | null;
     sleepScore: number | null;
-    readinessAsOf: string | null;
     sleepAsOf: string | null;
-    activityScore: number | null;
-    activityAsOf: string | null;
-    stress: number | null;
+    sleepSeconds: number | null;
+    bodyBattery: number | null;
+    bodyBatteryMorning: number | null;
+    bodyBatteryAsOf: string | null;
+    hrvMs: number | null;
+    hrvStatus: string | null;
+    restingHr: number | null;
     steps: number | null;
+    stepGoal: number | null;
+    stepsAsOf: string | null;
+    /** Moderate + 2 × vigorous, Garmin's intensity-minute convention. */
+    intensityMin: number | null;
+    stressHighMin: number | null;
   };
   nutrition: {
     calories: number | null;
@@ -99,30 +100,32 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
   // section shares these via request-scoped cache.)
   const [
     sleepRows,
-    readinessRows,
     activityRows,
-    connected,
-    ouraLastSyncedAt,
+    garminRows,
+    garmin,
     mealTotals,
     nutritionGoals,
     running,
   ] = await Promise.all([
-    getSleepHistory(400),
-    getReadinessHistory(400),
-    getActivityHistory(400),
-    isOuraConnected(),
-    getOuraLastSyncedAt(),
+    getSleepHistory(30),
+    getActivityHistory(30),
+    getGarminDailyHistory(14),
+    getGarminStatus(),
     getDailyTotals(todayIso),
     getNutritionGoals(todayIso),
     getRunningSnapshot(todayIso),
   ]);
 
-  const readiness = valueForTodayOrLatest(readinessRows, todayIso, "score");
   const sleep = valueForTodayOrLatest(sleepRows, todayIso, "score");
-  const readinessScore =
-    readiness.value != null ? Number(readiness.value) : null;
-  // Only the workout insight depends on today's readiness.
-  const workout = await getTodayWorkoutSummary(readinessScore);
+  const sleepSeconds = valueForTodayOrLatest(sleepRows, todayIso, "total_sleep_duration");
+  const battery = valueForTodayOrLatest(garminRows, todayIso, "body_battery_latest");
+  const batteryMorning = valueForDate(garminRows, battery.asOf ?? todayIso, "body_battery_max");
+  const hrv = valueForTodayOrLatest(garminRows, todayIso, "hrv_last_night_ms");
+  const today = garminRows.find((r) => r.date === todayIso) ?? null;
+  // The workout insight uses this morning's Body Battery (Kova's recovery signal).
+  const workout = await getTodayWorkoutSummary(
+    today?.body_battery_max != null ? Math.round(today.body_battery_max) : null,
+  );
 
   const todayLabel = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -131,33 +134,35 @@ export async function getHealthSnapshot(): Promise<HealthSnapshotData> {
     timeZone: timezone,
   });
 
-  const hasOuraData =
-    sleepRows.length > 0 || readinessRows.length > 0 || activityRows.length > 0;
-
-  const activityScore = valueForTodayOrLatest(
-    activityRows,
-    todayIso,
-    "activity_score",
-  );
   const steps = valueForTodayOrLatest(activityRows, todayIso, "steps");
   const stress = valueForTodayOrLatest(activityRows, todayIso, "stress_score");
+  const stepsDay = garminRows.find((r) => r.date === steps.asOf) ?? null;
+  const hrvDay = garminRows.find((r) => r.date === hrv.asOf) ?? null;
 
   return {
     todayLabel,
     todayIso,
     timezone,
-    oura: {
-      connected,
-      hasData: hasOuraData,
-      lastSyncedAt: ouraLastSyncedAt,
-      readinessScore: readiness.value != null ? Number(readiness.value) : null,
+    wellness: {
+      garminConfigured: garmin.configured,
+      lastSyncedAt: garmin.last_synced_at,
       sleepScore: sleep.value != null ? Number(sleep.value) : null,
-      readinessAsOf: readiness.asOf,
       sleepAsOf: sleep.asOf,
-      activityScore: activityScore.value,
-      activityAsOf: activityScore.asOf,
-      stress: stress.value,
+      sleepSeconds: sleepSeconds.value != null ? Number(sleepSeconds.value) : null,
+      bodyBattery: battery.value != null ? Math.round(battery.value) : null,
+      bodyBatteryMorning: batteryMorning != null ? Math.round(batteryMorning) : null,
+      bodyBatteryAsOf: battery.asOf,
+      hrvMs: hrv.value != null ? Math.round(hrv.value) : null,
+      hrvStatus: hrvDay?.hrv_status ?? null,
+      restingHr: (today ?? hrvDay)?.resting_hr ?? null,
       steps: steps.value,
+      stepGoal: stepsDay?.step_goal ?? null,
+      stepsAsOf: steps.asOf,
+      intensityMin:
+        stepsDay && (stepsDay.intensity_moderate_min != null || stepsDay.intensity_vigorous_min != null)
+          ? (stepsDay.intensity_moderate_min ?? 0) + 2 * (stepsDay.intensity_vigorous_min ?? 0)
+          : null,
+      stressHighMin: stress.value,
     },
     nutrition: {
       calories: mealTotals.calories ?? null,

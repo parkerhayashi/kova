@@ -8,12 +8,11 @@ import { ScoreRing } from "@/components/charts/ScoreRing";
 import { ContributorList } from "@/components/charts/ContributorList";
 import { Hypnogram } from "@/components/charts/Hypnogram";
 import { LazyIntradayChart as IntradayChart } from "@/components/charts/lazyCharts";
+import { getGarminDailyHistory } from "@/lib/data/garmin";
 import {
   getLatestSleepPeriod,
-  getReadinessHistory,
   getSleepHistory,
   getTimezone,
-  isOuraConnected,
 } from "@/lib/data/oura";
 import {
   clockTime,
@@ -25,7 +24,7 @@ import {
   secondsToHours,
   shortDate,
 } from "@/lib/utils";
-import type { SleepContributors } from "@/types";
+import type { GarminSleepScores, SleepContributors } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,12 +38,59 @@ const SLEEP_CONTRIBUTORS: { key: keyof SleepContributors; label: string }[] = [
   { key: "timing", label: "Timing" },
 ];
 
+/** Garmin's sleep score breakdown, in the order the Connect app shows it. */
+const GARMIN_PARTS: { key: string; label: string; unit?: string }[] = [
+  { key: "totalDuration", label: "Duration" },
+  { key: "stress", label: "Stress" },
+  { key: "awakeCount", label: "Awakenings" },
+  { key: "deepPercentage", label: "Deep sleep", unit: "%" },
+  { key: "lightPercentage", label: "Light sleep", unit: "%" },
+  { key: "remPercentage", label: "REM sleep", unit: "%" },
+  { key: "restlessness", label: "Restlessness" },
+];
+
+/** Qualifier → plain word; colors are data (score quality), so accents apply. */
+const QUALITY: Record<string, { label: string; color: string }> = {
+  EXCELLENT: { label: "Excellent", color: "var(--color-recovery)" },
+  GOOD: { label: "Good", color: "var(--color-sleep)" },
+  FAIR: { label: "Fair", color: "var(--color-activity)" },
+  POOR: { label: "Poor", color: "var(--color-stress)" },
+};
+
+const humanize = (s: string) => s.toLowerCase().replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase());
+
+function GarminBreakdown({ scores }: { scores: GarminSleepScores }) {
+  return (
+    <ul className="space-y-2">
+      {GARMIN_PARTS.filter((p) => scores[p.key]).map((p) => {
+        const part = scores[p.key]!;
+        const quality = part.qualifierKey ? QUALITY[part.qualifierKey] : null;
+        return (
+          <li key={p.key} className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-text-secondary">{p.label}</span>
+            <span className="tabular-nums">
+              {part.value != null && p.unit ? (
+                <span className="text-text-muted mr-2">
+                  {Math.round(part.value)}
+                  {p.unit}
+                </span>
+              ) : null}
+              <span style={quality ? { color: quality.color } : undefined}>
+                {quality?.label ?? (part.qualifierKey ? humanize(part.qualifierKey) : "—")}
+              </span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export default async function SleepPage() {
-  const [sleep, readiness, period, connected, timezone] = await Promise.all([
+  const [sleep, garmin, period, timezone] = await Promise.all([
     getSleepHistory(30),
-    getReadinessHistory(14),
+    getGarminDailyHistory(30),
     getLatestSleepPeriod(),
-    isOuraConnected(),
     getTimezone(),
   ]);
 
@@ -56,15 +102,10 @@ export default async function SleepPage() {
           subtitle="Stages, efficiency, and sleep debt over time."
         />
         <Card className="flex flex-col items-start gap-3">
-          <span className="body-copy">No sleep data yet.</span>
-          {!connected && (
-            <Link
-              href="/api/auth/oura"
-              className="border-border-strong hover:bg-surface-raised inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm transition-colors"
-            >
-              Connect Oura
-            </Link>
-          )}
+          <span className="body-copy">No sleep data yet — wear your Garmin overnight.</span>
+          <Link href="/settings/connections" className="text-text-secondary text-sm underline">
+            Connections
+          </Link>
         </Card>
       </div>
     );
@@ -77,8 +118,12 @@ export default async function SleepPage() {
   const detail = latestRowWith(sleep, "total_sleep_duration") ?? latest;
   const detailStale = detail.date !== latest.date;
   const bedtimeRow = latestRowWith(sleep, "optimal_bedtime_start");
-  const latestHrv = latestNonNull(readiness, "hrv_balance");
+  const latestHrv = latestNonNull(garmin, "hrv_last_night_ms");
   const latestDebt = latestNonNull(sleep, "sleep_debt_seconds");
+  const isGarmin = latest.source === "garmin";
+  const garminNight = garmin.find((g) => g.date === latest.date) ?? null;
+  // Oura's overnight curves only belong to an Oura night.
+  const ouraPeriod = !isGarmin && period?.date === detail.date ? period : null;
 
   const contributors = latest.contributors;
   const contributorItems = SLEEP_CONTRIBUTORS.map(({ key, label }) => ({
@@ -86,8 +131,8 @@ export default async function SleepPage() {
     value: contributors?.[key] ?? null,
   }));
 
-  const hrSeries = expandSample(period?.heart_rate ?? null, timezone);
-  const hrvSeries = expandSample(period?.hrv ?? null, timezone);
+  const hrSeries = expandSample(ouraPeriod?.heart_rate ?? null, timezone);
+  const hrvSeries = expandSample(ouraPeriod?.hrv ?? null, timezone);
 
   const scored = sleep.filter((s) => s.score !== null);
   const best = scored.reduce<(typeof scored)[number] | null>(
@@ -103,9 +148,9 @@ export default async function SleepPage() {
     label: shortDate(s.date),
     value: s.score,
   }));
-  const hrvTrend = readiness.map((r) => ({
-    label: shortDate(r.date),
-    value: r.hrv_balance,
+  const hrvTrend = garmin.slice(-14).map((g) => ({
+    label: shortDate(g.date),
+    value: g.hrv_last_night_ms,
   }));
   const debtTrend = sleep.slice(-14).map((s) => ({
     label: shortDate(s.date),
@@ -116,10 +161,10 @@ export default async function SleepPage() {
     <div className="space-y-6">
       <PageHeader
         title="Sleep"
-        subtitle="Last night's stages, contributors, and intraday detail."
+        subtitle={isGarmin ? "Last night's score, stages and vitals from Garmin." : "Last night's stages, contributors, and intraday detail."}
       />
 
-      {/* Score + contributors (Oura's sleep screen) */}
+      {/* Score + what drove it (Garmin's breakdown, or Oura's contributors on Oura nights) */}
       <Card className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
         <ScoreRing
           value={latest.score}
@@ -127,8 +172,15 @@ export default async function SleepPage() {
           accent="sleep"
           caption={shortDate(latest.date)}
         />
-        <div className="w-full flex-1">
-          <ContributorList items={contributorItems} accent="sleep" />
+        <div className="w-full flex-1 space-y-3">
+          {isGarmin ? (
+            garminNight?.sleep_scores ? <GarminBreakdown scores={garminNight.sleep_scores} /> : null
+          ) : (
+            <ContributorList items={contributorItems} accent="sleep" />
+          )}
+          {isGarmin && garminNight?.sleep_feedback ? (
+            <p className="text-text-muted text-xs">{humanize(garminNight.sleep_feedback)}</p>
+          ) : null}
         </div>
       </Card>
 
@@ -151,12 +203,21 @@ export default async function SleepPage() {
           unit="%"
           accent="sleep"
         />
-        <MetricCard
-          label="Latency"
-          value={formatDuration(detail.latency)}
-          accent="sleep"
-        />
-        <MetricCard label="Restfulness" value={detail.restfulness} accent="sleep" />
+        {isGarmin ? (
+          <>
+            <MetricCard label="Awake" value={formatDuration(detail.awake_duration)} accent="sleep" />
+            <MetricCard
+              label="Sleep stress"
+              value={garminNight?.sleep_stress_avg != null ? Math.round(garminNight.sleep_stress_avg) : null}
+              accent="stress"
+            />
+          </>
+        ) : (
+          <>
+            <MetricCard label="Latency" value={formatDuration(detail.latency)} accent="sleep" />
+            <MetricCard label="Restfulness" value={detail.restfulness} accent="sleep" />
+          </>
+        )}
       </section>
 
       <Card className="space-y-4">
@@ -174,7 +235,8 @@ export default async function SleepPage() {
         />
       </Card>
 
-      {/* Hypnogram */}
+      {/* Hypnogram — Oura nights only (Garmin's API has no stage timeline) */}
+      {(ouraPeriod?.sleep_phase_5min ?? detail.sleep_phase_5min) ? (
       <Card className="space-y-4">
         <div className="flex items-baseline justify-between">
           <span className="metric-label">Hypnogram</span>
@@ -183,8 +245,9 @@ export default async function SleepPage() {
             {clockTime(detail.bedtime_end, timezone)}
           </span>
         </div>
-        <Hypnogram phases={period?.sleep_phase_5min ?? detail.sleep_phase_5min} />
+        <Hypnogram phases={ouraPeriod?.sleep_phase_5min ?? detail.sleep_phase_5min} />
       </Card>
+      ) : null}
 
       {/* Intraday heart rate + HRV during sleep */}
       {hrSeries.length > 0 && (
@@ -222,12 +285,16 @@ export default async function SleepPage() {
           unit="bpm"
           accent="recovery"
         />
-        <MetricCard
-          label="Lowest HR"
-          value={detail.lowest_heart_rate}
-          unit="bpm"
-          accent="recovery"
-        />
+        {isGarmin ? (
+          <MetricCard
+            label="Resting HR"
+            value={garminNight?.resting_hr != null ? Math.round(garminNight.resting_hr) : null}
+            unit="bpm"
+            accent="recovery"
+          />
+        ) : (
+          <MetricCard label="Lowest HR" value={detail.lowest_heart_rate} unit="bpm" accent="recovery" />
+        )}
         <MetricCard
           label="Avg Breath"
           value={detail.average_breath != null
@@ -244,24 +311,25 @@ export default async function SleepPage() {
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <MetricCard
-          label="Restless Periods"
-          value={detail.restless_periods}
-          accent="stress"
-        />
-        <Card className="flex flex-col gap-2">
-          <span className="metric-label">Optimal Bedtime</span>
-          <span className="text-text-primary text-lg font-medium tracking-tight">
-            {offsetToClock(bedtimeRow?.optimal_bedtime_start)} –{" "}
-            {offsetToClock(bedtimeRow?.optimal_bedtime_end)}
-          </span>
-          {bedtimeRow?.bedtime_recommendation ? (
-            <span className="timestamp">
-              {bedtimeRow.bedtime_recommendation.replace(/_/g, " ")} ·{" "}
-              {shortDate(bedtimeRow.date)}
-            </span>
-          ) : null}
-        </Card>
+        {/* Restless periods + optimal bedtime are Oura-only. */}
+        {!isGarmin ? (
+          <>
+            <MetricCard label="Restless Periods" value={detail.restless_periods} accent="stress" />
+            <Card className="flex flex-col gap-2">
+              <span className="metric-label">Optimal Bedtime</span>
+              <span className="text-text-primary text-lg font-medium tracking-tight">
+                {offsetToClock(bedtimeRow?.optimal_bedtime_start)} –{" "}
+                {offsetToClock(bedtimeRow?.optimal_bedtime_end)}
+              </span>
+              {bedtimeRow?.bedtime_recommendation ? (
+                <span className="timestamp">
+                  {bedtimeRow.bedtime_recommendation.replace(/_/g, " ")} ·{" "}
+                  {shortDate(bedtimeRow.date)}
+                </span>
+              ) : null}
+            </Card>
+          </>
+        ) : null}
         <MetricCard
           label="Sleep Debt"
           value={secondsToHours(latestDebt)}
@@ -282,8 +350,8 @@ export default async function SleepPage() {
         title="HRV During Sleep"
         data={hrvTrend}
         accent="recovery"
-        current={latestHrv != null ? `${latestHrv} ms` : null}
-        caption="Nightly average HRV (ms)"
+        current={latestHrv != null ? `${Math.round(latestHrv)} ms` : null}
+        caption="Garmin overnight average HRV (ms)"
       />
       <ChartCard
         title="Sleep Debt · 14 Days"

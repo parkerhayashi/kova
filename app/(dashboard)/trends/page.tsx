@@ -38,17 +38,16 @@ export default async function TrendsPage({
         </Suspense>
       </div>
 
-      {!payload.ouraConnected && (
+      {!payload.wearableConnected && (
         <Card className="flex flex-col items-start gap-3">
           <span className="body-copy text-sm">
-            Most correlations need Oura data. Connect your ring to unlock sleep,
-            readiness, and stress views.
+            Most correlations need Garmin data (sleep, Body Battery, HRV). Connect it in Settings.
           </span>
           <Link
-            href="/api/auth/oura"
+            href="/settings/connections"
             className="border-border-strong hover:bg-surface-raised inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm transition-colors"
           >
-            Connect Oura
+            Connections
           </Link>
         </Card>
       )}

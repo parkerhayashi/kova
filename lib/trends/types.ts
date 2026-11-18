@@ -77,7 +77,8 @@ export interface RunningTrends {
 
 export interface TrendsPayload {
   range: TrendRange;
-  ouraConnected: boolean;
+  /** Garmin connected (it supplies sleep, Body Battery and HRV). */
+  wearableConnected: boolean;
   running: RunningTrends;
   correlations: CorrelationView[];
   dualTrends: DualTrendView[];

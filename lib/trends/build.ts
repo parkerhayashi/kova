@@ -104,12 +104,12 @@ function alcoholCorrelations(
   return [
     drinksVsNextDay(
       "alcohol-readiness",
-      `Alcohol → Next-Day Readiness`,
-      `Evening drinks logged vs. readiness the following morning`,
+      `Alcohol → Next-Day Body Battery`,
+      `Evening drinks logged vs. Body Battery the following morning`,
       xLabel,
       drinksByDay,
       readiness.map((r) => ({ date: r.date, value: r.score })),
-      "Readiness",
+      "Body Battery",
       "recovery",
     ),
     drinksVsNextDay(
@@ -125,11 +125,11 @@ function alcoholCorrelations(
     drinksVsNextDay(
       "alcohol-hrv",
       `Alcohol → Next-Day HRV`,
-      `Drinks logged vs. HRV balance the following morning`,
+      `Drinks logged vs. overnight HRV the following morning`,
       xLabel,
       drinksByDay,
       readiness.map((r) => ({ date: r.date, value: r.hrv_balance })),
-      "HRV balance",
+      "HRV (ms)",
       "recovery",
     ),
     drinksVsNextDay(
@@ -167,10 +167,10 @@ function sleepVsNextReadiness(
   return buildCorrelation(
     {
       id: "sleep-readiness",
-      title: "Sleep → Next-Day Readiness",
-      subtitle: "Sleep score vs. readiness the following morning",
+      title: "Sleep → Next-Day Body Battery",
+      subtitle: "Sleep score vs. Body Battery the following morning",
       xLabel: "Sleep score",
-      yLabel: "Readiness",
+      yLabel: "Body Battery",
       xAccent: "sleep",
       yAccent: "recovery",
       minPairs: 3,
@@ -204,7 +204,7 @@ function stressVsHrv(
       title: "Stress vs. HRV",
       subtitle: "Daily stress score vs. heart-rate variability balance",
       xLabel: "Stress",
-      yLabel: "HRV balance",
+      yLabel: "HRV (ms)",
       xAccent: "stress",
       yAccent: "recovery",
       minPairs: 3,
@@ -224,21 +224,21 @@ function sleepVsActivity(
   for (const s of sleep) {
     if (s.score == null) continue;
     const a = activityByDate.get(s.date);
-    if (a?.activity_score == null) continue;
+    if (a?.steps == null) continue;
     pairs.push({
       label: shortDate(s.date),
       x: s.score,
-      y: a.activity_score,
+      y: a.steps,
     });
   }
 
   return buildCorrelation(
     {
       id: "sleep-activity",
-      title: "Sleep vs. Activity",
+      title: "Sleep vs. Steps",
       subtitle: "Sleep quality vs. same-day activity score",
       xLabel: "Sleep score",
-      yLabel: "Activity score",
+      yLabel: "Steps",
       xAccent: "sleep",
       yAccent: "activity",
       minPairs: 3,
@@ -309,9 +309,9 @@ function readinessVsLifting(
   return buildCorrelation(
     {
       id: "readiness-lifting",
-      title: "Readiness vs. Training Volume",
-      subtitle: "Morning readiness score vs. lifting volume the same day",
-      xLabel: "Readiness",
+      title: "Body Battery vs. Training Volume",
+      subtitle: "Morning Body Battery vs. lifting volume the same day",
+      xLabel: "Body Battery",
       yLabel: "Volume (lb)",
       xAccent: "recovery",
       yAccent: "activity",
@@ -379,9 +379,9 @@ function trainingVsHrv(
     {
       id: "training-hrv",
       title: "Training Volume vs. HRV",
-      subtitle: "Hevy lifting volume vs. HRV balance",
+      subtitle: "Hevy lifting volume vs. overnight HRV",
       xLabel: "Volume (lb)",
-      yLabel: "HRV balance",
+      yLabel: "HRV (ms)",
       xAccent: "activity",
       yAccent: "recovery",
       minPairs: 3,
@@ -414,7 +414,7 @@ function rateVsReadiness(
       title,
       subtitle,
       xLabel,
-      yLabel: "Readiness",
+      yLabel: "Body Battery",
       xAccent,
       yAccent: "recovery",
       minPairs: 3,
@@ -464,7 +464,7 @@ function caloriesVsWeight(
 export function buildTrendsPayload(
   input: TrendsInput,
   range: TrendRange,
-  ouraConnected: boolean,
+  wearableConnected: boolean,
 ): TrendsPayload {
   const supplementRates = supplementRateByDay(
     input.supplementLogs,
@@ -473,7 +473,7 @@ export function buildTrendsPayload(
 
   return {
     range,
-    ouraConnected,
+    wearableConnected,
     running: buildRunningTrends({
       runs: input.runs,
       readiness: input.readiness,
@@ -491,8 +491,8 @@ export function buildTrendsPayload(
       sleepVsNextLifting(input.sleep, input.liftingVolumeByDay),
       rateVsReadiness(
         "supplements-readiness",
-        "Supplements vs. Readiness",
-        "Supplement stack adherence vs. readiness score",
+        "Supplements vs. Body Battery",
+        "Supplement stack adherence vs. morning Body Battery",
         "Stack %",
         supplementRates,
         input.readiness,

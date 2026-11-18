@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { after } from "next/server";
 import { PageHeader } from "@/components/PageHeader";
 import { RideDetail } from "@/components/cycling/RideDetail";
 import { Card } from "@/components/ui/Card";
@@ -7,7 +6,6 @@ import {
   getGarminActivitiesBetween,
   getGarminActivityStreams,
   getGarminStatus,
-  syncGarminIfStale,
 } from "@/lib/data/garmin";
 import { getTimezone } from "@/lib/data/oura";
 import { kmToMiles } from "@/lib/run-fuel";
@@ -33,7 +31,6 @@ function Stat({ label, value, unit }: { label: string; value: string; unit?: str
 
 /** Cycling — Garmin rides, indoor and outdoor. */
 export default async function CyclingPage() {
-  after(syncGarminIfStale);
   const today = todayInTimezone(await getTimezone());
   const [rides, garmin] = await Promise.all([
     getGarminActivitiesBetween(addDays(today, -(RECENT_DAYS - 1)), today, "cycling"),

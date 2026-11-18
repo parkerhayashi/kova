@@ -69,10 +69,10 @@ function mileageVsReadiness(
 
   return {
     id: "running-mileage-readiness",
-    title: weekly ? "Weekly Mileage vs. Readiness" : "Daily Mileage vs. Readiness",
+    title: weekly ? "Weekly Mileage vs. Body Battery" : "Daily Mileage vs. Body Battery",
     subtitle: weekly
-      ? "Miles run each week (Mon–Sun) vs. that week's average readiness"
-      : "Miles run each day vs. that day's readiness",
+      ? "Miles run each week (Mon–Sun) vs. that week's average morning Body Battery"
+      : "Miles run each day vs. that morning's Body Battery",
     labels: bins.map((d) => (weekly ? `Wk ${shortDate(d)}` : shortDate(d))),
     primary: bins.map((d) => round1(miles.get(d) ?? 0)),
     secondary: bins.map((d) => {
@@ -80,7 +80,7 @@ function mileageVsReadiness(
       return list?.length ? Math.round(list.reduce((a, b) => a + b, 0) / list.length) : null;
     }),
     primaryLabel: "Miles",
-    secondaryLabel: "Readiness",
+    secondaryLabel: "Body Battery",
     primaryAccent: "activity",
     secondaryAccent: "recovery",
     primaryAsBars: true,
@@ -148,10 +148,10 @@ function runVsNextReadiness(
   const { points, r } = scatterFromPairs(pairs);
   return {
     id: "running-next-readiness",
-    title: "Run → Next-Day Readiness",
-    subtitle: "Miles run vs. readiness the following morning",
+    title: "Run → Next-Day Body Battery",
+    subtitle: "Miles run vs. Body Battery the following morning",
     xLabel: "Miles",
-    yLabel: "Readiness",
+    yLabel: "Body Battery",
     xAccent: "activity",
     yAccent: "recovery",
     minPairs: 4,

@@ -1,247 +1,153 @@
-import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { MetricCard } from "@/components/MetricCard";
 import { Card } from "@/components/ui/Card";
 import { ChartCard } from "@/components/charts/ChartCard";
-import { ScoreRing } from "@/components/charts/ScoreRing";
-import { ContributorList } from "@/components/charts/ContributorList";
-import { LazyIntradayChart as IntradayChart } from "@/components/charts/lazyCharts";
-import {
-  getActivityHistory,
-  getLatestHeartRateDay,
-  getTimezone,
-  isOuraConnected,
-} from "@/lib/data/oura";
-import {
-  formatDuration,
-  heartRateSeries,
-  latestNonNull,
-  latestRowWith,
-  shortDate,
-} from "@/lib/utils";
-import type { ActivityContributors } from "@/types";
+import { ProgressRing } from "@/components/charts/ProgressRing";
+import { getGarminDailyHistory } from "@/lib/data/garmin";
+import { getActivityHistory, getTimezone } from "@/lib/data/oura";
+import { weekStart } from "@/lib/run-calendar";
+import { latestRowWith, shortDate, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const ACTIVITY_CONTRIBUTORS: { key: keyof ActivityContributors; label: string }[] =
-  [
-    { key: "stay_active", label: "Stay Active" },
-    { key: "move_every_hour", label: "Move Every Hour" },
-    { key: "meet_daily_targets", label: "Meet Daily Targets" },
-    { key: "training_frequency", label: "Training Frequency" },
-    { key: "training_volume", label: "Training Volume" },
-    { key: "recovery_time", label: "Recovery Time" },
-  ];
+/** Moderate + 2 × vigorous — how Garmin counts intensity minutes toward the weekly goal. */
+const intensity = (r: { intensity_moderate_min: number | null; intensity_vigorous_min: number | null }) =>
+  r.intensity_moderate_min == null && r.intensity_vigorous_min == null
+    ? null
+    : (r.intensity_moderate_min ?? 0) + 2 * (r.intensity_vigorous_min ?? 0);
 
-// Activity-intensity segments — data, so semantic accents are allowed.
-const INTENSITY = [
-  { key: "high_activity_time", label: "High", color: "var(--color-activity)" },
-  { key: "medium_activity_time", label: "Medium", color: "var(--color-nutrition)" },
-  { key: "low_activity_time", label: "Low", color: "var(--color-sleep)" },
-  { key: "sedentary_time", label: "Sedentary", color: "rgba(255,255,255,0.22)" },
-] as const;
-
+/** Activity — steps vs. goal, intensity minutes, calories and stress from Garmin. */
 export default async function ActivityPage() {
-  const [activity, hrDay, connected, timezone] = await Promise.all([
-    getActivityHistory(30),
-    getLatestHeartRateDay(),
-    isOuraConnected(),
-    getTimezone(),
-  ]);
+  const today = todayInTimezone(await getTimezone());
+  const [activity, garmin] = await Promise.all([getActivityHistory(30), getGarminDailyHistory(30)]);
 
-  if (activity.length === 0) {
+  const day = activity.find((a) => a.date === today) ?? latestRowWith(activity, "steps");
+  const gDay = garmin.find((g) => g.date === day?.date) ?? null;
+  const stepGoal = gDay?.step_goal ?? 10_000;
+
+  const thisWeek = garmin.filter((g) => g.date >= weekStart(today));
+  const weekIntensity = thisWeek.reduce((s, g) => s + (intensity(g) ?? 0), 0);
+  const weekGoal = latestRowWith(garmin, "intensity_goal_weekly")?.intensity_goal_weekly ?? 150;
+
+  const last14 = activity.slice(-14);
+  const trend = (pick: (a: (typeof activity)[number]) => number | null) =>
+    last14.map((a) => ({ label: shortDate(a.date), value: pick(a) }));
+  const garminTrend = (pick: (g: (typeof garmin)[number]) => number | null) =>
+    garmin.slice(-14).map((g) => ({ label: shortDate(g.date), value: pick(g) }));
+  const ouraScores = activity.filter((a) => a.activity_score != null);
+
+  if (!day) {
     return (
       <div>
-        <PageHeader title="Activity" subtitle="Movement, calories, and goals." />
-        <Card className="flex flex-col items-start gap-3">
-          <span className="body-copy">No activity data yet.</span>
-          {!connected && (
-            <Link
-              href="/api/auth/oura"
-              className="border-border-strong hover:bg-surface-raised inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm transition-colors"
-            >
-              Connect Oura
-            </Link>
-          )}
+        <PageHeader title="Activity" subtitle="Steps, intensity minutes, calories and stress." />
+        <Card>
+          <p className="body-copy text-sm">No activity data yet — it shows up after the next Garmin sync.</p>
         </Card>
       </div>
     );
   }
 
-  const today = latestRowWith(activity, "activity_score") ?? activity[activity.length - 1];
-  const activityScore = latestNonNull(activity, "activity_score");
-  const steps = latestNonNull(activity, "steps");
-  const activeCalories = latestNonNull(activity, "active_calories");
-  const totalCalories = latestNonNull(activity, "total_calories");
-  const walkingDistance = latestNonNull(activity, "equivalent_walking_distance");
-  const stress = latestNonNull(activity, "stress_score");
-  const spo2 = latestNonNull(activity, "spo2_avg");
-
-  const contributors = latestRowWith(activity, "contributors")?.contributors ?? null;
-  const contributorItems = ACTIVITY_CONTRIBUTORS.map(({ key, label }) => ({
-    label,
-    value: contributors?.[key] ?? null,
-  }));
-
-  const intensityTotal =
-    INTENSITY.reduce((sum, { key }) => sum + (today[key] ?? 0), 0) || 1;
-
-  const hrSeries = heartRateSeries(hrDay?.samples ?? null, timezone);
-
-  const targetCalories = today.target_calories;
-  const movePct =
-    targetCalories && activeCalories != null
-      ? Math.min(100, Math.round((activeCalories / targetCalories) * 100))
-      : null;
-
-  const scoreTrend = activity.slice(-14).map((a) => ({
-    label: shortDate(a.date),
-    value: a.activity_score,
-  }));
-  const stepsTrend = activity.slice(-14).map((a) => ({
-    label: shortDate(a.date),
-    value: a.steps,
-  }));
-  const calorieTrend = activity.slice(-14).map((a) => ({
-    label: shortDate(a.date),
-    value: a.active_calories,
-  }));
-  const stressTrend = activity.slice(-14).map((a) => ({
-    label: shortDate(a.date),
-    value: a.stress_score,
-  }));
-
   return (
     <div className="space-y-6">
-      <PageHeader title="Activity" subtitle="Movement, calories, intensity, and goals." />
+      <PageHeader title="Activity" subtitle="Steps, intensity minutes, calories and stress." />
 
-      {/* Score + contributors */}
       <Card className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-        <ScoreRing value={activityScore} label="Activity" accent="activity" />
-        <div className="w-full flex-1">
-          <ContributorList items={contributorItems} accent="activity" />
-        </div>
-      </Card>
-
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <MetricCard label="Steps" value={steps?.toLocaleString() ?? null} accent="activity" />
-        <MetricCard label="Active kcal" value={activeCalories} accent="activity" />
-        <MetricCard label="Total kcal" value={totalCalories} accent="activity" />
-        <MetricCard
-          label="Walking Eq."
-          value={walkingDistance != null ? Math.round(walkingDistance / 100) / 10 : null}
-          unit="km"
+        <ProgressRing
+          value={day.steps}
+          max={stepGoal}
+          label={day.date === today ? "Steps today" : `Steps · ${shortDate(day.date)}`}
           accent="activity"
+          size={140}
+          format={(v) => Math.round(v).toLocaleString()}
+          caption={`Goal ${stepGoal.toLocaleString()}`}
         />
-      </section>
-
-      {/* Move goal progress */}
-      {movePct !== null && (
-        <Card className="space-y-3">
-          <div className="flex items-baseline justify-between">
-            <span className="metric-label">Move Goal</span>
-            <span className="text-text-primary text-lg font-medium tracking-tight">
-              {activeCalories} / {targetCalories} kcal
-            </span>
-          </div>
-          <span className="bg-[rgba(255,255,255,0.06)] relative block h-2 w-full overflow-hidden rounded-full">
-            <span
-              className="absolute inset-y-0 left-0 rounded-full"
-              style={{ width: `${movePct}%`, background: "var(--color-activity)" }}
-            />
-          </span>
-          <span className="timestamp">{movePct}% of daily target</span>
-        </Card>
-      )}
-
-      {/* Intensity breakdown */}
-      <Card className="space-y-4">
-        <span className="metric-label">Activity Breakdown</span>
-        <div className="flex h-2.5 w-full overflow-hidden rounded-full">
-          {INTENSITY.map(({ key, label, color }) => {
-            const pct = ((today[key] ?? 0) / intensityTotal) * 100;
-            return (
-              <div key={label} style={{ width: `${pct}%`, background: color }} />
-            );
-          })}
-        </div>
-        <ul className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
-          {INTENSITY.map(({ key, label, color }) => (
-            <li key={label} className="flex items-center gap-2">
-              <span
-                className="inline-block size-2 rounded-full"
-                style={{ background: color }}
-              />
-              <span className="metric-label">{label}</span>
-              <span className="text-text-secondary ml-auto text-sm tabular-nums">
-                {formatDuration(today[key])}
+        <div className="w-full flex-1 space-y-4">
+          <div className="space-y-1.5">
+            <div className="flex items-baseline justify-between">
+              <span className="metric-label">Intensity minutes · this week</span>
+              <span className="text-text-primary text-sm font-semibold tabular-nums">
+                {Math.round(weekIntensity)} / {Math.round(weekGoal)}
               </span>
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      {/* All-day heart rate */}
-      {hrSeries.length > 0 && (
-        <Card className="space-y-4">
-          <div className="flex items-baseline justify-between">
-            <span className="metric-label">Heart Rate · All Day</span>
-            <span className="timestamp">
-              {hrDay ? shortDate(hrDay.date) : ""}
-            </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.min(100, (weekIntensity / weekGoal) * 100)}%`,
+                  background: "var(--color-activity)",
+                }}
+              />
+            </div>
+            <p className="text-text-muted text-xs">Vigorous minutes count double, as on your watch.</p>
           </div>
-          <IntradayChart data={hrSeries} accent="recovery" unit="bpm" />
-        </Card>
-      )}
+          {gDay?.floors_ascended != null ? (
+            <p className="text-text-secondary text-sm">{Math.round(gDay.floors_ascended)} floors climbed</p>
+          ) : null}
+        </div>
+      </Card>
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricCard
-          label="Resting Time"
-          value={formatDuration(today.resting_time)}
-          accent="sleep"
+          label="Intensity today"
+          value={gDay ? intensity(gDay) : null}
+          unit="min"
+          accent="activity"
+          caption={
+            gDay && (gDay.intensity_vigorous_min ?? 0) > 0
+              ? `${Math.round(gDay.intensity_vigorous_min!)} vigorous`
+              : undefined
+          }
         />
+        <MetricCard label="Active kcal" value={day.active_calories} accent="activity" />
+        <MetricCard label="Total kcal" value={day.total_calories} accent="activity" />
         <MetricCard
-          label="Stress"
-          value={stress}
+          label="High stress"
+          value={day.stress_score}
           unit="min"
           accent="stress"
-          caption="High-stress time"
-        />
-        <MetricCard label="SpO₂" value={spo2} unit="%" accent="sleep" />
-        <MetricCard
-          label="Inactivity Alerts"
-          value={today.inactivity_alerts}
-          accent="stress"
+          caption={gDay?.stress_avg != null ? `avg level ${Math.round(gDay.stress_avg)}` : undefined}
         />
       </section>
 
-      {/* Trends */}
       <ChartCard
-        title="Activity Score · 14 Days"
-        data={scoreTrend}
+        title="Steps · 14 Days"
+        data={trend((a) => a.steps)}
         accent="activity"
-        current={activityScore != null ? String(activityScore) : null}
+        current={day.steps != null ? day.steps.toLocaleString() : null}
       />
-      <section className="grid gap-3 sm:grid-cols-2">
-        <ChartCard
-          title="Steps"
-          data={stepsTrend}
-          accent="activity"
-          current={steps != null ? steps.toLocaleString() : null}
-        />
-        <ChartCard
-          title="Active Calories"
-          data={calorieTrend}
-          accent="activity"
-          current={activeCalories != null ? `${activeCalories} kcal` : null}
-        />
-      </section>
       <ChartCard
-        title="Stress · High-stress minutes"
-        data={stressTrend}
-        accent="stress"
-        current={stress != null ? `${stress} min` : null}
+        title="Intensity Minutes · 14 Days"
+        data={garminTrend(intensity)}
+        accent="activity"
+        caption="Moderate + 2 × vigorous"
       />
+      <ChartCard
+        title="Active Calories · 14 Days"
+        data={trend((a) => a.active_calories)}
+        accent="activity"
+        current={day.active_calories != null ? `${day.active_calories} kcal` : null}
+      />
+      <ChartCard
+        title="Stress · 14 Days"
+        data={garminTrend((g) => g.stress_avg)}
+        accent="stress"
+        caption="Daily average stress level (0–100)"
+      />
+
+      {ouraScores.length > 0 ? (
+        <details className="card">
+          <summary className="text-text-secondary hover:text-text-primary cursor-pointer text-sm">
+            Oura history (activity score until {shortDate(ouraScores.at(-1)!.date)})
+          </summary>
+          <div className="mt-4">
+            <ChartCard
+              title="Oura activity score"
+              data={ouraScores.map((a) => ({ label: shortDate(a.date), value: a.activity_score }))}
+              accent="activity"
+            />
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

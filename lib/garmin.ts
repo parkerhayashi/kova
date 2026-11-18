@@ -471,3 +471,198 @@ export async function listWeighIns(startDate: string, endDate: string): Promise<
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Daily wellness — sleep, HRV, daily summary, Body Battery (Garmin replaced Oura)
+// ---------------------------------------------------------------------------
+
+/** Garmin returns epoch ms or ISO-ish strings for timestamps. */
+function toIso(value: unknown): string | null {
+  if (typeof value === "number" && Number.isFinite(value)) return new Date(value).toISOString();
+  if (typeof value === "string" && value) return gmtToIso(value);
+  return null;
+}
+
+export type GarminSleepNight = {
+  date: string;
+  score: number | null;
+  total_sleep_s: number;
+  deep_s: number | null;
+  light_s: number | null;
+  rem_s: number | null;
+  awake_s: number | null;
+  awake_count: number | null;
+  start: string | null;
+  end: string | null;
+  avg_hr: number | null;
+  respiration_avg: number | null;
+  sleep_stress_avg: number | null;
+  scores: Record<string, { value?: number | null; qualifierKey?: string | null }> | null;
+  feedback: string | null;
+};
+
+/**
+ * One night (`date` = the morning you woke up). The range endpoint returns
+ * empty fields on personal keys, so Kova reads nights one at a time.
+ */
+export async function getSleepNight(date: string): Promise<GarminSleepNight | null> {
+  const j = (await (await garminFetch(`/sleep-service/sleep/dailySleep?date=${date}`)).json()) as Record<
+    string,
+    unknown
+  > | null;
+  const total = num(j?.sleepTimeSeconds);
+  if (!j || total == null || total <= 0) return null;
+  const scores = (j.sleepScores ?? null) as GarminSleepNight["scores"];
+  return {
+    date: String(j.calendarDate ?? date).slice(0, 10),
+    score: num(scores?.overall?.value),
+    total_sleep_s: total,
+    deep_s: num(j.deepSleepSeconds),
+    light_s: num(j.lightSleepSeconds),
+    rem_s: num(j.remSleepSeconds),
+    awake_s: num(j.awakeSleepSeconds),
+    awake_count: num(j.awakeCount),
+    start: toIso(j.sleepStartTimestampGMT),
+    end: toIso(j.sleepEndTimestampGMT),
+    avg_hr: num(j.avgHeartRate),
+    respiration_avg: num(j.averageRespirationValue),
+    sleep_stress_avg: num(j.avgSleepStress),
+    scores,
+    feedback: typeof j.sleepScoreFeedback === "string" ? j.sleepScoreFeedback : null,
+  };
+}
+
+export type GarminHrvDay = {
+  date: string;
+  last_night_ms: number | null;
+  five_min_high_ms: number | null;
+  weekly_avg_ms: number | null;
+  baseline_low_ms: number | null;
+  baseline_high_ms: number | null;
+  status: string | null;
+  feedback: string | null;
+};
+
+export async function getHrvRange(startDate: string, endDate: string): Promise<GarminHrvDay[]> {
+  const j = (await (await garminFetch(`/hrv-service/hrv/daily/${startDate}/${endDate}`)).json()) as {
+    hrvSummaries?: Record<string, unknown>[];
+  };
+  return (j.hrvSummaries ?? []).flatMap((h) => {
+    const date = String(h.calendarDate ?? "").slice(0, 10);
+    if (!date) return [];
+    const baseline = (h.baseline ?? null) as { balancedLow?: number; balancedUpper?: number } | null;
+    return [
+      {
+        date,
+        last_night_ms: num(h.lastNightAvg),
+        five_min_high_ms: num(h.lastNight5MinHigh),
+        weekly_avg_ms: num(h.weeklyAvg),
+        baseline_low_ms: num(baseline?.balancedLow),
+        baseline_high_ms: num(baseline?.balancedUpper),
+        status: typeof h.status === "string" ? h.status : null,
+        feedback: typeof h.feedbackPhrase === "string" ? h.feedbackPhrase : null,
+      },
+    ];
+  });
+}
+
+export type GarminDaySummary = {
+  date: string;
+  steps: number | null;
+  step_goal: number | null;
+  distance_m: number | null;
+  floors_ascended: number | null;
+  active_kcal: number | null;
+  total_kcal: number | null;
+  resting_hr: number | null;
+  min_hr: number | null;
+  max_hr: number | null;
+  intensity_moderate_min: number | null;
+  intensity_vigorous_min: number | null;
+  intensity_goal_weekly: number | null;
+  stress_avg: number | null;
+  stress_max: number | null;
+  stress_high_min: number | null;
+  stress_qualifier: string | null;
+  body_battery_min: number | null;
+  body_battery_max: number | null;
+  body_battery_latest: number | null;
+  body_battery_charged: number | null;
+  body_battery_drained: number | null;
+  respiration_avg: number | null;
+  spo2_avg: number | null;
+};
+
+type Obj = Record<string, unknown>;
+const obj = (v: unknown): Obj => (v && typeof v === "object" ? (v as Obj) : {});
+
+/** Daily summaries (up to a year per call). Days without watch data are skipped. */
+export async function getDaySummaries(startDate: string, endDate: string): Promise<GarminDaySummary[]> {
+  const qs = new URLSearchParams({ startDate, endDate });
+  const j = (await (await garminFetch(`/usersummary-service/v2/dailysummaries?${qs}`)).json()) as {
+    data?: Obj[];
+  };
+  return (j.data ?? []).flatMap((d) => {
+    const date = String(d.calendarDate ?? "").slice(0, 10);
+    if (!date || d.includesWellnessData === false) return [];
+    const movement = obj(d.movement);
+    const steps = obj(movement.steps);
+    const calories = obj(d.calories);
+    const hr = obj(d.heartRate);
+    const im = obj(d.intensityMinutes);
+    const stress = obj(d.stress);
+    const bb = obj(d.bodyBattery);
+    const ms = (v: unknown) => (num(v) != null ? Math.round((num(v)! / 60_000) * 10) / 10 : null);
+    return [
+      {
+        date,
+        steps: num(steps.value),
+        step_goal: num(steps.goal),
+        distance_m: num(steps.distanceInMeters),
+        floors_ascended: num(obj(movement.floorsAscended).value),
+        active_kcal: num(calories.burnedActive),
+        total_kcal: num(calories.burnedTotal),
+        resting_hr: num(hr.restingValue),
+        min_hr: num(hr.minValue),
+        max_hr: num(hr.maxValue),
+        intensity_moderate_min: num(im.moderate),
+        intensity_vigorous_min: num(im.vigorous),
+        intensity_goal_weekly: num(im.goal),
+        stress_avg: num(stress.avgLevel),
+        stress_max: num(stress.maxLevel),
+        stress_high_min: ms(stress.highStressDurationInMillis),
+        stress_qualifier: typeof stress.qualifier === "string" ? stress.qualifier : null,
+        body_battery_min: num(bb.minValue),
+        body_battery_max: num(bb.maxValue),
+        body_battery_latest: num(bb.latestValue),
+        body_battery_charged: num(bb.chargedValue),
+        body_battery_drained: num(bb.drainedValue),
+        respiration_avg: num(obj(d.respiration).avgValue),
+        spo2_avg: num(obj(d.pulseOx).avgValue),
+      },
+    ];
+  });
+}
+
+/** Body Battery through each day as [epoch ms, level] (≤ 31 days per call). */
+export async function getBodyBatteryCurves(
+  startDate: string,
+  endDate: string,
+): Promise<Record<string, [number, number][]>> {
+  const qs = new URLSearchParams({ startDate, endDate, chunks: "48" });
+  const days = (await (
+    await garminFetch(`/wellness-service/wellness/bodyBattery/reports/daily?${qs}`)
+  ).json()) as { date?: string; bodyBatteryValuesArray?: unknown[][] | null }[];
+  const out: Record<string, [number, number][]> = {};
+  for (const d of days ?? []) {
+    const date = String(d.date ?? "").slice(0, 10);
+    // Entries are [timestamp, level] (some firmware adds fields between — level is last).
+    const points = (d.bodyBatteryValuesArray ?? []).flatMap((row) => {
+      const ts = num(row?.[0]);
+      const level = num(row?.[row.length - 1]);
+      return ts != null && level != null ? [[ts, level] as [number, number]] : [];
+    });
+    if (date && points.length) out[date] = points;
+  }
+  return out;
+}

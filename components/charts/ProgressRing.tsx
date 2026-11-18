@@ -8,6 +8,8 @@ interface ProgressRingProps {
   accent?: Accent;
   size?: number;
   caption?: string;
+  /** Center text for big values (e.g. 13277 → "13.3k"). Defaults to the rounded value. */
+  format?: (value: number) => string;
 }
 
 /**
@@ -21,6 +23,7 @@ export function ProgressRing({
   accent = "nutrition",
   size = 88,
   caption,
+  format,
 }: ProgressRingProps) {
   const stroke = 5;
   const radius = (size - stroke) / 2;
@@ -31,7 +34,7 @@ export function ProgressRing({
       ? Math.max(0, Math.min(100, (value / max) * 100)) / 100
       : 0;
   const color = accentColor[accent];
-  const display = hasValue ? Math.round(value) : "—";
+  const display = hasValue ? (format ? format(value) : Math.round(value)) : "—";
 
   return (
     <div className="snapshot-ring-block">

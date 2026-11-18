@@ -1,12 +1,12 @@
 import {
   getActivityHistory,
   getOuraWorkouts,
-  getReadinessHistory,
   getSleepHistory,
   getTimezone,
-  isOuraConnected,
 } from "@/lib/data/oura";
 import { getAlcoholDrinksByDay } from "@/lib/data/alcohol";
+import { getGarminDailyHistory } from "@/lib/data/garmin";
+import { isGarminConfigured } from "@/lib/garmin";
 import {
   getSupplementLogs,
   getSupplements,
@@ -18,6 +18,7 @@ import { getRecentActualRuns } from "@/lib/data/running";
 import { todayInTimezone } from "@/lib/utils";
 import { buildTrendsPayload } from "@/lib/trends/build";
 import type { TrendsInput, TrendsPayload, TrendRange } from "@/lib/trends/types";
+import type { Readiness } from "@/types";
 
 export function parseTrendRange(raw: string | undefined): TrendRange {
   const n = Number(raw);
@@ -28,7 +29,7 @@ export function parseTrendRange(raw: string | undefined): TrendRange {
 export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload> {
   const [
     sleep,
-    readiness,
+    garminDaily,
     activity,
     weight,
     alcoholDrinksByDay,
@@ -37,12 +38,12 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     workouts,
     liftingDashboard,
     nutritionByDay,
-    ouraConnected,
+    wearableConnected,
     runs,
     timezone,
   ] = await Promise.all([
     getSleepHistory(range),
-    getReadinessHistory(range),
+    getGarminDailyHistory(range),
     getActivityHistory(range),
     getWeightLogs(range),
     getAlcoholDrinksByDay(range),
@@ -51,7 +52,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     getOuraWorkouts(range),
     getLiftingDashboard(range),
     getNutritionByDay(range),
-    isOuraConnected(),
+    Promise.resolve(isGarminConfigured()),
     // Running is additive — Trends still renders if the runs table is unavailable.
     getRecentActualRuns(range).catch(() => []),
     getTimezone(),
@@ -59,13 +60,32 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
 
   const { proteinByDay, caloriesByDay } = nutritionByDay;
 
+  // Garmin replaced Oura: correlations that used readiness / HRV balance now
+  // use morning Body Battery and overnight HRV (ms). Oura days drop out rather
+  // than mixing two different scales.
+  const recovery: Readiness[] = garminDaily.map((g) => ({
+    id: g.date,
+    date: g.date,
+    score: g.body_battery_max,
+    hrv_balance: g.hrv_last_night_ms,
+    resting_heart_rate: g.resting_hr,
+    body_temperature: null,
+    recovery_index: null,
+    cardiovascular_age: null,
+    resilience_score: null,
+    temperature_trend_deviation: null,
+    contributors: null,
+    resilience_contributors: null,
+    created_at: g.updated_at,
+  }));
+
   const liftingVolumeByDay = new Map(
     liftingDashboard.volume_by_day.map((row) => [row.date, row.volume_lbs]),
   );
 
   const input: TrendsInput = {
     sleep,
-    readiness,
+    readiness: recovery,
     activity,
     weight,
     alcoholDrinksByDay,
@@ -79,5 +99,5 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     today: todayInTimezone(timezone),
   };
 
-  return buildTrendsPayload(input, range, ouraConnected);
+  return buildTrendsPayload(input, range, wearableConnected);
 }

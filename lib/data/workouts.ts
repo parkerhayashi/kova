@@ -226,13 +226,14 @@ async function enrichWorkoutSummary(
         `Last: ${name} · ${formatDaysAgo(last_session.days_ago)}`,
       );
     }
+    // Morning Body Battery (Garmin) — Kova's recovery signal since Oura was retired.
     if (readinessScore != null) {
       if (readinessScore >= 75) {
-        parts.push(`Readiness ${readinessScore} — good to train`);
-      } else if (readinessScore < 60) {
-        parts.push(`Readiness ${readinessScore} — consider recovery`);
+        parts.push(`Body Battery ${readinessScore} — good to train`);
+      } else if (readinessScore < 50) {
+        parts.push(`Body Battery ${readinessScore} — consider recovery`);
       } else {
-        parts.push(`Readiness ${readinessScore}`);
+        parts.push(`Body Battery ${readinessScore}`);
       }
     }
     if (streak >= 2) {

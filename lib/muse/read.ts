@@ -1,5 +1,11 @@
 import { getCutCoachDaily } from "@/lib/data/cut-coach";
-import { getGarminActivitiesBetween, matchStrengthSessions } from "@/lib/data/garmin";
+import {
+  getGarminActivitiesBetween,
+  getGarminDailyFor,
+  getGarminDailyHistory,
+  getGarminStatus,
+  matchStrengthSessions,
+} from "@/lib/data/garmin";
 import {
   getActivityHistory,
   getHeartRateDay,
@@ -163,7 +169,17 @@ export async function readMuseToday() {
       hevy_last_synced_at: hevyLastSynced,
       plaid: plaidConnected,
     },
+    // Garmin replaced Oura (Nov 2026): sleep / activity rows now come from Garmin
+    // (`source`); readiness is Oura history only — use garmin (Body Battery, HRV).
     oura: { sleep, readiness, activity },
+    garmin: await (async () => {
+      const [status, day] = await Promise.all([getGarminStatus(), getGarminDailyFor(today)]);
+      return {
+        connected: status.configured,
+        last_synced_at: status.last_synced_at,
+        today: day ? { ...day, body_battery_curve: undefined } : null,
+      };
+    })(),
     nutrition: {
       goals,
       totals,
@@ -237,6 +253,8 @@ export async function readMuseOura(days: number, includeSamples: boolean) {
     tags,
     sleep_periods: periods,
     heart_rate_today: heartRate,
+    // Garmin daily stats (Body Battery, HRV vs baseline, stress, intensity minutes, step goal).
+    garmin_daily: await getGarminDailyHistory(days),
   };
 }
 

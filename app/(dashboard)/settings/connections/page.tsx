@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { disconnectOuraAction } from "@/app/(dashboard)/settings/connections/actions";
 import { GarminSyncButton } from "@/components/settings/GarminSyncButton";
 import { Card } from "@/components/ui/Card";
 import { getGarminStatus } from "@/lib/data/garmin";
@@ -88,7 +89,8 @@ export default async function ConnectionsSettingsPage() {
               Running or Cycling (at most every 15 minutes) and once a day. A Garmin run replaces
               the Apple Health or manual copy; a strength session pairs with its Hevy workout.
               Weigh-ins logged in Garmin land in your weight log; if you also log in Kova the same
-              day, the later weigh-in wins.
+              day, the later weigh-in wins. Sleep, HRV, Body Battery, stress and steps come from
+              Garmin too.
             </p>
             <p className="text-text-muted text-xs">
               Personal API keys expire (at most a year). When this card says the key was rejected,
@@ -106,15 +108,19 @@ export default async function ConnectionsSettingsPage() {
       <Card className="space-y-2">
         <div className="flex items-center justify-between gap-3">
           <span className="metric-label">Oura</span>
-          <Status ok={ouraConnected} label={ouraConnected ? "Connected" : "Not connected"} />
+          <span className="text-text-muted text-sm">Retired</span>
         </div>
+        <p className="text-text-secondary text-sm">
+          Garmin replaced Oura. Oura no longer syncs; your Oura history (last sync{" "}
+          {synced(ouraSynced)}) stays in Sleep, Activity and Trends.
+        </p>
         {ouraConnected ? (
-          <p className="text-text-secondary text-sm">Last sync {synced(ouraSynced)}</p>
-        ) : (
-          <Link href="/api/auth/oura" className="text-text-primary text-sm underline">
-            Connect Oura
-          </Link>
-        )}
+          <form action={disconnectOuraAction}>
+            <button type="submit" className="text-text-secondary hover:text-text-primary text-xs underline">
+              Disconnect Oura (revoke Kova&apos;s access, keep history)
+            </button>
+          </form>
+        ) : null}
       </Card>
 
       <Card className="space-y-2">

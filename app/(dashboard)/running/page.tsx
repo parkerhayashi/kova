@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { after } from "next/server";
 import { PageHeader } from "@/components/PageHeader";
 import { RunDetail } from "@/components/running/RunDetail";
 import { NextRunCard } from "@/components/running/TrainingPlan";
 import { Card } from "@/components/ui/Card";
-import { syncGarminIfStale } from "@/lib/data/garmin";
 import { getTimezone } from "@/lib/data/oura";
 import {
   getRecentActualRuns,
@@ -41,7 +39,6 @@ function Stat({ label, value, unit }: { label: string; value: string; unit?: str
 
 /** Running: the plan queue, next race, and recent runs. Planning by date lives on Training. */
 export default async function RunningPage() {
-  after(syncGarminIfStale);
   const today = todayInTimezone(await getTimezone());
   const [plan, runs, race] = await Promise.all([
     getTrainingPlan(5),

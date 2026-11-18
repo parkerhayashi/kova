@@ -12,7 +12,8 @@ import {
 } from "@/lib/cut-coach";
 import { getDailyTotals, getNutritionByDay, getNutritionGoals } from "@/lib/data/nutrition";
 import { getCarbLoadDates, withoutDates } from "@/lib/data/running";
-import { getReadinessHistory, getTimezone, getUserSettings } from "@/lib/data/oura";
+import { getMorningBodyBattery } from "@/lib/data/garmin";
+import { getTimezone, getUserSettings } from "@/lib/data/oura";
 import { getUserProfile } from "@/lib/data/profile";
 import { getWeightLogs } from "@/lib/data/tracking";
 import { getLiftingCompositionSnapshot } from "@/lib/data/workouts";
@@ -21,7 +22,7 @@ import { unstable_noStore } from "next/cache";
 import { after } from "next/server";
 
 /** Bump when coach metrics/prompt change so same-day cache can't serve stale copy. */
-const CACHE_VERSION = 5;
+const CACHE_VERSION = 6;
 
 type CutCoachCacheEntry = {
   date: string;
@@ -128,7 +129,7 @@ async function gatherContext(): Promise<CutCoachContext> {
     { caloriesByDay: rawCalories, proteinByDay },
     weightLogs,
     lifting,
-    readinessRows,
+    bodyBatteryMorning,
     loadDays,
   ] = await Promise.all([
     getUserSettings(),
@@ -138,7 +139,7 @@ async function gatherContext(): Promise<CutCoachContext> {
     getNutritionByDay(14),
     getWeightLogs(30),
     getLiftingCompositionSnapshot(30),
-    getReadinessHistory(7),
+    getMorningBodyBattery(today),
     getCarbLoadDates(14),
   ]);
   // Planned carb-load days never count toward intake drift.
@@ -172,8 +173,6 @@ async function gatherContext(): Promise<CutCoachContext> {
     diet_break_active: goals.meta.diet_break_active,
   });
 
-  const readinessToday =
-    readinessRows.find((row) => row.date === today)?.score ?? null;
 
   return {
     phase,
@@ -210,7 +209,7 @@ async function gatherContext(): Promise<CutCoachContext> {
         : null,
       has_data: lifting.strengthExerciseCount > 0,
     },
-    readiness_today: readinessToday,
+    body_battery_morning: bodyBatteryMorning,
     body_fat_goal_pct: settings?.body_fat_goal_pct ?? null,
     body_fat_pct: goals.meta.current_body_fat_pct ?? profile.body_fat_pct,
   };

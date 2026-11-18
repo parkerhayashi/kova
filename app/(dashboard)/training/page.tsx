@@ -1,11 +1,9 @@
-import { after } from "next/server";
 import { PageHeader } from "@/components/PageHeader";
 import { TrainingApp } from "@/components/training/TrainingApp";
 import {
   getGarminActivitiesBetween,
   getGarminActivityStreams,
   matchStrengthSessions,
-  syncGarminIfStale,
 } from "@/lib/data/garmin";
 import { listHevyWorkoutsBetween } from "@/lib/data/hevy";
 import { getDailyTotals, getNutritionGoals } from "@/lib/data/nutrition";
@@ -30,7 +28,6 @@ export default async function TrainingPage({
   searchParams: Promise<{ date?: string; view?: string }>;
 }) {
   const { date: dateParam, view: viewParam } = await searchParams;
-  after(syncGarminIfStale);
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
   const selected = normalizeIsoDate(dateParam) ?? today;

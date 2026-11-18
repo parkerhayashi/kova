@@ -51,7 +51,8 @@ export type CutCoachContext = {
     sessions_per_week: number | null;
     has_data: boolean;
   };
-  readiness_today: number | null;
+  /** Garmin morning Body Battery (0–100) — the recovery signal since Oura was retired. */
+  body_battery_morning: number | null;
   body_fat_goal_pct: number | null;
   body_fat_pct: number | null;
 };
@@ -448,7 +449,7 @@ export function generateCutCoachFallback(ctx: CutCoachContext): CutCoachResult {
         status: "adjust",
         headline: "Strength slipping on the cut",
         summary: `Lifts ${strengthPct!.toFixed(0)}% over the window. Weight ${formatRate(rate)}/wk.`,
-        action: "Keep protein high; if sleep/readiness is low, reduce set volume before cutting calories further.",
+        action: "Keep protein high; if sleep or Body Battery is low, reduce set volume before cutting calories further.",
         mode: ctx.mode,
         phase,
         generated_at: now,

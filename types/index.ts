@@ -77,8 +77,52 @@ export interface Sleep {
   optimal_bedtime_end: number | null;
   bedtime_recommendation: string | null;
   bedtime_status: string | null;
+  /** Which device the night came from (Garmin replaced Oura in Nov 2026). */
+  source: WellnessSource;
   created_at: string;
 }
+
+export type WellnessSource = "oura" | "garmin";
+
+/** Garmin's own daily stats (garmin_daily) — no Oura equivalent. */
+export interface GarminDaily {
+  date: string;
+  sleep_scores: GarminSleepScores | null;
+  sleep_feedback: string | null;
+  sleep_stress_avg: number | null;
+  hrv_last_night_ms: number | null;
+  hrv_5min_high_ms: number | null;
+  hrv_weekly_avg_ms: number | null;
+  hrv_baseline_low_ms: number | null;
+  hrv_baseline_high_ms: number | null;
+  hrv_status: string | null;
+  hrv_feedback: string | null;
+  resting_hr: number | null;
+  min_hr: number | null;
+  max_hr: number | null;
+  step_goal: number | null;
+  floors_ascended: number | null;
+  intensity_moderate_min: number | null;
+  intensity_vigorous_min: number | null;
+  intensity_goal_weekly: number | null;
+  stress_avg: number | null;
+  stress_max: number | null;
+  stress_high_min: number | null;
+  stress_qualifier: string | null;
+  body_battery_min: number | null;
+  body_battery_max: number | null;
+  body_battery_latest: number | null;
+  body_battery_charged: number | null;
+  body_battery_drained: number | null;
+  /** [epoch ms, level] pairs, down-sampled. */
+  body_battery_curve: [number, number][] | null;
+  respiration_avg: number | null;
+  spo2_avg: number | null;
+  updated_at: string;
+}
+
+/** Garmin's sleep score breakdown: each part has a value and/or a qualifier (EXCELLENT, GOOD, FAIR, POOR). */
+export type GarminSleepScores = Record<string, { value?: number | null; qualifierKey?: string | null }>;
 
 export interface Readiness {
   id: string;
@@ -127,6 +171,7 @@ export interface Activity {
   recovery_high: number | null;
   stress_summary: string | null;
   contributors: ActivityContributors | null;
+  source: WellnessSource;
   created_at: string;
 }
 

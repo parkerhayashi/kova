@@ -88,6 +88,49 @@ alter table activity add column if not exists medium_activity_met_minutes float;
 alter table activity add column if not exists low_activity_met_minutes    float;
 alter table activity add column if not exists sedentary_met_minutes       float;
 alter table activity add column if not exists average_met_minutes         float;
+
+-- Garmin replaced Oura (Nov 2026). Sleep score / stages and steps / calories
+-- keep flowing into sleep + activity (continuous history); `source` says
+-- which device a day came from. Oura-only fields stay null on Garmin days.
+alter table sleep    add column if not exists source text not null default 'oura';
+alter table activity add column if not exists source text not null default 'oura';
+
+-- Garmin's own daily stats with no Oura equivalent (Body Battery, HRV status,
+-- intensity minutes, stress level, step goal, Garmin's sleep breakdown).
+create table if not exists garmin_daily (
+  date                    date primary key,
+  sleep_scores            jsonb,     -- Garmin sleepScores (overall, duration, stress, deep %…)
+  sleep_feedback          text,
+  sleep_stress_avg        float,
+  hrv_last_night_ms       float,
+  hrv_5min_high_ms        float,
+  hrv_weekly_avg_ms       float,
+  hrv_baseline_low_ms     float,     -- balanced range
+  hrv_baseline_high_ms    float,
+  hrv_status              text,      -- BALANCED | UNBALANCED | LOW | POOR | NONE
+  hrv_feedback            text,
+  resting_hr              float,
+  min_hr                  float,
+  max_hr                  float,
+  step_goal               int,
+  floors_ascended         float,
+  intensity_moderate_min  float,
+  intensity_vigorous_min  float,
+  intensity_goal_weekly   float,     -- weekly goal, in moderate-equivalent minutes
+  stress_avg              float,     -- 0–100
+  stress_max              float,
+  stress_high_min         float,
+  stress_qualifier        text,
+  body_battery_min        float,
+  body_battery_max        float,
+  body_battery_latest     float,
+  body_battery_charged    float,
+  body_battery_drained    float,
+  body_battery_curve      jsonb,     -- [[epoch ms, level], …] down-sampled
+  respiration_avg         float,
+  spo2_avg                float,
+  updated_at              timestamptz default now()
+);
 alter table activity add column if not exists target_calories             int;
 alter table activity add column if not exists target_meters               int;
 alter table activity add column if not exists meters_to_target            int;
@@ -978,3 +1021,4 @@ alter table dismissed_run_imports enable row level security;
 alter table run_laps          enable row level security;
 alter table run_streams       enable row level security;
 alter table garmin_activities enable row level security;
+alter table garmin_daily      enable row level security;

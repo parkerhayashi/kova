@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ProgressRing } from "@/components/charts/ProgressRing";
 import { ScoreRing } from "@/components/charts/ScoreRing";
-import { OuraRefreshControl } from "@/components/oura/OuraRefreshControl";
+import { GarminRefreshControl } from "@/components/garmin/GarminRefreshControl";
 import { getHealthSnapshot, type HealthSnapshotData } from "@/lib/data/health-snapshot";
 import {
   formatDistance,
@@ -210,22 +210,28 @@ export async function HealthSnapshot() {
   const staleLabel = (iso: string | null) =>
     iso != null && iso !== data.todayIso ? asOfLabel(iso) : null;
 
-  const readinessStale = staleLabel(data.oura.readinessAsOf);
-  const sleepStale = staleLabel(data.oura.sleepAsOf);
-  const activityStale = staleLabel(data.oura.activityAsOf);
+  const w = data.wellness;
+  const sleepStale = staleLabel(w.sleepAsOf);
+  const batteryStale = staleLabel(w.bodyBatteryAsOf);
+  const stepsStale = staleLabel(w.stepsAsOf);
+  const caption = (...parts: (string | null | false)[]) => parts.filter(Boolean).join(" · ");
 
-  const readinessCaption = [
-    data.oura.stress != null ? `${data.oura.stress} min high stress` : null,
-    readinessStale ? `${readinessStale} reading` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-  const activityCaption = [
-    data.oura.steps != null ? `${data.oura.steps.toLocaleString()} steps` : null,
-    activityStale ? `${activityStale} ${data.oura.steps != null ? "score" : "reading"}` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const sleepCaption = caption(
+    w.sleepSeconds != null ? formatDuration(w.sleepSeconds) : null,
+    sleepStale ? `${sleepStale} night` : null,
+  );
+  // Body Battery now, with the morning high and last night's HRV.
+  const batteryCaption = caption(
+    w.bodyBatteryMorning != null ? `woke at ${w.bodyBatteryMorning}` : null,
+    w.hrvMs != null ? `HRV ${w.hrvMs} ms` : null,
+    w.restingHr != null ? `RHR ${Math.round(w.restingHr)}` : null,
+    batteryStale ? `${batteryStale} reading` : null,
+  );
+  const stepsCaption = caption(
+    w.stepGoal != null ? `goal ${(w.stepGoal / 1000).toFixed(1)}k` : null,
+    w.intensityMin != null ? `${Math.round(w.intensityMin)} intensity min` : null,
+    stepsStale ? `${stepsStale}` : null,
+  );
 
   const running = runningCard(data);
   const fuelLine = runFuelLine(data);
@@ -236,29 +242,24 @@ export async function HealthSnapshot() {
       <div className="snapshot-header">
         <div className="min-w-0">
           <h1 className="dash-title">{data.todayLabel}</h1>
-          {data.oura.connected ? (
-            <span className="snapshot-date">
-              Oura{" "}
-              {formatSyncStatus(data.oura.lastSyncedAt, data.timezone) ?? "not synced yet"}
+          {w.garminConfigured ? (
+            <span className="snapshot-date" suppressHydrationWarning>
+              Garmin {formatSyncStatus(w.lastSyncedAt, data.timezone) ?? "not synced yet"}
             </span>
           ) : null}
         </div>
-        {data.oura.connected ? (
-          <OuraRefreshControl
-            lastSyncedAt={data.oura.lastSyncedAt}
-            timeZone={data.timezone}
-            showStatus={false}
-          />
+        {w.garminConfigured ? (
+          <GarminRefreshControl lastSyncedAt={w.lastSyncedAt} timeZone={data.timezone} showStatus={false} />
         ) : null}
       </div>
 
-      {!data.oura.connected && (
+      {!w.garminConfigured && (
         <div className="dash-card snapshot-banner">
           <span className="snapshot-caption">
-            Connect Oura for recovery, sleep, and activity scores.
+            Connect Garmin for sleep, Body Battery, HRV and steps.
           </span>
-          <Link href="/api/auth/oura" className="snapshot-link">
-            Connect Oura
+          <Link href="/settings/connections" className="snapshot-link">
+            Connections
           </Link>
         </div>
       )}
@@ -266,39 +267,31 @@ export async function HealthSnapshot() {
       {race?.alert ? <RaceCountdown race={race} /> : null}
 
       <div className="snapshot-grid snapshot-grid-3">
-        <Link href="/recovery" className="snapshot-link-card">
-          <div className="snapshot-metric dash-card snapshot-metric-rings">
-            <span className="metric-label">Readiness</span>
-            <ScoreRing
-              value={data.oura.readinessScore}
-              accent="recovery"
-              size={80}
-            />
-            {readinessCaption ? (
-              <span className="snapshot-caption">{readinessCaption}</span>
-            ) : null}
-          </div>
-        </Link>
         <Link href="/sleep" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
             <span className="metric-label">Sleep</span>
-            <ScoreRing value={data.oura.sleepScore} accent="sleep" size={80} />
-            {sleepStale ? (
-              <span className="snapshot-caption">{sleepStale} reading</span>
-            ) : null}
+            <ScoreRing value={w.sleepScore} accent="sleep" size={80} />
+            {sleepCaption ? <span className="snapshot-caption">{sleepCaption}</span> : null}
+          </div>
+        </Link>
+        <Link href="/recovery" className="snapshot-link-card">
+          <div className="snapshot-metric dash-card snapshot-metric-rings">
+            <span className="metric-label">Body Battery</span>
+            <ScoreRing value={w.bodyBattery} accent="recovery" size={80} />
+            {batteryCaption ? <span className="snapshot-caption">{batteryCaption}</span> : null}
           </div>
         </Link>
         <Link href="/activity" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
-            <span className="metric-label">Activity</span>
-            <ScoreRing
-              value={data.oura.activityScore}
+            <span className="metric-label">Steps</span>
+            <ProgressRing
+              value={w.steps}
+              max={w.stepGoal ?? 10_000}
               accent="activity"
               size={80}
+              format={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v)))}
             />
-            {activityCaption ? (
-              <span className="snapshot-caption">{activityCaption}</span>
-            ) : null}
+            {stepsCaption ? <span className="snapshot-caption">{stepsCaption}</span> : null}
           </div>
         </Link>
       </div>

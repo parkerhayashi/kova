@@ -1,202 +1,188 @@
-import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { MetricCard } from "@/components/MetricCard";
 import { Card } from "@/components/ui/Card";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { ScoreRing } from "@/components/charts/ScoreRing";
-import { ContributorList } from "@/components/charts/ContributorList";
-import {
-  getActivityHistory,
-  getReadinessHistory,
-  isOuraConnected,
-} from "@/lib/data/oura";
-import { ordinalToResilience } from "@/lib/oura";
-import { latestNonNull, latestRowWith, rollingAverage, shortDate } from "@/lib/utils";
-import type { ReadinessContributors, ResilienceContributors } from "@/types";
+import { getGarminDailyFor, getGarminDailyHistory } from "@/lib/data/garmin";
+import { getReadinessHistory, getTimezone } from "@/lib/data/oura";
+import { latestNonNull, latestRowWith, rollingAverage, shortDate, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const READINESS_CONTRIBUTORS: { key: keyof ReadinessContributors; label: string }[] =
-  [
-    { key: "previous_night", label: "Previous Night" },
-    { key: "sleep_balance", label: "Sleep Balance" },
-    { key: "previous_day_activity", label: "Previous Day Activity" },
-    { key: "activity_balance", label: "Activity Balance" },
-    { key: "body_temperature", label: "Body Temperature" },
-    { key: "hrv_balance", label: "HRV Balance" },
-    { key: "resting_heart_rate", label: "Resting Heart Rate" },
-    { key: "recovery_index", label: "Recovery Index" },
-  ];
+/** Garmin HRV status → plain words. */
+const HRV_STATUS: Record<string, string> = {
+  BALANCED: "Balanced",
+  UNBALANCED: "Unbalanced",
+  LOW: "Low",
+  POOR: "Poor",
+  NONE: "Baseline forming",
+};
 
-const RESILIENCE_CONTRIBUTORS: {
-  key: keyof ResilienceContributors;
-  label: string;
-}[] = [
-  { key: "sleep_recovery", label: "Sleep Recovery" },
-  { key: "daytime_recovery", label: "Daytime Recovery" },
-  { key: "stress", label: "Stress" },
-];
+const titleCase = (s: string | null) =>
+  s ? s.toLowerCase().replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase()) : null;
 
+/** Body Battery & HRV — Garmin's recovery stats. Oura readiness history sits below. */
 export default async function RecoveryPage() {
-  const [readiness, activity, connected] = await Promise.all([
-    getReadinessHistory(30),
-    getActivityHistory(30),
-    isOuraConnected(),
+  const timezone = await getTimezone();
+  const today = todayInTimezone(timezone);
+  const [garmin, todayRow, ouraReadiness] = await Promise.all([
+    getGarminDailyHistory(30),
+    getGarminDailyFor(today),
+    getReadinessHistory(90),
   ]);
 
-  if (readiness.length === 0) {
-    return (
-      <div>
-        <PageHeader
-          title="Readiness"
-          subtitle="Readiness, HRV, and cardiovascular trends."
-        />
-        <Card className="flex flex-col items-start gap-3">
-          <span className="body-copy">No readiness data yet.</span>
-          {!connected && (
-            <Link
-              href="/api/auth/oura"
-              className="border-border-strong hover:bg-surface-raised inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm transition-colors"
-            >
-              Connect Oura
-            </Link>
-          )}
-        </Card>
-      </div>
-    );
-  }
+  const latest = todayRow ?? latestRowWith(garmin, "body_battery_latest");
+  const hrvRow = latestRowWith(garmin, "hrv_last_night_ms");
+  const restingHr = latestNonNull(garmin, "resting_hr");
+  const stressAvg = latestNonNull(garmin, "stress_avg");
 
-  const readinessScore = latestNonNull(readiness, "score");
-  const hrv = latestNonNull(readiness, "hrv_balance");
-  const restingHr = latestNonNull(readiness, "resting_heart_rate");
-  const resilience = latestNonNull(readiness, "resilience_score");
-  const bodyTemp = latestNonNull(readiness, "body_temperature");
-  const tempTrend = latestNonNull(readiness, "temperature_trend_deviation");
-  const cardioAge = latestNonNull(readiness, "cardiovascular_age");
-  const vo2Max = latestNonNull(activity, "vo2_max");
-
-  const contributors = latestRowWith(readiness, "contributors")?.contributors ?? null;
-  const contributorItems = READINESS_CONTRIBUTORS.map(({ key, label }) => ({
-    label,
-    value: contributors?.[key] ?? null,
-  }));
-  const resilienceData =
-    latestRowWith(readiness, "resilience_contributors")?.resilience_contributors ??
-    null;
-  const resilienceItems = RESILIENCE_CONTRIBUTORS.map(({ key, label }) => ({
-    label,
-    value: resilienceData?.[key] ?? null,
-  }));
-
-  const labels = readiness.map((r) => shortDate(r.date));
-  const hrvValues = readiness.map((r) => r.hrv_balance);
+  const labels = garmin.map((r) => shortDate(r.date));
+  const series = (pick: (r: (typeof garmin)[number]) => number | null) =>
+    garmin.map((r, i) => ({ label: labels[i]!, value: pick(r) }));
+  const hrvValues = garmin.map((r) => r.hrv_last_night_ms);
   const hrvAvg = rollingAverage(hrvValues, 7);
-  const hrvTrend = readiness.map((r, i) => ({
-    label: labels[i],
-    value: r.hrv_balance,
-    avg: hrvAvg[i],
-  }));
-  const series = (pick: (r: (typeof readiness)[number]) => number | null) =>
-    readiness.map((r, i) => ({ label: labels[i], value: pick(r) }));
-  const vo2Trend = activity.map((a) => ({
-    label: shortDate(a.date),
-    value: a.vo2_max,
-  }));
+
+  const time = (ms: number) =>
+    new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: timezone });
+  const curve = (todayRow?.body_battery_curve ?? []).map(([ms, level]) => ({ label: time(ms), value: level }));
+
+  const ouraRows = ouraReadiness.filter((r) => r.score != null);
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Readiness"
-        subtitle="Score contributors, HRV, and cardiovascular trends."
-      />
+      <PageHeader title="Body Battery & HRV" subtitle="Garmin's energy, HRV and heart-rate trends." />
 
-      {/* Score + contributors */}
-      <Card className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-        <ScoreRing value={readinessScore} label="Readiness" accent="recovery" />
-        <div className="w-full flex-1">
-          <ContributorList items={contributorItems} accent="recovery" />
-        </div>
-      </Card>
+      {garmin.length === 0 ? (
+        <Card>
+          <p className="body-copy text-sm">
+            No Garmin recovery data yet — wear the watch overnight and it shows up after the next sync.
+          </p>
+        </Card>
+      ) : (
+        <>
+          <Card className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
+            <ScoreRing value={latest?.body_battery_latest != null ? Math.round(latest.body_battery_latest) : null} label="Body Battery" accent="recovery" />
+            <div className="grid w-full flex-1 grid-cols-2 gap-4">
+              <div>
+                <span className="metric-label">Woke at</span>
+                <p className="text-text-primary text-lg font-semibold tabular-nums">
+                  {latest?.body_battery_max != null ? Math.round(latest.body_battery_max) : "—"}
+                </p>
+              </div>
+              <div>
+                <span className="metric-label">Low</span>
+                <p className="text-text-primary text-lg font-semibold tabular-nums">
+                  {latest?.body_battery_min != null ? Math.round(latest.body_battery_min) : "—"}
+                </p>
+              </div>
+              <div>
+                <span className="metric-label">Charged</span>
+                <p className="text-lg font-semibold tabular-nums" style={{ color: "var(--color-recovery)" }}>
+                  {latest?.body_battery_charged != null ? `+${Math.round(latest.body_battery_charged)}` : "—"}
+                </p>
+              </div>
+              <div>
+                <span className="metric-label">Drained</span>
+                <p className="text-lg font-semibold tabular-nums" style={{ color: "var(--color-stress)" }}>
+                  {latest?.body_battery_drained != null ? `−${Math.round(latest.body_battery_drained)}` : "—"}
+                </p>
+              </div>
+            </div>
+          </Card>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <MetricCard label="HRV" value={hrv} unit="ms" accent="recovery" />
-        <MetricCard label="Resting HR" value={restingHr} unit="bpm" accent="recovery" />
-        <MetricCard
-          label="Resilience"
-          value={ordinalToResilience(resilience)}
-          accent="recovery"
-        />
-        <MetricCard
-          label="VO₂ Max"
-          value={vo2Max != null ? Math.round(vo2Max * 10) / 10 : null}
-          accent="activity"
-          caption={vo2Max == null ? "Take the VO₂ Max test in Oura" : undefined}
-        />
-      </section>
+          {curve.length > 1 ? (
+            <ChartCard
+              title="Body Battery · Today"
+              data={curve}
+              accent="recovery"
+              current={curve.at(-1)?.value != null ? String(curve.at(-1)!.value) : null}
+            />
+          ) : null}
 
-      <ChartCard
-        title="Readiness · 30 Days"
-        data={series((r) => r.score)}
-        accent="recovery"
-        current={readinessScore != null ? String(readinessScore) : null}
-      />
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <MetricCard
+              label="HRV last night"
+              value={hrvRow?.hrv_last_night_ms != null ? Math.round(hrvRow.hrv_last_night_ms) : null}
+              unit="ms"
+              accent="recovery"
+              caption={hrvRow?.hrv_status ? HRV_STATUS[hrvRow.hrv_status] ?? titleCase(hrvRow.hrv_status) ?? undefined : undefined}
+            />
+            <MetricCard
+              label="HRV 7-day avg"
+              value={hrvRow?.hrv_weekly_avg_ms != null ? Math.round(hrvRow.hrv_weekly_avg_ms) : null}
+              unit="ms"
+              accent="recovery"
+              caption={
+                hrvRow?.hrv_baseline_low_ms != null && hrvRow.hrv_baseline_high_ms != null
+                  ? `Baseline ${Math.round(hrvRow.hrv_baseline_low_ms)}–${Math.round(hrvRow.hrv_baseline_high_ms)} ms`
+                  : "Baseline forms after ~3 weeks"
+              }
+            />
+            <MetricCard label="Resting HR" value={restingHr != null ? Math.round(restingHr) : null} unit="bpm" accent="recovery" />
+            <MetricCard
+              label="Stress"
+              value={stressAvg != null ? Math.round(stressAvg) : null}
+              accent="stress"
+              caption={titleCase(latestRowWith(garmin, "stress_qualifier")?.stress_qualifier ?? null) ?? "Avg level, 0–100"}
+            />
+          </section>
+          {hrvRow?.hrv_feedback ? (
+            <p className="text-text-muted -mt-3 text-xs">{titleCase(hrvRow.hrv_feedback)}</p>
+          ) : null}
 
-      <ChartCard
-        title="HRV Trend"
-        data={hrvTrend}
-        accent="recovery"
-        showAvg
-        current={hrv != null ? `${hrv} ms` : null}
-        caption="Solid: nightly · dashed: 7-day average"
-      />
+          <ChartCard
+            title="Morning Body Battery · 30 Days"
+            data={series((r) => r.body_battery_max)}
+            accent="recovery"
+            current={latest?.body_battery_max != null ? String(Math.round(latest.body_battery_max)) : null}
+            caption="Body Battery when you woke up"
+          />
 
-      <ChartCard
-        title="Resting Heart Rate"
-        data={series((r) => r.resting_heart_rate)}
-        accent="recovery"
-        current={restingHr != null ? `${restingHr} bpm` : null}
-      />
+          <ChartCard
+            title="Overnight HRV"
+            data={garmin.map((r, i) => ({ label: labels[i]!, value: r.hrv_last_night_ms, avg: hrvAvg[i] }))}
+            accent="recovery"
+            showAvg
+            current={hrvRow?.hrv_last_night_ms != null ? `${Math.round(hrvRow.hrv_last_night_ms)} ms` : null}
+            caption="Solid: nightly · dashed: 7-day average"
+          />
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <ChartCard
-          title="Body Temperature Deviation"
-          data={series((r) => r.body_temperature)}
-          accent="stress"
-          current={
-            bodyTemp != null ? `${bodyTemp > 0 ? "+" : ""}${bodyTemp} °C` : null
-          }
-          caption={
-            tempTrend != null
-              ? `Trend ${tempTrend > 0 ? "+" : ""}${tempTrend} °C`
-              : "Deviation from baseline"
-          }
-        />
-        <ChartCard
-          title="Cardiovascular Age"
-          data={series((r) => r.cardiovascular_age)}
-          accent="recovery"
-          current={cardioAge != null ? `${cardioAge} yr` : null}
-        />
-      </section>
+          <ChartCard
+            title="Resting Heart Rate"
+            data={series((r) => r.resting_hr)}
+            accent="recovery"
+            current={restingHr != null ? `${Math.round(restingHr)} bpm` : null}
+          />
 
-      {/* Resilience contributors */}
-      <Card className="space-y-4">
-        <div className="flex items-baseline justify-between">
-          <span className="metric-label">Resilience Contributors</span>
-          <span className="text-text-primary text-lg font-medium tracking-tight">
-            {ordinalToResilience(resilience) ?? "—"}
-          </span>
-        </div>
-        <ContributorList items={resilienceItems} accent="recovery" />
-        <span className="timestamp">1 Limited → 5 Exceptional</span>
-      </Card>
+          <ChartCard
+            title="Stress"
+            data={series((r) => r.stress_avg)}
+            accent="stress"
+            current={stressAvg != null ? String(Math.round(stressAvg)) : null}
+            caption="Daily average stress level (0–100)"
+          />
+        </>
+      )}
 
-      <ChartCard
-        title="VO₂ Max"
-        data={vo2Trend}
-        accent="activity"
-        current={vo2Max != null ? String(Math.round(vo2Max * 10) / 10) : null}
-      />
+      {ouraRows.length > 0 ? (
+        <details className="card group">
+          <summary className="text-text-secondary hover:text-text-primary cursor-pointer text-sm">
+            Oura history (readiness until {shortDate(ouraRows.at(-1)!.date)})
+          </summary>
+          <div className="mt-4 space-y-4">
+            <ChartCard
+              title="Oura readiness"
+              data={ouraRows.map((r) => ({ label: shortDate(r.date), value: r.score }))}
+              accent="recovery"
+            />
+            <ChartCard
+              title="Oura HRV balance"
+              data={ouraRows.map((r) => ({ label: shortDate(r.date), value: r.hrv_balance }))}
+              accent="recovery"
+            />
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

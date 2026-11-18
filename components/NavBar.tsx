@@ -53,7 +53,7 @@ type NavItem = NavLeaf | NavGroup;
 
 const OURA_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/sleep", label: "Sleep", icon: Moon },
-  { type: "link", href: "/recovery", label: "Readiness", icon: HeartPulse },
+  { type: "link", href: "/recovery", label: "Body Battery & HRV", icon: HeartPulse },
   { type: "link", href: "/activity", label: "Activity", icon: Flame },
 ];
 
@@ -75,7 +75,7 @@ const NAV_ALL: NavItem[] = [
   {
     type: "group",
     id: "oura",
-    label: "Oura",
+    label: "Health",
     icon: Watch,
     children: OURA_CHILDREN,
   },

@@ -43,6 +43,7 @@ const TABLES = [
   "run_laps",
   "run_streams",
   "garmin_activities",
+  "garmin_daily",
 ];
 
 const supabase = createClient(url, serviceKey, {

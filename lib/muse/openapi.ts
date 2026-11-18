@@ -341,8 +341,8 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 
 | Path | What it contains |
 |---|---|
-| \`GET /api/muse/today\` | Sleep, readiness, activity, meals, remaining macros, alcohol, supplements, workout, diet break / reverse, cut coach |
-| \`GET /api/muse/oura?days=30\` | Sleep / readiness / activity history, Oura workouts, sessions, tags. Add \`samples=1\` only if you need waveforms |
+| \`GET /api/muse/today\` | Sleep, activity and \`garmin.today\` (Body Battery, overnight HRV vs baseline, resting HR, stress, intensity minutes, step goal), meals, remaining macros, alcohol, supplements, workout, diet break / reverse, cut coach |
+| \`GET /api/muse/oura?days=30\` | Sleep / activity history (Garmin since Nov 2026, Oura before), \`garmin_daily\` history, plus Oura-era readiness, workouts, sessions, tags. Add \`samples=1\` only if you need waveforms |
 | \`GET /api/muse/nutrition?days=14\` | Every logged meal, daily calories/protein, goals, supplements, saved meals, alcohol. Optional \`date=YYYY-MM-DD\` |
 | \`GET /api/muse/body?days=90\` | Weight log, rates, body-fat estimate, profile |
 | \`GET /api/muse/training?days=30&hevy_limit=40\` | Hevy workouts with sets (plus Garmin heart rate / training load when recorded together), lifting dashboard, composition snapshot, Garmin rides (power, HR, training load) |
@@ -367,6 +367,7 @@ OpenAPI: \`${origin}/api/muse/openapi.json\`
 - Running plan: runs are dateless (type + miles). Logging a run completes \`next\` automatically, so after Parker logs runs, re-check the plan and PUT the adjusted queue. The plan never changes nutrition.
 - Logging runs: Garmin runs (\`source: "garmin"\`) import automatically and replace any matching Apple Health (\`source: "oura"\`) or manual log. Garmin runs in \`logged_runs\` also carry heart rate, elevation, cadence, \`laps\` (splits) and \`garmin_metrics\` (training effect, training load, VO2 max, HR-zone minutes, running dynamics) — use them when coaching. Check \`logged_runs\` first and only log runs that are missing. Duration is required; ask for it if he didn't say. A 409 means it's already logged — don't force it unless he did two separate runs.
 - Logging fuel: gels differ (carbs, calories, caffeine), so log by \`product\` name from \`GET /api/muse/run-fuel\`. If he names one that isn't saved, ask for its carbs (and caffeine) rather than guessing. Fuel attaches to that day's run, so log the run first if it's missing (409). Use \`count\` for several of the same gel.
+- Wearable: Parker switched from Oura to Garmin in Nov 2026. Sleep and activity rows carry \`source\`. There is no readiness score anymore; for recovery use Garmin's morning Body Battery (\`body_battery_max\`) and overnight HRV vs its baseline range (\`hrv_status\` is NONE while the baseline forms). Oura readiness is history only.
 - Never request or echo secrets, tokens, passwords, or TOTP.
 `;
 }
