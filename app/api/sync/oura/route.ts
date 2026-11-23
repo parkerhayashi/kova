@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { syncOura } from "@/lib/data/oura";
 
 export const dynamic = "force-dynamic";
@@ -11,19 +12,13 @@ const MAX_DAYS = 365;
 const DEFAULT_INTRADAY_DAYS = 7;
 const MAX_INTRADAY_DAYS = 30;
 
-function isAuthorized(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true; // dev convenience when no secret is configured
-  return request.headers.get("authorization") === `Bearer ${secret}`;
-}
-
 /**
  * Sync Oura data into Supabase (blueprint Phase 2). Guarded by CRON_SECRET,
  * runs once daily via vercel.json (Hobby plan limit). Manual refresh on Today
  * and sync-on-open cover fresher updates between cron runs.
  */
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isCronAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

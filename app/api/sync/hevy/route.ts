@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { syncHevy } from "@/lib/data/hevy";
 
 export const dynamic = "force-dynamic";
@@ -7,12 +8,6 @@ export const maxDuration = 300;
 const DEFAULT_DAYS = 90;
 const MAX_DAYS = 365;
 
-function isAuthorized(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
-}
-
 function wantsFullImport(request: NextRequest): boolean {
   const q = request.nextUrl.searchParams.get("all");
   return q === "1" || q === "true";
@@ -20,7 +15,7 @@ function wantsFullImport(request: NextRequest): boolean {
 
 /** Daily Hevy import — guarded by CRON_SECRET, scheduled in vercel.json. */
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isCronAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

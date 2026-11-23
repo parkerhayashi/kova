@@ -8,7 +8,7 @@ import type { NextRequest, NextResponse } from "next/server";
  * HttpOnly cookie; `proxy.ts` verifies it on every request.
  *
  * The gate is only active when `KOVA_PASSWORD` is set — without it the app runs
- * open (dev convenience), mirroring the `CRON_SECRET` pattern in the sync routes.
+ * open (dev convenience). Set it in every deployment.
  */
 
 export const AUTH_COOKIE = "kova_session";

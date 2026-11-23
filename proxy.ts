@@ -10,6 +10,9 @@ import { AUTH_COOKIE, isAuthEnabled, verifySessionToken } from "@/lib/auth";
 
 const PUBLIC_PATHS = ["/login", "/privacy", "/api/login", "/api/logout"];
 
+/** Cron routes — guarded by CRON_SECRET in lib/cron-auth.ts. */
+const CRON_PATHS = ["/api/sync/oura", "/api/sync/hevy", "/api/sync/garmin", "/api/sync/plaid"];
+
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
@@ -21,9 +24,10 @@ export function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Vercel Cron + server-to-server sync routes authenticate with CRON_SECRET,
-  // not the session cookie, so let them reach their own guard.
-  if (pathname.startsWith("/api/sync")) return NextResponse.next();
+  // Vercel Cron sync routes authenticate with CRON_SECRET, not the session
+  // cookie, so let only those reach their own guard. (/api/sync/client is a
+  // browser route and stays behind the session.)
+  if (CRON_PATHS.includes(pathname)) return NextResponse.next();
   if (pathname === "/api/hevy/webhook") return NextResponse.next();
   // Muse custom connector uses MUSE_API_TOKEN, not the session cookie.
   if (pathname.startsWith("/api/muse")) return NextResponse.next();
