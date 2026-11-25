@@ -14,6 +14,7 @@ import {
   isGarminConfigured,
   getBodyBatteryCurves,
   getDaySummaries,
+  getHeartRateZones,
   getHrvRange,
   getSleepNight,
   listActivities,
@@ -144,6 +145,20 @@ async function syncWeighIns(since: string, today: string): Promise<number> {
     imported++;
   }
   return imported;
+}
+
+/** Keep Garmin's heart-rate zones current (they shift with max / resting HR). Non-fatal. */
+async function syncHrZones(): Promise<void> {
+  try {
+    const zones = await getHeartRateZones();
+    if (!zones) return;
+    const db = createServiceClient();
+    const { data: row } = await db.from("user_settings").select("id").limit(1).maybeSingle();
+    if (row) await db.from("user_settings").update({ garmin_hr_zones: zones }).eq("id", (row as { id: string }).id);
+  } catch (err) {
+    if (err instanceof GarminAuthError) throw err;
+    console.error("[garmin] heart-rate zones unavailable", err);
+  }
 }
 
 /** Oura-only sleep columns, cleared when Garmin takes a night over. */
@@ -430,6 +445,7 @@ export async function syncGarmin(opts: { days?: number } = {}): Promise<GarminSy
     fitFiles += await syncOtherActivities(others);
     const weighIns = await syncWeighIns(since, today);
     const wellnessDays = await syncWellness(since, today);
+    await syncHrZones();
     await recordSync({ garmin_last_synced_at: new Date().toISOString(), garmin_last_error: null });
     return {
       runs_found: runActivities.length,

@@ -666,3 +666,34 @@ export async function getBodyBatteryCurves(
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Heart-rate zones
+// ---------------------------------------------------------------------------
+
+export type GarminHrZones = {
+  sport: string;
+  method: string | null;
+  /** Lower bound of zones 1–5 (bpm). */
+  floors: number[];
+  max_hr: number | null;
+  resting_hr: number | null;
+  lactate_threshold_hr: number | null;
+};
+
+/** Garmin's heart-rate zones; the running set when there is one, else the default. */
+export async function getHeartRateZones(): Promise<GarminHrZones | null> {
+  const rows = (await (await garminFetch("/biometric-service/heartRateZones/v2")).json()) as Obj[];
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  const pick = rows.find((r) => String(r.sport ?? "").toUpperCase() === "RUNNING") ?? rows.find((r) => String(r.sport ?? "").toUpperCase() === "DEFAULT") ?? rows[0]!;
+  const floors = [pick.zone1Floor, pick.zone2Floor, pick.zone3Floor, pick.zone4Floor, pick.zone5Floor].map(num);
+  if (floors.some((f) => f == null)) return null;
+  return {
+    sport: String(pick.sport ?? "DEFAULT"),
+    method: typeof pick.trainingMethod === "string" ? pick.trainingMethod : null,
+    floors: floors as number[],
+    max_hr: num(pick.maxHeartRateUsed),
+    resting_hr: num(pick.restingHeartRateUsed),
+    lactate_threshold_hr: num(pick.lactateThresholdHeartRateUsed),
+  };
+}

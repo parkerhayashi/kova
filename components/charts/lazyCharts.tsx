@@ -23,3 +23,13 @@ export const LazyTrendChart = dynamic(
   () => import("./TrendChart").then((m) => ({ default: m.TrendChart })),
   { loading: () => <ChartSkeleton /> },
 );
+
+export const LazyFitnessChart = dynamic(
+  () => import("./FitnessChart").then((m) => ({ default: m.FitnessChart })),
+  { loading: () => <ChartSkeleton height={220} /> },
+);
+
+export const LazyStackedWeeks = dynamic(
+  () => import("./FitnessChart").then((m) => ({ default: m.StackedWeeks })),
+  { loading: () => <ChartSkeleton height={180} /> },
+);

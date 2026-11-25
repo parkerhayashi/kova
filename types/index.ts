@@ -84,6 +84,35 @@ export interface Sleep {
 
 export type WellnessSource = "oura" | "garmin";
 
+export type InjurySide = "left" | "right" | "both" | "none";
+export type InjuryStatus = "active" | "improving" | "resolved";
+
+/** An injury or pain episode. Severity 0–10; the latest check-in is the current level. */
+export interface Injury {
+  id: string;
+  body_part: string;
+  side: InjurySide;
+  injury_type: string;
+  severity: number;
+  onset_date: string;
+  aggravators: string[];
+  symptoms: string[];
+  notes: string | null;
+  status: InjuryStatus;
+  resolved_on: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InjuryCheckin {
+  id: string;
+  injury_id: string;
+  date: string;
+  severity: number;
+  note: string | null;
+  created_at: string;
+}
+
 /** Garmin's own daily stats (garmin_daily) — no Oura equivalent. */
 export interface GarminDaily {
   date: string;

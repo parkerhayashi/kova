@@ -5,12 +5,14 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Apple,
+  Bandage,
   Bike,
   CalendarDays,
   ChevronDown,
   Dumbbell,
   Flame,
   Footprints,
+  Gauge,
   HeartPulse,
   LayoutDashboard,
   LogOut,
@@ -55,10 +57,12 @@ const OURA_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/sleep", label: "Sleep", icon: Moon },
   { type: "link", href: "/recovery", label: "Body Battery & HRV", icon: HeartPulse },
   { type: "link", href: "/activity", label: "Activity", icon: Flame },
+  { type: "link", href: "/injuries", label: "Injuries", icon: Bandage },
 ];
 
 const TRAINING_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/training", label: "Calendar", icon: CalendarDays },
+  { type: "link", href: "/performance", label: "Performance", icon: Gauge },
   { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
   { type: "link", href: "/running", label: "Running", icon: Footprints },
   { type: "link", href: "/cycling", label: "Cycling", icon: Bike },

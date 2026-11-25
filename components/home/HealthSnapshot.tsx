@@ -2,6 +2,10 @@ import Link from "next/link";
 import { ProgressRing } from "@/components/charts/ProgressRing";
 import { ScoreRing } from "@/components/charts/ScoreRing";
 import { GarminRefreshControl } from "@/components/garmin/GarminRefreshControl";
+import { InjuryCheckinPrompt } from "@/components/injuries/InjuryLog";
+import { TodayCard } from "@/components/performance/TodayCard";
+import { getInjuries } from "@/lib/data/injuries";
+import { getPerformance } from "@/lib/data/performance";
 import { getHealthSnapshot, type HealthSnapshotData } from "@/lib/data/health-snapshot";
 import {
   formatDistance,
@@ -187,7 +191,11 @@ function runFuelLine(data: HealthSnapshotData): string | null {
 }
 
 export async function HealthSnapshot() {
-  const data = await getHealthSnapshot();
+  const [data, perf, injuries] = await Promise.all([
+    getHealthSnapshot(),
+    getPerformance(90),
+    getInjuries(false),
+  ]);
 
   const workoutValue =
     data.workout.status === "completed_today"
@@ -266,6 +274,9 @@ export async function HealthSnapshot() {
 
       {race?.alert ? <RaceCountdown race={race} /> : null}
 
+      <TodayCard data={perf} />
+      <InjuryCheckinPrompt views={injuries} />
+
       <div className="snapshot-grid snapshot-grid-3">
         <Link href="/sleep" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
@@ -276,7 +287,7 @@ export async function HealthSnapshot() {
         </Link>
         <Link href="/recovery" className="snapshot-link-card">
           <div className="snapshot-metric dash-card snapshot-metric-rings">
-            <span className="metric-label">Body Battery</span>
+            <span className="metric-label">Battery</span>
             <ScoreRing value={w.bodyBattery} accent="recovery" size={80} />
             {batteryCaption ? <span className="snapshot-caption">{batteryCaption}</span> : null}
           </div>

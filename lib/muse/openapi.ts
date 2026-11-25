@@ -17,7 +17,7 @@ export function museOpenApi() {
       title: "Kova Muse API",
       version: "1.0.0",
       description:
-        "Personal health OS for Parker. Read-only except running writes: replacing the upcoming running plan (PUT /api/muse/running-plan), logging / undoing manual runs (POST, DELETE /api/muse/runs), and logging / undoing on-run fuel like gels (POST, DELETE /api/muse/run-fuel). Bearer token required on every data path. Never sync or request secrets.",
+        "Personal health OS for Parker. Read-only except running writes: replacing the upcoming running plan (PUT /api/muse/running-plan), logging / undoing manual runs (POST, DELETE /api/muse/runs), and logging / undoing on-run fuel like gels (POST, DELETE /api/muse/run-fuel). Also logs injuries / pain check-ins (POST /api/muse/injuries). Bearer token required on every data path. Never sync or request secrets.",
     },
     servers: [{ url: SERVER_URL }],
     security: bearer,
@@ -285,6 +285,24 @@ export function museOpenApi() {
           responses: { "200": { description: "Deleted" }, "400": { description: "Bad id" } },
         },
       },
+      "/api/muse/injuries": {
+        get: {
+          operationId: "getInjuries",
+          summary: "Active injuries / pain with daily check-ins",
+          security: bearer,
+          parameters: [{ name: "all", in: "query", required: false, schema: { type: "string", enum: ["1"] }, description: "Include resolved." }],
+          responses: { "200": { description: "Injuries" } },
+        },
+        post: {
+          operationId: "logInjury",
+          summary: "Log new pain, or check in on an existing injury",
+          description:
+            "New: body_part, side (left/right/both/none), injury_type, severity 0–10, optional aggravators / symptoms / notes / onset_date. Check-in: injury_id + severity (one per day; re-checking replaces it). Only log what Parker tells you. Unknown body_part / injury_type returns the allowed keys.",
+          security: bearer,
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["severity"] } } } },
+          responses: { "200": { description: "Logged" }, "400": { description: "Invalid — nothing logged" } },
+        },
+      },
       "/api/muse/trends": {
         get: {
           operationId: "getTrends",
@@ -353,6 +371,8 @@ Paste the token into Muse's secure credential prompt. Never put it in chat.
 | \`GET /api/muse/run-fuel?date=YYYY-MM-DD\` | Parker's saved fuel products (carbs / kcal / caffeine) + fuel logged on that day's run |
 | \`POST /api/muse/run-fuel\` | Log fuel on a run: \`{ "product": "Maurten 100", "count": 2 }\`, or \`{ "label": "Banana", "carbs_g": 27 }\` for something unsaved |
 | \`DELETE /api/muse/run-fuel?id=<fuel id>\` | Undo a mistaken fuel log (ids are in \`logged\`) |
+| \`GET /api/muse/injuries\` | Active injuries / pain with daily severity check-ins |
+| \`POST /api/muse/injuries\` | Log pain: \`{ \"body_part\": \"knee\", \"side\": \"left\", \"injury_type\": \"dull_ache\", \"severity\": 3 }\`, or check in: \`{ \"injury_id\": \"…\", \"severity\": 2 }\` |
 | \`GET /api/muse/trends?range=30\` | Correlations (incl. alcohol → next-day sleep/readiness/HRV/lifting). \`range\` is 7, 30, or 90 |
 | \`GET /api/muse/life?days=30\` | Profile, MFA flag, connection status, Plaid accounts + transactions |
 
@@ -368,6 +388,7 @@ OpenAPI: \`${origin}/api/muse/openapi.json\`
 - Logging runs: Garmin runs (\`source: "garmin"\`) import automatically and replace any matching Apple Health (\`source: "oura"\`) or manual log. Garmin runs in \`logged_runs\` also carry heart rate, elevation, cadence, \`laps\` (splits) and \`garmin_metrics\` (training effect, training load, VO2 max, HR-zone minutes, running dynamics) — use them when coaching. Check \`logged_runs\` first and only log runs that are missing. Duration is required; ask for it if he didn't say. A 409 means it's already logged — don't force it unless he did two separate runs.
 - Logging fuel: gels differ (carbs, calories, caffeine), so log by \`product\` name from \`GET /api/muse/run-fuel\`. If he names one that isn't saved, ask for its carbs (and caffeine) rather than guessing. Fuel attaches to that day's run, so log the run first if it's missing (409). Use \`count\` for several of the same gel.
 - Wearable: Parker switched from Oura to Garmin in Nov 2026. Sleep and activity rows carry \`source\`. There is no readiness score anymore; for recovery use Garmin's morning Body Battery (\`body_battery_max\`) and overnight HRV vs its baseline range (\`hrv_status\` is NONE while the baseline forms). Oura readiness is history only.
+- Recovery & injuries: \`GET /api/muse/today\` has \`performance\` (Kova's Recovery 0–100 with its components, Strain 0–21, today's advice, fitness / fatigue / form, race predictions) and active \`injuries\`. Respect them when suggesting training: lower-body pain 1–3 → easy running only; 4+ → cross-train or rest; red-flag symptoms → tell Parker to see a professional. Kova isn't medical advice.
 - Never request or echo secrets, tokens, passwords, or TOTP.
 `;
 }

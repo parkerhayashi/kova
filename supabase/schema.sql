@@ -521,6 +521,8 @@ alter table user_settings
 -- Garmin Personal API (key in GARMIN_API_KEY; pull-only, so Kova polls).
 alter table user_settings add column if not exists garmin_last_synced_at timestamptz;
 alter table user_settings add column if not exists garmin_last_error text;
+-- Garmin heart-rate zones (floors, max HR, lactate threshold HR) — refreshed each sync.
+alter table user_settings add column if not exists garmin_hr_zones jsonb;
 
 alter table user_settings
   add column if not exists body_fat_goal_pct float;
@@ -802,6 +804,36 @@ create table if not exists garmin_activities (
 
 create index if not exists garmin_activities_date_idx on garmin_activities (date);
 
+-- Injuries & pain — logged by hand (or Muse); they lower Recovery and, with
+-- the plan builder, adjust training. One check-in per injury per day.
+create table if not exists injuries (
+  id                    uuid primary key default gen_random_uuid(),
+  body_part             text not null,          -- knee, shin, achilles, lower_back…
+  side                  text not null default 'none' check (side in ('left', 'right', 'both', 'none')),
+  injury_type           text not null,          -- soreness, sharp_pain, tendon_pain, strain…
+  severity              int  not null check (severity between 0 and 10),  -- at onset
+  onset_date            date not null,
+  aggravators           text[] not null default '{}',  -- running, lifting, stairs…
+  symptoms              text[] not null default '{}',  -- swelling, cant_bear_weight… (red flags)
+  notes                 text,
+  status                text not null default 'active' check (status in ('active', 'improving', 'resolved')),
+  resolved_on           date,
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create table if not exists injury_checkins (
+  id                    uuid primary key default gen_random_uuid(),
+  injury_id             uuid not null references injuries (id) on delete cascade,
+  date                  date not null,
+  severity              int  not null check (severity between 0 and 10),
+  note                  text,
+  created_at            timestamptz default now(),
+  unique (injury_id, date)
+);
+
+create index if not exists injury_checkins_date_idx on injury_checkins (date);
+
 -- Imported records the user deleted (runs, Garmin weigh-ins) — never re-imported.
 create table if not exists dismissed_run_imports (
   external_id           text primary key,
@@ -1022,3 +1054,5 @@ alter table run_laps          enable row level security;
 alter table run_streams       enable row level security;
 alter table garmin_activities enable row level security;
 alter table garmin_daily      enable row level security;
+alter table injuries          enable row level security;
+alter table injury_checkins   enable row level security;

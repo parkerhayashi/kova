@@ -1,4 +1,7 @@
 import { getCutCoachDaily } from "@/lib/data/cut-coach";
+import { getInjuries } from "@/lib/data/injuries";
+import { getPerformance } from "@/lib/data/performance";
+import { injuryName } from "@/lib/injuries";
 import {
   getGarminActivitiesBetween,
   getGarminDailyFor,
@@ -172,6 +175,26 @@ export async function readMuseToday() {
     // Garmin replaced Oura (Nov 2026): sleep / activity rows now come from Garmin
     // (`source`); readiness is Oura history only — use garmin (Body Battery, HRV).
     oura: { sleep, readiness, activity },
+    // Kova's Recovery / Strain / fitness model and active injuries (shape the day's training).
+    performance: await (async () => {
+      const p = await getPerformance(90);
+      return {
+        recovery: p.recovery,
+        strain: p.strain,
+        advice: p.advice,
+        fitness: p.current,
+        predictions: p.predictions.predictions,
+      };
+    })(),
+    injuries: (await getInjuries(false)).map((v) => ({
+      id: v.injury.id,
+      name: injuryName(v.injury),
+      type: v.injury.injury_type,
+      severity: v.severity,
+      since: v.injury.onset_date,
+      status: v.injury.status,
+      checked_in_today: v.checkedInToday,
+    })),
     garmin: await (async () => {
       const [status, day] = await Promise.all([getGarminStatus(), getGarminDailyFor(today)]);
       return {

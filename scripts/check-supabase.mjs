@@ -44,6 +44,8 @@ const TABLES = [
   "run_streams",
   "garmin_activities",
   "garmin_daily",
+  "injuries",
+  "injury_checkins",
 ];
 
 const supabase = createClient(url, serviceKey, {
