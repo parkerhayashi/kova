@@ -804,6 +804,70 @@ create table if not exists garmin_activities (
 
 create index if not exists garmin_activities_date_idx on garmin_activities (date);
 
+-- Training plans (Phase 2) — Kova's own dated plan toward a goal race, built by
+-- the rules engine (lib/plan-engine.ts). Completion is matched from logged
+-- runs / rides / lifts on read; only user edits (move, skip) are stored.
+create table if not exists training_plans (
+  id                    uuid primary key default gen_random_uuid(),
+  goal_race_id          uuid references planned_runs (id) on delete set null,
+  start_date            date not null,
+  end_date              date not null,
+  settings              jsonb not null,   -- run / lift / ride days, long-run day, goal time
+  status                text not null default 'active' check (status in ('active', 'archived')),
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create table if not exists plan_workouts (
+  id                    uuid primary key default gen_random_uuid(),
+  plan_id               uuid not null references training_plans (id) on delete cascade,
+  date                  date not null,
+  sport                 text not null check (sport in ('run', 'lift', 'ride')),
+  kind                  text not null,    -- run: run_walk, easy, long, tempo, intervals, test, race…; lift: upper / lower / full; ride: endurance
+  title                 text not null,
+  phase                 text not null,    -- run_walk, base, build, peak, taper, race
+  week_index            int  not null,
+  duration_min          float,
+  distance_km           float,
+  steps                 jsonb,            -- [{ label, minutes?, repeat?, target? }]
+  notes                 text,
+  status                text not null default 'planned' check (status in ('planned', 'skipped')),
+  planned_run_id        uuid references planned_runs (id) on delete set null,  -- run-fuel designation for long / quality runs
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
+);
+
+create index if not exists plan_workouts_plan_date_idx on plan_workouts (plan_id, date);
+
+-- Suggested changes (rules engine + weekly AI review); accepting applies `ops`.
+create table if not exists plan_suggestions (
+  id                    uuid primary key default gen_random_uuid(),
+  plan_id               uuid not null references training_plans (id) on delete cascade,
+  key                   text not null,    -- dedupe: kind + anchor date
+  source                text not null check (source in ('rules', 'ai', 'auto')),
+  title                 text not null,
+  reason                text not null,
+  ops                   jsonb not null,   -- [{ op: 'update' | 'insert' | 'skip', … }]
+  status                text not null default 'pending' check (status in ('pending', 'accepted', 'dismissed')),
+  created_at            timestamptz default now(),
+  resolved_at           timestamptz,
+  unique (plan_id, key)
+);
+
+-- 'auto' = an adjustment Kova applied itself (missed / off-plan sessions, lift order).
+alter table plan_suggestions drop constraint if exists plan_suggestions_source_check;
+alter table plan_suggestions add constraint plan_suggestions_source_check check (source in ('rules', 'ai', 'auto'));
+
+-- One AI review per plan per week (Monday).
+create table if not exists plan_reviews (
+  id                    uuid primary key default gen_random_uuid(),
+  plan_id               uuid not null references training_plans (id) on delete cascade,
+  week_start            date not null,
+  summary               text not null,
+  created_at            timestamptz default now(),
+  unique (plan_id, week_start)
+);
+
 -- Injuries & pain — logged by hand (or Muse); they lower Recovery and, with
 -- the plan builder, adjust training. One check-in per injury per day.
 create table if not exists injuries (
@@ -1056,3 +1120,7 @@ alter table garmin_activities enable row level security;
 alter table garmin_daily      enable row level security;
 alter table injuries          enable row level security;
 alter table injury_checkins   enable row level security;
+alter table training_plans    enable row level security;
+alter table plan_workouts     enable row level security;
+alter table plan_suggestions  enable row level security;
+alter table plan_reviews      enable row level security;

@@ -46,6 +46,10 @@ const TABLES = [
   "garmin_daily",
   "injuries",
   "injury_checkins",
+  "training_plans",
+  "plan_workouts",
+  "plan_suggestions",
+  "plan_reviews",
 ];
 
 const supabase = createClient(url, serviceKey, {

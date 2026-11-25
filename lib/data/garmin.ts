@@ -463,14 +463,17 @@ export async function syncGarmin(opts: { days?: number } = {}): Promise<GarminSy
 }
 
 /** Background sync when Kova is opened — skipped if Garmin synced recently. */
-export async function syncGarminIfStale(): Promise<void> {
-  if (!isGarminConfigured()) return;
+/** Sync when the last one is older than 15 min. True when a sync ran and succeeded. */
+export async function syncGarminIfStale(): Promise<boolean> {
+  if (!isGarminConfigured()) return false;
   const { last_synced_at } = await getGarminStatus();
-  if (last_synced_at && Date.now() - Date.parse(last_synced_at) < STALE_AFTER_MS) return;
+  if (last_synced_at && Date.now() - Date.parse(last_synced_at) < STALE_AFTER_MS) return false;
   try {
     await syncGarmin();
+    return true;
   } catch (err) {
     console.error("[garmin] background sync failed", err);
+    return false;
   }
 }
 

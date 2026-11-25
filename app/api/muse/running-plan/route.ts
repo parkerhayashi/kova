@@ -8,10 +8,14 @@ import {
   type PlanRunInput,
   type TrainingPlanView,
 } from "@/lib/data/running";
+import { getActivePlan } from "@/lib/data/plan";
 import { formatPace, kmToMiles, milesToKm, runPaceMinPerKm } from "@/lib/run-fuel";
 import type { ActualRun, RunLap, TrainingPlanRun } from "@/types";
 
 export const dynamic = "force-dynamic";
+
+/** Today ± n days (UTC date — close enough for a ±weeks window). */
+const addDaysIso = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
 
 const round1 = (n: number | null) => (n == null ? null : Math.round(n * 10) / 10);
 
@@ -74,10 +78,35 @@ function planOut(plan: TrainingPlanView) {
 export async function GET(request: NextRequest) {
   const days = clampDays(request.nextUrl.searchParams.get("days"), 30, 120);
   return museJson(request, async () => {
-    const [plan, logged] = await Promise.all([getTrainingPlan(20), getRecentActualRuns(days)]);
+    const [plan, logged, dated] = await Promise.all([getTrainingPlan(20), getRecentActualRuns(days), getActivePlan()]);
     const extras = await getRunExtras(logged.filter((r) => r.source === "garmin").map((r) => r.id));
     return {
-      ...planOut(plan),
+      // Kova's dated plan (managed in Kova). When present it supersedes the old queue.
+      dated_plan: dated
+        ? {
+            phase: dated.current,
+            race: dated.race,
+            latest_review: dated.review,
+            pending_suggestions: dated.suggestions.map((s) => ({ title: s.title, reason: s.reason, source: s.source })),
+            // Already applied by Kova (missed / off-plan sessions, lift rotation) in the last week.
+            recent_adjustments: dated.adjustments.map((s) => ({ title: s.title, reason: s.reason, at: s.created_at })),
+            workouts: dated.workouts
+              .filter((w) => w.date >= addDaysIso(-14) && w.date <= addDaysIso(28))
+              .map((w) => ({
+                id: w.id,
+                date: w.date,
+                sport: w.sport,
+                kind: w.kind,
+                title: w.title,
+                phase: w.phase,
+                duration_min: w.duration_min,
+                state: w.state,
+                actual: w.actual,
+                steps: w.steps,
+              })),
+          }
+        : null,
+      ...(dated ? {} : planOut(plan)),
       logged_runs: logged.map((r) => actualOut(r, extras[r.id]?.laps)),
     };
   });
@@ -99,6 +128,15 @@ const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : n
  */
 export async function PUT(request: NextRequest) {
   if (!isMuseAuthorized(request)) return museUnauthorized();
+  if (await getActivePlan()) {
+    return NextResponse.json(
+      {
+        error:
+          "Parker's training plan is now a dated plan managed in Kova (Training page). Don't replace it — describe changes to Parker instead; Kova proposes adjustments itself.",
+      },
+      { status: 409 },
+    );
+  }
   let body: { runs?: IncomingPlanRun[] };
   try {
     body = await request.json();

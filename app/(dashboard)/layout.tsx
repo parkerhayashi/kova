@@ -6,6 +6,7 @@ import { SyncBootstrap } from "@/components/SyncBootstrap";
 import { TimezoneProvider } from "@/components/TimezoneProvider";
 import { TopBar } from "@/components/TopBar";
 import { syncGarminIfStale } from "@/lib/data/garmin";
+import { reconcilePlan } from "@/lib/data/plan";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,11 @@ export default function DashboardLayout({
 }) {
   // Garmin is pull-only: opening Kova pulls new data after the page is sent
   // (throttled to every 15 min). Oura is retired — its history stays, it no
-  // longer syncs.
-  after(syncGarminIfStale);
+  // longer syncs. New watch data can change the plan (a missed or off-plan
+  // session), so the plan re-adapts after each sync.
+  after(async () => {
+    if (await syncGarminIfStale()) await reconcilePlan().catch((err) => console.error("[plan] reconcile failed", err));
+  });
 
   return (
     <div className="min-h-full">

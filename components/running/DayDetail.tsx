@@ -21,6 +21,8 @@ import {
 import { RideDetail } from "@/components/cycling/RideDetail";
 import { RunDetail } from "@/components/running/RunDetail";
 import type { TrainingLift } from "@/components/training/TrainingApp";
+import { PlannedWorkout } from "@/components/training/PlanCard";
+import type { PlanWorkoutView } from "@/lib/data/plan";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { DailyTotals } from "@/lib/nutrition";
@@ -106,6 +108,7 @@ export function DayDetail({
   lifts = [],
   rides = [],
   rideStreams = {},
+  planWorkouts = [],
 }: {
   date: string;
   today: string;
@@ -123,6 +126,7 @@ export function DayDetail({
   lifts?: TrainingLift[];
   rides?: GarminActivity[];
   rideStreams?: Record<string, RunStreamPoints>;
+  planWorkouts?: PlanWorkoutView[];
 }) {
   const { pending, error, run } = useRunAction();
   const [designating, setDesignating] = useState<
@@ -456,6 +460,16 @@ export function DayDetail({
             Health or manual copy of the same run. Log here if one is missing. Deleting an imported
             run keeps it from coming back.
           </p>
+        </Card>
+      ) : null}
+
+      {/* The plan's workouts for this day, with steps */}
+      {planWorkouts.length > 0 ? (
+        <Card className="space-y-4">
+          <span className="metric-label">Plan</span>
+          {planWorkouts.map((w) => (
+            <PlannedWorkout key={w.id} w={w} />
+          ))}
         </Card>
       ) : null}
 

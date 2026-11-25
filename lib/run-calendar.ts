@@ -11,6 +11,7 @@ import type {
   CalendarNutritionStatus,
   GarminActivity,
   PlannedRun,
+  PlanWorkout,
   RunFuelAdjustment,
   Workout,
 } from "@/types";
@@ -107,6 +108,32 @@ export function buildActivityEntries(input: {
     label: "Ride",
   }));
   return [...lifts, ...rides];
+}
+
+/**
+ * Plan workouts not yet done (done ones show as the logged run / ride / lift).
+ * Runs already designated for fuel show once, as the planned run.
+ */
+export function buildPlanEntries(
+  workouts: (PlanWorkout & { state: string })[],
+): CalendarEntry[] {
+  return workouts
+    .filter((w) => w.state !== "done" && !w.planned_run_id && w.kind !== "race")
+    .map((w) => ({
+      id: w.id,
+      date: w.date,
+      kind: "plan" as const,
+      run_type: null,
+      planned_distance_km: w.distance_km,
+      planned_duration_min: w.duration_min,
+      event_type: null,
+      nutrition_status: "none" as const,
+      planned_run_id: null,
+      actual_run_id: null,
+      label: w.title,
+      sport: w.sport,
+      state: w.state,
+    }));
 }
 
 /** Monday = 0 … Sunday = 6 for an ISO date. */

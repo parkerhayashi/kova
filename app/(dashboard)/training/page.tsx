@@ -1,5 +1,14 @@
+import { after } from "next/server";
 import { PageHeader } from "@/components/PageHeader";
+import { PlanCard, PlanSetup } from "@/components/training/PlanCard";
 import { TrainingApp } from "@/components/training/TrainingApp";
+import {
+  countRunWalkQueue,
+  getActivePlan,
+  getPendingSuggestions,
+  reconcilePlan,
+  refreshRuleSuggestions,
+} from "@/lib/data/plan";
 import {
   getGarminActivitiesBetween,
   getGarminActivityStreams,
@@ -15,8 +24,11 @@ import {
   getRunFuelCarbsPerHour,
   getRunningRange,
   getTrainingPlan,
+  getUpcomingRace,
 } from "@/lib/data/running";
-import { buildActivityEntries, monthGridRange } from "@/lib/run-calendar";
+import { buildActivityEntries, buildPlanEntries, monthGridRange } from "@/lib/run-calendar";
+import { runWeeklyReviewIfDue } from "@/lib/plan-review";
+import { raceTitle } from "@/lib/run-fuel";
 import { normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +42,8 @@ export default async function TrainingPage({
   const { date: dateParam, view: viewParam } = await searchParams;
   const timezone = await getTimezone();
   const today = todayInTimezone(timezone);
+  // Follow what was actually done (missed / off-plan sessions, lift rotation) before reading anything plan-shaped.
+  await reconcilePlan().catch((err) => console.error("[plan] reconcile failed", err));
   const selected = normalizeIsoDate(dateParam) ?? today;
   const view = viewParam === "week" ? "week" : "month";
   const { start, end } = monthGridRange(selected);
@@ -54,6 +68,14 @@ export default async function TrainingPage({
     workouts,
     garmin.filter((a) => a.sport === "strength"),
   );
+  // The dated plan: rules may add suggestions on load; the weekly AI review runs after the response.
+  const [activePlan, queueCount, race] = await Promise.all([getActivePlan(), countRunWalkQueue(), getUpcomingRace(today)]);
+  if (activePlan) {
+    await refreshRuleSuggestions().catch((err) => console.error("[plan] rules failed", err));
+    activePlan.suggestions = await getPendingSuggestions(activePlan.plan.id);
+    after(() => runWeeklyReviewIfDue().catch((err) => console.error("[plan] weekly review failed", err)));
+  }
+  const planInRange = (activePlan?.workouts ?? []).filter((w) => w.date >= start && w.date <= end);
   const dayRides = rides.filter((r) => r.date === selected);
   const rideStreams = await getGarminActivityStreams(dayRides.map((r) => r.id));
 
@@ -63,14 +85,25 @@ export default async function TrainingPage({
         title="Training"
         subtitle="Runs, lifts and rides on one calendar, with run fuel and race carb loads."
       />
+      {activePlan ? (
+        <PlanCard data={activePlan} today={today} queueCount={queueCount} />
+      ) : (
+        <PlanSetup
+          raceName={race ? raceTitle({ race_name: race.name, event_type: race.event_type }, race.distance_km) : null}
+          raceDate={race?.date ?? null}
+          queueCount={queueCount}
+        />
+      )}
       <TrainingApp
         key={selected}
+        showQueue={!activePlan}
+        planWorkouts={planInRange.filter((w) => w.date === selected)}
         today={today}
         selected={selected}
         view={view}
         range={{
           ...range,
-          entries: [...range.entries, ...buildActivityEntries({ lifts: workouts, rides })],
+          entries: [...range.entries, ...buildActivityEntries({ lifts: workouts, rides }), ...buildPlanEntries(planInRange)],
         }}
         goals={goals}
         totals={totals}

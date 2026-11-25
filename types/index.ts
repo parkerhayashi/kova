@@ -87,6 +87,82 @@ export type WellnessSource = "oura" | "garmin";
 export type InjurySide = "left" | "right" | "both" | "none";
 export type InjuryStatus = "active" | "improving" | "resolved";
 
+export type PlanSport = "run" | "lift" | "ride";
+export type PlanPhase = "run_walk" | "base" | "build" | "peak" | "taper" | "race";
+
+/** One step of a structured workout ("6 min run / 1 min walk ×5"). */
+export interface WorkoutStep {
+  label: string;
+  minutes?: number | null;
+  /** Repeat the `steps` block this many times. */
+  repeat?: number | null;
+  steps?: WorkoutStep[] | null;
+  /** "12:28–12:57/mi", "Z2 (125–145 bpm)". */
+  target?: string | null;
+}
+
+export interface PlanSettings {
+  /** 0 = Monday … 6 = Sunday. */
+  run_days: number[];
+  long_run_day: number;
+  lift_days: number[];
+  ride_days: number[];
+  goal_time_min: number | null;
+  /** Push / Pull / Legs: leg days per week (default 1 — running covers a lot of leg work). */
+  legs_per_week?: number;
+}
+
+export interface TrainingPlan {
+  id: string;
+  goal_race_id: string | null;
+  start_date: string;
+  end_date: string;
+  settings: PlanSettings;
+  status: "active" | "archived";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlanWorkout {
+  id: string;
+  plan_id: string;
+  date: string;
+  sport: PlanSport;
+  kind: string;
+  title: string;
+  phase: PlanPhase;
+  week_index: number;
+  duration_min: number | null;
+  distance_km: number | null;
+  steps: WorkoutStep[] | null;
+  notes: string | null;
+  status: "planned" | "skipped";
+  planned_run_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A change Kova proposes (rules or the weekly AI review); accepting applies `ops`. */
+export type PlanOp =
+  | { op: "update"; id: string; changes: Partial<Pick<PlanWorkout, "date" | "kind" | "title" | "duration_min" | "distance_km" | "steps" | "notes" | "sport">> }
+  | { op: "skip"; id: string }
+  | { op: "insert"; workout: Omit<PlanWorkout, "id" | "plan_id" | "created_at" | "updated_at" | "planned_run_id" | "status"> }
+  | { op: "shift"; from_date: string; days: number; sport?: PlanSport };
+
+export interface PlanSuggestion {
+  id: string;
+  plan_id: string;
+  key: string;
+  /** "auto" = already applied by Kova (shown as an adjustment, not a suggestion). */
+  source: "rules" | "ai" | "auto";
+  title: string;
+  reason: string;
+  ops: PlanOp[];
+  status: "pending" | "accepted" | "dismissed";
+  created_at: string;
+  resolved_at: string | null;
+}
+
 /** An injury or pain episode. Severity 0–10; the latest check-in is the current level. */
 export interface Injury {
   id: string;
@@ -947,7 +1023,7 @@ export interface TrainingPlanRun {
 }
 
 /** Runs and races, plus lifts (Hevy) and rides (Garmin) on the Training calendar. */
-export type CalendarEntryKind = "planned_run" | "race" | "completed_run" | "lift" | "ride";
+export type CalendarEntryKind = "planned_run" | "race" | "completed_run" | "lift" | "ride" | "plan";
 export type CalendarNutritionStatus = "none" | "fueling" | "carb_load";
 
 /** One rendered calendar item — derived from the records above + the plan. */
@@ -963,4 +1039,7 @@ export interface CalendarEntry {
   planned_run_id: string | null;
   actual_run_id: string | null;
   label: string;
+  /** Plan workouts: which sport, and whether it's upcoming / missed / skipped. */
+  sport?: PlanSport;
+  state?: string;
 }

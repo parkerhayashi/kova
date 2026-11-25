@@ -2,6 +2,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { RunDetail } from "@/components/running/RunDetail";
 import { NextRunCard } from "@/components/running/TrainingPlan";
+import { PlannedWorkout } from "@/components/training/PlanCard";
+import { getActivePlan, nextPlannedRun } from "@/lib/data/plan";
 import { Card } from "@/components/ui/Card";
 import { getTimezone } from "@/lib/data/oura";
 import {
@@ -45,14 +47,27 @@ export default async function RunningPage() {
     getRecentActualRuns(RECENT_DAYS),
     getUpcomingRace(today),
   ]);
+  const nextPlanned = nextPlannedRun(await getActivePlan());
   const extras = await getRunExtras(runs.filter((r) => r.source === "garmin").map((r) => r.id));
   const { summary } = buildRunningTrends({ runs, readiness: [], sleep: [], range: 30, today });
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Running" subtitle="Your plan queue, next race, and recent runs." />
+      <PageHeader title="Running" subtitle="Your next run, next race, and recent runs." />
 
-      <NextRunCard plan={plan} />
+      {nextPlanned ? (
+        <Card className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <span className="metric-label">{nextPlanned.state === "today" ? "Today's run" : "Next run"}</span>
+            <Link href="/training" className="text-text-secondary hover:text-text-primary text-xs">
+              Plan →
+            </Link>
+          </div>
+          <PlannedWorkout w={nextPlanned} showActions={false} />
+        </Card>
+      ) : (
+        <NextRunCard plan={plan} />
+      )}
 
       {race ? (
         <Card className="flex items-center justify-between gap-3">

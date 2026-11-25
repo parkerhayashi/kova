@@ -7,6 +7,8 @@ import { setRunFuelRateAction } from "@/app/(dashboard)/running/actions";
 import { DayDetail } from "@/components/running/DayDetail";
 import { FormError, useRunAction } from "@/components/running/RunForms";
 import { NextRunCard } from "@/components/running/TrainingPlan";
+import { SportIcon } from "@/components/training/PlanCard";
+import type { PlanWorkoutView } from "@/lib/data/plan";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Input";
@@ -76,6 +78,8 @@ export function TrainingApp({
   lifts,
   rides,
   rideStreams,
+  planWorkouts = [],
+  showQueue = true,
 }: {
   today: string;
   selected: string;
@@ -92,6 +96,10 @@ export function TrainingApp({
   lifts: TrainingLift[];
   rides: GarminActivity[];
   rideStreams: Record<string, RunStreamPoints>;
+  /** The selected day's plan workouts (with matched state). */
+  planWorkouts?: PlanWorkoutView[];
+  /** The old dateless queue card — hidden once a dated plan exists. */
+  showQueue?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -128,7 +136,7 @@ export function TrainingApp({
 
   return (
     <div className="space-y-6">
-      <NextRunCard plan={plan} />
+      {showQueue ? <NextRunCard plan={plan} /> : null}
 
       <Card className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -272,6 +280,7 @@ export function TrainingApp({
         lifts={lifts}
         rides={rides}
         rideStreams={rideStreams}
+        planWorkouts={planWorkouts}
       />
 
       <FuelSettings carbsPerHour={carbsPerHour} pace={pace} />
@@ -285,6 +294,8 @@ function EntryChip({ entry, compact }: { entry: CalendarEntry; compact: boolean 
       <Flag className="size-3 shrink-0" />
     ) : entry.kind === "completed_run" ? (
       <Check className="size-3 shrink-0" />
+    ) : entry.kind === "plan" && entry.sport ? (
+      <SportIcon sport={entry.sport} className="size-3 opacity-60" />
     ) : entry.kind === "lift" ? (
       <Dumbbell className="size-3 shrink-0" />
     ) : entry.kind === "ride" ? (
@@ -293,7 +304,7 @@ function EntryChip({ entry, compact }: { entry: CalendarEntry; compact: boolean 
       <span className="size-1.5 shrink-0 rounded-full bg-white" />
     );
   const text =
-    entry.kind === "race" || entry.kind === "lift"
+    entry.kind === "race" || entry.kind === "lift" || entry.kind === "plan"
       ? entry.label
       : entry.kind === "ride" && entry.planned_distance_km == null
         ? formatRunDuration(entry.planned_duration_min)
@@ -306,6 +317,8 @@ function EntryChip({ entry, compact }: { entry: CalendarEntry; compact: boolean 
         "flex min-w-0 items-center gap-1 text-[10px] leading-tight",
         "text-text-secondary",
         entry.kind === "race" && "font-semibold text-text-primary",
+        entry.kind === "plan" && "text-text-muted",
+        entry.kind === "plan" && (entry.state === "skipped" || entry.state === "missed") && "line-through",
       )}
     >
       {icon}
