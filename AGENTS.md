@@ -10,20 +10,41 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Kova — project context
 
-**What this is:** Parker's personal health OS. A Next.js + Supabase dashboard that unifies data from Oura Ring, Hevy, USDA FoodData Central, and Open Food Facts into one interface. Deployed on Vercel, installable on iPhone as a PWA. Single-user, personal use.
+**What this is:** Parker's personal health OS — a Next.js + Supabase dashboard deployed on Vercel (`kova-os.vercel.app`) and installed on iPhone as a PWA. Single-user, personal use. Data sources:
 
-**Source of truth:** the full blueprint lives at `~/Downloads/kova_blueprint.pdf` (Personal Health OS — Project Blueprint v2, June 2026). Refer to it whenever a feature, schema field, or design rule is ambiguous. Strava was dropped from scope — cardio uses Oura.
+- **Garmin** (Personal API — pull-only, read-only): runs, rides, strength sessions, sleep, HRV, Body Battery, steps, weigh-ins, HR zones. Syncs when the app opens (`after()` in `app/(dashboard)/layout.tsx`, 15-min throttle) plus a daily cron. Kova **cannot** push workouts to the watch.
+- **Hevy** (lifting): webhook `app/api/hevy/webhook` (bearer `HEVY_WEBHOOK_SECRET`) + daily cron / on-open sync.
+- **USDA FoodData Central + Open Food Facts** (nutrition logging), **Plaid** (finances).
+- **Muse** — Parker's AI assistant — reads (and in a few places writes) through `app/api/muse/*`; spec in `lib/muse/openapi.ts`.
+- **Oura is retired** (Nov 2026): history stays, nothing syncs. Strava was dropped.
 
-## Build plan (6 phases)
+**Source of truth:** the original blueprint is `~/Downloads/kova_blueprint.pdf` (v2, June 2026), but the app has gone well past it. Where the code or this file disagree with the blueprint, they win.
 
-1. **Setup & infrastructure** — ✅ done
-2. **Oura integration + Daily Summary** — ✅ done
-3. **Habits, supplements, weight CRUD** — ✅ done
-4. **Hevy integration** — ✅ done
-5. **Nutrition logging** (USDA + Open Food Facts) — ✅ done
-6. **Trends & correlations** — ✅ done
+## What's built
 
-When picking up work, focus on polish and new features outside the original blueprint (Hevy routines, Oura sessions UI, integrations settings, etc.) unless the user says otherwise.
+- **Blueprint phases 1–6** — setup, daily summary, habits / supplements / weight, Hevy, nutrition, trends — done.
+- **Running nutrition** — run fuel, race carb load, races (custom distances, names), gels / fuel products (`lib/run-fuel.ts`, `lib/data/running.ts`).
+- **Garmin replaces Oura** for sleep, recovery and activity (`lib/garmin.ts`, `lib/data/garmin.ts`, `garmin_daily`).
+- **Training** (Nov 2026, three phases):
+  1. **Performance** — `lib/performance.ts`, `lib/data/performance.ts`: load, fitness / fatigue / form, Recovery + Strain, race predictions, pace zones; injury log (`lib/injuries.ts`).
+  2. **Training plan** — `lib/plan-engine.ts` (generate + `scheduleWeek`), `lib/plan-adapt.ts` (`reconcile` = automatic, `proposeChanges` = suggestions), `lib/data/plan.ts`, `lib/plan-review.ts` (weekly Claude review, Mondays). UI on `/training` (`components/training/PlanCard.tsx`).
+  3. **Insights** — `lib/insights.ts`, `lib/data/insights.ts`, `/insights`: weekly report + nutrition ↔ performance; Recovery / Strain correlations in Trends.
+
+## How the training plan works (Parker's calls — don't regress them)
+
+- **Weekly targets, not weekdays.** Each week has N runs / lifts / rides. Dates are only pencilled in and re-plan whenever Training loads or Garmin syncs. Anything logged in a week checks off that week's sessions (lifts by Push / Pull / Legs from the Hevy title); a session is only "missed" once its week is over. Parker trains whenever there's time, often a run and a lift the same day, and rarely takes full rest days — rest is suggested only when Recovery, ramp rate or pain call for it. Long runs of 60+ min prefer the weekend.
+- **Lifts are Push / Pull / Legs**, legs once a week by default (running already loads the legs).
+- **The run/walk progression is used exactly as queued** (`training_plan_runs`): queued minutes as straight rounds (42 min at 5:1 = 7 × 5/1). Leftover run/walk sessions carry forward in order. **No warm-ups or cool-downs anywhere in the plan.**
+- Workouts logged before the plan's start date don't count toward it.
+- **Automatic vs. suggested:** following what was logged is automatic (stored as `plan_suggestions` with `source: 'auto'`, listed on the plan card). Judgment calls — injury, pain, ramp rate, the AI review — are Accept / Dismiss. The AI review never moves dates.
+- Muse can read the plan (`GET /api/muse/running-plan` → `dated_plan`) but can't replace it while one is active (`PUT` returns 409).
+
+## Working rules
+
+- **Never run write tests against live data** (plan, runs, logs). Test pure functions, or dry-run (`reconcilePlan({ dryRun: true })`). Opening `/training` on the dev server runs `reconcilePlan()` for real, and so does any page load that triggers a Garmin sync — both write.
+- **Secrets:** never print or log secret values; check env var *names* only. Parker signs in to Kova themselves — never enter the password or TOTP.
+- **Scripts:** run TypeScript against real data with jiti, e.g. `JITI_ALIAS='{"@/":"<repo>/","@garmin/fitsdk":"<repo>/node_modules/@garmin/fitsdk/src/index.js","fflate":"<repo>/node_modules/fflate"}' node --env-file=.env.local node_modules/.bin/jiti <file>` (Node 25).
+- **Commits:** only the files for the change; `.claude/`, `.cursor/` and `scripts/test-*.ts` stay untracked.
 
 ## Toolchain deviations from the blueprint (intentional)
 
@@ -38,6 +59,7 @@ Don't "fix" these back to the blueprint's versions.
 - **The frontend reads Supabase, never third-party APIs directly.** Synced data is cached in Postgres so dashboards always read from the DB.
 - **Integration modules in `lib/*.ts` are source-agnostic.** Adding or swapping a wearable is one file.
 - **Schema is single source of truth.** `supabase/schema.sql` and `types/index.ts` must stay in lockstep.
+- **Auth:** `proxy.ts` gates everything behind the session except the public pages, the cron routes in `CRON_PATHS` and the Hevy webhook. Cron routes check `CRON_SECRET` via `lib/cron-auth.ts` (fails closed in production); Muse routes check `MUSE_API_TOKEN`.
 
 ## Branding
 
