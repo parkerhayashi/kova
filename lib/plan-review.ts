@@ -11,10 +11,11 @@ import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getActivePlan, saveSuggestions, type PlanWorkoutView } from "@/lib/data/plan";
 import { getInjuries } from "@/lib/data/injuries";
+import { getInsights } from "@/lib/data/insights";
 import { getNutritionByDay, getNutritionGoals } from "@/lib/data/nutrition";
 import { getPerformance } from "@/lib/data/performance";
 import { injuryName } from "@/lib/injuries";
-import { easySteps, mondayOf, targets } from "@/lib/plan-engine";
+import { easySteps, mondayOf, planCounts, targets } from "@/lib/plan-engine";
 import { addDays } from "@/lib/utils";
 import type { PlanOp } from "@/types";
 
@@ -22,9 +23,7 @@ export const PLAN_REVIEW_MODEL = "claude-opus-5-5";
 
 const ChangeSchema = z.object({
   workout_id: z.string(),
-  action: z.enum(["move", "shorten", "make_easy", "skip", "swap_to_ride"]),
-  /** For move: YYYY-MM-DD within next week. */
-  date: z.string().nullable(),
+  action: z.enum(["shorten", "make_easy", "skip", "swap_to_ride"]),
   /** For shorten: new duration in minutes. */
   duration_min: z.number().nullable(),
 });
@@ -36,17 +35,18 @@ const ReviewSchema = z.object({
     .max(3),
 });
 
-const SYSTEM = `You are the running coach inside Kova, a personal training app. Parker is a newer runner building from run/walk toward a 14.2-mile race, who also lifts and rides. You review one week at a time.
+const SYSTEM = `You are the running coach inside Kova, a personal training app. Parker is a newer runner building from run/walk toward a 14.2-mile race, who also lifts (Push / Pull / Legs, legs about once a week) and sometimes rides. You review one week at a time.
 
-Write "summary" as 2–4 plain sentences: what last week showed (compliance, Recovery, load, injuries, nutrition) and the focus for next week. Be specific with numbers from the data. No hype.
+How the plan works: it's weekly targets, not fixed days. Each week has a set of sessions; their dates are only pencilled in and Kova re-plans them automatically every time something is logged. Parker trains whenever there's time, often a run and a lift on the same day, and rarely takes full rest days. Anything done that week checks a session off; run/walk sessions left at the end of a week carry forward in order. So never suggest moving sessions to dates — Kova already handles timing. Change what a session is instead.
 
-Propose at most 3 suggestions, only when the data supports a change — an empty list is a good answer when the plan fits. Each suggestion changes workouts in next_week by id:
-- move: to another date in next week (no two runs on one day; keep the long run away from hard sessions)
+Write "summary" as 2–4 plain sentences: what last week showed (sessions done vs planned, Recovery, load, injuries, nutrition) and the focus for this week. Be specific with numbers from the data. No hype.
+
+Propose at most 3 suggestions, only when the data supports a change — an empty list is a good answer when the plan fits. Each suggestion changes sessions in this_week by id:
 - shorten: set duration_min (never below 15)
-- make_easy: turn a quality session into an easy run
-- skip: drop a session
+- make_easy: turn a quality run (tempo / intervals) into an easy run
+- skip: drop a session from this week
 - swap_to_ride: replace a run with an easy ride (for lower-body pain)
-Respect the rules: never progress run/walk levels while lower-body pain is rising; ramp ratio above 1.5 means reduce; Recovery averaging under 50 means fewer hard sessions. Kova is not medical advice — for red-flag pain, say to see a professional instead of adjusting.`;
+Respect the rules: run/walk sessions are a fixed progression — don't shorten or skip them to "progress" faster, and never progress levels while lower-body pain is rising; ramp ratio above 1.5 means reduce; Recovery averaging under 50 means fewer hard sessions; energy availability under 30 kcal/kg fat-free mass means eat more rather than train less, unless Recovery is also low. Kova is not medical advice — for red-flag pain, say to see a professional instead of adjusting.`;
 
 export async function reviewContext() {
   const [active, perf, injuries] = await Promise.all([getActivePlan(), getPerformance(90), getInjuries(false)]);
@@ -54,7 +54,7 @@ export async function reviewContext() {
   const today = perf.today;
   const week = mondayOf(today);
   const lastWeekStart = addDays(week, -7);
-  const [nutrition, goals] = await Promise.all([getNutritionByDay(14), getNutritionGoals(today)]);
+  const [nutrition, goals, insights] = await Promise.all([getNutritionByDay(14), getNutritionGoals(today), getInsights()]);
   const view = (w: PlanWorkoutView) => ({
     id: w.id,
     date: w.date,
@@ -77,7 +77,11 @@ export async function reviewContext() {
       race: active.race ? { date: active.race.date, days_until: active.race.days_until } : null,
       phase: active.current,
       last_week: active.workouts.filter((w) => w.date >= lastWeekStart && w.date < week).map(view),
-      next_week: active.workouts.filter((w) => w.date >= today && w.date < addDays(week, 7) && w.state !== "skipped").map(view),
+      // This week's sessions still to do (dates are pencilled in and re-plan automatically).
+      this_week: active.workouts
+        .filter((w) => w.date >= week && w.date < addDays(week, 7) && w.kind !== "race" && (w.state === "today" || w.state === "upcoming"))
+        .map(view),
+      weekly_targets: planCounts(active.plan.settings),
       recovery_last_7: perf.recoveryHistory.slice(-7),
       fitness: perf.current,
       injuries: injuries.map((v) => ({
@@ -94,6 +98,10 @@ export async function reviewContext() {
         calorie_target: goals.calories,
         protein_target_g: goals.protein_g,
       },
+      // Energy availability, fueling, deficit vs HRV / resting HR (90 days).
+      nutrition_insights: insights.insights
+        .filter((i) => i.status !== "needs_data")
+        .map((i) => ({ title: i.title, status: i.status, finding: i.finding })),
     },
     easyTarget: targets({ paceZones: perf.paceZones, hrFloors: perf.hrZones?.floors ?? null }).easy,
   };
@@ -103,25 +111,21 @@ export async function reviewContext() {
 export function toOp(
   change: z.infer<typeof ChangeSchema>,
   byId: Map<string, PlanWorkoutView>,
-  window: { from: string; to: string },
   easyTarget: string | null,
 ): PlanOp | null {
   const w = byId.get(change.workout_id);
-  if (!w || !(w.state === "upcoming" || w.state === "today")) return null;
+  if (!w || !(w.state === "upcoming" || w.state === "today") || w.kind === "race") return null;
   const minutes = Math.round(w.duration_min ?? 30);
   switch (change.action) {
-    case "move":
-      return change.date && change.date >= window.from && change.date <= window.to
-        ? { op: "update", id: w.id, changes: { date: change.date } }
-        : null;
     case "shorten": {
       const d = change.duration_min != null ? Math.round(change.duration_min) : null;
-      return d != null && d >= 15 && d < minutes
+      // Run/walk sessions are a fixed progression — the AI doesn't trim them.
+      return d != null && d >= 15 && d < minutes && !(w.sport === "run" && w.phase === "run_walk")
         ? { op: "update", id: w.id, changes: { duration_min: d, title: w.title.replace(/· \d+ min/, `· ${d} min`) } }
         : null;
     }
     case "make_easy":
-      return w.sport === "run"
+      return w.sport === "run" && ["tempo", "intervals"].includes(w.kind)
         ? { op: "update", id: w.id, changes: { kind: "easy", title: `Easy run · ${minutes} min`, steps: easySteps(minutes, easyTarget), notes: `Was: ${w.title}` } }
         : null;
     case "skip":
@@ -174,9 +178,8 @@ export async function runWeeklyReviewIfDue(): Promise<"ran" | "skipped" | "not_d
   const review = response.parsed_output;
 
   const byId = new Map(ctx.active.workouts.map((w) => [w.id, w]));
-  const window = { from: ctx.context.today, to: addDays(ctx.week, 6) };
   const proposals = review.suggestions.flatMap((s, i) => {
-    const ops = s.changes.map((c) => toOp(c, byId, window, ctx.easyTarget)).filter((o): o is PlanOp => o != null);
+    const ops = s.changes.map((c) => toOp(c, byId, ctx.easyTarget)).filter((o): o is PlanOp => o != null);
     return ops.length ? [{ key: `ai:${ctx.week}:${i}`, title: s.title, reason: s.reason, ops }] : [];
   });
 
