@@ -63,7 +63,7 @@ export default async function RunningPage() {
               Plan →
             </Link>
           </div>
-          <PlannedWorkout w={nextPlanned} showActions={false} />
+          <PlannedWorkout w={nextPlanned} today={today} showActions={false} />
         </Card>
       ) : (
         <NextRunCard plan={plan} />

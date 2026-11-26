@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Bike, Check, Dumbbell, Footprints, Sparkles, X } from "lucide-react";
+import { Bike, Check, Dumbbell, Footprints, Pin, Sparkles, X } from "lucide-react";
 import {
   createPlanAction,
+  moveWorkoutAction,
   resolveSuggestionAction,
   setWorkoutSkippedAction,
+  unpinWorkoutAction,
 } from "@/app/(dashboard)/training/actions";
 import { SPORT_COLOR, SPORTS } from "@/components/training/sessions";
 import { WorkoutSteps } from "@/components/training/WorkoutSteps";
@@ -14,8 +16,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Input";
 import type { ActivePlan, PlanWorkoutView } from "@/lib/data/plan";
-import { planCounts, WEEKDAYS } from "@/lib/plan-engine";
-import { cn, formatIsoDateLabel } from "@/lib/utils";
+import { mondayOf, planCounts, WEEKDAYS, weekday } from "@/lib/plan-engine";
+import { addDays, cn, formatIsoDateLabel } from "@/lib/utils";
 import type { PlanSettings, PlanSport } from "@/types";
 
 const PHASE_LABEL: Record<string, string> = {
@@ -187,28 +189,79 @@ export function PlanSetup({
   );
 }
 
-/** Skip / restore one workout (also used in the day view). Days re-flow on their own, so there's no "move". */
-export function WorkoutActions({ w }: { w: PlanWorkoutView }) {
+/**
+ * Move a session to another day (it's pinned there and the rest of the week
+ * re-plans around it), let Kova place it again, or skip / restore it.
+ */
+export function WorkoutActions({ w, today }: { w: PlanWorkoutView; today: string }) {
   const { pending, error, run } = useAction();
+  const [other, setOther] = useState("");
   if (w.state === "done" || w.kind === "race") return null;
+  const monday = mondayOf(w.date);
+  const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i)).filter((d) => d >= today);
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {w.state !== "skipped" ? (
-        <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => setWorkoutSkippedAction(w.id, true))}>
-          Skip this one
-        </Button>
+        <>
+          <div className="space-y-1.5">
+            <span className="metric-label">Move to</span>
+            <div className="flex flex-wrap gap-1.5">
+              {days.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  disabled={pending || d === w.date}
+                  aria-pressed={d === w.date}
+                  onClick={() => run(() => moveWorkoutAction(w.id, d))}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs transition-colors",
+                    d === w.date
+                      ? "border-border-strong bg-[rgba(255,255,255,0.1)] text-text-primary"
+                      : "border-border text-text-secondary hover:bg-[rgba(255,255,255,0.05)]",
+                  )}
+                >
+                  {d === today ? "Today" : WEEKDAYS[weekday(d)]}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <Input
+                type="date"
+                value={other}
+                min={today}
+                onChange={(e) => setOther(e.target.value)}
+                className="max-w-[11rem]"
+                aria-label="Move to another date"
+              />
+              <Button type="button" variant="ghost" disabled={pending || !other || other === w.date} onClick={() => run(() => moveWorkoutAction(w.id, other))}>
+                Move
+              </Button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {w.pinned ? (
+              <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => unpinWorkoutAction(w.id))}>
+                Let Kova choose the day
+              </Button>
+            ) : null}
+            <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => setWorkoutSkippedAction(w.id, true))}>
+              Skip this one
+            </Button>
+          </div>
+        </>
       ) : (
         <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => setWorkoutSkippedAction(w.id, false))}>
           Restore
         </Button>
       )}
+      {pending ? <p className="text-text-muted text-xs">Re-planning the week…</p> : null}
       {error ? <p className="text-text-secondary text-xs">{error}</p> : null}
     </div>
   );
 }
 
 /** One planned workout with its steps. */
-export function PlannedWorkout({ w, showActions = true }: { w: PlanWorkoutView; showActions?: boolean }) {
+export function PlannedWorkout({ w, today, showActions = true }: { w: PlanWorkoutView; today: string; showActions?: boolean }) {
   return (
     <div className="space-y-2">
       <div className="flex items-start justify-between gap-3">
@@ -218,7 +271,7 @@ export function PlannedWorkout({ w, showActions = true }: { w: PlanWorkoutView; 
             {w.title}
           </p>
           <p className="text-text-muted text-xs">
-            {w.state === "upcoming" && w.kind !== "race" ? "Pencilled in " : ""}
+            {w.state === "upcoming" && w.kind !== "race" ? (w.pinned ? "Moved by you to " : "Pencilled in ") : ""}
             {formatIsoDateLabel(w.date)} · {PHASE_LABEL[w.phase] ?? w.phase}
             {w.state === "done" && w.actual ? ` · done: ${w.actual.title}` : w.state === "missed" ? " · missed" : w.state === "skipped" ? " · skipped" : ""}
           </p>
@@ -227,7 +280,7 @@ export function PlannedWorkout({ w, showActions = true }: { w: PlanWorkoutView; 
       </div>
       {w.state !== "skipped" ? <WorkoutSteps steps={w.steps} /> : null}
       {w.notes ? <p className="text-text-muted text-xs">{w.notes}</p> : null}
-      {showActions ? <WorkoutActions w={w} /> : null}
+      {showActions ? <WorkoutActions w={w} today={today} /> : null}
     </div>
   );
 }
@@ -362,14 +415,16 @@ export function PlanCard({
                   />
                   <span className="min-w-0 flex-1 truncate">{w.title}</span>
                   <span className="text-text-muted shrink-0 text-xs">
-                    {w.state === "done" ? WEEKDAYS[dayIndex(w.date)] : w.date === today ? "today" : `${WEEKDAYS[dayIndex(w.date)]}?`}
+                    {w.state === "done" || w.pinned ? WEEKDAYS[dayIndex(w.date)] : w.date === today ? "today" : `${WEEKDAYS[dayIndex(w.date)]}?`}
+                    {w.pinned && w.state !== "done" ? <Pin className="ml-1 inline size-3" aria-label="Moved by you" /> : null}
                   </span>
                 </li>
               ))}
             </ul>
             {left.length > 0 ? (
               <p className="text-text-muted text-xs">
-                Days with a ? are pencilled in. Do things in any order: whatever you log checks them off and the rest re-plans.
+                Days with a ? are pencilled in. Do things in any order: whatever you log checks them off and the rest re-plans. Move a
+                session from its day to pin it there.
               </p>
             ) : null}
           </div>

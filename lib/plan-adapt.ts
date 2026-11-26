@@ -220,6 +220,10 @@ export function reconcile(input: ReconcileInput): Proposal[] {
     }
     if (Object.keys(changes).length) sync.push({ op: "update", id: w.id, changes });
   }
+  // A pinned day that passed without the session: let Kova place it again.
+  for (const w of live.filter((w) => w.pinned && pending(w) && w.date < today)) {
+    sync.push({ op: "update", id: w.id, changes: { pinned: false } });
+  }
   if (sync.length) return [{ key: `sync:${today}`, title: "", reason: "", ops: sync, silent: true }];
 
   // 2. Run/walk sessions left over from past weeks carry forward in order;
@@ -227,7 +231,9 @@ export function reconcile(input: ReconcileInput): Proposal[] {
   const leftovers = live.filter((w) => isRunWalk(w) && w.state === "missed");
   const carryKey = `rw-carry:${week}`;
   if (leftovers.length && !input.appliedKeys.has(carryKey)) {
-    const queue = [...leftovers, ...live.filter((w) => isRunWalk(w) && pending(w))].sort((a, b) => a.date.localeCompare(b.date));
+    const queue = [...leftovers, ...live.filter((w) => isRunWalk(w) && pending(w) && !pinnedAhead(w, today))].sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
     const doneThisWeek = live.filter((w) => isRun(w) && w.state === "done" && w.date >= week).length;
     const daysLeft = dayRange(today, weekEnd).length;
     const raceWeek = mondayOf(input.raceDate);
@@ -245,17 +251,21 @@ export function reconcile(input: ReconcileInput): Proposal[] {
     }
     const weeks = [...new Set(placed.values())];
     const ops: PlanOp[] = [];
-    const dropped = live.filter((w) => isRun(w) && !isRunWalk(w) && pending(w) && weeks.includes(mondayOf(w.date)));
+    const dropped = live.filter(
+      (w) => isRun(w) && !isRunWalk(w) && pending(w) && !pinnedAhead(w, today) && weeks.includes(mondayOf(w.date)),
+    );
     for (const w of dropped) ops.push({ op: "skip", id: w.id });
     for (const wk of weeks) {
       const days = wk === week ? dayRange(today, weekEnd) : dayRange(wk, addDays(wk, 6));
       const items = live.filter(
-        (w) => (placed.get(w.id) === wk) || (!placed.has(w.id) && pending(w) && mondayOf(w.date) === wk && !dropped.includes(w) && w.kind !== "race"),
+        (w) =>
+          placed.get(w.id) === wk ||
+          (!placed.has(w.id) && pending(w) && !pinnedAhead(w, today) && mondayOf(w.date) === wk && !dropped.includes(w) && w.kind !== "race"),
       );
       const dates = scheduleWeek({
         items: items.map((w, i) => ({ id: w.id, sport: w.sport, kind: w.kind, duration_min: w.duration_min, seq: placed.has(w.id) ? queue.indexOf(w) : 1000 + i })),
         days,
-        booked: bookedNear(live, wk),
+        booked: bookedNear(live, wk, today),
         weekendLongMin: c.weekendLongMin,
       });
       for (const w of items) {
@@ -306,33 +316,55 @@ export function reconcile(input: ReconcileInput): Proposal[] {
     }
   }
 
-  // 4. Re-flow what's left of this week over the days left (silent).
-  const items = live.filter((w) => pending(w) && w.kind !== "race" && w.date >= week && w.date <= addDays(week, 6));
-  if (items.length) {
-    const days = dayRange(today, weekEnd);
-    const lowRecovery = input.recovery != null && input.recovery < 45;
-    const rest = (input.recovery != null && input.recovery < 35) || (input.lowerPain ?? 0) >= 6;
-    const dates = scheduleWeek({
-      items: items
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .map((w, i) => ({ id: w.id, sport: w.sport, kind: w.kind, duration_min: w.duration_min, seq: i })),
-      days: days.length ? days : [today],
-      booked: bookedNear(live, week),
-      weekendLongMin: c.weekendLongMin,
-      avoidHard: lowRecovery ? new Set([today]) : undefined,
-      rest: rest ? new Set([today]) : undefined,
-    });
-    const ops: PlanOp[] = items
-      .filter((w) => dates.get(w.id) && dates.get(w.id) !== w.date)
-      .map((w) => ({ op: "update", id: w.id, changes: { date: dates.get(w.id)! } }));
-    if (ops.length) return [{ key: `reflow:${today}`, title: "", reason: "", ops, silent: true }];
-  }
+  // 4. Re-flow what's left of this week over the days left (silent), around pinned sessions.
+  const ops = reflowWeek(live, week, { today, raceDate: input.raceDate, settings: input.settings, recovery: input.recovery, lowerPain: input.lowerPain });
+  if (ops.length) return [{ key: `reflow:${today}`, title: "", reason: "", ops, silent: true }];
   return [];
 }
 
-/** Done sessions from 3 days before the week through its end (spacing context). */
-function bookedNear(live: AdaptWorkout[], week: string): Booked[] {
+/** A pinned session Parker moved, still ahead — re-planning works around it. */
+const pinnedAhead = (w: AdaptWorkout, today: string) => !!w.pinned && pending(w) && w.date >= today;
+
+/**
+ * New dates for one week's unpinned, not-yet-done sessions over the days left
+ * (from today for this week, the whole week for a later one). Done and pinned
+ * sessions stay put and shape the spacing. Low Recovery keeps today easy; very
+ * low Recovery or lower-body pain 6+ leaves today empty.
+ */
+export function reflowWeek(
+  live: AdaptWorkout[],
+  week: string,
+  opts: { today: string; raceDate: string; settings: PlanSettings; recovery?: number | null; lowerPain?: number | null },
+): PlanOp[] {
+  const { today } = opts;
+  const end = [addDays(week, 6), addDays(opts.raceDate, -1)].sort()[0]!;
+  const from = week > today ? week : today;
+  if (from > end) return [];
+  const items = live.filter(
+    (w) => pending(w) && !pinnedAhead(w, today) && w.kind !== "race" && w.date >= week && w.date <= addDays(week, 6),
+  );
+  if (!items.length) return [];
+  const isThisWeek = week === mondayOf(today);
+  const lowRecovery = isThisWeek && opts.recovery != null && opts.recovery < 45;
+  const rest = isThisWeek && ((opts.recovery != null && opts.recovery < 35) || (opts.lowerPain ?? 0) >= 6);
+  const dates = scheduleWeek({
+    items: items
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((w, i) => ({ id: w.id, sport: w.sport, kind: w.kind, duration_min: w.duration_min, seq: i })),
+    days: dayRange(from, end),
+    booked: bookedNear(live, week, today),
+    weekendLongMin: planCounts(opts.settings).weekendLongMin,
+    avoidHard: lowRecovery ? new Set([today]) : undefined,
+    rest: rest ? new Set([today]) : undefined,
+  });
+  return items
+    .filter((w) => dates.get(w.id) && dates.get(w.id) !== w.date)
+    .map((w): PlanOp => ({ op: "update", id: w.id, changes: { date: dates.get(w.id)! } }));
+}
+
+/** Done and pinned sessions from 3 days before the week through its end (spacing context). */
+function bookedNear(live: AdaptWorkout[], week: string, today: string): Booked[] {
   return live
-    .filter((w) => w.state === "done" && w.date >= addDays(week, -3) && w.date <= addDays(week, 6))
+    .filter((w) => (w.state === "done" || pinnedAhead(w, today)) && w.date >= addDays(week, -3) && w.date <= addDays(week, 6))
     .map((w) => ({ date: w.date, sport: w.sport, kind: w.kind }));
 }

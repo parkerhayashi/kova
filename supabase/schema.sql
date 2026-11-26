@@ -823,7 +823,7 @@ create table if not exists plan_workouts (
   plan_id               uuid not null references training_plans (id) on delete cascade,
   date                  date not null,
   sport                 text not null check (sport in ('run', 'lift', 'ride')),
-  kind                  text not null,    -- run: run_walk, easy, long, tempo, intervals, test, race…; lift: upper / lower / full; ride: endurance
+  kind                  text not null,    -- run: run_walk, easy, long, tempo, intervals, test, race…; lift: push / pull / legs / full; ride: endurance
   title                 text not null,
   phase                 text not null,    -- run_walk, base, build, peak, taper, race
   week_index            int  not null,
@@ -838,6 +838,8 @@ create table if not exists plan_workouts (
 );
 
 create index if not exists plan_workouts_plan_date_idx on plan_workouts (plan_id, date);
+-- Parker moved it to this day: re-planning works around it instead of moving it.
+alter table plan_workouts add column if not exists pinned boolean not null default false;
 
 -- Suggested changes (rules engine + weekly AI review); accepting applies `ops`.
 create table if not exists plan_suggestions (

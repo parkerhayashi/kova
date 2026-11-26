@@ -144,13 +144,15 @@ export interface PlanWorkout {
   notes: string | null;
   status: "planned" | "skipped";
   planned_run_id: string | null;
+  /** Moved by Parker to this date — re-planning works around it. */
+  pinned?: boolean;
   created_at: string;
   updated_at: string;
 }
 
 /** A change Kova proposes (rules or the weekly AI review); accepting applies `ops`. */
 export type PlanOp =
-  | { op: "update"; id: string; changes: Partial<Pick<PlanWorkout, "date" | "week_index" | "phase" | "kind" | "title" | "duration_min" | "distance_km" | "steps" | "notes" | "sport">> }
+  | { op: "update"; id: string; changes: Partial<Pick<PlanWorkout, "date" | "week_index" | "phase" | "kind" | "title" | "duration_min" | "distance_km" | "steps" | "notes" | "sport" | "pinned">> }
   | { op: "skip"; id: string }
   | { op: "insert"; workout: Omit<PlanWorkout, "id" | "plan_id" | "created_at" | "updated_at" | "planned_run_id" | "status"> }
   | { op: "shift"; from_date: string; days: number; sport?: PlanSport };

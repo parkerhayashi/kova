@@ -243,7 +243,7 @@ export function DayDetail({
         <Card className="space-y-4">
           <span className="metric-label">Plan</span>
           {planWorkouts.map((w) => (
-            <PlannedWorkout key={w.id} w={w} />
+            <PlannedWorkout key={w.id} w={w} today={today} />
           ))}
         </Card>
       ) : null}

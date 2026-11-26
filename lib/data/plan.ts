@@ -7,10 +7,10 @@ import { getTimezone } from "@/lib/data/oura";
 import { getPerformance } from "@/lib/data/performance";
 import { deletePlannedRun, getUpcomingRace, savePlannedRun, type UpcomingRace } from "@/lib/data/running";
 import { injuryName, isLowerBody } from "@/lib/injuries";
-import { proposeChanges, reconcile, type AdaptWorkout, type Proposal, type WorkoutState } from "@/lib/plan-adapt";
+import { proposeChanges, reconcile, reflowWeek, type AdaptWorkout, type Proposal, type WorkoutState } from "@/lib/plan-adapt";
 import { classifyLift, fuelRunType, generatePlan, mondayOf, planCounts, targets, type LiftKind, type RunWalkItem } from "@/lib/plan-engine";
 import { qualifiesForFueling, raceTitle } from "@/lib/run-fuel";
-import { addDays, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
+import { addDays, daysBetween, formatIsoDateLabel, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type { ActualRun, PlanOp, PlanSettings, PlanSuggestion, PlanWorkout, TrainingPlan } from "@/types";
 
 const day = (v: string) => normalizeIsoDate(v) ?? v;
@@ -359,6 +359,55 @@ async function applyOps(planId: string, ops: PlanOp[], opts: { syncFuel?: boolea
     }
   }
   if (opts.syncFuel !== false) await syncDesignations(planId);
+}
+
+/**
+ * Move a session to a day of Parker's choosing and pin it there; the rest of
+ * its old and new weeks re-plan around it (spacing rules still apply).
+ */
+export async function moveWorkout(id: string, date: string): Promise<void> {
+  const target = normalizeIsoDate(date);
+  if (!target) throw new Error("Pick a date");
+  const active = await buildActivePlan();
+  if (!active) throw new Error("No active plan");
+  const w = active.workouts.find((x) => x.id === id);
+  if (!w) throw new Error("Workout not found");
+  if (w.state === "done") throw new Error("That one's already done");
+  if (w.kind === "race") throw new Error("Race day is fixed");
+  const today = todayInTimezone(await getTimezone());
+  if (target < today) throw new Error("Pick today or a later day");
+  // Logs before the plan's first day don't count toward it, so a session there could never be checked off.
+  if (target < active.plan.start_date) {
+    throw new Error(`The plan starts ${formatIsoDateLabel(active.plan.start_date, { weekday: "short", month: "short", day: "numeric" })} — pick that day or later`);
+  }
+  if (active.race && target >= active.race.date) throw new Error("Pick a day before the race");
+
+  const planMonday = mondayOf(active.plan.start_date);
+  const week_index = Math.max(0, Math.round(daysBetween(mondayOf(target), planMonday) / 7));
+  await applyOps(active.plan.id, [{ op: "update", id, changes: { date: target, pinned: true, week_index } }], { syncFuel: false });
+  await reflowWeeks(active.plan, [mondayOf(w.date), mondayOf(target)], today);
+}
+
+/** Let Kova place a pinned session again (it re-plans that week). */
+export async function unpinWorkout(id: string): Promise<void> {
+  const planId = await planIdOf(id);
+  const db = createServiceClient();
+  const { data } = await db.from("plan_workouts").select("date").eq("id", id).maybeSingle();
+  await applyOps(planId, [{ op: "update", id, changes: { pinned: false } }], { syncFuel: false });
+  const active = await buildActivePlan();
+  if (active && data) await reflowWeeks(active.plan, [mondayOf(day((data as { date: string }).date))], todayInTimezone(await getTimezone()));
+}
+
+async function reflowWeeks(plan: TrainingPlan, weeks: string[], today: string): Promise<void> {
+  const active = await buildActivePlan();
+  if (!active?.race) return;
+  const perf = await getPerformance(90);
+  const ops = [...new Set(weeks)]
+    .filter((wk) => wk >= mondayOf(today))
+    .flatMap((wk) =>
+      reflowWeek(active.workouts, wk, { today, raceDate: active.race!.date, settings: plan.settings, recovery: perf.recovery.score }),
+    );
+  await applyOps(plan.id, ops);
 }
 
 export async function setWorkoutSkipped(id: string, skipped: boolean): Promise<void> {
