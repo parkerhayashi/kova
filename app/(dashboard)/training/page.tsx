@@ -45,7 +45,7 @@ export default async function TrainingPage({
   // Follow what was actually done (missed / off-plan sessions, lift rotation) before reading anything plan-shaped.
   await reconcilePlan().catch((err) => console.error("[plan] reconcile failed", err));
   const selected = normalizeIsoDate(dateParam) ?? today;
-  const view = viewParam === "week" ? "week" : "month";
+  const view = viewParam === "week" || viewParam === "month" ? viewParam : null;
   const { start, end } = monthGridRange(selected);
 
   // Range first: it sweeps stale plans so the day's targets read clean.
@@ -76,6 +76,8 @@ export default async function TrainingPage({
     after(() => runWeeklyReviewIfDue().catch((err) => console.error("[plan] weekly review failed", err)));
   }
   const planInRange = (activePlan?.workouts ?? []).filter((w) => w.date >= start && w.date <= end);
+  const nextUp =
+    activePlan?.workouts.find((w) => w.date > selected && w.kind !== "race" && (w.state === "upcoming" || w.state === "today")) ?? null;
   const dayRides = rides.filter((r) => r.date === selected);
   const rideStreams = await getGarminActivityStreams(dayRides.map((r) => r.id));
 
@@ -98,6 +100,7 @@ export default async function TrainingPage({
         key={selected}
         showQueue={!activePlan}
         planWorkouts={planInRange.filter((w) => w.date === selected)}
+        nextUp={nextUp}
         today={today}
         selected={selected}
         view={view}

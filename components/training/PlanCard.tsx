@@ -8,6 +8,7 @@ import {
   resolveSuggestionAction,
   setWorkoutSkippedAction,
 } from "@/app/(dashboard)/training/actions";
+import { SPORT_COLOR, SPORTS } from "@/components/training/sessions";
 import { WorkoutSteps } from "@/components/training/WorkoutSteps";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -233,7 +234,7 @@ export function PlannedWorkout({ w, showActions = true }: { w: PlanWorkoutView; 
 
 const dayIndex = (iso: string) => (new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7;
 
-/** Plan overview: phase, AI review, suggestions, adjustments, the week's checklist, and today's pick. */
+/** Plan summary line (phase, week progress by sport) that expands to suggestions, review, checklist, adjustments. */
 export function PlanCard({
   data,
   today,
@@ -245,6 +246,7 @@ export function PlanCard({
 }) {
   const { pending, error, run } = useAction();
   const [rebuilding, setRebuilding] = useState(false);
+  const [open, setOpen] = useState(data.suggestions.length > 0);
   const monday = (() => {
     const d = new Date(`${today}T12:00:00Z`);
     const wd = (d.getUTCDay() + 6) % 7;
@@ -255,11 +257,6 @@ export function PlanCard({
   const week = data.workouts.filter((w) => w.date >= monday && w.date <= sunday && w.state !== "skipped");
   const done = week.filter((w) => w.state === "done").sort((a, b) => a.date.localeCompare(b.date) || a.sport.localeCompare(b.sport));
   const left = week.filter((w) => w.state === "today" || w.state === "upcoming").sort((a, b) => a.date.localeCompare(b.date));
-  const todays = left.filter((w) => w.date === today);
-  const doneToday = done.filter((w) => w.date === today);
-  const nextUp = left.find((w) => w.date > today) ?? data.workouts.find((w) => w.date > sunday && w.state === "upcoming");
-  const runsThisWeek = week.filter((w) => w.sport === "run" && w.kind !== "race");
-  const doneRuns = runsThisWeek.filter((w) => w.state === "done").length;
 
   if (rebuilding) {
     return (
@@ -273,124 +270,125 @@ export function PlanCard({
     );
   }
 
+  const bySport = SPORTS.map((sp) => {
+    const mine = week.filter((w) => w.sport === sp.key && w.kind !== "race");
+    return { ...sp, done: mine.filter((w) => w.state === "done").length, total: mine.filter((w) => w.state !== "missed").length };
+  }).filter((s) => s.total > 0);
+
   return (
-    <div className="space-y-4">
-      <Card className="space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <span className="metric-label">Training plan</span>
-            <p className="text-text-primary mt-1 text-lg font-semibold">
-              {PHASE_LABEL[data.current.phase] ?? data.current.phase} · week {data.current.week} of {data.current.weeks}
-            </p>
-            {data.race ? (
-              <p className="text-text-muted text-xs">
-                {data.race.days_until} days to race · {doneRuns}/{runsThisWeek.length} runs done this week
-              </p>
-            ) : null}
-          </div>
+    <Card className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-text-primary font-semibold">
+            {PHASE_LABEL[data.current.phase] ?? data.current.phase} · week {data.current.week} of {data.current.weeks}
+          </p>
+          <p className="text-text-muted text-xs">
+            {data.race ? `${data.race.days_until} days to race · ` : ""}
+            {done.length} of {done.length + left.length} done this week
+            {data.suggestions.length ? ` · ${data.suggestions.length} suggestion${data.suggestions.length === 1 ? "" : "s"}` : ""}
+          </p>
+          {bySport.length ? (
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs tabular-nums">
+              {bySport.map((s) => (
+                <span key={s.key} className="flex items-center gap-1.5" style={{ color: s.color }}>
+                  <span className="flex gap-0.5" aria-hidden>
+                    {Array.from({ length: s.total }, (_, i) => (
+                      <span
+                        key={i}
+                        className="h-1.5 w-3 rounded-full"
+                        style={i < s.done ? { background: s.color } : { boxShadow: `inset 0 0 0 1.5px ${s.color}` }}
+                      />
+                    ))}
+                  </span>
+                  {s.label}s {s.done}/{s.total}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div className="flex gap-1">
+          <Button type="button" variant="ghost" className="py-1.5" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+            {open ? "Hide" : "Details"}
+          </Button>
           <Button type="button" variant="ghost" className="py-1.5" onClick={() => setRebuilding(true)}>
             Rebuild
           </Button>
         </div>
+      </div>
 
-        {data.review ? (
-          <div className="border-border space-y-1 rounded-lg border p-3">
-            <span className="metric-label flex items-center gap-1.5">
-              <Sparkles className="size-3" /> Weekly review · {formatIsoDateLabel(data.review.week_start, { month: "short", day: "numeric" })}
-            </span>
-            <p className="text-text-secondary text-sm">{data.review.summary}</p>
-          </div>
-        ) : null}
-
-        {data.suggestions.length > 0 ? (
-          <div className="space-y-2">
-            <span className="metric-label">Suggested changes</span>
-            {data.suggestions.map((s) => (
-              <div key={s.id} className="border-border space-y-2 rounded-lg border p-3">
-                <p className="flex items-center gap-1.5 text-sm font-semibold">
-                  {s.source === "ai" ? <Sparkles className="size-3.5" /> : null}
-                  {s.title}
-                </p>
-                <p className="text-text-secondary text-xs">{s.reason}</p>
-                <div className="flex gap-2">
-                  <Button type="button" variant="solid" disabled={pending} onClick={() => run(() => resolveSuggestionAction(s.id, true))}>
-                    Accept
-                  </Button>
-                  <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => resolveSuggestionAction(s.id, false))}>
-                    Dismiss
-                  </Button>
+      {open ? (
+        <>
+          {data.suggestions.length > 0 ? (
+            <div className="space-y-2">
+              <span className="metric-label">Suggested changes</span>
+              {data.suggestions.map((s) => (
+                <div key={s.id} className="border-border space-y-2 rounded-lg border p-3">
+                  <p className="flex items-center gap-1.5 text-sm font-semibold">
+                    {s.source === "ai" ? <Sparkles className="size-3.5" /> : null}
+                    {s.title}
+                  </p>
+                  <p className="text-text-secondary text-xs">{s.reason}</p>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="solid" disabled={pending} onClick={() => run(() => resolveSuggestionAction(s.id, true))}>
+                      Accept
+                    </Button>
+                    <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => resolveSuggestionAction(s.id, false))}>
+                      Dismiss
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-            {error ? <p className="text-text-secondary text-xs">{error}</p> : null}
-          </div>
-        ) : null}
+              ))}
+              {error ? <p className="text-text-secondary text-xs">{error}</p> : null}
+            </div>
+          ) : null}
 
-        {data.adjustments.length > 0 ? (
+          {data.review ? (
+            <div className="border-border space-y-1 rounded-lg border p-3">
+              <span className="metric-label flex items-center gap-1.5">
+                <Sparkles className="size-3" /> Weekly review · {formatIsoDateLabel(data.review.week_start, { month: "short", day: "numeric" })}
+              </span>
+              <p className="text-text-secondary text-sm">{data.review.summary}</p>
+            </div>
+          ) : null}
+
           <div className="space-y-1.5">
-            <span className="metric-label">Adjusted to what you did</span>
-            <ul className="space-y-2">
-              {data.adjustments.slice(0, 4).map((a) => (
-                <li key={a.id} className="text-sm">
-                  <p className="text-text-primary">{a.title}</p>
-                  <p className="text-text-muted text-xs">{a.reason}</p>
+            <span className="metric-label">This week</span>
+            <ul className="space-y-1">
+              {[...done, ...left].map((w) => (
+                <li key={w.id} className={cn("flex items-center gap-2 text-sm", w.state !== "done" && "text-text-secondary")}>
+                  <span
+                    className="size-2.5 shrink-0 rounded-full"
+                    style={w.state === "done" ? { background: SPORT_COLOR[w.sport] } : { boxShadow: `inset 0 0 0 1.5px ${SPORT_COLOR[w.sport]}` }}
+                  />
+                  <span className="min-w-0 flex-1 truncate">{w.title}</span>
+                  <span className="text-text-muted shrink-0 text-xs">
+                    {w.state === "done" ? WEEKDAYS[dayIndex(w.date)] : w.date === today ? "today" : `${WEEKDAYS[dayIndex(w.date)]}?`}
+                  </span>
                 </li>
               ))}
             </ul>
-          </div>
-        ) : null}
-
-        <div className="space-y-1.5">
-          <span className="metric-label">
-            This week · {done.length} of {done.length + left.length} done
-          </span>
-          <ul className="space-y-1">
-            {[...done, ...left].map((w) => (
-              <li key={w.id} className={cn("flex items-center gap-2 text-sm", w.state !== "done" && "text-text-secondary")}>
-                <StateMark w={w} />
-                <SportIcon sport={w.sport} className="text-text-muted" />
-                <span className="min-w-0 flex-1 truncate">{w.title}</span>
-                <span className="text-text-muted shrink-0 text-xs">
-                  {w.state === "done" ? WEEKDAYS[dayIndex(w.date)] : w.date === today ? "today" : `${WEEKDAYS[dayIndex(w.date)]}?`}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {left.length > 0 ? (
-            <p className="text-text-muted text-xs">
-              Days with a ? are pencilled in — do things in any order; whatever you log checks them off and the rest re-plans.
-            </p>
-          ) : null}
-        </div>
-      </Card>
-
-      <Card className="space-y-3">
-        <span className="metric-label">Today</span>
-        {todays.length > 0 ? (
-          todays.map((w) => <PlannedWorkout key={w.id} w={w} />)
-        ) : (
-          <div className="space-y-1">
-            <p className="text-sm">
-              {left.length === 0
-                ? "This week's targets are done — anything extra is a bonus."
-                : doneToday.length > 0
-                  ? "Nothing else pencilled in today."
-                  : "Nothing pencilled in today — a rest day, or get ahead on the next one."}
-            </p>
-            {doneToday.length > 0 ? (
-              <p className="text-text-muted text-xs">Done today: {doneToday.map((w) => w.title).join(", ")}</p>
+            {left.length > 0 ? (
+              <p className="text-text-muted text-xs">
+                Days with a ? are pencilled in. Do things in any order: whatever you log checks them off and the rest re-plans.
+              </p>
             ) : null}
           </div>
-        )}
-        {nextUp && todays.length === 0 ? (
-          <div className="border-border border-t pt-3">
-            <span className="metric-label">Next up</span>
-            <div className="mt-2">
-              <PlannedWorkout w={nextUp} />
+
+          {data.adjustments.length > 0 ? (
+            <div className="space-y-1.5">
+              <span className="metric-label">Adjusted to what you did</span>
+              <ul className="space-y-2">
+                {data.adjustments.slice(0, 4).map((a) => (
+                  <li key={a.id} className="text-sm">
+                    <p className="text-text-primary">{a.title}</p>
+                    <p className="text-text-muted text-xs">{a.reason}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-        ) : null}
-      </Card>
-    </div>
+          ) : null}
+        </>
+      ) : null}
+    </Card>
   );
 }

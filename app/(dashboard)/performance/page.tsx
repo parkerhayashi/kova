@@ -21,7 +21,7 @@ const pace = (minPerMile: number) => {
 const SPORTS = [
   { key: "run", label: "Run", color: "var(--color-activity)" },
   { key: "ride", label: "Ride", color: "var(--color-sleep)" },
-  { key: "lift", label: "Lift", color: "var(--color-nutrition)" },
+  { key: "lift", label: "Lift", color: "var(--color-strength)" },
 ];
 
 function Legend({ items }: { items: { label: string; color: string }[] }) {

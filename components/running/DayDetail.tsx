@@ -22,6 +22,8 @@ import { RideDetail } from "@/components/cycling/RideDetail";
 import { RunDetail } from "@/components/running/RunDetail";
 import type { TrainingLift } from "@/components/training/TrainingApp";
 import { PlannedWorkout } from "@/components/training/PlanCard";
+import { dimmed, entryText, markStyle, SPORT_COLOR } from "@/components/training/sessions";
+import { entryDone } from "@/lib/run-calendar";
 import type { PlanWorkoutView } from "@/lib/data/plan";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -37,8 +39,9 @@ import {
 } from "@/lib/run-fuel";
 import { hevyVolumeLbs } from "@/lib/hevy";
 import { strengthGarminLine } from "@/lib/training-format";
-import { daysBetween, formatIsoDateLabel } from "@/lib/utils";
+import { cn, daysBetween, formatIsoDateLabel } from "@/lib/utils";
 import type {
+  CalendarEntry,
   ActualRun,
   FuelProduct,
   GarminActivity,
@@ -109,6 +112,8 @@ export function DayDetail({
   rides = [],
   rideStreams = {},
   planWorkouts = [],
+  dayEntries = [],
+  nextUp = null,
 }: {
   date: string;
   today: string;
@@ -127,6 +132,10 @@ export function DayDetail({
   rides?: GarminActivity[];
   rideStreams?: Record<string, RunStreamPoints>;
   planWorkouts?: PlanWorkoutView[];
+  /** Everything on the calendar for this day (done + to do), for the at-a-glance list. */
+  dayEntries?: CalendarEntry[];
+  /** The plan's next session after this day — shown when nothing's left today. */
+  nextUp?: PlanWorkoutView | null;
 }) {
   const { pending, error, run } = useRunAction();
   const [designating, setDesignating] = useState<
@@ -188,6 +197,56 @@ export function DayDetail({
               : "Base targets"}
         </span>
       </div>
+
+      {/* The day at a glance: done (filled) and still to do (outlined), by sport color */}
+      <Card className="space-y-2">
+        <span className="metric-label">Sessions</span>
+        {dayEntries.length > 0 ? (
+          <ul className="divide-border divide-y">
+            {dayEntries.map((e) => (
+              <li key={e.id} className="flex items-center gap-2.5 py-2 text-sm">
+                {e.kind === "race" ? (
+                  <Flag className="size-3.5 shrink-0" style={{ color: SPORT_COLOR.run }} />
+                ) : (
+                  <span className="size-2.5 shrink-0 rounded-full" style={markStyle(e)} />
+                )}
+                <span className={cn("min-w-0 flex-1 truncate", dimmed(e) && "text-text-muted line-through")}>{entryText(e)}</span>
+                <span className="text-text-muted shrink-0 text-xs">
+                  {entryDone(e)
+                    ? "Done"
+                    : e.state === "missed"
+                      ? "Missed"
+                      : e.state === "skipped"
+                        ? "Skipped"
+                        : e.kind === "race"
+                          ? "Race day"
+                          : "To do"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-text-secondary text-sm">
+            {date < today ? "Nothing logged." : date === today ? "Nothing pencilled in today — a rest day, or get ahead." : "Nothing pencilled in."}
+          </p>
+        )}
+        {nextUp && !dayEntries.some((e) => !entryDone(e) && !dimmed(e)) && date >= today ? (
+          <p className="text-text-muted text-xs">
+            Next up: <span className="text-text-secondary">{nextUp.title}</span> · pencilled in{" "}
+            {formatIsoDateLabel(nextUp.date, { weekday: "short", month: "short", day: "numeric" })}
+          </p>
+        ) : null}
+      </Card>
+
+      {/* The plan's workouts for this day, with steps */}
+      {planWorkouts.length > 0 ? (
+        <Card className="space-y-4">
+          <span className="metric-label">Plan</span>
+          {planWorkouts.map((w) => (
+            <PlannedWorkout key={w.id} w={w} />
+          ))}
+        </Card>
+      ) : null}
 
       {/* Nutrition for the day */}
       {runDay?.fuel || runDay?.adjustment_removed ? (
@@ -460,16 +519,6 @@ export function DayDetail({
             Health or manual copy of the same run. Log here if one is missing. Deleting an imported
             run keeps it from coming back.
           </p>
-        </Card>
-      ) : null}
-
-      {/* The plan's workouts for this day, with steps */}
-      {planWorkouts.length > 0 ? (
-        <Card className="space-y-4">
-          <span className="metric-label">Plan</span>
-          {planWorkouts.map((w) => (
-            <PlannedWorkout key={w.id} w={w} />
-          ))}
         </Card>
       ) : null}
 

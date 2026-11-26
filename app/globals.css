@@ -29,6 +29,8 @@
   --color-activity: #fbbf24;
   --color-stress: #ff8a8a;
   --color-nutrition: #d4a574;
+  /* Sport colors on training data: runs = activity, rides = sleep, lifts = strength */
+  --color-strength: #c4b5fd;
 
   /* Chrome accent — white/silver, not colored */
   --color-hud: rgba(255, 255, 255, 0.85);
@@ -41,6 +43,11 @@
 
   /* Radii */
   --radius-card: 16px;
+}
+
+/* Read through var() in inline styles only, so Tailwind would prune it from @theme. */
+:root {
+  --color-strength: #c4b5fd;
 }
 
 html {

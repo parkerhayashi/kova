@@ -1,8 +1,9 @@
 /**
- * Plan Calendar helpers — pure. The calendar shows planned runs (each one a
- * nutrition designation), races, and completed runs. The training plan is a
- * dateless queue and never appears here; see `training_plan_runs`.
+ * Training calendar helpers — pure. The calendar shows planned runs (each one
+ * a nutrition designation), races, completed runs, lifts, rides, and the
+ * dated plan's workouts.
  */
+import { classifyLift, liftTitle } from "@/lib/plan-engine";
 import { addDays } from "@/lib/utils";
 import { raceTitle, runTypeLabel } from "@/lib/run-fuel";
 import type {
@@ -11,6 +12,7 @@ import type {
   CalendarNutritionStatus,
   GarminActivity,
   PlannedRun,
+  PlanSport,
   PlanWorkout,
   RunFuelAdjustment,
   Workout,
@@ -75,6 +77,11 @@ export function buildCalendarEntries(input: {
   return entries.sort((a, b) => a.date.localeCompare(b.date));
 }
 
+const liftLabel = (title: string | null) => {
+  const kind = classifyLift(title);
+  return kind && kind !== "full" ? liftTitle(kind) : (title ?? "Lift");
+};
+
 /** Lifts (Hevy) and rides (Garmin) as calendar entries next to the runs. */
 export function buildActivityEntries(input: {
   lifts: Pick<Workout, "id" | "date" | "title" | "duration">[];
@@ -96,7 +103,8 @@ export function buildActivityEntries(input: {
       kind: "lift",
       planned_distance_km: null,
       planned_duration_min: w.duration != null ? w.duration / 60 : null,
-      label: w.title ?? "Lift",
+      // "Leg day injured foot" → "Legs": the calendar shows the split, not Hevy's title.
+      label: liftLabel(w.title),
     }));
   const rides: CalendarEntry[] = input.rides.map((r) => ({
     ...base,
@@ -135,6 +143,17 @@ export function buildPlanEntries(
       state: w.state,
     }));
 }
+
+/** Which sport an entry belongs to (runs, races and fuel designations are runs). */
+export function entrySport(e: CalendarEntry): PlanSport {
+  if (e.kind === "lift") return "lift";
+  if (e.kind === "ride") return "ride";
+  if (e.kind === "plan") return e.sport ?? "run";
+  return "run";
+}
+
+/** Logged sessions are done; plan workouts and designated runs are still to do. */
+export const entryDone = (e: CalendarEntry) => e.kind === "completed_run" || e.kind === "lift" || e.kind === "ride";
 
 /** Monday = 0 … Sunday = 6 for an ISO date. */
 export function weekdayIndex(iso: string): number {

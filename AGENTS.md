@@ -77,6 +77,7 @@ Don't "fix" these back to the blueprint's versions.
 
 - Monochrome chrome per brand. **No colored chrome — ever.** Active nav: white text + `rgba(255,255,255,0.07)` fill, not an accent color.
 - Five semantic accent colors (`--color-recovery`, `--color-sleep`, `--color-activity`, `--color-stress`, `--color-nutrition`) apply **only to data**: metric values, chart lines, indicator dots. Never to buttons, borders, or nav.
+- Training sessions use sport colors (data too): runs `--color-activity`, rides `--color-sleep`, lifts `--color-strength`. Done = filled, to do = outlined.
 - Cards: brand border tokens, 16px radius, `--color-surface` (`#1f1f22`). Use `.card` or `<Card>`.
 - Charts (Recharts): no gridlines, colored line + soft gradient fill on dark surface, muted axis text.
 - Large numbers carry visual weight (`.metric-value`); labels are small, uppercase, muted (`.metric-label`).
