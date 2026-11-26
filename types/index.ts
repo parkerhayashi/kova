@@ -102,14 +102,20 @@ export interface WorkoutStep {
 }
 
 export interface PlanSettings {
-  /** 0 = Monday … 6 = Sunday. */
-  run_days: number[];
-  long_run_day: number;
-  lift_days: number[];
-  ride_days: number[];
-  goal_time_min: number | null;
+  /** Weekly targets — sessions go on whatever days are free, not fixed weekdays. */
+  runs_per_week?: number;
+  lifts_per_week?: number;
+  rides_per_week?: number;
   /** Push / Pull / Legs: leg days per week (default 1 — running covers a lot of leg work). */
   legs_per_week?: number;
+  /** Long runs at least this long prefer Sat/Sun (null = any day). */
+  long_run_weekend_min?: number | null;
+  goal_time_min: number | null;
+  /** Legacy weekday plans (0 = Monday … 6 = Sunday); counts fall back to these. */
+  run_days?: number[];
+  long_run_day?: number;
+  lift_days?: number[];
+  ride_days?: number[];
 }
 
 export interface TrainingPlan {
@@ -144,7 +150,7 @@ export interface PlanWorkout {
 
 /** A change Kova proposes (rules or the weekly AI review); accepting applies `ops`. */
 export type PlanOp =
-  | { op: "update"; id: string; changes: Partial<Pick<PlanWorkout, "date" | "kind" | "title" | "duration_min" | "distance_km" | "steps" | "notes" | "sport">> }
+  | { op: "update"; id: string; changes: Partial<Pick<PlanWorkout, "date" | "week_index" | "phase" | "kind" | "title" | "duration_min" | "distance_km" | "steps" | "notes" | "sport">> }
   | { op: "skip"; id: string }
   | { op: "insert"; workout: Omit<PlanWorkout, "id" | "plan_id" | "created_at" | "updated_at" | "planned_run_id" | "status"> }
   | { op: "shift"; from_date: string; days: number; sport?: PlanSport };

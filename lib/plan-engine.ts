@@ -1,16 +1,18 @@
 /**
  * Training-plan rules engine — pure (client-safe, unit-testable).
  *
+ * Weekly targets, not weekdays: each week gets N runs / lifts / rides and
+ * scheduleWeek() gives them tentative days (re-flowed as the week goes).
+ *
  * 1. Run/walk block: the remaining sessions of the current run/walk
- *    progression, in order, on the chosen run days (the long one on the
- *    long-run day). Each becomes steps.
+ *    progression, in order, N per week. Each becomes steps.
  * 2. Continuous phase to race day: base → build → peak → taper. Long run ramps
  *    toward ~80% of race time with a cutback every 4th week; easy runs grow;
  *    one quality session a week (strides → tempo / intervals → sustained
  *    tempo). Targets come from pace / HR zones.
- * 3. Lifts (Push / Pull / Legs) and rides on their days; legs once a week by
- *    default, never the day before a long or quality run; taper and race week
- *    lighten everything.
+ * 3. Lifts (Push / Pull / Legs) and rides; legs once a week by default,
+ *    never the day before a long or quality run; taper and race week lighten
+ *    everything.
  */
 import { addDays, daysBetween } from "@/lib/utils";
 import type { PaceZone } from "@/lib/performance";
@@ -176,65 +178,9 @@ export const liftNotes = (k: string) =>
       ? "Log sets in Hevy. Taper / race week — keep it light, no soreness."
       : "Log sets in Hevy.";
 
-/**
- * Kinds for one week's lift slots. Legs go on the slot(s) furthest from the
- * next long / quality run (never the day before one, never the day after the
- * long run when avoidable); the rest alternate Push / Pull, continuing from
- * the last upper session. Light (taper / race) slots are full-body.
- */
-export function liftKinds(input: {
-  dates: string[];
-  hardRunDates: Set<string>;
-  legsNeeded: number;
-  lastUpper: LiftKind | null;
-  /** Date of the last leg session (logged or planned) — legs need 3+ days between. */
-  lastLegs?: string | null;
-  light?: boolean[];
-}): LiftKind[] {
-  const { dates, hardRunDates } = input;
-  const light = input.light ?? dates.map(() => false);
-  const score = (d: string) => {
-    let s = 0;
-    for (let n = 1; n <= 3; n++) {
-      if (hardRunDates.has(addDays(d, n))) break;
-      s += 1;
-    }
-    if (hardRunDates.has(addDays(d, -1))) s -= 2.5;
-    if (hardRunDates.has(d)) s -= 0.5;
-    return s;
-  };
-  const candidates = dates
-    .map((d, i) => ({ d, i }))
-    .filter(({ d, i }) => !light[i] && !hardRunDates.has(addDays(d, 1)))
-    .filter(({ d }) => !input.lastLegs || d >= addDays(input.lastLegs, 3))
-    .sort((a, b) => score(b.d) - score(a.d) || a.i - b.i);
-  const legs = new Set<number>();
-  for (const c of candidates) {
-    if (legs.size >= Math.max(0, input.legsNeeded)) break;
-    // Two leg days in a week still need 3+ days between them.
-    if ([...legs].some((i) => Math.abs(daysBetween(dates[i]!, c.d)) < 3)) continue;
-    legs.add(c.i);
-  }
-  let next: LiftKind = input.lastUpper === "push" ? "pull" : "push";
-  return dates.map((_, i) => {
-    if (light[i]) return "full";
-    if (legs.has(i)) return "legs";
-    const k = next;
-    next = next === "push" ? "pull" : "push";
-    return k;
-  });
-}
-
 // ---------------------------------------------------------------------------
 // Generation
 // ---------------------------------------------------------------------------
-
-/** Dates in [from, to] falling on `days` (0 = Mon). */
-function daysOn(from: string, to: string, days: number[]): string[] {
-  const out: string[] = [];
-  for (let d = from; d <= to; d = addDays(d, 1)) if (days.includes(weekday(d))) out.push(d);
-  return out;
-}
 
 /** Map a plan run kind onto run-fuel's run types (for fueling thresholds). */
 export function fuelRunType(kind: string): Exclude<RunType, "race"> | "race" {
@@ -252,58 +198,229 @@ export type PlanPreview = {
   peakLongRunMin: number;
 };
 
+/** Weekly targets from settings (legacy weekday plans fall back to their day counts). */
+export function planCounts(s: PlanSettings) {
+  const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(n)));
+  return {
+    runs: clamp(s.runs_per_week ?? s.run_days?.length ?? 3, 1, 7),
+    lifts: clamp(s.lifts_per_week ?? s.lift_days?.length ?? 0, 0, 7),
+    rides: clamp(s.rides_per_week ?? s.ride_days?.length ?? 0, 0, 7),
+    legs: clamp(s.legs_per_week ?? 1, 0, 2),
+    /** Long runs ≥ this prefer Sat/Sun; null = any day. */
+    weekendLongMin: s.long_run_weekend_min === undefined ? 60 : s.long_run_weekend_min,
+  };
+}
+
+/** Every date in [from, to]. */
+export function dayRange(from: string, to: string): string[] {
+  const out: string[] = [];
+  for (let d = from; d <= to; d = addDays(d, 1)) out.push(d);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Scheduling — tentative days for a week's sessions
+// ---------------------------------------------------------------------------
+
+export type SchedItem = { id: string; sport: PlanSport; kind: string; duration_min: number | null; seq: number };
+export type Booked = { date: string; sport: PlanSport; kind: string };
+
+const isHardKind = (kind: string) => kind.startsWith("long") || QUALITY_KINDS.has(kind);
+
+/** `n` slots out of `days`, front-loaded and evenly spread (doubles when n > days). */
+function spread<T>(days: T[], n: number): T[] {
+  if (n <= 0 || days.length === 0) return [];
+  const out: T[] = [];
+  for (let i = 0; i < n; i++) out.push(days[Math.floor((i * days.length) / n) % days.length]!);
+  return out;
+}
+
+/**
+ * Tentative dates for one week's pending sessions. Nothing is tied to a
+ * weekday: runs spread over the days left (front-loaded so falling behind is
+ * hard), a run and a lift can share a day, two runs only when there are more
+ * runs than days. The long run goes on a weekend when it's long enough and
+ * one is left, otherwise last; quality sits away from it. Legs avoid the day
+ * before / of / after a hard run and stay 3+ days from the last leg day.
+ */
+export function scheduleWeek(input: {
+  items: SchedItem[];
+  days: string[];
+  booked?: Booked[];
+  weekendLongMin: number | null;
+  /** Days that shouldn't get a hard run (low Recovery today). */
+  avoidHard?: Set<string>;
+  /** Days kept empty unless that would leave sessions unplaced (rest). */
+  rest?: Set<string>;
+}): Map<string, string> {
+  const out = new Map<string, string>();
+  const booked = input.booked ?? [];
+  if (input.days.length === 0) return out;
+  const restFree = input.days.filter((d) => !input.rest?.has(d));
+  const runs = input.items.filter((i) => i.sport === "run").sort((a, b) => a.seq - b.seq);
+  const lifts = input.items.filter((i) => i.sport === "lift").sort((a, b) => a.seq - b.seq);
+  const rides = input.items.filter((i) => i.sport === "ride").sort((a, b) => a.seq - b.seq);
+  const pool = (n: number) => (restFree.length >= n ? restFree : input.days);
+
+  // --- Runs ------------------------------------------------------------------
+  const runFree = pool(runs.length).filter((d) => !booked.some((b) => b.sport === "run" && b.date === d));
+  const runDays = spread(runFree.length >= runs.length ? runFree : pool(runs.length), runs.length).sort();
+  const sequential = runs.some((r) => r.kind.includes("run_walk"));
+  const assignRuns = new Map<string, string>();
+  if (sequential) {
+    // Run/walk levels go in order.
+    runs.forEach((r, i) => assignRuns.set(r.id, runDays[i]!));
+  } else {
+    const slots = [...runDays];
+    const take = (pick: (d: string) => boolean, prefer: "first" | "last") => {
+      const idxs = slots.map((d, i) => (pick(d) ? i : -1)).filter((i) => i >= 0);
+      if (!idxs.length) return null;
+      const i = prefer === "first" ? idxs[0]! : idxs.at(-1)!;
+      return slots.splice(i, 1)[0]!;
+    };
+    const long = runs.find((r) => r.kind.startsWith("long"));
+    if (long) {
+      const wantsWeekend = input.weekendLongMin != null && (long.duration_min ?? 0) >= input.weekendLongMin;
+      const weekend = (d: string) => weekday(d) >= 5;
+      let day =
+        (wantsWeekend ? take(weekend, "first") : null) ?? take((d) => !input.avoidHard?.has(d), "last") ?? take(() => true, "last");
+      if (wantsWeekend && day && !weekend(day)) {
+        // Every slot is a weekday — move the long run onto a free weekend day.
+        const sat = input.days.find((d) => weekend(d) && !runDays.includes(d) && !input.rest?.has(d));
+        if (sat) day = sat;
+      }
+      if (day) assignRuns.set(long.id, day);
+    }
+    const longDay = long ? assignRuns.get(long.id) : undefined;
+    for (const q of runs.filter((r) => r !== long && QUALITY_KINDS.has(r.kind))) {
+      const ok = (d: string) =>
+        !input.avoidHard?.has(d) &&
+        (!longDay || Math.abs(daysBetween(d, longDay)) >= 2) &&
+        !booked.some((b) => b.sport === "run" && isHardKind(b.kind) && Math.abs(daysBetween(d, b.date)) < 2);
+      const day = take(ok, "first") ?? take((d) => !input.avoidHard?.has(d), "first") ?? take(() => true, "first");
+      if (day) assignRuns.set(q.id, day);
+    }
+    for (const r of runs.filter((r) => !assignRuns.has(r.id))) {
+      const day = take(() => true, "first") ?? input.days.at(-1)!;
+      assignRuns.set(r.id, day);
+    }
+  }
+  for (const [id, d] of assignRuns) out.set(id, d);
+
+  // --- Lifts -----------------------------------------------------------------
+  const hardOn = new Set([
+    ...runs.filter((r) => isHardKind(r.kind)).map((r) => assignRuns.get(r.id)!),
+    ...booked.filter((b) => b.sport === "run" && isHardKind(b.kind)).map((b) => b.date),
+  ]);
+  // Days without a run first; doubles (run + lift) only for what's left,
+  // easy-run days before hard ones.
+  const liftFree = pool(lifts.length).filter((d) => !booked.some((b) => b.sport === "lift" && b.date === d));
+  const runOn = new Set([...assignRuns.values(), ...booked.filter((b) => b.sport === "run").map((b) => b.date)]);
+  const solo = liftFree.filter((d) => !runOn.has(d));
+  const doubles = liftFree.filter((d) => runOn.has(d)).sort((a, b) => Number(hardOn.has(a)) - Number(hardOn.has(b)) || a.localeCompare(b));
+  const liftDays = (
+    lifts.length <= solo.length
+      ? spread(solo, lifts.length)
+      : [...solo, ...spread(doubles.length ? doubles : liftFree, lifts.length - solo.length)]
+  ).sort();
+  const lastLegs = booked.filter((b) => b.sport === "lift" && b.kind === "legs").map((b) => b.date).sort().at(-1) ?? null;
+  const legsScore = (d: string) => {
+    let s = 0;
+    if (hardOn.has(addDays(d, 1))) s -= 10; // never the day before a long / hard run
+    if (hardOn.has(d)) s -= 3;
+    if (hardOn.has(addDays(d, -1))) s -= 2;
+    if (lastLegs && daysBetween(d, lastLegs) < 3) s -= 6;
+    for (let n = 2; n <= 3; n++) if (!hardOn.has(addDays(d, n))) s += 0.5;
+    return s;
+  };
+  const freeLiftDays = [...liftDays];
+  for (const l of lifts.filter((l) => l.kind === "legs")) {
+    const best = freeLiftDays
+      .map((d, i) => ({ d, i, s: legsScore(d) }))
+      .sort((a, b) => b.s - a.s || a.i - b.i)[0];
+    if (!best) break;
+    freeLiftDays.splice(best.i, 1);
+    out.set(l.id, best.d);
+  }
+  // Push / pull alternate, starting opposite the last upper session.
+  const lastUpper = booked
+    .filter((b) => b.sport === "lift" && (b.kind === "push" || b.kind === "pull"))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .at(-1)?.kind;
+  const uppers = lifts.filter((l) => l.kind !== "legs");
+  const ordered: SchedItem[] = [];
+  let want = lastUpper === "push" ? "pull" : "push";
+  while (uppers.length) {
+    const i = uppers.findIndex((u) => u.kind === want);
+    ordered.push(uppers.splice(i >= 0 ? i : 0, 1)[0]!);
+    want = want === "push" ? "pull" : "push";
+  }
+  ordered.forEach((l, i) => out.set(l.id, freeLiftDays[i] ?? liftDays.at(-1) ?? input.days[0]!));
+
+  // --- Rides: the least busy days, never the day before a hard run ----------
+  const busy = (d: string) => [...out.values()].filter((x) => x === d).length + booked.filter((b) => b.date === d).length;
+  for (const r of rides) {
+    const day = [...pool(rides.length)]
+      .sort((a, b) => Number(hardOn.has(addDays(a, 1))) - Number(hardOn.has(addDays(b, 1))) || busy(a) - busy(b) || a.localeCompare(b))[0];
+    if (day) out.set(r.id, day);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Generation
+// ---------------------------------------------------------------------------
+
 export function generatePlan(input: EngineInput): PlanPreview {
   const { settings, race } = input;
   const t = targets(input);
+  const c = planCounts(settings);
   const planMonday = mondayOf(input.start);
-  const weekIndex = (d: string) => Math.floor(daysBetween(d, planMonday) / 7);
-  const out: GeneratedWorkout[] = [];
-  const push = (w: Omit<GeneratedWorkout, "week_index">) => out.push({ ...w, week_index: weekIndex(w.date) });
-  const runDays = [...new Set(settings.run_days)].sort((a, b) => a - b);
+  const raceWeek = mondayOf(race.date);
   const lastDay = addDays(race.date, -1);
 
-  // --- 1. Run/walk block -----------------------------------------------------
-  // Sessions stay in their exact order (levels never go backwards). A long
-  // session waits for the long-run day: earlier run days that week stay free.
-  let runWalkEnd: string | null = null;
+  type Draft = Omit<GeneratedWorkout, "date" | "week_index"> & { week: string };
+  const drafts: Draft[] = [];
+  const weeks: string[] = [];
+  for (let m = planMonday; m <= raceWeek; m = addDays(m, 7)) weeks.push(m);
+  const daysIn = (m: string, endOffset = 0) =>
+    dayRange(m < input.start ? input.start : m, [addDays(m, 6), addDays(race.date, -1 - endOffset)].sort()[0]!);
+  /** Targets scale down for a partial first week. */
+  const scaled = (n: number, m: string) => Math.min(n, Math.ceil((n * daysIn(m).length) / 7));
+
+  // --- 1. Run/walk block: the queue in order, `runs` a week ------------------
   const queue = [...input.runWalk];
-  for (let date = input.start; queue.length > 0 && date <= lastDay; date = addDays(date, 1)) {
-    if (!runDays.includes(weekday(date))) continue;
-    const next = queue[0]!;
-    const isLongDay = weekday(date) === settings.long_run_day;
-    const longDayAhead = [1, 2, 3, 4, 5, 6].some(
-      (n) => weekday(addDays(date, n)) === settings.long_run_day && addDays(date, n) <= lastDay,
-    );
-    if (next.run_type === "long" && !isLongDay && longDayAhead && runDays.includes(settings.long_run_day)) continue;
-    push(rwItemToWorkout(queue.shift()!, date, t));
-    runWalkEnd = date;
+  let rwWeeks = 0;
+  for (const m of weeks) {
+    if (!queue.length || m === raceWeek) break;
+    for (const item of queue.splice(0, scaled(c.runs, m))) {
+      const { date: _d, ...w } = rwItemToWorkout(item, m, t);
+      void _d;
+      drafts.push({ ...w, week: m });
+    }
+    rwWeeks++;
   }
 
   // --- 2. Continuous phase ----------------------------------------------------
-  const contStart = runWalkEnd ? addDays(mondayOf(runWalkEnd), 7) : mondayOf(input.start);
-  const raceWeek = mondayOf(race.date);
-  const nWeeks = Math.max(0, Math.round(daysBetween(raceWeek, contStart) / 7)); // weeks before race week
+  const contWeeks = weeks.slice(rwWeeks).filter((m) => m !== raceWeek);
+  const nWeeks = contWeeks.length;
   const taperWeeks = nWeeks >= 8 ? 2 : nWeeks >= 3 ? 1 : 0;
   const peakWeeks = Math.max(0, Math.round((nWeeks - taperWeeks) * 0.2));
   const buildWeeks = Math.max(0, Math.round((nWeeks - taperWeeks) * 0.35));
   const baseWeeks = Math.max(0, nWeeks - taperWeeks - peakWeeks - buildWeeks);
   const phaseOf = (w: number): PlanPhase =>
     w < baseWeeks ? "base" : w < baseWeeks + buildWeeks ? "build" : w < baseWeeks + buildWeeks + peakWeeks ? "peak" : "taper";
-
-  const lastRwLong = Math.max(45, ...out.filter((w) => w.kind.startsWith("long")).map((w) => w.duration_min ?? 0));
+  const lastRwLong = Math.max(45, ...drafts.filter((w) => w.kind.startsWith("long")).map((w) => w.duration_min ?? 0));
   const peakLong = Math.min(150, Math.max(lastRwLong + 20, Math.round(race.estimate_min * 0.8)));
   const rampWeeks = Math.max(1, baseWeeks + buildWeeks);
-  const qualityDay = runDays.filter((d) => d !== settings.long_run_day)[Math.floor((runDays.length - 1) / 2)] ?? null;
 
   const phases: PlanPreview["phases"] = [];
-  if (runWalkEnd) phases.push({ phase: "run_walk", start: input.start, end: runWalkEnd });
-
-  for (let w = 0; w < nWeeks; w++) {
-    const monday = addDays(contStart, w * 7);
+  if (rwWeeks) phases.push({ phase: "run_walk", start: input.start, end: addDays(weeks[rwWeeks - 1]!, 6) });
+  contWeeks.forEach((monday, w) => {
     const phase = phaseOf(w);
     const last = phases.at(-1);
     if (last?.phase === phase) last.end = addDays(monday, 6);
-    else phases.push({ phase, start: monday, end: addDays(monday, 6) });
+    else phases.push({ phase, start: monday < input.start ? input.start : monday, end: addDays(monday, 6) });
 
     const cutback = phase !== "taper" && w > 0 && (w + 1) % 4 === 0;
     const taperFactor = phase === "taper" ? (w === nWeeks - 1 ? 0.6 : 0.75) : 1;
@@ -316,52 +433,51 @@ export function generatePlan(input: EngineInput): PlanPreview {
     }
     longMin = round5(longMin * taperFactor);
     easyMin = round5(easyMin * taperFactor);
-
-    for (const date of daysOn(monday, addDays(monday, 6), runDays)) {
-      if (date >= race.date) continue;
-      const wd = weekday(date);
-      if (wd === settings.long_run_day) {
-        const steadyFinish = phase === "peak" && longMin >= 60;
-        push({
-          date,
-          sport: "run",
-          kind: "long",
-          title: `Long run · ${longMin} min`,
-          phase,
-          duration_min: longMin,
-          distance_km: null,
-          steps: steadyFinish
-            ? [
-                { label: "Easy", minutes: longMin - 15, target: t.easy },
-                { label: "Steady finish", minutes: 15, target: t.steady },
-              ]
-            : [{ label: "Long easy run", minutes: longMin, target: t.easy }],
-          notes: longMin >= 75 ? "Fuel: take gels from ~45 min (Kova adds the carbs to today's target)." : null,
-        });
-      } else if (wd === qualityDay && !cutback) {
-        push(qualitySession(date, phase, w - baseWeeks, easyMin, t));
+    const n = scaled(c.runs, monday);
+    const steadyFinish = phase === "peak" && longMin >= 60;
+    drafts.push({
+      week: monday,
+      sport: "run",
+      kind: "long",
+      title: `Long run · ${longMin} min`,
+      phase,
+      duration_min: longMin,
+      distance_km: null,
+      steps: steadyFinish
+        ? [
+            { label: "Easy", minutes: longMin - 15, target: t.easy },
+            { label: "Steady finish", minutes: 15, target: t.steady },
+          ]
+        : [{ label: "Long easy run", minutes: longMin, target: t.easy }],
+      notes: longMin >= 75 ? "Fuel: take gels from ~45 min (Kova adds the carbs to that day's target)." : null,
+    });
+    for (let k = 1; k < n; k++) {
+      if (k === 1 && !cutback && n >= 2) {
+        const { date: _d, ...q } = qualitySession(monday, phase, w - baseWeeks, easyMin, t);
+        void _d;
+        drafts.push({ ...q, week: monday });
       } else {
-        push({
-          date,
+        drafts.push({
+          week: monday,
           sport: "run",
           kind: "easy",
           title: `Easy run · ${easyMin} min`,
           phase,
           duration_min: easyMin,
           distance_km: null,
-          steps: easySteps(easyMin, t.easy, phase === "base" && wd !== qualityDay && w % 2 === 1),
+          steps: easySteps(easyMin, t.easy),
           notes: null,
         });
       }
     }
-  }
+  });
 
-  // Race week: two short easy runs with strides, then race day.
-  if (nWeeks >= 0 && raceWeek >= input.start) {
-    phases.push({ phase: "race", start: raceWeek, end: race.date });
-    for (const date of daysOn(raceWeek, addDays(race.date, -2), runDays).slice(0, 2)) {
-      push({
-        date,
+  // Race week: up to two short shakeouts; race day itself is fixed.
+  if (raceWeek >= planMonday) {
+    phases.push({ phase: "race", start: raceWeek < input.start ? input.start : raceWeek, end: race.date });
+    for (let k = 0; k < Math.min(2, Math.max(1, c.runs - 1)); k++) {
+      drafts.push({
+        week: raceWeek,
         sport: "run",
         kind: "easy",
         title: "Shakeout · 20 min",
@@ -373,8 +489,72 @@ export function generatePlan(input: EngineInput): PlanPreview {
       });
     }
   }
-  push({
+  const phaseOfWeek = (m: string): PlanPhase =>
+    m === raceWeek ? "race" : (phases.find((p) => addDays(m, 6) >= p.start && m <= p.end)?.phase ?? "base");
+
+  // --- 3. Lifts (Push / Pull / Legs) & rides -----------------------------------
+  let nextUpper: "push" | "pull" = "push";
+  for (const m of weeks) {
+    const phase = phaseOfWeek(m);
+    const light = phase === "taper" || phase === "race";
+    const n = phase === "race" ? Math.min(c.lifts, 2) : phase === "taper" ? Math.min(c.lifts, 3) : scaled(c.lifts, m);
+    const legs = light || n < 2 ? 0 : Math.min(c.legs, n - 1);
+    for (let k = 0; k < n; k++) {
+      const kind: LiftKind = light || n === 1 ? "full" : k < legs ? "legs" : nextUpper;
+      if (kind === "push" || kind === "pull") nextUpper = kind === "push" ? "pull" : "push";
+      drafts.push({
+        week: m,
+        sport: "lift",
+        kind,
+        title: liftTitle(kind),
+        phase,
+        duration_min: kind === "full" ? 35 : 50,
+        distance_km: null,
+        steps: null,
+        notes: liftNotes(kind),
+      });
+    }
+    if (phase === "race") continue;
+    const minutes = phase === "taper" ? 30 : phase === "build" || phase === "peak" ? 60 : 45;
+    for (let k = 0; k < scaled(c.rides, m); k++) {
+      drafts.push({
+        week: m,
+        sport: "ride",
+        kind: "endurance",
+        title: `Easy ride · ${minutes} min`,
+        phase,
+        duration_min: minutes,
+        distance_km: null,
+        steps: [{ label: "Endurance ride", minutes, target: t.easy }],
+        notes: "Aerobic cross-training — keep it conversational.",
+      });
+    }
+  }
+
+  // --- 4. Tentative days ----------------------------------------------------------
+  const out: GeneratedWorkout[] = [];
+  const booked: Booked[] = [];
+  weeks.forEach((m, wi) => {
+    const items = drafts.map((d, i) => ({ d, i })).filter(({ d }) => d.week === m);
+    const isRaceWeek = m === raceWeek;
+    const days = daysIn(m, isRaceWeek ? 1 : 0);
+    const dates = scheduleWeek({
+      items: items.map(({ d, i }) => ({ id: String(i), sport: d.sport, kind: d.kind, duration_min: d.duration_min, seq: i })),
+      days: days.length ? days : [m < input.start ? input.start : m],
+      booked: booked.filter((b) => b.date >= addDays(m, -3)),
+      weekendLongMin: c.weekendLongMin,
+    });
+    for (const { d, i } of items) {
+      const { week: _w, ...w } = d;
+      void _w;
+      const date = dates.get(String(i)) ?? days[0] ?? m;
+      out.push({ ...w, date, week_index: wi });
+      booked.push({ date, sport: w.sport, kind: w.kind });
+    }
+  });
+  out.push({
     date: race.date,
+    week_index: weeks.length - 1,
     sport: "run",
     kind: "race",
     title: race.name,
@@ -384,69 +564,14 @@ export function generatePlan(input: EngineInput): PlanPreview {
     steps: [{ label: "Race", minutes: null, target: "Start conservatively; run/walk if that's what your long runs used" }],
     notes: null,
   });
-
-  // --- 3. Lifts (Push / Pull / Legs) & rides -----------------------------------
-  const hardRunDates = new Set(
-    out.filter((w) => w.sport === "run" && (w.kind.startsWith("long") || QUALITY_KINDS.has(w.kind))).map((w) => w.date),
-  );
-  let lastUpper: LiftKind | null = null;
-  let lastLegs: string | null = null;
-  const liftDates = daysOn(input.start, lastDay, settings.lift_days).filter((date) => {
-    const phase = phaseFor(date, phases);
-    return !(phase === "race" && weekday(date) >= weekday(race.date) - 2);
-  });
-  for (let i = 0; i < liftDates.length; ) {
-    const week = mondayOf(liftDates[i]!);
-    const dates: string[] = [];
-    while (i < liftDates.length && mondayOf(liftDates[i]!) === week) dates.push(liftDates[i++]!);
-    const light = dates.map((d) => {
-      const phase = phaseFor(d, phases);
-      return phase === "race" || phase === "taper";
-    });
-    const kinds = liftKinds({ dates, hardRunDates, legsNeeded: settings.legs_per_week ?? 1, lastUpper, lastLegs, light });
-    dates.forEach((date, k) => {
-      const kind = kinds[k]!;
-      if (kind === "push" || kind === "pull") lastUpper = kind;
-      if (kind === "legs") lastLegs = date;
-      push({
-        date,
-        sport: "lift",
-        kind,
-        title: liftTitle(kind),
-        phase: phaseFor(date, phases),
-        duration_min: kind === "full" ? 35 : 50,
-        distance_km: null,
-        steps: null,
-        notes: liftNotes(kind),
-      });
-    });
-  }
-  for (const date of daysOn(input.start, lastDay, settings.ride_days)) {
-    const phase = phaseFor(date, phases);
-    if (phase === "race") continue;
-    const minutes = phase === "taper" ? 30 : phase === "build" || phase === "peak" ? 60 : 45;
-    push({
-      date,
-      sport: "ride",
-      kind: "endurance",
-      title: `Easy ride · ${minutes} min`,
-      phase,
-      duration_min: minutes,
-      distance_km: null,
-      steps: [{ label: "Endurance ride", minutes, target: t.easy }],
-      notes: "Aerobic cross-training — keep it conversational.",
-    });
-  }
+  void lastDay;
 
   out.sort((a, b) => a.date.localeCompare(b.date) || sportOrder(a.sport) - sportOrder(b.sport));
-  return { workouts: out, runWalkEnd, phases, peakLongRunMin: peakLong };
+  const rwDates = out.filter((w) => w.phase === "run_walk").map((w) => w.date).sort();
+  return { workouts: out, runWalkEnd: rwDates.at(-1) ?? null, phases, peakLongRunMin: peakLong };
 }
 
 const sportOrder = (s: PlanSport) => (s === "run" ? 0 : s === "ride" ? 1 : 2);
-
-function phaseFor(date: string, phases: PlanPreview["phases"]): PlanPhase {
-  return phases.find((p) => date >= p.start && date <= p.end)?.phase ?? phases[0]?.phase ?? "base";
-}
 
 function qualitySession(
   date: string,

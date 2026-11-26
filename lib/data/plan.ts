@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createServiceClient } from "@/lib/supabase/server";
-import { getGarminActivitiesBetween, getGarminStatus } from "@/lib/data/garmin";
+import { getGarminActivitiesBetween } from "@/lib/data/garmin";
 import { listHevyWorkoutsBetween } from "@/lib/data/hevy";
 import { getInjuries } from "@/lib/data/injuries";
 import { getTimezone } from "@/lib/data/oura";
@@ -8,7 +8,7 @@ import { getPerformance } from "@/lib/data/performance";
 import { deletePlannedRun, getUpcomingRace, savePlannedRun, type UpcomingRace } from "@/lib/data/running";
 import { injuryName, isLowerBody } from "@/lib/injuries";
 import { proposeChanges, reconcile, type AdaptWorkout, type Proposal, type WorkoutState } from "@/lib/plan-adapt";
-import { fuelRunType, generatePlan, targets, type RunWalkItem } from "@/lib/plan-engine";
+import { classifyLift, fuelRunType, generatePlan, mondayOf, planCounts, targets, type LiftKind, type RunWalkItem } from "@/lib/plan-engine";
 import { qualifiesForFueling, raceTitle } from "@/lib/run-fuel";
 import { addDays, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type { ActualRun, PlanOp, PlanSettings, PlanSuggestion, PlanWorkout, TrainingPlan } from "@/types";
@@ -57,24 +57,27 @@ async function loadPlan(): Promise<{ plan: TrainingPlan; workouts: PlanWorkout[]
  * Match logged activities to planned workouts: same day first, then a run
  * done a day early / late counts for an unmatched planned run.
  */
-type Matched = {
-  workouts: PlanWorkoutView[];
-  unmatchedRuns: { id: string; date: string; minutes: number }[];
-  liftLogs: { date: string; title: string | null }[];
-};
+type Matched = { workouts: PlanWorkoutView[] };
 
-async function matchWorkouts(workouts: PlanWorkout[], today: string): Promise<Matched> {
-  if (workouts.length === 0) return { workouts: [], unmatchedRuns: [], liftLogs: [] };
-  // Two weeks before the plan too, so lift rotation knows the last session.
-  const start = addDays(workouts[0]!.date < today ? workouts[0]!.date : today, -14);
+/**
+ * Plans are weekly targets, so matching is by week: whatever was logged in a
+ * week checks off that week's sessions — runs in order (a run long enough
+ * counts as the long run), lifts by Push / Pull / Legs from the Hevy title,
+ * rides in order. Unfinished sessions only count as missed once their week
+ * is over.
+ */
+async function matchWorkouts(workouts: PlanWorkout[], today: string, planStart: string): Promise<Matched> {
+  if (workouts.length === 0) return { workouts: [] };
+  // Only what was logged once the plan started counts toward it.
+  const start = planStart;
   const end = today;
   const db = createServiceClient();
   const [runRes, garmin, lifts] = await Promise.all([
-    db.from("actual_runs").select("id, date, actual_duration_min, actual_distance_km").gte("date", addDays(start, -1)).lte("date", end),
-    getGarminActivitiesBetween(addDays(start, -1), end),
-    listHevyWorkoutsBetween(addDays(start, -1), end),
+    db.from("actual_runs").select("id, date, actual_duration_min, actual_distance_km").gte("date", start).lte("date", end),
+    getGarminActivitiesBetween(start, end),
+    listHevyWorkoutsBetween(start, end),
   ]);
-  type Done = { id: string; date: string; minutes: number; title: string; sport: "run" | "ride" | "lift" };
+  type Done = { id: string; date: string; minutes: number; title: string; sport: "run" | "ride" | "lift"; kind: LiftKind | null };
   const pool: Done[] = [
     ...(((runRes.data as Pick<ActualRun, "id" | "date" | "actual_duration_min" | "actual_distance_km">[]) ?? []).map((r) => ({
       id: r.id,
@@ -82,63 +85,69 @@ async function matchWorkouts(workouts: PlanWorkout[], today: string): Promise<Ma
       minutes: r.actual_duration_min,
       title: r.actual_distance_km ? `Run · ${(r.actual_distance_km / 1.609344).toFixed(1)} mi` : `Run · ${Math.round(r.actual_duration_min)} min`,
       sport: "run" as const,
+      kind: null,
     }))),
     ...garmin
       .filter((a) => a.sport === "cycling")
-      .map((a) => ({ id: a.id, date: a.date, minutes: a.duration_min, title: `Ride · ${Math.round(a.duration_min)} min`, sport: "ride" as const })),
+      .map((a) => ({ id: a.id, date: a.date, minutes: a.duration_min, title: `Ride · ${Math.round(a.duration_min)} min`, sport: "ride" as const, kind: null })),
     ...lifts
       .filter((w) => w.date)
-      .map((w) => ({ id: w.id, date: w.date!, minutes: (w.duration ?? 0) / 60, title: w.title ?? "Lift", sport: "lift" as const })),
-  ];
-  const used = new Set<string>();
+      .map((w) => ({ id: w.id, date: w.date!, minutes: (w.duration ?? 0) / 60, title: w.title ?? "Lift", sport: "lift" as const, kind: classifyLift(w.title) })),
+  ].sort((a, b) => a.date.localeCompare(b.date));
+
   const matched = new Map<string, Done>();
-  const take = (w: PlanWorkout, offset: number) => {
-    const target = addDays(w.date, offset);
-    const hit = pool.find((d) => !used.has(d.id) && d.sport === w.sport && d.date === target);
-    if (hit) {
-      used.add(hit.id);
-      matched.set(w.id, hit);
+  const live = workouts.filter((w) => w.status !== "skipped");
+  const byDate = (a: PlanWorkout, b: PlanWorkout) => a.date.localeCompare(b.date);
+  for (const done of pool) {
+    const week = mondayOf(done.date);
+    const open = live
+      .filter((w) => !matched.has(w.id) && w.sport === done.sport && mondayOf(w.date) === week)
+      .sort(byDate);
+    let hit: PlanWorkout | undefined;
+    if (done.sport === "run") {
+      const race = open.find((w) => w.kind === "race" && w.date === done.date);
+      const runs = open.filter((w) => w.kind !== "race");
+      const long = runs.find((w) => w.kind.startsWith("long"));
+      hit =
+        race ??
+        (long && long !== runs[0] && done.minutes >= (long.duration_min ?? Infinity) * 0.8 ? long : runs[0]);
+    } else if (done.sport === "lift") {
+      hit = open.find((w) => w.kind === done.kind) ?? open.find((w) => w.kind === "full") ?? open[0];
+    } else {
+      hit = open[0];
     }
-  };
-  const live = workouts.filter((w) => w.status !== "skipped" && w.date <= today);
-  for (const w of live) take(w, 0);
-  for (const w of live.filter((w) => !matched.has(w.id) && w.sport === "run" && w.date < today)) {
-    take(w, -1);
-    if (!matched.has(w.id)) take(w, 1);
+    if (hit) matched.set(hit.id, done);
   }
-  const views = workouts.map((w) => {
+  const thisWeek = mondayOf(today);
+  const views = workouts.map((w): PlanWorkoutView => {
     const hit = matched.get(w.id) ?? null;
+    const past = w.kind === "race" ? w.date < today : mondayOf(w.date) < thisWeek;
     const state: WorkoutState =
-      w.status === "skipped" ? "skipped" : hit ? "done" : w.date < today ? "missed" : w.date === today ? "today" : "upcoming";
+      w.status === "skipped" ? "skipped" : hit ? "done" : past ? "missed" : w.date === today ? "today" : "upcoming";
     return {
       ...w,
       state,
       actual_min: hit?.minutes ?? null,
+      actual_date: hit?.date ?? null,
+      actual_kind: hit?.kind ?? null,
       actual: hit ? { title: hit.title, minutes: Math.round(hit.minutes), source: hit.sport } : null,
     };
   });
-  return {
-    workouts: views,
-    unmatchedRuns: pool.filter((d) => d.sport === "run" && !used.has(d.id)).map((d) => ({ id: d.id, date: d.date, minutes: d.minutes })),
-    liftLogs: pool
-      .filter((d) => d.sport === "lift")
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .map((d) => ({ date: d.date, title: d.title })),
-  };
+  return { workouts: views };
 }
 
-async function buildActivePlan(): Promise<(ActivePlan & { extras: Omit<Matched, "workouts"> }) | null> {
+async function buildActivePlan(): Promise<ActivePlan | null> {
   const loaded = await loadPlan();
   if (!loaded) return null;
   const today = todayInTimezone(await getTimezone());
   const db = createServiceClient();
   const [matched, sugg, review, race] = await Promise.all([
-    matchWorkouts(loaded.workouts, today),
+    matchWorkouts(loaded.workouts, today, loaded.plan.start_date),
     db.from("plan_suggestions").select("*").eq("plan_id", loaded.plan.id).in("status", ["pending", "accepted"]).order("created_at"),
     db.from("plan_reviews").select("week_start, summary").eq("plan_id", loaded.plan.id).order("week_start", { ascending: false }).limit(1).maybeSingle(),
     getUpcomingRace(today),
   ]);
-  const { workouts, ...extras } = matched;
+  const { workouts } = matched;
   const rows = (sugg.data as PlanSuggestion[]) ?? [];
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const current = workouts.find((w) => w.date >= today) ?? workouts.at(-1);
@@ -154,18 +163,11 @@ async function buildActivePlan(): Promise<(ActivePlan & { extras: Omit<Matched, 
       week: (current?.week_index ?? 0) + 1,
       weeks: (workouts.at(-1)?.week_index ?? 0) + 1,
     },
-    extras,
   };
 }
 
 /** The active plan with matched states, pending suggestions and the latest AI review. */
-export const getActivePlan = cache(async function getActivePlan(): Promise<ActivePlan | null> {
-  const built = await buildActivePlan();
-  if (!built) return null;
-  const { extras, ...plan } = built;
-  void extras;
-  return plan;
-});
+export const getActivePlan = cache(buildActivePlan);
 
 /**
  * Adapt the plan to what was actually done (missed / off-plan sessions, lift
@@ -175,50 +177,41 @@ export const getActivePlan = cache(async function getActivePlan(): Promise<Activ
  */
 export async function reconcilePlan(opts: { dryRun?: boolean } = {}): Promise<number | Proposal[]> {
   const db = createServiceClient();
-  const perf = await getPerformance(90);
+  const [perf, injuries] = await Promise.all([getPerformance(90), getInjuries(false)]);
   const easyTarget = targets({ paceZones: perf.paceZones, hrFloors: perf.hrZones?.floors ?? null }).easy;
+  const lowerPain = Math.max(0, ...injuries.filter((v) => isLowerBody(v.injury.body_part)).map((v) => v.severity)) || null;
+  const today = todayInTimezone(await getTimezone());
   let applied = 0;
   for (let pass = 0; pass < 6; pass++) {
     const built = await buildActivePlan();
     if (!built || !built.race) return applied;
-    const [{ data: keys }, garmin] = await Promise.all([
-      db.from("plan_suggestions").select("key").eq("plan_id", built.plan.id).eq("source", "auto"),
-      getGarminStatus(),
-    ]);
-    const tz = await getTimezone();
-    const today = todayInTimezone(tz);
-    const syncedThrough = garmin.last_synced_at
-      ? new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date(garmin.last_synced_at))
-      : built.plan.start_date;
+    const { data: keys } = await db.from("plan_suggestions").select("key").eq("plan_id", built.plan.id).eq("source", "auto");
     const proposals = reconcile({
       today,
       workouts: built.workouts,
       settings: built.plan.settings,
       raceDate: built.race.date,
       planStart: built.plan.start_date,
-      syncedThrough,
-      unmatchedRuns: built.extras.unmatchedRuns,
-      liftLogs: built.extras.liftLogs,
       easyTarget,
+      recovery: perf.recovery.score,
+      lowerPain,
       appliedKeys: new Set(((keys as { key: string }[]) ?? []).map((k) => k.key)),
     });
     if (opts.dryRun) return proposals;
     if (proposals.length === 0) return applied;
     for (const p of proposals) {
       await applyOps(built.plan.id, p.ops, { syncFuel: false });
-      await db.from("plan_suggestions").upsert(
-        { plan_id: built.plan.id, source: "auto", status: "accepted", resolved_at: new Date().toISOString(), ...p },
-        { onConflict: "plan_id,key", ignoreDuplicates: true },
-      );
+      if (!p.silent) {
+        const { silent: _s, ...row } = p;
+        void _s;
+        await db.from("plan_suggestions").upsert(
+          { plan_id: built.plan.id, source: "auto", status: "accepted", resolved_at: new Date().toISOString(), ...row },
+          { onConflict: "plan_id,key", ignoreDuplicates: true },
+        );
+      }
       applied++;
     }
-    // Fuel designations only follow runs (lift relabels don't touch them).
-    const runChanged = proposals.some(
-      (p) => !p.key.startsWith("lifts:") && p.ops.some((o) => o.op !== "update" || "date" in o.changes || "duration_min" in o.changes),
-    );
-    if (runChanged) {
-      await syncDesignations(built.plan.id);
-    }
+    await syncDesignations(built.plan.id);
   }
   return applied;
 }
@@ -231,9 +224,15 @@ export type CreatePlanInput = { settings: PlanSettings; include_run_walk: boolea
 
 /** Generate and save a new plan toward the next race (archiving any active plan). */
 export async function createPlan(input: CreatePlanInput): Promise<TrainingPlan> {
-  const s: PlanSettings = { ...input.settings, legs_per_week: Math.min(2, Math.max(0, Math.round(input.settings.legs_per_week ?? 1))) };
-  if (!s.run_days.length) throw new Error("Pick at least one run day");
-  if (!s.run_days.includes(s.long_run_day)) throw new Error("The long-run day must be one of your run days");
+  const c = planCounts(input.settings);
+  const s: PlanSettings = {
+    runs_per_week: c.runs,
+    lifts_per_week: c.lifts,
+    rides_per_week: c.rides,
+    legs_per_week: c.legs,
+    long_run_weekend_min: c.weekendLongMin,
+    goal_time_min: input.settings.goal_time_min,
+  };
   const today = todayInTimezone(await getTimezone());
   const race = await getUpcomingRace(today);
   if (!race || race.distance_km == null) throw new Error("Add your goal race on the Training calendar first");
@@ -296,9 +295,20 @@ export async function syncDesignations(planId: string): Promise<void> {
   const db = createServiceClient();
   const today = todayInTimezone(await getTimezone());
   const { data } = await db.from("plan_workouts").select("*").eq("plan_id", planId).gte("date", today);
-  for (const w of ((data as PlanWorkout[]) ?? []).map((r) => ({ ...r, date: day(r.date) }))) {
+  const rows = ((data as PlanWorkout[]) ?? []).map((r) => ({ ...r, date: day(r.date) }));
+  // Skip designations that already match (reconcile calls this often).
+  const ids = rows.map((w) => w.planned_run_id).filter((id): id is string => !!id);
+  const { data: existing } = ids.length
+    ? await db.from("planned_runs").select("id, date, run_type, planned_duration_min").in("id", ids)
+    : { data: [] };
+  const current = new Map(
+    ((existing as { id: string; date: string; run_type: string; planned_duration_min: number | null }[]) ?? []).map((p) => [p.id, p]),
+  );
+  for (const w of rows) {
     const type = fuelRunType(w.kind);
     if (w.sport === "run" && w.status === "planned" && type !== "race" && qualifiesForFueling(type, w.duration_min)) {
+      const have = w.planned_run_id ? current.get(w.planned_run_id) : undefined;
+      if (have && day(have.date) === w.date && have.run_type === type && have.planned_duration_min === w.duration_min) continue;
       const { planned } = await savePlannedRun({
         id: w.planned_run_id ?? undefined,
         date: w.date,
@@ -349,12 +359,6 @@ async function applyOps(planId: string, ops: PlanOp[], opts: { syncFuel?: boolea
     }
   }
   if (opts.syncFuel !== false) await syncDesignations(planId);
-}
-
-export async function moveWorkout(id: string, date: string): Promise<void> {
-  const target = normalizeIsoDate(date);
-  if (!target) throw new Error("Pick a date");
-  await applyOps(await planIdOf(id), [{ op: "update", id, changes: { date: target } }]);
 }
 
 export async function setWorkoutSkipped(id: string, skipped: boolean): Promise<void> {

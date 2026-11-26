@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import {
   createPlan,
-  moveWorkout,
   resolveSuggestion,
   setWorkoutSkipped,
   type CreatePlanInput,
@@ -18,11 +17,6 @@ function refresh() {
 
 export async function createPlanAction(input: CreatePlanInput): Promise<void> {
   await createPlan(input);
-  refresh();
-}
-
-export async function moveWorkoutAction(id: string, date: string): Promise<void> {
-  await moveWorkout(id, date);
   refresh();
 }
 

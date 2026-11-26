@@ -5,7 +5,6 @@ import { useState, useTransition } from "react";
 import { Bike, Check, Dumbbell, Footprints, Sparkles, X } from "lucide-react";
 import {
   createPlanAction,
-  moveWorkoutAction,
   resolveSuggestionAction,
   setWorkoutSkippedAction,
 } from "@/app/(dashboard)/training/actions";
@@ -14,7 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Input";
 import type { ActivePlan, PlanWorkoutView } from "@/lib/data/plan";
-import { WEEKDAYS } from "@/lib/plan-engine";
+import { planCounts, WEEKDAYS } from "@/lib/plan-engine";
 import { cn, formatIsoDateLabel } from "@/lib/utils";
 import type { PlanSettings, PlanSport } from "@/types";
 
@@ -60,24 +59,18 @@ function StateMark({ w }: { w: PlanWorkoutView }) {
   return <span className="size-1.5 shrink-0 rounded-full bg-white/70" aria-hidden />;
 }
 
-function DayChips({ value, onChange }: { value: number[]; onChange: (v: number[]) => void }) {
+function CountSelect({ label, value, onChange, min, max, hint }: { label: string; value: number; onChange: (v: number) => void; min: number; max: number; hint?: string }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {WEEKDAYS.map((d, i) => (
-        <button
-          key={d}
-          type="button"
-          aria-pressed={value.includes(i)}
-          onClick={() => onChange(value.includes(i) ? value.filter((x) => x !== i) : [...value, i].sort())}
-          className={cn(
-            "rounded-full border px-3 py-1 text-xs transition-colors",
-            value.includes(i) ? "border-border-strong bg-[rgba(255,255,255,0.1)] text-text-primary" : "border-border text-text-secondary",
-          )}
-        >
-          {d}
-        </button>
-      ))}
-    </div>
+    <Field label={label} className="max-w-[12rem]">
+      <Select value={String(value)} onChange={(e) => onChange(Number(e.target.value))}>
+        {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => (
+          <option key={n} value={n}>
+            {n}
+            {hint && n === value ? ` ${hint}` : ""}
+          </option>
+        ))}
+      </Select>
+    </Field>
   );
 }
 
@@ -96,11 +89,12 @@ export function PlanSetup({
   onCancel?: () => void;
 }) {
   const { pending, error, run } = useAction();
-  const [runDays, setRunDays] = useState(initial?.run_days ?? [1, 3, 5]);
-  const [longDay, setLongDay] = useState(initial?.long_run_day ?? 5);
-  const [liftDays, setLiftDays] = useState(initial?.lift_days ?? [0, 2, 4]);
-  const [rideDays, setRideDays] = useState(initial?.ride_days ?? [6]);
-  const [legs, setLegs] = useState(initial?.legs_per_week ?? 1);
+  const c = initial ? planCounts(initial) : null;
+  const [runs, setRuns] = useState(c?.runs ?? 3);
+  const [lifts, setLifts] = useState(c?.lifts ?? 5);
+  const [rides, setRides] = useState(c?.rides ?? 0);
+  const [legs, setLegs] = useState(c?.legs ?? 1);
+  const [weekendLong, setWeekendLong] = useState(c ? c.weekendLongMin != null : true);
   const [goal, setGoal] = useState(
     initial?.goal_time_min ? `${Math.floor(initial.goal_time_min / 60)}:${String(Math.round(initial.goal_time_min % 60)).padStart(2, "0")}` : "",
   );
@@ -127,33 +121,23 @@ export function PlanSetup({
           Toward <span className="text-text-primary font-semibold">{raceName}</span> on {formatIsoDateLabel(raceDate)}.
         </p>
       </div>
-      <div className="space-y-1.5">
-        <span className="metric-label">Run days</span>
-        <DayChips value={runDays} onChange={setRunDays} />
+      <p className="text-text-secondary text-sm">
+        Set weekly targets — no fixed days. Kova pencils sessions into the days left, re-plans the rest of the week whenever
+        you log something, and pairs a run with a lift on busy weeks.
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <CountSelect label="Runs / week" value={runs} onChange={setRuns} min={1} max={7} />
+        <CountSelect label="Lifts / week" value={lifts} onChange={setLifts} min={0} max={7} />
+        <CountSelect label="Rides / week" value={rides} onChange={setRides} min={0} max={7} />
+        <CountSelect label="Leg days / week" value={legs} onChange={setLegs} min={1} max={2} />
       </div>
-      <Field label="Long run day" className="max-w-[12rem]">
-        <Select value={String(longDay)} onChange={(e) => setLongDay(Number(e.target.value))}>
-          {runDays.map((d) => (
-            <option key={d} value={d}>
-              {WEEKDAYS[d]}
-            </option>
-          ))}
-        </Select>
-      </Field>
-      <div className="space-y-1.5">
-        <span className="metric-label">Lift days · Push / Pull / Legs</span>
-        <DayChips value={liftDays} onChange={setLiftDays} />
-      </div>
-      <Field label="Leg days per week" className="max-w-[12rem]">
-        <Select value={String(legs)} onChange={(e) => setLegs(Number(e.target.value))}>
-          <option value="1">1 (recommended while running builds)</option>
-          <option value="2">2</option>
-        </Select>
-      </Field>
-      <div className="space-y-1.5">
-        <span className="metric-label">Ride days</span>
-        <DayChips value={rideDays} onChange={setRideDays} />
-      </div>
+      <p className="text-text-muted text-xs">
+        Lifts rotate Push / Pull / Legs. One leg day is plenty while running volume builds — runs already load your legs.
+      </p>
+      <label className="text-text-secondary flex items-start gap-2 text-sm">
+        <input type="checkbox" className="accent-white mt-1" checked={weekendLong} onChange={(e) => setWeekendLong(e.target.checked)} />
+        <span>Long runs of an hour or more go on the weekend when possible (any day before that).</span>
+      </label>
       <Field label="Goal time (optional, h:mm)" className="max-w-[12rem]">
         <Input value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="e.g. 2:45" />
       </Field>
@@ -170,17 +154,17 @@ export function PlanSetup({
         <Button
           type="button"
           variant="primary"
-          disabled={pending || runDays.length === 0 || !runDays.includes(longDay)}
+          disabled={pending}
           onClick={() =>
             run(() =>
               createPlanAction({
                 settings: {
-                  run_days: runDays,
-                  long_run_day: longDay,
-                  lift_days: liftDays,
-                  ride_days: rideDays,
-                  goal_time_min: goalMin,
+                  runs_per_week: runs,
+                  lifts_per_week: lifts,
+                  rides_per_week: rides,
                   legs_per_week: legs,
+                  long_run_weekend_min: weekendLong ? 60 : null,
+                  goal_time_min: goalMin,
                 },
                 include_run_walk: includeRw,
               }),
@@ -202,30 +186,21 @@ export function PlanSetup({
   );
 }
 
-/** Move / skip controls for one workout (also used in the day view). */
+/** Skip / restore one workout (also used in the day view). Days re-flow on their own, so there's no "move". */
 export function WorkoutActions({ w }: { w: PlanWorkoutView }) {
   const { pending, error, run } = useAction();
-  const [date, setDate] = useState(w.date);
-  if (w.state === "done") return null;
+  if (w.state === "done" || w.kind === "race") return null;
   return (
     <div className="space-y-1.5">
-      <div className="flex flex-wrap items-end gap-2">
-        {w.state !== "skipped" ? (
-          <>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="max-w-[11rem]" aria-label="Move to date" />
-            <Button type="button" variant="ghost" disabled={pending || date === w.date} onClick={() => run(() => moveWorkoutAction(w.id, date))}>
-              Move
-            </Button>
-            <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => setWorkoutSkippedAction(w.id, true))}>
-              Skip
-            </Button>
-          </>
-        ) : (
-          <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => setWorkoutSkippedAction(w.id, false))}>
-            Restore
-          </Button>
-        )}
-      </div>
+      {w.state !== "skipped" ? (
+        <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => setWorkoutSkippedAction(w.id, true))}>
+          Skip this one
+        </Button>
+      ) : (
+        <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => setWorkoutSkippedAction(w.id, false))}>
+          Restore
+        </Button>
+      )}
       {error ? <p className="text-text-secondary text-xs">{error}</p> : null}
     </div>
   );
@@ -242,6 +217,7 @@ export function PlannedWorkout({ w, showActions = true }: { w: PlanWorkoutView; 
             {w.title}
           </p>
           <p className="text-text-muted text-xs">
+            {w.state === "upcoming" && w.kind !== "race" ? "Pencilled in " : ""}
             {formatIsoDateLabel(w.date)} · {PHASE_LABEL[w.phase] ?? w.phase}
             {w.state === "done" && w.actual ? ` · done: ${w.actual.title}` : w.state === "missed" ? " · missed" : w.state === "skipped" ? " · skipped" : ""}
           </p>
@@ -255,7 +231,9 @@ export function PlannedWorkout({ w, showActions = true }: { w: PlanWorkoutView; 
   );
 }
 
-/** Plan overview: phase, AI review, suggestions, this week, next workout. */
+const dayIndex = (iso: string) => (new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7;
+
+/** Plan overview: phase, AI review, suggestions, adjustments, the week's checklist, and today's pick. */
 export function PlanCard({
   data,
   today,
@@ -274,9 +252,13 @@ export function PlanCard({
     return d.toISOString().slice(0, 10);
   })();
   const sunday = new Date(Date.parse(`${monday}T12:00:00Z`) + 6 * 86_400_000).toISOString().slice(0, 10);
-  const week = data.workouts.filter((w) => w.date >= monday && w.date <= sunday);
-  const next = data.workouts.find((w) => w.sport === "run" && (w.state === "today" || w.state === "upcoming"));
-  const runsThisWeek = week.filter((w) => w.sport === "run" && w.state !== "skipped");
+  const week = data.workouts.filter((w) => w.date >= monday && w.date <= sunday && w.state !== "skipped");
+  const done = week.filter((w) => w.state === "done").sort((a, b) => a.date.localeCompare(b.date) || a.sport.localeCompare(b.sport));
+  const left = week.filter((w) => w.state === "today" || w.state === "upcoming").sort((a, b) => a.date.localeCompare(b.date));
+  const todays = left.filter((w) => w.date === today);
+  const doneToday = done.filter((w) => w.date === today);
+  const nextUp = left.find((w) => w.date > today) ?? data.workouts.find((w) => w.date > sunday && w.state === "upcoming");
+  const runsThisWeek = week.filter((w) => w.sport === "run" && w.kind !== "race");
   const doneRuns = runsThisWeek.filter((w) => w.state === "done").length;
 
   if (rebuilding) {
@@ -359,26 +341,56 @@ export function PlanCard({
         ) : null}
 
         <div className="space-y-1.5">
-          <span className="metric-label">This week</span>
+          <span className="metric-label">
+            This week · {done.length} of {done.length + left.length} done
+          </span>
           <ul className="space-y-1">
-            {week.map((w) => (
-              <li key={w.id} className={cn("flex items-center gap-2 text-sm", w.state === "skipped" && "text-text-muted line-through")}>
-                <span className="text-text-muted w-8 shrink-0 text-xs">{WEEKDAYS[(new Date(`${w.date}T12:00:00Z`).getUTCDay() + 6) % 7]}</span>
-                <SportIcon sport={w.sport} className="text-text-secondary" />
-                <span className="min-w-0 flex-1 truncate">{w.title}</span>
+            {[...done, ...left].map((w) => (
+              <li key={w.id} className={cn("flex items-center gap-2 text-sm", w.state !== "done" && "text-text-secondary")}>
                 <StateMark w={w} />
+                <SportIcon sport={w.sport} className="text-text-muted" />
+                <span className="min-w-0 flex-1 truncate">{w.title}</span>
+                <span className="text-text-muted shrink-0 text-xs">
+                  {w.state === "done" ? WEEKDAYS[dayIndex(w.date)] : w.date === today ? "today" : `${WEEKDAYS[dayIndex(w.date)]}?`}
+                </span>
               </li>
             ))}
           </ul>
+          {left.length > 0 ? (
+            <p className="text-text-muted text-xs">
+              Days with a ? are pencilled in — do things in any order; whatever you log checks them off and the rest re-plans.
+            </p>
+          ) : null}
         </div>
       </Card>
 
-      {next ? (
-        <Card className="space-y-2">
-          <span className="metric-label">{next.state === "today" ? "Today's run" : "Next run"}</span>
-          <PlannedWorkout w={next} />
-        </Card>
-      ) : null}
+      <Card className="space-y-3">
+        <span className="metric-label">Today</span>
+        {todays.length > 0 ? (
+          todays.map((w) => <PlannedWorkout key={w.id} w={w} />)
+        ) : (
+          <div className="space-y-1">
+            <p className="text-sm">
+              {left.length === 0
+                ? "This week's targets are done — anything extra is a bonus."
+                : doneToday.length > 0
+                  ? "Nothing else pencilled in today."
+                  : "Nothing pencilled in today — a rest day, or get ahead on the next one."}
+            </p>
+            {doneToday.length > 0 ? (
+              <p className="text-text-muted text-xs">Done today: {doneToday.map((w) => w.title).join(", ")}</p>
+            ) : null}
+          </div>
+        )}
+        {nextUp && todays.length === 0 ? (
+          <div className="border-border border-t pt-3">
+            <span className="metric-label">Next up</span>
+            <div className="mt-2">
+              <PlannedWorkout w={nextUp} />
+            </div>
+          </div>
+        ) : null}
+      </Card>
     </div>
   );
 }

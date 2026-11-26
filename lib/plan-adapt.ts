@@ -1,28 +1,31 @@
 /**
  * Plan adaptation — pure.
  *
- * reconcile(): follows what Parker actually did and is applied automatically
- * — off-plan runs count for the session they replaced, missed run/walk
- * sessions push the progression back, missed long / quality runs move to the
- * next free day, a cut-short run/walk repeats its level, and lifts follow the
- * Push / Pull / Legs rotation from what was logged.
+ * reconcile(): follows what Parker actually did and is applied automatically.
+ * Plans are weekly targets: whatever is logged in a week checks off that
+ * week's sessions (lifts by Push / Pull / Legs), the rest re-flows over the
+ * days left (easy-only or rest today when Recovery is low), run/walk sessions
+ * left at the end of a week carry forward in order, and a cut-short run/walk
+ * repeats its level.
  *
- * proposeChanges(): judgment calls (injury, low Recovery, ramp rate) — stored
+ * proposeChanges(): judgment calls (injury, pain, ramp rate) — stored
  * as suggestions; nothing changes until one is accepted.
  */
-import { addDays } from "@/lib/utils";
+import { addDays, daysBetween } from "@/lib/utils";
 import {
-  classifyLift,
+  dayRange,
   easySteps,
-  liftKinds,
   liftNotes,
   liftTitle,
   mondayOf,
   parseRunWalk,
+  planCounts,
   runWalkSteps,
+  scheduleWeek,
   stepsMinutes,
   weekday,
   WEEKDAYS,
+  type Booked,
   type LiftKind,
 } from "@/lib/plan-engine";
 import type { PlanOp, PlanSettings, PlanWorkout } from "@/types";
@@ -33,9 +36,13 @@ export type AdaptWorkout = PlanWorkout & {
   state: WorkoutState;
   /** Matched activity duration (min) when done. */
   actual_min: number | null;
+  /** Day the matched activity was done. */
+  actual_date?: string | null;
+  /** Lift kind of the matched Hevy workout (from its title). */
+  actual_kind?: LiftKind | null;
 };
 
-export type Proposal = { key: string; title: string; reason: string; ops: PlanOp[] };
+export type Proposal = { key: string; title: string; reason: string; ops: PlanOp[]; silent?: boolean };
 
 export type AdaptInput = {
   today: string;
@@ -54,7 +61,6 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 /** "2026-11-26" → "Thu Nov 26". */
 export const dayLabel = (iso: string) => `${WEEKDAYS[weekday(iso)]} ${MONTHS[Number(iso.slice(5, 7)) - 1]} ${Number(iso.slice(8, 10))}`;
 const isRunWalk = (w: PlanWorkout) => w.sport === "run" && w.phase === "run_walk";
-const isHard = (w: PlanWorkout) => w.sport === "run" && (w.kind.startsWith("long") || QUALITY.has(w.kind));
 
 export function proposeChanges(input: AdaptInput): Proposal[] {
   const { today, workouts } = input;
@@ -136,34 +142,6 @@ export function proposeChanges(input: AdaptInput): Proposal[] {
     }
   }
 
-  // 5. Low Recovery with a hard session today: swap with the next easy run.
-  const todayHard = upcoming.find((w) => w.date === today && isRun(w) && (QUALITY.has(w.kind) || w.kind.startsWith("long")));
-  if (todayHard && input.recovery != null && input.recovery < 45) {
-    const swap = upcoming.find((w) => w.date > today && w.date <= addDays(today, 4) && isRun(w) && w.kind === "easy");
-    out.push({
-      key: `lowrec:${today}`,
-      title: swap ? `Swap today's ${todayHard.title} with ${swap.date}'s easy run` : `Make today's ${todayHard.title} easy`,
-      reason: `Recovery is ${input.recovery} — save the hard session for a fresher day.`,
-      ops: swap
-        ? [
-            { op: "update", id: todayHard.id, changes: { date: swap.date } },
-            { op: "update", id: swap.id, changes: { date: today } },
-          ]
-        : [
-            {
-              op: "update",
-              id: todayHard.id,
-              changes: {
-                kind: "easy",
-                title: `Easy run · ${Math.round(Math.min(todayHard.duration_min ?? 30, 40))} min`,
-                duration_min: Math.round(Math.min(todayHard.duration_min ?? 30, 40)),
-                steps: easySteps(Math.round(Math.min(todayHard.duration_min ?? 30, 40)), input.easyTarget),
-              },
-            },
-          ],
-    });
-  }
-
   // 6. Ramping too fast: trim the next 3 days of running by 20%.
   if (input.ratio != null && input.ratio > 1.5) {
     const runs = upcoming.filter((w) => isRun(w) && within(w, 3) && (w.duration_min ?? 0) >= 20);
@@ -195,121 +173,111 @@ export type ReconcileInput = {
   workouts: AdaptWorkout[];
   settings: PlanSettings;
   raceDate: string;
-  /** First day of the plan — runs before it don't count for plan sessions. */
+  /** First day of the plan (its Monday is week 0). */
   planStart: string;
-  /** Watch data is complete for days before this date (Garmin last-sync day). */
-  syncedThrough: string;
-  /** Logged runs no planned run matched. */
-  unmatchedRuns: { id: string; date: string; minutes: number }[];
-  /** Logged lifts (Hevy titles), oldest first — includes some history before the plan. */
-  liftLogs: { date: string; title: string | null }[];
   easyTarget: string | null;
+  recovery: number | null;
+  /** Worst active lower-body pain (0–10), if any. */
+  lowerPain: number | null;
   /** Keys of adjustments already applied (each one-time rule fires once). */
   appliedKeys: Set<string>;
 };
 
-const confirmedMissed = (w: AdaptWorkout, input: ReconcileInput) => w.state === "missed" && w.date < input.syncedThrough;
+const pending = (w: AdaptWorkout) => w.state === "upcoming" || w.state === "today";
 
 /**
- * One pass of automatic adjustments. The caller applies them, re-matches,
- * and calls again until nothing changes (each pass sees the result of the last).
+ * One pass of automatic adjustments; the caller applies the first proposal,
+ * re-matches, and calls again until nothing changes. Silent proposals are
+ * bookkeeping (dates following reality) and aren't listed on the plan card.
  */
 export function reconcile(input: ReconcileInput): Proposal[] {
-  const { today, workouts } = input;
+  const { workouts } = input;
+  // Before the plan starts, "today" for scheduling is its first day.
+  const today = input.today < input.planStart ? input.planStart : input.today;
   const live = workouts.filter((w) => w.state !== "skipped");
-  const upcoming = live.filter((w) => w.state === "upcoming" || w.state === "today");
-  const fresh = (p: Proposal) => !input.appliedKeys.has(p.key);
+  const week = mondayOf(today);
+  const weekEnd = [addDays(week, 6), addDays(input.raceDate, -1)].sort()[0]!;
+  const c = planCounts(input.settings);
+  const planMonday = mondayOf(input.planStart);
 
-  // 1. A logged run that no plan run matched counts for the session it replaced.
-  for (const r of input.unmatchedRuns) {
-    if (r.date < addDays(today, -7) || r.date < input.planStart) continue;
-    const key = `absorb:${r.id}`;
-    if (input.appliedKeys.has(key)) continue;
-    const missedRw = live.filter((w) => isRunWalk(w) && w.state === "missed" && w.date < r.date && w.date >= addDays(r.date, -4));
-    const missed = live
-      .filter((w) => isRun(w) && w.state === "missed" && w.date < r.date && w.date >= addDays(r.date, -3))
-      .sort((a, b) => b.date.localeCompare(a.date));
-    const early =
-      r.date === today && !live.some((w) => isRun(w) && w.date === today)
-        ? upcoming.find((w) => isRun(w) && w.date > today && w.date <= addDays(today, 2))
-        : undefined;
-    const target = missedRw[0] ?? missed[0] ?? early;
-    if (!target) continue;
+  // 1. Done sessions sit on the day (and, for lifts, the kind) actually done.
+  const sync: PlanOp[] = [];
+  const swapped = new Set<string>();
+  const liftChanges = (k: string) => ({ kind: k, title: liftTitle(k), notes: liftNotes(k) });
+  for (const w of live.filter((w) => w.state === "done" && w.actual_date)) {
+    const changes: Extract<PlanOp, { op: "update" }>["changes"] = {};
+    if (w.actual_date !== w.date) changes.date = w.actual_date!;
+    if (w.sport === "lift" && w.actual_kind && w.actual_kind !== w.kind) {
+      Object.assign(changes, liftChanges(w.actual_kind));
+      // Did Legs in a Push slot → the week's pending Legs becomes the Push.
+      const other = live.find(
+        (o) => o.sport === "lift" && pending(o) && !swapped.has(o.id) && o.kind === w.actual_kind && mondayOf(o.date) === mondayOf(w.date),
+      );
+      if (other) {
+        swapped.add(other.id);
+        sync.push({ op: "update", id: other.id, changes: liftChanges(w.kind) });
+      }
+    }
+    if (Object.keys(changes).length) sync.push({ op: "update", id: w.id, changes });
+  }
+  if (sync.length) return [{ key: `sync:${today}`, title: "", reason: "", ops: sync, silent: true }];
+
+  // 2. Run/walk sessions left over from past weeks carry forward in order;
+  //    continuous runs they now overlap are dropped.
+  const leftovers = live.filter((w) => isRunWalk(w) && w.state === "missed");
+  const carryKey = `rw-carry:${week}`;
+  if (leftovers.length && !input.appliedKeys.has(carryKey)) {
+    const queue = [...leftovers, ...live.filter((w) => isRunWalk(w) && pending(w))].sort((a, b) => a.date.localeCompare(b.date));
+    const doneThisWeek = live.filter((w) => isRun(w) && w.state === "done" && w.date >= week).length;
+    const daysLeft = dayRange(today, weekEnd).length;
+    const raceWeek = mondayOf(input.raceDate);
+    const placed = new Map<string, string>(); // id → week
+    let wk = week;
+    let room = Math.min(daysLeft, Math.max(0, c.runs - doneThisWeek));
+    for (const w of queue) {
+      while (room <= 0 && wk < raceWeek) {
+        wk = addDays(wk, 7);
+        room = c.runs;
+      }
+      if (wk >= raceWeek) break;
+      placed.set(w.id, wk);
+      room--;
+    }
+    const weeks = [...new Set(placed.values())];
+    const ops: PlanOp[] = [];
+    const dropped = live.filter((w) => isRun(w) && !isRunWalk(w) && pending(w) && weeks.includes(mondayOf(w.date)));
+    for (const w of dropped) ops.push({ op: "skip", id: w.id });
+    for (const wk of weeks) {
+      const days = wk === week ? dayRange(today, weekEnd) : dayRange(wk, addDays(wk, 6));
+      const items = live.filter(
+        (w) => (placed.get(w.id) === wk) || (!placed.has(w.id) && pending(w) && mondayOf(w.date) === wk && !dropped.includes(w) && w.kind !== "race"),
+      );
+      const dates = scheduleWeek({
+        items: items.map((w, i) => ({ id: w.id, sport: w.sport, kind: w.kind, duration_min: w.duration_min, seq: placed.has(w.id) ? queue.indexOf(w) : 1000 + i })),
+        days,
+        booked: bookedNear(live, wk),
+        weekendLongMin: c.weekendLongMin,
+      });
+      for (const w of items) {
+        const date = dates.get(w.id) ?? days[0]!;
+        const week_index = Math.round(daysBetween(wk, planMonday) / 7);
+        if (date !== w.date || week_index !== w.week_index) ops.push({ op: "update", id: w.id, changes: { date, week_index } });
+      }
+    }
+    const n = leftovers.length;
     return [
       {
-        key,
-        title: `${target.title} → ${r.date === today ? "today" : dayLabel(r.date)}`,
-        reason: target.state === "missed"
-          ? `You ran ${Math.round(r.minutes)} min on ${dayLabel(r.date)} instead of ${dayLabel(target.date)} — counted it as this session.`
-          : `You ran ${Math.round(r.minutes)} min today — counted it as ${dayLabel(target.date)}'s session.`,
-        ops: [{ op: "update", id: target.id, changes: { date: r.date } }],
+        key: carryKey,
+        title: `${n} run/walk session${n === 1 ? "" : "s"} carried into this week`,
+        reason: `Levels go in order, so ${leftovers.map((w) => w.title.split(" · ")[0]).join(", ")} ${n === 1 ? "moves" : "move"} forward and the progression slides back${dropped.length ? ` (${dropped.length} continuous run${dropped.length === 1 ? "" : "s"} dropped to make room)` : ""}.`,
+        ops,
       },
     ];
   }
 
-  // 2. Missed run/walk session: levels go in order, so the rest of the block
-  //    slides back a session. Continuous runs it now overlaps are dropped.
-  const firstMissedRw = live.find((w) => isRunWalk(w) && confirmedMissed(w, input));
-  if (firstMissedRw) {
-    const key = `rw-shift:${firstMissedRw.id}:${firstMissedRw.date}`;
-    const doneToday = live.some((w) => isRun(w) && w.date === today && w.state === "done");
-    const queue = live
-      .filter((w) => isRunWalk(w) && (confirmedMissed(w, input) || w.state === "upcoming" || w.state === "today"))
-      .sort((a, b) => a.date.localeCompare(b.date));
-    const runDays = input.settings.run_days;
-    const longDay = input.settings.long_run_day;
-    const lastDay = addDays(input.raceDate, -1);
-    const placed: { w: AdaptWorkout; date: string }[] = [];
-    let i = 0;
-    for (let date = doneToday ? addDays(today, 1) : today; i < queue.length && date <= lastDay; date = addDays(date, 1)) {
-      if (!runDays.includes(weekday(date))) continue;
-      const next = queue[i]!;
-      const longAhead = [1, 2, 3, 4, 5, 6].some((n) => weekday(addDays(date, n)) === longDay && addDays(date, n) <= lastDay);
-      if (next.kind.startsWith("long") && weekday(date) !== longDay && longAhead && runDays.includes(longDay)) continue;
-      placed.push({ w: next, date });
-      i++;
-    }
-    const end = placed.at(-1)?.date ?? today;
-    const moved = placed.filter((p) => p.date !== p.w.date);
-    const dropped = upcoming.filter((w) => isRun(w) && !isRunWalk(w) && w.date <= end);
-    if (fresh({ key, title: "", reason: "", ops: [] }) && (moved.length || dropped.length)) {
-      return [
-        {
-          key,
-          title: `Run/walk block pushed back`,
-          reason: `${firstMissedRw.title} on ${dayLabel(firstMissedRw.date)} wasn't logged, so it's now on ${placed[0] ? dayLabel(placed[0].date) : "the next run day"} and the rest of the progression slides back${dropped.length ? ` (${dropped.length} continuous run${dropped.length === 1 ? "" : "s"} dropped to make room)` : ""}.`,
-          ops: [
-            ...moved.map((p): PlanOp => ({ op: "update", id: p.w.id, changes: { date: p.date } })),
-            ...dropped.map((w): PlanOp => ({ op: "skip", id: w.id })),
-          ],
-        },
-      ];
-    }
-  }
-
-  // 3. Missed long / quality run (continuous phase): next free day in 2, else let it go.
-  const runDates = new Set(live.filter(isRun).map((w) => w.date));
-  const hardDates = new Set(live.filter(isHard).map((w) => w.date));
-  for (const w of live.filter((w) => isHard(w) && !isRunWalk(w) && confirmedMissed(w, input) && w.date >= addDays(today, -3))) {
-    const key = `missed:${w.id}`;
-    if (input.appliedKeys.has(key)) continue;
-    const free = [0, 1, 2]
-      .map((n) => addDays(today, n))
-      .find((d) => !runDates.has(d) && !hardDates.has(addDays(d, 1)) && !hardDates.has(addDays(d, -1)) && d < input.raceDate);
-    if (!free) continue;
-    return [
-      {
-        key,
-        title: `${w.title} → ${free === today ? "today" : dayLabel(free)}`,
-        reason: `Missed on ${dayLabel(w.date)}; ${free === today ? "today" : dayLabel(free)} has no run and isn't next to another hard day.`,
-        ops: [{ op: "update", id: w.id, changes: { date: free } }],
-      },
-    ];
-  }
-
-  // 4. Run/walk cut short (<80% of planned): repeat that level next time.
-  const lastRw = live.filter((w) => isRunWalk(w) && w.state === "done").at(-1);
-  const nextRw = upcoming.find((w) => isRunWalk(w) && w.kind.includes("run_walk"));
+  // 3. Run/walk cut short (<80% of planned): repeat that level next time.
+  const lastRw = live.filter((w) => isRunWalk(w) && w.state === "done").sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+  const nextRw = live.filter((w) => isRunWalk(w) && pending(w) && w.kind.includes("run_walk")).sort((a, b) => a.date.localeCompare(b.date))[0];
   if (lastRw && nextRw && lastRw.actual_min != null && lastRw.duration_min != null && lastRw.actual_min < lastRw.duration_min * 0.8) {
     const key = `rw-short:${lastRw.id}`;
     const level = (w: PlanWorkout) => parseRunWalk(w.title.replace(/.*Run\/walk (\d+):(\d+).*/i, "$1 min run / $2 min walk"));
@@ -321,7 +289,7 @@ export function reconcile(input: ReconcileInput): Proposal[] {
         {
           key,
           title: `Repeat ${last.run}:${last.walk} next run`,
-          reason: `${dayLabel(lastRw.date)}'s run/walk was ${Math.round(lastRw.actual_min)} of ${Math.round(lastRw.duration_min)} min, so ${dayLabel(nextRw.date)} repeats ${last.run}:${last.walk} before moving to ${next.run}:${next.walk}.`,
+          reason: `${dayLabel(lastRw.actual_date ?? lastRw.date)}'s run/walk was ${Math.round(lastRw.actual_min)} of ${Math.round(lastRw.duration_min)} min, so the next one repeats ${last.run}:${last.walk} before moving to ${next.run}:${next.walk}.`,
           ops: [
             {
               op: "update",
@@ -338,65 +306,33 @@ export function reconcile(input: ReconcileInput): Proposal[] {
     }
   }
 
-  // 5. Lifts follow Push / Pull / Legs from what was actually logged.
-  const lifts = reconcileLifts(input, live, hardDates);
-  return lifts ? [lifts] : [];
+  // 4. Re-flow what's left of this week over the days left (silent).
+  const items = live.filter((w) => pending(w) && w.kind !== "race" && w.date >= week && w.date <= addDays(week, 6));
+  if (items.length) {
+    const days = dayRange(today, weekEnd);
+    const lowRecovery = input.recovery != null && input.recovery < 45;
+    const rest = (input.recovery != null && input.recovery < 35) || (input.lowerPain ?? 0) >= 6;
+    const dates = scheduleWeek({
+      items: items
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((w, i) => ({ id: w.id, sport: w.sport, kind: w.kind, duration_min: w.duration_min, seq: i })),
+      days: days.length ? days : [today],
+      booked: bookedNear(live, week),
+      weekendLongMin: c.weekendLongMin,
+      avoidHard: lowRecovery ? new Set([today]) : undefined,
+      rest: rest ? new Set([today]) : undefined,
+    });
+    const ops: PlanOp[] = items
+      .filter((w) => dates.get(w.id) && dates.get(w.id) !== w.date)
+      .map((w) => ({ op: "update", id: w.id, changes: { date: dates.get(w.id)! } }));
+    if (ops.length) return [{ key: `reflow:${today}`, title: "", reason: "", ops, silent: true }];
+  }
+  return [];
 }
 
-function reconcileLifts(input: ReconcileInput, live: AdaptWorkout[], hardRunDates: Set<string>): Proposal | null {
-  const { today } = input;
-  const logs = input.liftLogs
-    .map((l) => ({ date: l.date, kind: classifyLift(l.title) }))
-    .filter((l): l is { date: string; kind: LiftKind } => l.kind != null && l.date <= today);
-  const logKindOn = new Map(logs.map((l) => [l.date, l.kind]));
-  const ops: PlanOp[] = [];
-  const shown: string[] = [];
-  const relabel = (w: PlanWorkout, kind: LiftKind) => {
-    if (w.kind === kind) return;
-    ops.push({
-      op: "update",
-      id: w.id,
-      changes: { kind, title: liftTitle(kind), notes: liftNotes(kind), duration_min: kind === "full" ? 35 : 50 },
-    });
-    if (w.date >= today && w.date <= addDays(today, 7)) shown.push(`${dayLabel(w.date)} ${liftTitle(kind)}`);
-  };
-
-  // Done sessions take the name of what was actually logged.
-  for (const w of live.filter((w) => w.sport === "lift" && w.state === "done")) {
-    const k = logKindOn.get(w.date);
-    if (k && k !== "full") relabel(w, k);
-  }
-
-  const legsPerWeek = input.settings.legs_per_week ?? 1;
-  // The next two weeks follow reality; later weeks keep their generated order
-  // until they come into range (so one change doesn't rewrite the whole plan).
-  const horizon = addDays(mondayOf(today), 13);
-  const slots = live.filter((w) => w.sport === "lift" && (w.state === "upcoming" || w.state === "today") && w.date <= horizon);
-  let lastUpper: LiftKind | null = logs.filter((l) => l.kind === "push" || l.kind === "pull").at(-1)?.kind ?? null;
-  let lastLegs: string | null = logs.filter((l) => l.kind === "legs").at(-1)?.date ?? null;
-  const weeks = [...new Set(slots.map((w) => mondayOf(w.date)))].sort();
-  for (const week of weeks) {
-    const weekSlots = slots.filter((w) => mondayOf(w.date) === week).sort((a, b) => a.date.localeCompare(b.date));
-    const legsDone = logs.filter((l) => l.kind === "legs" && mondayOf(l.date) === week).length;
-    const kinds = liftKinds({
-      dates: weekSlots.map((w) => w.date),
-      hardRunDates,
-      legsNeeded: legsPerWeek - legsDone,
-      lastUpper,
-      lastLegs,
-      light: weekSlots.map((w) => w.phase === "taper" || w.phase === "race"),
-    });
-    weekSlots.forEach((w, k) => relabel(w, kinds[k]!));
-    lastLegs = [...weekSlots].reverse().find((_, k) => kinds[weekSlots.length - 1 - k] === "legs")?.date ?? lastLegs;
-    lastUpper = [...kinds].reverse().find((k) => k === "push" || k === "pull") ?? lastUpper;
-  }
-  if (!ops.length) return null;
-  return {
-    key: `lifts:${today}:${shown.join(",") || "later"}`,
-    title: "Lifts reordered",
-    reason: shown.length
-      ? `Following what you logged (Push / Pull / Legs): ${shown.join(", ")}.`
-      : "Later lift days re-ordered to keep Push / Pull / Legs in rotation.",
-    ops,
-  };
+/** Done sessions from 3 days before the week through its end (spacing context). */
+function bookedNear(live: AdaptWorkout[], week: string): Booked[] {
+  return live
+    .filter((w) => w.state === "done" && w.date >= addDays(week, -3) && w.date <= addDays(week, 6))
+    .map((w) => ({ date: w.date, sport: w.sport, kind: w.kind }));
 }
