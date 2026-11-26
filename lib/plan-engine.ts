@@ -90,31 +90,41 @@ export function parseRunWalk(notes: string | null): { run: number; walk: number 
   return m ? { run: Number(m[1]), walk: Number(m[2]) } : null;
 }
 
-export function runWalkSteps(duration: number, run: number, walk: number, easy: string | null): WorkoutStep[] {
-  const reps = Math.max(1, Math.round((duration - 10) / (run + walk)));
-  return [
-    { label: "Warm-up walk", minutes: 5 },
-    {
+/**
+ * Run/walk exactly as planned: "5 min run / 1 min walk" for 42 min is 7
+ * rounds. Minutes that don't fill a round end as a run; "last N min
+ * continuous" becomes a final continuous run. No warm-up / cool-down.
+ */
+export function runWalkSteps(duration: number, run: number, walk: number, easy: string | null, continuousTail = 0): WorkoutStep[] {
+  const tail = Math.min(Math.max(0, continuousTail), duration);
+  const body = duration - tail;
+  const reps = Math.floor(body / (run + walk));
+  const rem = Math.round((body - reps * (run + walk)) * 10) / 10;
+  const out: WorkoutStep[] = [];
+  if (reps > 0) {
+    out.push({
       label: `Run ${run} / walk ${walk}`,
       repeat: reps,
       steps: [
         { label: "Run", minutes: run, target: easy },
         { label: "Walk", minutes: walk },
       ],
-    },
-    { label: "Cool-down walk", minutes: 5 },
-  ];
+    });
+  }
+  if (rem + tail > 0) out.push({ label: tail ? "Continuous run" : "Run", minutes: rem + tail, target: easy });
+  return out;
 }
+
+/** "last 10 min continuous" → 10. */
+export const continuousTail = (notes: string | null) => Number(notes?.match(/last\s+(\d+)\s*min(?:utes?)?\s+continuous/i)?.[1] ?? 0);
 
 export const easySteps = (duration: number, easy: string | null, strides = false): WorkoutStep[] => [
   { label: "Easy run", minutes: duration - (strides ? 4 : 0), target: easy },
   ...(strides ? [{ label: "Strides", repeat: 6, steps: [{ label: "Stride", minutes: 0.33, target: "relaxed fast" }, { label: "Walk back", minutes: 0.5 }] }] : []),
 ];
 
-function rwItemToWorkout(item: RunWalkItem, date: string, t: ReturnType<typeof targets>): Omit<GeneratedWorkout, "week_index"> {
+export function rwItemToWorkout(item: RunWalkItem, date: string, t: ReturnType<typeof targets>): Omit<GeneratedWorkout, "week_index"> {
   const rw = parseRunWalk(item.notes);
-  const easy = t.easy;
-  const duration = item.duration_min ?? (item.distance_km ? Math.round(item.distance_km * 8) : 30);
   const isTest = /time trial|5k test|test/i.test(item.notes ?? "") && item.run_type === "tempo";
   if (isTest) {
     return {
@@ -123,28 +133,26 @@ function rwItemToWorkout(item: RunWalkItem, date: string, t: ReturnType<typeof t
       kind: "test",
       title: "5K time trial",
       phase: "run_walk",
-      duration_min: 45,
-      distance_km: 5,
-      steps: [
-        { label: "Warm-up (easy)", minutes: 10, target: t.easy },
-        { label: "5K time trial — even effort, last mile hardest", minutes: null, target: "Best sustainable pace" },
-        { label: "Cool-down walk", minutes: 10 },
-      ],
+      duration_min: item.duration_min ?? 35,
+      distance_km: item.distance_km ?? 5,
+      steps: [{ label: "5K time trial — even effort, last mile hardest", minutes: null, target: "Best sustainable pace" }],
       notes: item.notes,
     };
   }
-  const kind = rw ? "run_walk" : item.run_type === "long" ? "long" : "easy";
-  const steps = rw ? runWalkSteps(duration, rw.run, rw.walk, easy) : easySteps(duration, easy, /stride/i.test(item.notes ?? ""));
-  // The title / duration follow the actual steps (repeats round down).
-  const minutes = stepsMinutes(steps) ?? duration;
-  const label = rw ? `Run/walk ${rw.run}:${rw.walk}` : item.run_type === "long" ? "Long run" : "Easy run";
+  // The queued minutes are the session — no rounding, no warm-up.
+  const duration = item.duration_min ?? (item.distance_km ? Math.round(item.distance_km * 8) : 30);
+  const long = item.run_type === "long";
+  const steps = rw
+    ? runWalkSteps(duration, rw.run, rw.walk, t.easy, continuousTail(item.notes))
+    : easySteps(duration, t.easy, /stride/i.test(item.notes ?? ""));
+  const label = rw ? `${long ? "Long run/walk" : "Run/walk"} ${rw.run}:${rw.walk}` : long ? "Long run" : "Easy run";
   return {
     date,
     sport: "run",
-    kind: item.run_type === "long" && rw ? "long_run_walk" : kind,
-    title: `${item.run_type === "long" && rw ? "Long " : ""}${label} · ${minutes} min`.replace("Long Run/walk", "Long run/walk"),
+    kind: rw ? (long ? "long_run_walk" : "run_walk") : long ? "long" : "easy",
+    title: `${label} · ${duration} min`,
     phase: "run_walk",
-    duration_min: minutes,
+    duration_min: duration,
     distance_km: item.distance_km,
     steps,
     notes: item.notes,
@@ -600,13 +608,9 @@ function qualitySession(
       kind: "tempo",
       title: "Tempo 2 × 8 min",
       phase,
-      duration_min: 40,
+      duration_min: 20,
       distance_km: null,
-      steps: [
-        { label: "Warm-up", minutes: 10, target: t.easy },
-        { label: "Tempo", repeat: 2, steps: [{ label: "Threshold", minutes: 8, target: t.threshold }, { label: "Easy jog", minutes: 2 }] },
-        { label: "Cool-down", minutes: 10, target: t.easy },
-      ],
+      steps: [{ label: "Tempo", repeat: 2, steps: [{ label: "Threshold", minutes: 8, target: t.threshold }, { label: "Easy jog", minutes: 2 }] }],
       notes: null,
     };
   }
@@ -618,13 +622,9 @@ function qualitySession(
       kind: "tempo",
       title: `Tempo ${work} min`,
       phase,
-      duration_min: work + 20,
+      duration_min: work,
       distance_km: null,
-      steps: [
-        { label: "Warm-up", minutes: 10, target: t.easy },
-        { label: "Continuous tempo", minutes: work, target: t.threshold },
-        { label: "Cool-down", minutes: 10, target: t.easy },
-      ],
+      steps: [{ label: "Continuous tempo", minutes: work, target: t.threshold }],
       notes: null,
     };
   }
@@ -637,13 +637,9 @@ function qualitySession(
       kind: "tempo",
       title: `Tempo ${reps} × ${mins} min`,
       phase,
-      duration_min: 20 + reps * (mins + 2),
+      duration_min: reps * (mins + 2),
       distance_km: null,
-      steps: [
-        { label: "Warm-up", minutes: 10, target: t.easy },
-        { label: "Tempo", repeat: reps, steps: [{ label: "Threshold", minutes: mins, target: t.threshold }, { label: "Easy jog", minutes: 2 }] },
-        { label: "Cool-down", minutes: 10, target: t.easy },
-      ],
+      steps: [{ label: "Tempo", repeat: reps, steps: [{ label: "Threshold", minutes: mins, target: t.threshold }, { label: "Easy jog", minutes: 2 }] }],
       notes: null,
     };
   }
@@ -654,13 +650,9 @@ function qualitySession(
     kind: "intervals",
     title: `Intervals ${reps} × 3 min`,
     phase,
-    duration_min: 20 + reps * 5,
+    duration_min: reps * 5,
     distance_km: null,
-    steps: [
-      { label: "Warm-up", minutes: 10, target: t.easy },
-      { label: "Intervals", repeat: reps, steps: [{ label: "Hard", minutes: 3, target: t.interval }, { label: "Easy jog", minutes: 2 }] },
-      { label: "Cool-down", minutes: 10, target: t.easy },
-    ],
+    steps: [{ label: "Intervals", repeat: reps, steps: [{ label: "Hard", minutes: 3, target: t.interval }, { label: "Easy jog", minutes: 2 }] }],
     notes: null,
   };
 }
