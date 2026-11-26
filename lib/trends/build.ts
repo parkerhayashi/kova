@@ -461,6 +461,53 @@ function caloriesVsWeight(
   };
 }
 
+/** Recovery / Strain correlations and trend (Kova's Performance scores). */
+function performanceViews(input: TrendsInput): { correlations: CorrelationView[]; trend: DualTrendView | null } {
+  const perf = (input.performance ?? []).filter((p) => p.date <= input.today);
+  if (!perf.length) return { correlations: [], trend: null };
+  const recovery = new Map(perf.filter((p) => p.recovery != null).map((p) => [p.date, p.recovery!]));
+  const sleepScore = new Map(input.sleep.filter((s) => s.score != null).map((s) => [s.date, s.score!]));
+  const nextDay = (xs: Map<string, number>) =>
+    [...xs]
+      .map(([d, x]) => ({ d, x, y: recovery.get(addDays(d, 1)) }))
+      .filter((p): p is { d: string; x: number; y: number } => p.y != null)
+      .map((p) => ({ label: shortDate(p.d), x: Math.round(p.x * 10) / 10, y: p.y }));
+  const strain = new Map(perf.filter((p) => p.strain > 0).map((p) => [p.date, p.strain]));
+  const sameDay = [...sleepScore]
+    .map(([d, x]) => ({ d, x, y: recovery.get(d) }))
+    .filter((p): p is { d: string; x: number; y: number } => p.y != null)
+    .map((p) => ({ label: shortDate(p.d), x: p.x, y: p.y }));
+  return {
+    correlations: [
+      buildCorrelation(
+        { id: "strain-next-recovery", title: "Strain vs. next-day Recovery", subtitle: "How hard days land the next morning", xLabel: "Strain", yLabel: "Recovery", xAccent: "activity", yAccent: "recovery", minPairs: 5 },
+        nextDay(strain),
+      ),
+      buildCorrelation(
+        { id: "sleep-recovery", title: "Sleep score vs. Recovery", subtitle: "Last night's sleep vs. this morning's Recovery", xLabel: "Sleep score", yLabel: "Recovery", xAccent: "sleep", yAccent: "recovery", minPairs: 5 },
+        sameDay,
+      ),
+      buildCorrelation(
+        { id: "calories-next-recovery", title: "Calories vs. next-day Recovery", subtitle: "Food in vs. how recovered you wake up", xLabel: "Calories", yLabel: "Recovery", xAccent: "nutrition", yAccent: "recovery", minPairs: 5 },
+        nextDay(input.caloriesByDay),
+      ),
+    ],
+    trend: {
+      id: "recovery-strain",
+      title: "Recovery vs. Strain",
+      subtitle: "Kova's daily Recovery score with each day's Strain",
+      labels: perf.map((p) => shortDate(p.date)),
+      primary: perf.map((p) => p.strain),
+      secondary: perf.map((p) => p.recovery),
+      primaryLabel: "Strain",
+      secondaryLabel: "Recovery",
+      primaryAccent: "activity",
+      secondaryAccent: "recovery",
+      primaryAsBars: true,
+    },
+  };
+}
+
 export function buildTrendsPayload(
   input: TrendsInput,
   range: TrendRange,
@@ -470,6 +517,7 @@ export function buildTrendsPayload(
     input.supplementLogs,
     input.supplementCount,
   );
+  const perfViews = performanceViews(input);
 
   return {
     range,
@@ -482,6 +530,7 @@ export function buildTrendsPayload(
       today: input.today,
     }),
     correlations: [
+      ...perfViews.correlations,
       sleepVsNextReadiness(input.sleep, input.readiness),
       stressVsHrv(input.activity, input.readiness),
       sleepVsActivity(input.sleep, input.activity),
@@ -506,6 +555,7 @@ export function buildTrendsPayload(
       ),
     ],
     dualTrends: [
+      ...(perfViews.trend ? [perfViews.trend] : []),
       buildNutritionCaloriesVsWeight(input.caloriesByDay, input.weight),
       buildNutritionProteinVsWeight(input.proteinByDay, input.weight),
       caloriesVsWeight(input.activity, input.weight),

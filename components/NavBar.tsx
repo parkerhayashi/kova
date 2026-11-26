@@ -13,6 +13,7 @@ import {
   Flame,
   Footprints,
   Gauge,
+  Lightbulb,
   HeartPulse,
   LayoutDashboard,
   LogOut,
@@ -63,6 +64,7 @@ const OURA_CHILDREN: NavLeaf[] = [
 const TRAINING_CHILDREN: NavLeaf[] = [
   { type: "link", href: "/training", label: "Calendar", icon: CalendarDays },
   { type: "link", href: "/performance", label: "Performance", icon: Gauge },
+  { type: "link", href: "/insights", label: "Insights", icon: Lightbulb },
   { type: "link", href: "/workouts", label: "Workouts", icon: Dumbbell },
   { type: "link", href: "/running", label: "Running", icon: Footprints },
   { type: "link", href: "/cycling", label: "Cycling", icon: Bike },

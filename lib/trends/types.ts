@@ -30,6 +30,8 @@ export interface TrendsInput {
   caloriesByDay: Map<string, number>;
   /** Logged / imported runs in the range. */
   runs: ActualRun[];
+  /** Kova's daily Recovery (0–100) and Strain (0–21) — the Performance engine. */
+  performance?: { date: string; recovery: number | null; strain: number }[];
   today: string;
 }
 

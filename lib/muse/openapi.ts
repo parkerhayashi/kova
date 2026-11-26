@@ -303,6 +303,17 @@ export function museOpenApi() {
           responses: { "200": { description: "Logged" }, "400": { description: "Invalid — nothing logged" } },
         },
       },
+      "/api/muse/insights": {
+        get: {
+          operationId: "getInsights",
+          summary: "Weekly report + nutrition ↔ performance insights",
+          description:
+            "report: one week (default this week; previous_week is the finished one) — plan compliance, load vs last week, fitness / form, Recovery, HRV, resting HR, sleep, nutrition adherence, running and % easy, plus plain-language highlights. insights: energy availability (cut safety), long-run fueling vs target, carbs the day before vs run efficiency, calorie deficit vs next-morning HRV / resting HR, protein vs next-day Recovery — each with status ok / warning / needs_data and the number of data pairs behind it. Correlations, not proof; say so.",
+          security: bearer,
+          parameters: [{ name: "week", in: "query", required: false, schema: { type: "string", format: "date" }, description: "Any date in the week (last 12 weeks)." }],
+          responses: { "200": { description: "Report and insights" } },
+        },
+      },
       "/api/muse/trends": {
         get: {
           operationId: "getTrends",

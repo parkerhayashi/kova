@@ -46,6 +46,8 @@ export type PerformanceData = {
   /** Shown window, oldest first. */
   fitness: FitnessPoint[];
   recoveryHistory: RecoveryDay[];
+  /** Every day of the window, oldest first: load, Recovery, Strain, fitness, form. */
+  daily: { date: string; load: number; recovery: number | null; strain: number; fitness: number; form: number }[];
   /** Load by sport per week (Monday start), last 8 weeks. */
   weeklyLoad: { week: string; run: number; ride: number; lift: number }[];
   /** Minutes in HR zones 1–5 per week, last 6 weeks (runs + rides + Garmin lifts). */
@@ -148,10 +150,11 @@ export const getPerformance = cache(async function getPerformance(days = 90): Pr
     });
   };
 
-  const recoveryHistory: RecoveryDay[] = [];
-  for (let d = addDays(today, -29); d <= today; d = addDays(d, 1)) {
-    recoveryHistory.push({ date: d, score: recoveryOn(d).score, strain: strainScore(loadByDate.get(d)?.total ?? 0) });
-  }
+  const daily: PerformanceData["daily"] = fitness.map((f) => {
+    const load = loadByDate.get(f.date)?.total ?? 0;
+    return { date: f.date, load: Math.round(load), recovery: recoveryOn(f.date).score, strain: strainScore(load), fitness: f.fitness, form: f.form };
+  });
+  const recoveryHistory: RecoveryDay[] = daily.slice(-30).map((d) => ({ date: d.date, score: d.recovery, strain: d.strain }));
   const recovery = recoveryOn(today);
   const todayLoad = loadByDate.get(today)?.total ?? 0;
 
@@ -226,6 +229,7 @@ export const getPerformance = cache(async function getPerformance(days = 90): Pr
     current,
     fitness,
     recoveryHistory,
+    daily,
     weeklyLoad,
     weeklyZones,
     vo2max,

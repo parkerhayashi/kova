@@ -14,6 +14,7 @@ import {
 } from "@/lib/data/tracking";
 import { getLiftingDashboard } from "@/lib/data/workouts";
 import { getNutritionByDay } from "@/lib/data/nutrition";
+import { getPerformance } from "@/lib/data/performance";
 import { getRecentActualRuns } from "@/lib/data/running";
 import { todayInTimezone } from "@/lib/utils";
 import { buildTrendsPayload } from "@/lib/trends/build";
@@ -41,6 +42,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     wearableConnected,
     runs,
     timezone,
+    performance,
   ] = await Promise.all([
     getSleepHistory(range),
     getGarminDailyHistory(range),
@@ -56,6 +58,8 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     // Running is additive — Trends still renders if the runs table is unavailable.
     getRecentActualRuns(range).catch(() => []),
     getTimezone(),
+    // Recovery / Strain are additive too.
+    getPerformance(90).catch(() => null),
   ]);
 
   const { proteinByDay, caloriesByDay } = nutritionByDay;
@@ -96,6 +100,7 @@ export async function getTrendsPayload(range: TrendRange): Promise<TrendsPayload
     proteinByDay,
     caloriesByDay,
     runs,
+    performance: performance?.daily.slice(-range),
     today: todayInTimezone(timezone),
   };
 

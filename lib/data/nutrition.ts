@@ -503,6 +503,7 @@ export async function getMealsSince(days: number): Promise<Meal[]> {
 export const getNutritionByDay = cache(async function getNutritionByDay(days: number): Promise<{
   caloriesByDay: Map<string, number>;
   proteinByDay: Map<string, number>;
+  carbsByDay: Map<string, number>;
 }> {
   const timezone = await getTimezone();
   const since = addDays(todayInTimezone(timezone), -(days - 1));
@@ -517,6 +518,7 @@ export const getNutritionByDay = cache(async function getNutritionByDay(days: nu
 
   const caloriesByDay = new Map<string, number>();
   const proteinByDay = new Map<string, number>();
+  const carbsByDay = new Map<string, number>();
   const mealsByDate = new Map<string, Meal[]>();
   for (const meal of meals) {
     const list = mealsByDate.get(meal.date) ?? [];
@@ -541,8 +543,10 @@ export const getNutritionByDay = cache(async function getNutritionByDay(days: nu
     const alcohol = alcoholByDay.get(date) ?? 0;
     const calories = Math.round((merged.calories ?? 0) + alcohol);
     const protein = Math.round(merged.protein_g ?? 0);
+    const carbs = Math.round(merged.carbs_g ?? 0);
     if (calories > 0) caloriesByDay.set(date, calories);
     if (protein > 0) proteinByDay.set(date, protein);
+    if (carbs > 0) carbsByDay.set(date, carbs);
   }
 
   for (const [date, logs] of logsByDate) {
@@ -554,8 +558,10 @@ export const getNutritionByDay = cache(async function getNutritionByDay(days: nu
     const alcohol = alcoholByDay.get(date) ?? 0;
     const calories = Math.round((merged.calories ?? 0) + alcohol);
     const protein = Math.round(merged.protein_g ?? 0);
+    const carbs = Math.round(merged.carbs_g ?? 0);
     if (calories > 0) caloriesByDay.set(date, calories);
     if (protein > 0) proteinByDay.set(date, protein);
+    if (carbs > 0) carbsByDay.set(date, carbs);
   }
 
   for (const [date, alcohol] of alcoholByDay) {
@@ -565,11 +571,11 @@ export const getNutritionByDay = cache(async function getNutritionByDay(days: nu
 
   // Gels and other on-run fuel count as intake.
   for (const [date, intake] of runIntakeByDay) {
-    if (intake.kcal <= 0) continue;
-    caloriesByDay.set(date, Math.round((caloriesByDay.get(date) ?? 0) + intake.kcal));
+    if (intake.kcal > 0) caloriesByDay.set(date, Math.round((caloriesByDay.get(date) ?? 0) + intake.kcal));
+    if (intake.carbs_g > 0) carbsByDay.set(date, Math.round((carbsByDay.get(date) ?? 0) + intake.carbs_g));
   }
 
-  return { caloriesByDay, proteinByDay };
+  return { caloriesByDay, proteinByDay, carbsByDay };
 });
 
 /** Daily protein totals keyed by date (meals + supplements). */
