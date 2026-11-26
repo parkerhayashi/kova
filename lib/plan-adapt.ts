@@ -179,6 +179,8 @@ export type ReconcileInput = {
   recovery: number | null;
   /** Worst active lower-body pain (0–10), if any. */
   lowerPain: number | null;
+  /** Logged runs / lifts / rides (spacing context, incl. before the plan). */
+  logged?: Booked[];
   /** Keys of adjustments already applied (each one-time rule fires once). */
   appliedKeys: Set<string>;
 };
@@ -317,7 +319,14 @@ export function reconcile(input: ReconcileInput): Proposal[] {
   }
 
   // 4. Re-flow what's left of this week over the days left (silent), around pinned sessions.
-  const ops = reflowWeek(live, week, { today, raceDate: input.raceDate, settings: input.settings, recovery: input.recovery, lowerPain: input.lowerPain });
+  const ops = reflowWeek(live, week, {
+    today,
+    raceDate: input.raceDate,
+    settings: input.settings,
+    recovery: input.recovery,
+    lowerPain: input.lowerPain,
+    logged: input.logged,
+  });
   if (ops.length) return [{ key: `reflow:${today}`, title: "", reason: "", ops, silent: true }];
   return [];
 }
@@ -326,41 +335,117 @@ export function reconcile(input: ReconcileInput): Proposal[] {
 const pinnedAhead = (w: AdaptWorkout, today: string) => !!w.pinned && pending(w) && w.date >= today;
 
 /**
- * New dates for one week's unpinned, not-yet-done sessions over the days left
- * (from today for this week, the whole week for a later one). Done and pinned
- * sessions stay put and shape the spacing. Low Recovery keeps today easy; very
- * low Recovery or lower-body pain 6+ leaves today empty.
+ * Re-plan one week with as little change as possible. Each unpinned, not-yet-
+ * done session keeps its day unless that day now conflicts; then it moves to
+ * the next workable day — later first, so moving one session pushes the next
+ * one back rather than pulling it forward. Done, pinned and logged sessions
+ * (including ones before the plan or off-plan) stay put and shape the spacing.
+ *
+ * Hard conflicts: two runs or two lifts on one day, two hard runs on
+ * neighbouring days, Legs the day before a long / hard run, a hard run on a
+ * low-Recovery today, anything on a forced rest day. Soft: a run next to
+ * another run, Legs right after a long run or within 2 days of Legs.
  */
 export function reflowWeek(
   live: AdaptWorkout[],
   week: string,
-  opts: { today: string; raceDate: string; settings: PlanSettings; recovery?: number | null; lowerPain?: number | null },
+  opts: {
+    today: string;
+    raceDate: string;
+    settings: PlanSettings;
+    recovery?: number | null;
+    lowerPain?: number | null;
+    logged?: Booked[];
+  },
 ): PlanOp[] {
   const { today } = opts;
   const end = [addDays(week, 6), addDays(opts.raceDate, -1)].sort()[0]!;
   const from = week > today ? week : today;
   if (from > end) return [];
-  const items = live.filter(
-    (w) => pending(w) && !pinnedAhead(w, today) && w.kind !== "race" && w.date >= week && w.date <= addDays(week, 6),
-  );
+  const items = live
+    .filter((w) => pending(w) && !pinnedAhead(w, today) && w.kind !== "race" && w.date >= week && w.date <= addDays(week, 6))
+    .sort((a, b) => priority(a) - priority(b) || a.date.localeCompare(b.date));
   if (!items.length) return [];
   const isThisWeek = week === mondayOf(today);
   const lowRecovery = isThisWeek && opts.recovery != null && opts.recovery < 45;
-  const rest = isThisWeek && ((opts.recovery != null && opts.recovery < 35) || (opts.lowerPain ?? 0) >= 6);
-  const dates = scheduleWeek({
-    items: items
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .map((w, i) => ({ id: w.id, sport: w.sport, kind: w.kind, duration_min: w.duration_min, seq: i })),
-    days: dayRange(from, end),
-    booked: bookedNear(live, week, today),
-    weekendLongMin: planCounts(opts.settings).weekendLongMin,
-    avoidHard: lowRecovery ? new Set([today]) : undefined,
-    rest: rest ? new Set([today]) : undefined,
-  });
+  const restToday = isThisWeek && ((opts.recovery != null && opts.recovery < 35) || (opts.lowerPain ?? 0) >= 6);
+  const days = dayRange(from, end);
+
+  // Fixed context: done + pinned plan sessions, and everything logged nearby.
+  const near = (d: string) => d >= addDays(week, -3) && d <= addDays(week, 7);
+  const fixed: Booked[] = [
+    ...live.filter((w) => (w.state === "done" || pinnedAhead(w, today)) && near(w.date)).map(asBooked),
+    ...(opts.logged ?? []).filter((l) => near(l.date)),
+  ];
+  // Where every unpinned session sits right now (updated as they move).
+  const at = new Map(items.map((w) => [w.id, w.date]));
+
+  const others = (self: AdaptWorkout): Booked[] => [
+    ...fixed,
+    ...items.filter((w) => w !== self).map((w) => ({ ...asBooked(w), date: at.get(w.id)! })),
+  ];
+  const score = (w: AdaptWorkout, d: string): number => {
+    const ctx = others(w);
+    const on = (day: string, pred: (b: Booked) => boolean) => ctx.some((b) => b.date === day && pred(b));
+    const isRunB = (b: Booked) => b.sport === "run";
+    const isHardB = (b: Booked) => b.sport === "run" && isHardKind(b.kind);
+    let hard = 0;
+    let soft = 0;
+    if (restToday && d === today) hard++;
+    if (w.sport === "run") {
+      if (on(d, isRunB)) hard++;
+      const hardRun = isHardKind(w.kind);
+      if (hardRun && lowRecovery && d === today) hard++;
+      if (hardRun && (on(addDays(d, -1), isHardB) || on(addDays(d, 1), isHardB))) hard++;
+      if (hardRun && on(addDays(d, -1), (b) => b.sport === "lift" && b.kind === "legs")) hard++;
+      if (on(addDays(d, -1), isRunB)) soft++;
+      if (on(addDays(d, 1), isRunB)) soft++;
+    } else if (w.sport === "lift") {
+      if (on(d, (b) => b.sport === "lift")) hard++;
+      if (w.kind === "legs") {
+        if (on(addDays(d, 1), isHardB)) hard++;
+        if (on(addDays(d, -1), (b) => b.sport === "run" && b.kind.startsWith("long"))) soft++;
+        if ([-2, -1, 1, 2].some((n) => on(addDays(d, n), (b) => b.sport === "lift" && b.kind === "legs"))) soft++;
+      }
+    } else if (on(d, (b) => b.sport === "ride")) hard++;
+    return hard * 100 + soft * 10;
+  };
+
+  for (const w of items) {
+    const cur = at.get(w.id)!;
+    // Keep the day if it works; otherwise later days first, then earlier ones.
+    const candidates = [
+      ...(cur >= from && cur <= end ? [cur] : []),
+      ...days.filter((d) => d > cur),
+      ...days.filter((d) => d < cur).reverse(),
+    ];
+    let best = candidates[0] ?? end;
+    let bestScore = Infinity;
+    candidates.forEach((d, i) => {
+      // Moving costs a little; moving earlier a little more — ties keep the day or push later.
+      const sc = score(w, d) + (d === cur ? 0 : 1) + (d < cur ? 2 : 0) + i * 0.001;
+      if (sc < bestScore) {
+        bestScore = sc;
+        best = d;
+      }
+    });
+    at.set(w.id, best);
+  }
+  // Run/walk levels stay in order: the days may change, the sequence doesn't.
+  const rw = items.filter(isRunWalk).sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+  const rwDays = rw.map((w) => at.get(w.id)!).sort();
+  rw.forEach((w, i) => at.set(w.id, rwDays[i]!));
   return items
-    .filter((w) => dates.get(w.id) && dates.get(w.id) !== w.date)
-    .map((w): PlanOp => ({ op: "update", id: w.id, changes: { date: dates.get(w.id)! } }));
+    .filter((w) => at.get(w.id) !== w.date)
+    .map((w): PlanOp => ({ op: "update", id: w.id, changes: { date: at.get(w.id)! } }));
 }
+
+const QUALITY_KINDS_ADAPT = new Set(["tempo", "intervals", "test"]);
+const isHardKind = (kind: string) => kind.startsWith("long") || QUALITY_KINDS_ADAPT.has(kind);
+/** Hard runs place first, then runs, legs, other lifts, rides. */
+const priority = (w: PlanWorkout) =>
+  w.sport === "run" ? (isHardKind(w.kind) ? 0 : 1) : w.sport === "lift" ? (w.kind === "legs" ? 2 : 3) : 4;
+const asBooked = (w: PlanWorkout): Booked => ({ date: w.date, sport: w.sport, kind: w.kind });
 
 /** Done and pinned sessions from 3 days before the week through its end (spacing context). */
 function bookedNear(live: AdaptWorkout[], week: string, today: string): Booked[] {

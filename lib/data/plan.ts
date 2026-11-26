@@ -8,7 +8,7 @@ import { getPerformance } from "@/lib/data/performance";
 import { deletePlannedRun, getUpcomingRace, savePlannedRun, type UpcomingRace } from "@/lib/data/running";
 import { injuryName, isLowerBody } from "@/lib/injuries";
 import { proposeChanges, reconcile, reflowWeek, type AdaptWorkout, type Proposal, type WorkoutState } from "@/lib/plan-adapt";
-import { classifyLift, fuelRunType, generatePlan, mondayOf, planCounts, targets, type LiftKind, type RunWalkItem } from "@/lib/plan-engine";
+import { classifyLift, fuelRunType, generatePlan, mondayOf, planCounts, targets, type Booked, type LiftKind, type RunWalkItem } from "@/lib/plan-engine";
 import { qualifiesForFueling, raceTitle } from "@/lib/run-fuel";
 import { addDays, daysBetween, formatIsoDateLabel, normalizeIsoDate, todayInTimezone } from "@/lib/utils";
 import type { ActualRun, PlanOp, PlanSettings, PlanSuggestion, PlanWorkout, TrainingPlan } from "@/types";
@@ -25,6 +25,8 @@ export type PlanWorkoutView = AdaptWorkout & {
 export type ActivePlan = {
   plan: TrainingPlan;
   workouts: PlanWorkoutView[];
+  /** Logged runs / lifts / rides (from a week before the plan) — spacing context. */
+  logged: Booked[];
   suggestions: PlanSuggestion[];
   /** Changes Kova made on its own in the last week, newest first. */
   adjustments: PlanSuggestion[];
@@ -57,7 +59,11 @@ async function loadPlan(): Promise<{ plan: TrainingPlan; workouts: PlanWorkout[]
  * Match logged activities to planned workouts: same day first, then a run
  * done a day early / late counts for an unmatched planned run.
  */
-type Matched = { workouts: PlanWorkoutView[] };
+type Matched = {
+  workouts: PlanWorkoutView[];
+  /** Everything logged from a week before the plan on — re-planning spaces around it. */
+  logged: Booked[];
+};
 
 /**
  * Plans are weekly targets, so matching is by week: whatever was logged in a
@@ -67,9 +73,10 @@ type Matched = { workouts: PlanWorkoutView[] };
  * is over.
  */
 async function matchWorkouts(workouts: PlanWorkout[], today: string, planStart: string): Promise<Matched> {
-  if (workouts.length === 0) return { workouts: [] };
-  // Only what was logged once the plan started counts toward it.
-  const start = planStart;
+  if (workouts.length === 0) return { workouts: [], logged: [] };
+  // Only what was logged once the plan started counts toward it, but the week
+  // before still shapes spacing (a run yesterday matters on the first day).
+  const start = addDays(planStart, -7);
   const end = today;
   const db = createServiceClient();
   const [runRes, garmin, lifts] = await Promise.all([
@@ -98,7 +105,7 @@ async function matchWorkouts(workouts: PlanWorkout[], today: string, planStart: 
   const matched = new Map<string, Done>();
   const live = workouts.filter((w) => w.status !== "skipped");
   const byDate = (a: PlanWorkout, b: PlanWorkout) => a.date.localeCompare(b.date);
-  for (const done of pool) {
+  for (const done of pool.filter((d) => d.date >= planStart)) {
     const week = mondayOf(done.date);
     const open = live
       .filter((w) => !matched.has(w.id) && w.sport === done.sport && mondayOf(w.date) === week)
@@ -133,7 +140,12 @@ async function matchWorkouts(workouts: PlanWorkout[], today: string, planStart: 
       actual: hit ? { title: hit.title, minutes: Math.round(hit.minutes), source: hit.sport } : null,
     };
   });
-  return { workouts: views };
+  const logged: Booked[] = pool.map((d) => ({
+    date: d.date,
+    sport: d.sport,
+    kind: d.sport === "run" ? (d.minutes >= 60 ? "long" : "easy") : d.sport === "lift" ? (d.kind ?? "full") : "endurance",
+  }));
+  return { workouts: views, logged };
 }
 
 async function buildActivePlan(): Promise<ActivePlan | null> {
@@ -147,13 +159,14 @@ async function buildActivePlan(): Promise<ActivePlan | null> {
     db.from("plan_reviews").select("week_start, summary").eq("plan_id", loaded.plan.id).order("week_start", { ascending: false }).limit(1).maybeSingle(),
     getUpcomingRace(today),
   ]);
-  const { workouts } = matched;
+  const { workouts, logged } = matched;
   const rows = (sugg.data as PlanSuggestion[]) ?? [];
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const current = workouts.find((w) => w.date >= today) ?? workouts.at(-1);
   return {
     plan: loaded.plan,
     workouts,
+    logged,
     suggestions: rows.filter((r) => r.status === "pending" && r.source !== "auto"),
     adjustments: rows.filter((r) => r.source === "auto" && r.created_at >= weekAgo).reverse(),
     review: (review.data as { week_start: string; summary: string } | null) ?? null,
@@ -195,6 +208,7 @@ export async function reconcilePlan(opts: { dryRun?: boolean } = {}): Promise<nu
       easyTarget,
       recovery: perf.recovery.score,
       lowerPain,
+      logged: built.logged,
       appliedKeys: new Set(((keys as { key: string }[]) ?? []).map((k) => k.key)),
     });
     if (opts.dryRun) return proposals;
@@ -405,7 +419,13 @@ async function reflowWeeks(plan: TrainingPlan, weeks: string[], today: string): 
   const ops = [...new Set(weeks)]
     .filter((wk) => wk >= mondayOf(today))
     .flatMap((wk) =>
-      reflowWeek(active.workouts, wk, { today, raceDate: active.race!.date, settings: plan.settings, recovery: perf.recovery.score }),
+      reflowWeek(active.workouts, wk, {
+        today,
+        raceDate: active.race!.date,
+        settings: plan.settings,
+        recovery: perf.recovery.score,
+        logged: active.logged,
+      }),
     );
   await applyOps(plan.id, ops);
 }
